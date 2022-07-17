@@ -1,0 +1,243 @@
+﻿<Page
+    x:Class="Hitomi_Scroll_Viewer.SearchPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Hitomi_Scroll_Viewer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <ScrollViewer x:Name="MainScrollViewer">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <!--1-->
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <!--12-->
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="IncludeTagGrid"
+                      Grid.Row="0"
+                      Grid.RowSpan="11"
+                      Grid.Column="0"
+                      BorderBrush="Black"
+                      BorderThickness="1"
+                      Margin="5"
+                      />
+                <Grid x:Name="ExcludeTagGrid"
+                      Grid.Row="0"
+                      Grid.RowSpan="11"
+                      Grid.Column="1"
+                      BorderBrush="Black"
+                      BorderThickness="1"
+                      Margin="5"
+                      />
+                <Grid Grid.Row="11" Height="30"/>
+                <!--margin-->
+            </Grid>
+            <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <!--1-->
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <!--8-->
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <!--1-->
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <!--12-->
+                </Grid.ColumnDefinitions>
+                <Button Grid.Row="0" HorizontalAlignment="Stretch"
+                        Grid.Column="1" Grid.ColumnSpan="10" VerticalAlignment="Top"
+                        Click="GenerateHyperlink"
+                        Height="100"
+                        FontSize="18"
+                        Content="Generate Link"
+                        />
+                <StackPanel x:Name="GeneratedHyperlinks"
+                            Grid.Row="1" Grid.RowSpan="7"  HorizontalAlignment="Stretch"
+                            Grid.Column="1" Grid.ColumnSpan="10" VerticalAlignment="Top"
+                            Orientation="Vertical"
+                />
+            </Grid>
+            <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <!--1-->
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <!--12-->
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="GalleryIDTextBox"
+                         Grid.Column="1"
+                         Grid.ColumnSpan="6"
+                         HorizontalAlignment="Stretch"
+                         KeyDown="HandleGalleryIDTextBoxKeyDown"
+                         TextWrapping="Wrap"
+                         PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://..."
+                         />
+                <Button Grid.Column="8"
+                        Grid.ColumnSpan="3"
+                        HorizontalAlignment="Stretch"
+                        Click="HandleLoadImageBtnClick"
+                        >
+                    <TextBlock Text="Load Images" TextWrapping="WrapWholeWords"/>
+                </Button>
+            </Grid>
+            <Grid x:Name="TagControlGrid" Grid.Row="1" Grid.Column="2" Height="500">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <!--1-->
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <!--16-->
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <!--1-->
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <!--16-->
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TagNameTextBox"
+                         Grid.Row="0" Grid.RowSpan="1" HorizontalAlignment="Stretch"
+                         Grid.Column="0" Grid.ColumnSpan="7"
+                         PlaceholderText="Tag List Name"
+                         FontSize="16"
+                         />
+                <ComboBox x:Name="TagListComboBox"
+                          Grid.Row="6" Grid.RowSpan="3" HorizontalAlignment="Stretch"
+                          Grid.Column="0" Grid.ColumnSpan="7"
+                          SelectionChanged="LoadTagInTextBox"
+                          />
+                <TextBlock x:Name="SaveTagConfirmationTextBlock"
+                           Grid.Row="10" Grid.RowSpan="3" HorizontalAlignment="Stretch"
+                           Grid.Column="0" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
+                           TextWrapping="Wrap"
+                           />
+
+                <Button Click="CreateTag"
+                        Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
+                        BorderBrush="Blue"
+                        >
+                    <TextBlock Text="Create New Tag List" TextWrapping="WrapWholeWords"/>
+                </Button>
+                <Button Click="RenameTag"
+                        Grid.Row="3" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
+                        BorderBrush="Orange"
+                        >
+                    <TextBlock Text="Rename Tag List" TextWrapping="WrapWholeWords"/>
+                </Button>
+                <Button Click="SaveTag"
+                        Grid.Row="6" Grid.RowSpan="4" HorizontalAlignment="Stretch"
+                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
+                        BorderBrush="Green"
+                        >
+                    <TextBlock Text="Save Tag List" TextWrapping="WrapWholeWords"/>
+                </Button>
+                <Button Click="RemoveTag"
+                        Grid.Row="11" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
+                        BorderBrush="Red"
+                        >
+                    <TextBlock Text="Remove Tag List" TextWrapping="WrapWholeWords"/>
+                </Button>
+                <Button Click="ClearTag"
+                        Grid.Row="14" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
+                        BorderBrush="Black"
+                        >
+                    <TextBlock Text="Clear Tag List" TextWrapping="WrapWholeWords"/>
+                </Button>
+            </Grid>
+            <StackPanel x:Name="BookmarkGrid"
+                        Orientation="Vertical"
+                        Grid.Row="3"
+                        Grid.Column="0" Grid.ColumnSpan="3">
+                <TextBlock FontSize="36">Bookmarked Galleries</TextBlock>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>

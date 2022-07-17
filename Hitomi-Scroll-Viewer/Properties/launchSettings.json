@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Hitomi-Scroll-Viewer (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Hitomi-Scroll-Viewer (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
