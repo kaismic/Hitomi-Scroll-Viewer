@@ -363,7 +363,7 @@ namespace Hitomi_Scroll_Viewer {
             int rowSpan = 6;
             int columnSpan = 13;
             int thumbnailNum = 3;
-            double imgScale = 0.2;
+            double desiredWidth = 350;
 
             Grid gr = new();
             for (int i = 0; i < rowSpan; i++) {
@@ -388,12 +388,14 @@ namespace Hitomi_Scroll_Viewer {
             gr.Children.Add(tb);
 
             int imgTotalCount = _mainWindow.imageWatchingPage.currImages.Count;
+            double imgRatio;
             for (int i = 0; i < thumbnailNum; i++) {
                 Image originImg = _mainWindow.imageWatchingPage.currImages[(imgTotalCount / thumbnailNum) * i];
+                imgRatio = (double)originImg.Height / (double)originImg.Width;
                 Image img = new() {
                     Source = originImg.Source,
-                    Width = originImg.Width * imgScale,
-                    Height = originImg.Height * imgScale
+                    Width = desiredWidth,
+                    Height = desiredWidth*imgRatio,
                 };
                 Grid.SetRow(img, 1);
                 Grid.SetRowSpan(img, rowSpan - 1);
@@ -422,11 +424,10 @@ namespace Hitomi_Scroll_Viewer {
         private void RemoveBookmark(object sender, RoutedEventArgs e) {
             Button btn = sender as Button;
             Grid parent = btn.Parent as Grid;
-            string bookmarkedGalleryID = (parent.Children[0] as TextBlock).Text.Split('\n')[1];
-            bookmarkedGalleryIdList.Remove(bookmarkedGalleryID);
-            if (bookmarkedGalleryID == _currGalleryID) {
+            if (bookmarkedGalleryIdList[BookmarkGrid.Children.IndexOf(parent)] == _currGalleryID) {
                 _mainWindow.imageWatchingPage.ChangeBookmarkBtnState(false);
             }
+            bookmarkedGalleryIdList.RemoveAt(BookmarkGrid.Children.IndexOf(parent));
             BookmarkGrid.Children.Remove(parent);
         }
     }

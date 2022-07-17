@@ -14,6 +14,7 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -232,11 +233,14 @@
                     <TextBlock Text="Clear Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
             </Grid>
+            <TextBlock FontSize="36"
+                       Grid.Row="3"
+                       Grid.Column="0" Grid.ColumnSpan="3"
+                       Text="Bookmarked Galleries"/>
             <StackPanel x:Name="BookmarkGrid"
                         Orientation="Vertical"
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Grid.Column="0" Grid.ColumnSpan="3">
-                <TextBlock FontSize="36">Bookmarked Galleries</TextBlock>
             </StackPanel>
         </Grid>
     </ScrollViewer>
