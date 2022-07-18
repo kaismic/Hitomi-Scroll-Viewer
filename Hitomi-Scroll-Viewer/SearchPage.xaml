@@ -139,7 +139,7 @@
                     <TextBlock Text="Load Images" TextWrapping="WrapWholeWords"/>
                 </Button>
             </Grid>
-            <Grid x:Name="TagControlGrid" Grid.Row="1" Grid.Column="2" Height="500">
+            <Grid x:Name="TagControlGrid" Grid.Row="1" Grid.Column="2" Height="500" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <!--1-->

@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
@@ -122,7 +123,7 @@ namespace Hitomi_Scroll_Viewer {
             }
 
             if (!File.Exists(_tagFileName)) {
-                string defaultTagList = """{"Default":{"includeTagTypes":{"language":[],"female":[],"male":[],"artist":[],"character":[],"series":[],"type":[],"tag":["non-h_imageset"]},"excludeTagTypes":{"language":[],"female":[],"male":[],"artist":[],"character":[],"series":[],"type":[],"tag":[]}}}""";
+                string defaultTagList = """{"Default":{"includeTagTypes":{"language":["chinese"],"female":[],"male":[],"artist":[],"character":[],"series":[],"type":[],"tag":["non-h_imageset"]},"excludeTagTypes":{"language":[],"female":[],"male":[],"artist":[],"character":[],"series":[],"type":[],"tag":[]}}}""";
                 File.WriteAllText(_tagFileName, defaultTagList);
             }
             _tag = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(_tagFileName), typeof(Dictionary<string, Tag>), _serializerOptions);
@@ -148,17 +149,34 @@ namespace Hitomi_Scroll_Viewer {
             for (int i = 0; i < _tagTypes.Length; i++) {
                 tagType = _tagTypes[i];
                 foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    if (tag.Length > 0) {
-                        param += tagType + "%3A" + tag.Replace(' ', '_') + "%20";
-                    }
+                    param += tagType + "%3A" + tag.Replace(' ', '_') + "%20";
                 }
                 foreach (string tag in _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    if (tag.Length > 0) {
-                        param += "-" + tagType + "%3A" + tag.Replace(' ', '_') + "%20";
-                    }
+                    param += "-" + tagType + "%3A" + tag.Replace(' ', '_') + "%20";
                 }
             }
             return _hitomiBaseSearchDomain + param;
+        }
+
+        private string GetAddressLinkText() {
+            string linkText = "";
+            string tagTypeText;
+            for (int i = 0; i < _tagTypes.Length; i++) {
+                tagTypeText = _tagTypes[i] + ": ";
+                linkText += tagTypeText;
+                foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+                    linkText += tag + " ";
+                }
+                foreach (string tag in _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+                    linkText += "-" + tag + " ";
+                }
+                if (linkText[^tagTypeText.Length..] == tagTypeText) {
+                    linkText = linkText[..^tagTypeText.Length];
+                } else {
+                    linkText += "\n";
+                }
+            }
+            return linkText;
         }
 
         private Tag GetCurrTag() {
@@ -291,19 +309,25 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void GenerateHyperlink(object sender, RoutedEventArgs e) {
-            string address = GetAddress();
+            Grid gd = new();
+            for (int i = 0; i < 12; i++) {
+                gd.ColumnDefinitions.Add(new ColumnDefinition());
+            }
 
             HyperlinkButton hb = new() {
                 Content = new TextBlock() {
-                    Text = "Link " + (GeneratedHyperlinks.Children.Count + 1).ToString(),
+                    Text = GetAddressLinkText(),
                     TextWrapping = TextWrapping.WrapWholeWords,
+                    FontSize = 10,
                 },
-                NavigateUri = new Uri(address),
+                NavigateUri = new Uri(GetAddress()),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
 
             };
             Grid.SetColumn(hb, 0);
             Grid.SetColumnSpan(hb, 10);
+            gd.Children.Add(hb);
+            
             Button btn = new() {
                 Content = new TextBlock() {
                     Text = "Remove",
@@ -314,12 +338,8 @@ namespace Hitomi_Scroll_Viewer {
             btn.Click += RemoveHyperlink;
             Grid.SetColumn(btn, 10);
             Grid.SetColumnSpan(btn, 2);
-            Grid gd = new();
-            for (int i = 0; i < 12; i++) {
-                gd.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-            gd.Children.Add(hb);
             gd.Children.Add(btn);
+            
             GeneratedHyperlinks.Children.Add(gd);
 
         }
@@ -332,14 +352,14 @@ namespace Hitomi_Scroll_Viewer {
 
         private void HandleGalleryIDTextBoxKeyDown(object sender, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
-                LoadImage();
+                LoadImages(ExtractGalleryID());
             }
         }
         private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
-            LoadImage();
+            LoadImages(ExtractGalleryID());
         }
 
-        private void LoadImage() {
+        private string ExtractGalleryID() {
             string[] splitText = GalleryIDTextBox.Text.Split(".html");
             string idPart = splitText[0];
             string id = "";
@@ -351,9 +371,19 @@ namespace Hitomi_Scroll_Viewer {
             if (string.IsNullOrEmpty(id)) {
                 id = idPart;
             }
+            return id;
+        }
+
+        private void LoadImages(string id) {
             _currGalleryID = id;
             _mainWindow.imageWatchingPage.ShowImages(id);
             _mainWindow.SwitchPage();
+        }
+
+        private void HandleBookmarkClick(object sender, RoutedEventArgs e) {
+            HyperlinkButton btn = sender as HyperlinkButton;
+            Grid parent = btn.Parent as Grid;
+            LoadImages(bookmarkedGalleryIdList[BookmarkGrid.Children.IndexOf(parent)]);
         }
 
         public void BookmarkGallery(object _, RoutedEventArgs e) {
@@ -375,17 +405,20 @@ namespace Hitomi_Scroll_Viewer {
             gr.BorderBrush = new SolidColorBrush(Colors.Black);
             gr.BorderThickness = new Thickness(1);
 
-
-            TextBlock tb = new() {
-                Text = _mainWindow.imageWatchingPage.currGalleryInfo.title + "\n" + _currGalleryID,
-                TextWrapping = TextWrapping.WrapWholeWords,
-                FontSize = 24
+            HyperlinkButton hb = new() {
+                Content = new TextBlock() {
+                    Text = _mainWindow.imageWatchingPage.currGalleryInfo.title + "\n" + _currGalleryID,
+                    TextWrapping = TextWrapping.WrapWholeWords,
+                    FontSize = 24,
+                },
             };
-            Grid.SetRow(tb, 0);
-            Grid.SetRowSpan(tb, 1);
-            Grid.SetColumn(tb, 0);
-            Grid.SetColumnSpan(tb, columnSpan - 1);
-            gr.Children.Add(tb);
+            hb.Click += HandleBookmarkClick;
+
+            Grid.SetRow(hb, 0);
+            Grid.SetRowSpan(hb, 1);
+            Grid.SetColumn(hb, 0);
+            Grid.SetColumnSpan(hb, columnSpan - 1);
+            gr.Children.Add(hb);
 
             int imgTotalCount = _mainWindow.imageWatchingPage.currImages.Count;
             double imgRatio;
