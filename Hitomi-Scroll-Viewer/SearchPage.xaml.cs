@@ -1,22 +1,30 @@
 ﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using Windows.Storage.Streams;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
         private readonly string _tagFileName = "Tag.json";
 
+        private string _currGalleryID;
         private readonly string _bookmarkedGalleryIdsFileName = "Bookmarked Gallery IDs.txt";
         public List<string> bookmarkedGalleryIdList = new();
-        //private readonly string _bookmarkedImagesFolderName = "Bookmarked Images";
-        private string _currGalleryID;
+
+
+        private readonly string _bookmarkedGalleryTitlesFileName = "Bookmarked Gallery Titles.txt";
+        public List<string> bookmarkedGalleryTitleList = new();
+        
+
+        private readonly string _bookmarkedImagesFolderName = "Bookmarked Images";
 
         private readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
@@ -133,7 +141,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 TagListComboBox.SelectedIndex = 0;
             }
-
+            
             if (!File.Exists(_bookmarkedGalleryIdsFileName)) {
                 File.Create(_bookmarkedGalleryIdsFileName);
             }
@@ -141,6 +149,18 @@ namespace Hitomi_Scroll_Viewer {
                 bookmarkedGalleryIdList.Add(id);
             }
 
+            if (!File.Exists(_bookmarkedGalleryTitlesFileName)) {
+                File.Create(_bookmarkedGalleryTitlesFileName);
+            }
+            foreach (string title in File.ReadAllLines(_bookmarkedGalleryTitlesFileName)) {
+                bookmarkedGalleryTitleList.Add(title);
+            }
+
+            if (!Directory.Exists(_bookmarkedImagesFolderName)) {
+                Directory.CreateDirectory(_bookmarkedImagesFolderName);
+            }
+            
+            
         }
 
         private string GetAddress() {
@@ -352,26 +372,33 @@ namespace Hitomi_Scroll_Viewer {
 
         private void HandleGalleryIDTextBoxKeyDown(object sender, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
-                LoadImages(ExtractGalleryID());
+                string id = ExtractGalleryID();
+                if (string.IsNullOrEmpty(id)) {
+                    _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
+                } else {
+                    LoadImages(id);
+                }
             }
         }
         private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
-            LoadImages(ExtractGalleryID());
+            //string id = ExtractGalleryID();
+            //if (string.IsNullOrEmpty(id)) {
+            //    _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
+            //}
+            //else {
+            //    LoadImages(id);
+            //}
+            System.Diagnostics.Debug.WriteLine(ExtractGalleryID());
         }
 
         private string ExtractGalleryID() {
-            string[] splitText = GalleryIDTextBox.Text.Split(".html");
-            string idPart = splitText[0];
-            string id = "";
-            for (int i = idPart.Length - 1; i >= 0; i--) {
-                if (!char.IsDigit(idPart[i])) {
-                    id = idPart[(i + 1)..];
+            string text = GalleryIDTextBox.Text;
+            for (int i = 0; i < text.Length; i++) {
+                if (!char.IsDigit(text[i])) {
+                    return Regex.Match(GalleryIDTextBox.Text, @"-(\d+)\.html").Value[1..^5];
                 }
             }
-            if (string.IsNullOrEmpty(id)) {
-                id = idPart;
-            }
-            return id;
+            return text;
         }
 
         private void LoadImages(string id) {
@@ -389,6 +416,7 @@ namespace Hitomi_Scroll_Viewer {
         public void BookmarkGallery(object _, RoutedEventArgs e) {
             _mainWindow.imageWatchingPage.ChangeBookmarkBtnState(true);
             bookmarkedGalleryIdList.Add(_currGalleryID);
+            bookmarkedGalleryTitleList.Add(_mainWindow.imageWatchingPage.currGalleryInfo.title);
 
             int rowSpan = 6;
             int columnSpan = 13;
@@ -420,10 +448,14 @@ namespace Hitomi_Scroll_Viewer {
             Grid.SetColumnSpan(hb, columnSpan - 1);
             gr.Children.Add(hb);
 
+            string imageStorageFolderName = _bookmarkedImagesFolderName + "/" + _currGalleryID;
+            Directory.CreateDirectory(imageStorageFolderName);
+
             int imgTotalCount = _mainWindow.imageWatchingPage.currImages.Count;
             double imgRatio;
             for (int i = 0; i < thumbnailNum; i++) {
                 Image originImg = _mainWindow.imageWatchingPage.currImages[(imgTotalCount / thumbnailNum) * i];
+                
                 imgRatio = (double)originImg.Height / (double)originImg.Width;
                 Image img = new() {
                     Source = originImg.Source,
@@ -435,6 +467,16 @@ namespace Hitomi_Scroll_Viewer {
                 Grid.SetColumn(img, i * (columnSpan - 1) / thumbnailNum);
                 Grid.SetColumnSpan(img, (columnSpan - 1) / thumbnailNum);
                 gr.Children.Add(img);
+
+                
+                //BitmapImage bmpImg = originImg.Source as BitmapImage;
+                //FileStream fs = new("path", FileMode.Create);
+                //BinaryWriter bw = new(fs);
+
+                // figure out how to save image
+                // probably have to save using byte array from http request
+
+                
             }
 
             Button btn = new() {
@@ -461,6 +503,7 @@ namespace Hitomi_Scroll_Viewer {
                 _mainWindow.imageWatchingPage.ChangeBookmarkBtnState(false);
             }
             bookmarkedGalleryIdList.RemoveAt(BookmarkGrid.Children.IndexOf(parent));
+            bookmarkedGalleryTitleList.RemoveAt(BookmarkGrid.Children.IndexOf(parent));
             BookmarkGrid.Children.Remove(parent);
         }
     }

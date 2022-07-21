@@ -161,7 +161,7 @@ namespace Hitomi_Scroll_Viewer {
                 response.EnsureSuccessStatusCode();
                 string responseString = await response.Content.ReadAsStringAsync();
 
-                serverTime = Regex.Match(responseString, "\'(.+?)/\'").Value[1..^2];
+                serverTime = Regex.Match(responseString, @"\'(.+?)/\'").Value[1..^2];
             }
             catch (Exception ex) {
                 _mainWindow.AlertUser("Error. Please Try Again.", ex.Message);
@@ -172,6 +172,7 @@ namespace Hitomi_Scroll_Viewer {
 
             Image img;
             currImages = new(imgAddresses.Count);
+
             int count = 0;
             foreach (string imgAddress in imgAddresses) {
                 try {
