@@ -380,15 +380,15 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
         }
+
         private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
-            //string id = ExtractGalleryID();
-            //if (string.IsNullOrEmpty(id)) {
-            //    _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
-            //}
-            //else {
-            //    LoadImages(id);
-            //}
-            System.Diagnostics.Debug.WriteLine(ExtractGalleryID());
+            string id = ExtractGalleryID();
+            if (string.IsNullOrEmpty(id)) {
+                _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
+            }
+            else {
+                LoadImages(id);
+            }
         }
 
         private string ExtractGalleryID() {
