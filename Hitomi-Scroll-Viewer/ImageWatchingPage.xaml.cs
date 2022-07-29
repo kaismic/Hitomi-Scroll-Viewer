@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
@@ -18,7 +17,7 @@ namespace Hitomi_Scroll_Viewer {
         private readonly MainWindow _mainWindow;
 
         public GalleryInfo currGalleryInfo;
-        public List<Image> currImages;
+        public byte[][] currByteArrays;
 
         public bool scroll = false;
         private bool _loop = false;
@@ -29,21 +28,22 @@ namespace Hitomi_Scroll_Viewer {
         private readonly HttpClient _httpClient = new();
         private readonly string _imgInfoBaseDomain = "https://ltn.hitomi.la/galleries/";
 
-        private List<int> _imgWidths;
-        private List<int> _imgHeights;
+        public int[] imgWidths;
+        public int[] imgHeights;
 
         private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
-
             _mainWindow = mainWindow;
+            Loaded += HandleInitLoad;
+        }
 
+        public void Init() {
             _mainWindow.RootFrame.KeyDown += HandleKeyDownEvent;
             MainGrid.PointerMoved += HandleMouseMovement;
-            Loaded += HandleInitLoad;
 
-            BookmarkBtn.Click += _mainWindow.searchPage.BookmarkGallery;
+            BookmarkBtn.Click += _mainWindow.searchPage.AddGalleryToBookmark;
 
             Task.Run(ScrollAutomatically);
         }
@@ -102,11 +102,11 @@ namespace Hitomi_Scroll_Viewer {
 
         private void ChangeImageSize(object sender, RangeBaseValueChangedEventArgs e) {
             if (ImageContainer != null) {
-                if (ImageContainer.Children.Count > 0 && _imgWidths != null) {
-                    if (_imgWidths.Count == ImageContainer.Children.Count) {
+                if (ImageContainer.Children.Count > 0 && imgWidths != null) {
+                    if (imgWidths.Length == ImageContainer.Children.Count) {
                         for (int i = 0; i < ImageContainer.Children.Count; i++) {
-                            (ImageContainer.Children[i] as Image).Width = _imgWidths[i] * (sender as Slider).Value;
-                            (ImageContainer.Children[i] as Image).Height = _imgHeights[i] * (sender as Slider).Value;
+                            (ImageContainer.Children[i] as Image).Width = imgWidths[i] * (sender as Slider).Value;
+                            (ImageContainer.Children[i] as Image).Height = imgHeights[i] * (sender as Slider).Value;
                         }
                     }
                 }
@@ -139,15 +139,15 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            List<string> imgHashList = new(currGalleryInfo.files.Count);
-            _imgWidths = new(currGalleryInfo.files.Count);
-            _imgHeights = new(currGalleryInfo.files.Count);
+            string[] imgHashList = new string[currGalleryInfo.files.Count];
+            imgWidths = new int[currGalleryInfo.files.Count];
+            imgHeights = new int[currGalleryInfo.files.Count];
 
             for (int i = 0; i < currGalleryInfo.files.Count; i++) {
                 ImageInfo imgInfo = currGalleryInfo.files[i];
-                imgHashList.Add(imgInfo.hash);
-                _imgWidths.Add(imgInfo.width);
-                _imgHeights.Add(imgInfo.height);
+                imgHashList[i] = imgInfo.hash;
+                imgWidths[i] = imgInfo.width;
+                imgHeights[i] = (imgInfo.height);
             }
 
             string serverTimeAddress = "https://ltn.hitomi.la/gg.js";
@@ -168,29 +168,40 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            List<string> imgAddresses = GetImageAddresses(imgHashList, serverTime);
+            string[] imgAddresses = GetImageAddresses(imgHashList, serverTime);
 
             Image img;
-            currImages = new(imgAddresses.Count);
+            currByteArrays = new byte[imgAddresses.Length][];
 
-            int count = 0;
-            foreach (string imgAddress in imgAddresses) {
+            for (int i = 0; i < imgAddresses.Length; i++) {
+                string imgAddress = imgAddresses[i];
                 try {
+                    currByteArrays[i] = await GetByteArray("https://aa." + imgAddress);
                     img = new() {
-                        Source = await GetImage("https://aa." + imgAddress),
-                        Width = _imgWidths[count] * ImageSizeScaleSlider.Value,
-                        Height = _imgHeights[count] * ImageSizeScaleSlider.Value
+                        Source = await GetImage(currByteArrays[i]),
+                        Width = imgWidths[i] * ImageSizeScaleSlider.Value,
+                        Height = imgHeights[i] * ImageSizeScaleSlider.Value
                     };
                 }
-                catch (HttpRequestException) {
-                    try {
-                        img = new() {
-                            Source = await GetImage("https://ba." + imgAddress),
-                            Width = _imgWidths[count] * ImageSizeScaleSlider.Value,
-                            Height = _imgHeights[count] * ImageSizeScaleSlider.Value
-                        };
-                    }
-                    catch (HttpRequestException e) {
+                catch (HttpRequestException e) {
+                    if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
+                        try {
+                            currByteArrays[i] = await GetByteArray("https://ba." + imgAddress);
+                            img = new() {
+                                Source = await GetImage(currByteArrays[i]),
+                                Width = imgWidths[i] * ImageSizeScaleSlider.Value,
+                                Height = imgHeights[i] * ImageSizeScaleSlider.Value
+                            };
+                        }
+                        catch (HttpRequestException e2) {
+                            Debug.WriteLine("Message: " + e2.Message);
+                            Debug.WriteLine("Status Code:" + e2.StatusCode);
+                            img = new() {
+                                Width = 0,
+                                Height = 0,
+                            };
+                        }
+                    } else {
                         Debug.WriteLine("Message: " + e.Message);
                         Debug.WriteLine("Status Code:" + e.StatusCode);
                         img = new() {
@@ -199,27 +210,25 @@ namespace Hitomi_Scroll_Viewer {
                         };
                     }
                 }
-                count++;
-                currImages.Add(img);
                 ImageContainer.Children.Add(img);
             }
-            ChangeBookmarkBtnState(_mainWindow.searchPage.bookmarkedGalleryIdList.Contains(id));
+            ChangeBookmarkBtnState(!_mainWindow.searchPage.bookmarkedGalleryInfo.ids.Contains(id));
         }
 
-        private static List<string> GetImageAddresses(List<string> imgHashList, string serverTime) {
-            List<string> result = new(imgHashList.Count);
+        private static string[] GetImageAddresses(string[] imgHashList, string serverTime) {
+            string[] result = new string[imgHashList.Length];
             string hash;
             string twoCharPart;
             string oneCharPart;
-            int twoCharPartInt;
+            //int twoCharPartInt;
             //int divisor;
             //string subdomain;
             string oneTwoCharInt;
-            for (int i = 0; i < imgHashList.Count; i++) {
+            for (int i = 0; i < imgHashList.Length; i++) {
                 hash = imgHashList[i];
                 twoCharPart = hash[^3..^1];
                 oneCharPart = hash[^1..];
-                twoCharPartInt = Convert.ToInt32(twoCharPart, 16);
+                //twoCharPartInt = Convert.ToInt32(twoCharPart, 16);
                 oneTwoCharInt = Convert.ToInt32(oneCharPart + twoCharPart, 16).ToString();
                 //if (twoCharPartInt < 9) {
                 //    divisor = 1;
@@ -229,26 +238,14 @@ namespace Hitomi_Scroll_Viewer {
                 //    divisor = 3;
                 //subdomain = char.ToString((char)('a' + (twoCharPartInt % divisor)));
                 //result.Add($"https://{subdomain}a.hitomi.la/webp/{serverTime}/{oneTwoCharInt}/{hash}.webp");
-                result.Add($"hitomi.la/webp/{serverTime}/{oneTwoCharInt}/{hash}.webp");
+                result[i] = $"hitomi.la/webp/{serverTime}/{oneTwoCharInt}/{hash}.webp";
             }
             return result;
         }
 
-        public async Task<BitmapImage> GetImage(string address) {
+        #pragma warning disable CA1822 // Mark members as static
+        public async Task<BitmapImage> GetImage(byte[] imgData) {
             BitmapImage img = new();
-            byte[] imgData;
-
-            HttpRequestMessage request = new() {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(address),
-                Headers = {
-                    {"referer", "https://hitomi.la/" }
-                },
-            };
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            imgData = await response.Content.ReadAsByteArrayAsync();
 
             using InMemoryRandomAccessStream stream = new();
             using (DataWriter writer = new(stream)) {
@@ -263,14 +260,29 @@ namespace Hitomi_Scroll_Viewer {
 
             return img;
         }
+        #pragma warning restore CA1822 // Mark members as static
 
-        public void ChangeBookmarkBtnState(bool bookmarked) {
-            BookmarkBtn.IsEnabled = !bookmarked;
-            if (bookmarked) {
-                BookmarkBtn.Label = "Bookmarked";
-            }
-            else {
+        public async Task<byte[]> GetByteArray(string address) {
+            HttpRequestMessage request = new() {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(address),
+                Headers = {
+                    {"referer", "https://hitomi.la/" }
+                },
+            };
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+
+        public void ChangeBookmarkBtnState(bool enable) {
+            if (enable) {
+                BookmarkBtn.IsEnabled = true;
                 BookmarkBtn.Label = "Bookmark this Gallery";
+            } else {
+                BookmarkBtn.IsEnabled = false;
+                BookmarkBtn.Label = "Bookmarked";
             }
         }
     }

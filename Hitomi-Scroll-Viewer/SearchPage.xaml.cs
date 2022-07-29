@@ -9,31 +9,28 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Windows.Storage.Streams;
+
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
-        private readonly string _tagFileName = "Tag.json";
-
-        private string _currGalleryID;
-        private readonly string _bookmarkedGalleryIdsFileName = "Bookmarked Gallery IDs.txt";
-        public List<string> bookmarkedGalleryIdList = new();
-
-
-        private readonly string _bookmarkedGalleryTitlesFileName = "Bookmarked Gallery Titles.txt";
-        public List<string> bookmarkedGalleryTitleList = new();
-        
-
-        private readonly string _bookmarkedImagesFolderName = "Bookmarked Images";
-
-        private readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
-
         private readonly string _hitomiBaseSearchDomain = "https://hitomi.la/search.html?";
         private readonly string[] _tagTypes = { "language", "female", "male", "artist", "character", "series", "type", "tag" };
-        private readonly Dictionary<string, Tag> _tag;
+        private readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
+        
+        private readonly string _bookmarkedGalleryInfoFileName = "Bookmarked Gallery Info.json";
+        public readonly BookmarkedGalleryInfo bookmarkedGalleryInfo;
 
-        private readonly List<TextBox> _includeTagTextBoxes = new();
-        private readonly List<TextBox> _excludeTagTextBoxes = new();
+        private readonly string _tagFileName = "Tag.json";
+        private readonly Dictionary<string, Tag> _tag;
+        
+        private readonly string _bookmarkedImagesFolderName = "Bookmarked Images";
+        private readonly double _thumbnailImgWidth = 350;
+        private readonly int _thumbnailNum = 3;
+
+        private string _currGalleryID;
+
+        private readonly TextBox[] _includeTagTextBoxes;
+        private readonly TextBox[] _excludeTagTextBoxes;
         private readonly Grid[] _tagGrids = new Grid[2];
 
         private readonly MainWindow _mainWindow;
@@ -41,6 +38,9 @@ namespace Hitomi_Scroll_Viewer {
         public SearchPage(MainWindow mainWindow) {
             InitializeComponent();
             _mainWindow = mainWindow;
+
+            _includeTagTextBoxes = new TextBox[_tagTypes.Length];
+            _excludeTagTextBoxes = new TextBox[_tagTypes.Length];
 
             _tagGrids[0] = IncludeTagGrid;
             _tagGrids[1] = ExcludeTagGrid;
@@ -122,10 +122,10 @@ namespace Hitomi_Scroll_Viewer {
                     Grid.SetColumn(textBox, j);
                     tagGrid.Children.Add(textBox);
                     if (i == 0) {
-                        _includeTagTextBoxes.Add(textBox);
+                        _includeTagTextBoxes[j] = textBox;
                     }
                     else {
-                        _excludeTagTextBoxes.Add(textBox);
+                        _excludeTagTextBoxes[j] = textBox;
                     }
                 }
             }
@@ -141,26 +141,20 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 TagListComboBox.SelectedIndex = 0;
             }
-            
-            if (!File.Exists(_bookmarkedGalleryIdsFileName)) {
-                File.Create(_bookmarkedGalleryIdsFileName);
-            }
-            foreach (string id in File.ReadAllLines(_bookmarkedGalleryIdsFileName)) {
-                bookmarkedGalleryIdList.Add(id);
-            }
 
-            if (!File.Exists(_bookmarkedGalleryTitlesFileName)) {
-                File.Create(_bookmarkedGalleryTitlesFileName);
+            if (!File.Exists(_bookmarkedGalleryInfoFileName)) {
+                File.WriteAllText(_bookmarkedGalleryInfoFileName, JsonSerializer.Serialize(new BookmarkedGalleryInfo(), _serializerOptions));
             }
-            foreach (string title in File.ReadAllLines(_bookmarkedGalleryTitlesFileName)) {
-                bookmarkedGalleryTitleList.Add(title);
-            }
+            bookmarkedGalleryInfo = (BookmarkedGalleryInfo)JsonSerializer.Deserialize(File.ReadAllText(_bookmarkedGalleryInfoFileName), typeof(BookmarkedGalleryInfo), _serializerOptions);
 
-            if (!Directory.Exists(_bookmarkedImagesFolderName)) {
-                Directory.CreateDirectory(_bookmarkedImagesFolderName);
+            Directory.CreateDirectory(_bookmarkedImagesFolderName);
+        }
+
+        public void Init() {
+            // create bookmarks and load images
+            for (int i = 0; i < bookmarkedGalleryInfo.ids.Count; i++) {
+                AddBookmarkToGrid(i);
             }
-            
-            
         }
 
         private string GetAddress() {
@@ -178,7 +172,7 @@ namespace Hitomi_Scroll_Viewer {
             return _hitomiBaseSearchDomain + param;
         }
 
-        private string GetAddressLinkText() {
+        private string GetHyperlinkDisplayText() {
             string linkText = "";
             string tagTypeText;
             for (int i = 0; i < _tagTypes.Length; i++) {
@@ -315,7 +309,7 @@ namespace Hitomi_Scroll_Viewer {
             TagListComboBox.Items.Remove(selectedItem);
         }
 
-        private void ClearTag(object sender, RoutedEventArgs e) {
+        private void ClearTagTextboxes(object sender, RoutedEventArgs e) {
             foreach (TextBox tb in _includeTagTextBoxes) {
                 tb.Text = string.Empty;
             }
@@ -324,8 +318,9 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public void SaveTagToFile() {
+        public void SaveInfoToFiles() {
             File.WriteAllText(_tagFileName, JsonSerializer.Serialize(_tag, _serializerOptions));
+            File.WriteAllText(_bookmarkedGalleryInfoFileName, JsonSerializer.Serialize(bookmarkedGalleryInfo, _serializerOptions));
         }
 
         private void GenerateHyperlink(object sender, RoutedEventArgs e) {
@@ -336,7 +331,7 @@ namespace Hitomi_Scroll_Viewer {
 
             HyperlinkButton hb = new() {
                 Content = new TextBlock() {
-                    Text = GetAddressLinkText(),
+                    Text = GetHyperlinkDisplayText(),
                     TextWrapping = TextWrapping.WrapWholeWords,
                     FontSize = 10,
                 },
@@ -375,9 +370,9 @@ namespace Hitomi_Scroll_Viewer {
                 string id = ExtractGalleryID();
                 if (string.IsNullOrEmpty(id)) {
                     _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
-                } else {
-                    LoadImages(id);
+                    return;
                 }
+                LoadImages(id);
             }
         }
 
@@ -385,17 +380,16 @@ namespace Hitomi_Scroll_Viewer {
             string id = ExtractGalleryID();
             if (string.IsNullOrEmpty(id)) {
                 _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
+                return;
             }
-            else {
-                LoadImages(id);
-            }
+            LoadImages(id);
         }
 
         private string ExtractGalleryID() {
             string text = GalleryIDTextBox.Text;
             for (int i = 0; i < text.Length; i++) {
                 if (!char.IsDigit(text[i])) {
-                    return Regex.Match(GalleryIDTextBox.Text, @"-(\d+)\.html").Value[1..^5];
+                    return Regex.Match(GalleryIDTextBox.Text, @"[-|/](\d+)\.html").Value[1..^5];
                 }
             }
             return text;
@@ -403,6 +397,8 @@ namespace Hitomi_Scroll_Viewer {
 
         private void LoadImages(string id) {
             _currGalleryID = id;
+            _mainWindow.imageWatchingPage.BookmarkBtn.Label = "Loading Images...";
+            _mainWindow.imageWatchingPage.BookmarkBtn.IsEnabled = false;
             _mainWindow.imageWatchingPage.ShowImages(id);
             _mainWindow.SwitchPage();
         }
@@ -410,18 +406,12 @@ namespace Hitomi_Scroll_Viewer {
         private void HandleBookmarkClick(object sender, RoutedEventArgs e) {
             HyperlinkButton btn = sender as HyperlinkButton;
             Grid parent = btn.Parent as Grid;
-            LoadImages(bookmarkedGalleryIdList[BookmarkGrid.Children.IndexOf(parent)]);
+            LoadImages(bookmarkedGalleryInfo.ids[BookmarkGrid.Children.IndexOf(parent)]);
         }
 
-        public void BookmarkGallery(object _, RoutedEventArgs e) {
-            _mainWindow.imageWatchingPage.ChangeBookmarkBtnState(true);
-            bookmarkedGalleryIdList.Add(_currGalleryID);
-            bookmarkedGalleryTitleList.Add(_mainWindow.imageWatchingPage.currGalleryInfo.title);
-
+        private async void AddBookmarkToGrid(int idx) {
             int rowSpan = 6;
             int columnSpan = 13;
-            int thumbnailNum = 3;
-            double desiredWidth = 350;
 
             Grid gr = new();
             for (int i = 0; i < rowSpan; i++) {
@@ -435,7 +425,7 @@ namespace Hitomi_Scroll_Viewer {
 
             HyperlinkButton hb = new() {
                 Content = new TextBlock() {
-                    Text = _mainWindow.imageWatchingPage.currGalleryInfo.title + "\n" + _currGalleryID,
+                    Text = bookmarkedGalleryInfo.titles[idx] + "\n" + bookmarkedGalleryInfo.ids[idx],
                     TextWrapping = TextWrapping.WrapWholeWords,
                     FontSize = 24,
                 },
@@ -448,35 +438,21 @@ namespace Hitomi_Scroll_Viewer {
             Grid.SetColumnSpan(hb, columnSpan - 1);
             gr.Children.Add(hb);
 
-            string imageStorageFolderName = _bookmarkedImagesFolderName + "/" + _currGalleryID;
-            Directory.CreateDirectory(imageStorageFolderName);
-
-            int imgTotalCount = _mainWindow.imageWatchingPage.currImages.Count;
-            double imgRatio;
-            for (int i = 0; i < thumbnailNum; i++) {
-                Image originImg = _mainWindow.imageWatchingPage.currImages[(imgTotalCount / thumbnailNum) * i];
-                
-                imgRatio = (double)originImg.Height / (double)originImg.Width;
+            string imgStorageFolderPath = _bookmarkedImagesFolderName + @"\" + bookmarkedGalleryInfo.ids[idx];
+            for (int i = 0; i < _thumbnailNum; i++) {
+                BitmapImage bmpimg = await _mainWindow.imageWatchingPage.GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
                 Image img = new() {
-                    Source = originImg.Source,
-                    Width = desiredWidth,
-                    Height = desiredWidth*imgRatio,
+                    Source = bmpimg,
+                    Width = _thumbnailImgWidth,
+                    Height = _thumbnailImgWidth * bookmarkedGalleryInfo.imgRatios[idx][i],
                 };
+
                 Grid.SetRow(img, 1);
                 Grid.SetRowSpan(img, rowSpan - 1);
-                Grid.SetColumn(img, i * (columnSpan - 1) / thumbnailNum);
-                Grid.SetColumnSpan(img, (columnSpan - 1) / thumbnailNum);
+                Grid.SetColumn(img, i * (columnSpan - 1) / _thumbnailNum);
+                Grid.SetColumnSpan(img, (columnSpan - 1) / _thumbnailNum);
                 gr.Children.Add(img);
 
-                
-                //BitmapImage bmpImg = originImg.Source as BitmapImage;
-                //FileStream fs = new("path", FileMode.Create);
-                //BinaryWriter bw = new(fs);
-
-                // figure out how to save image
-                // probably have to save using byte array from http request
-
-                
             }
 
             Button btn = new() {
@@ -496,15 +472,53 @@ namespace Hitomi_Scroll_Viewer {
             BookmarkGrid.Children.Add(gr);
         }
 
+        public void AddGalleryToBookmark(object _, RoutedEventArgs e) {
+            _mainWindow.imageWatchingPage.ChangeBookmarkBtnState(false);
+            bookmarkedGalleryInfo.ids.Add(_currGalleryID);
+            bookmarkedGalleryInfo.titles.Add(_mainWindow.imageWatchingPage.currGalleryInfo.title);
+            int imgIdx;
+            int imgTotalCount = _mainWindow.imageWatchingPage.currByteArrays.Length;
+            
+            double[] imgRatios = new double[_thumbnailNum]; 
+            string imgStorageFolderPath = _bookmarkedImagesFolderName + @"\" + _currGalleryID;
+            Directory.CreateDirectory(imgStorageFolderPath);
+
+            for (int i = 0; i < _thumbnailNum; i++) {
+                imgIdx = imgTotalCount * i / _thumbnailNum;
+                imgRatios[i] = (double)_mainWindow.imageWatchingPage.imgHeights[imgIdx] / _mainWindow.imageWatchingPage.imgWidths[imgIdx];
+                File.WriteAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString(), _mainWindow.imageWatchingPage.currByteArrays[imgIdx]);
+            }
+            bookmarkedGalleryInfo.imgRatios.Add(imgRatios);
+
+            AddBookmarkToGrid(bookmarkedGalleryInfo.ids.Count-1);
+        }
+
         private void RemoveBookmark(object sender, RoutedEventArgs e) {
             Button btn = sender as Button;
             Grid parent = btn.Parent as Grid;
-            if (bookmarkedGalleryIdList[BookmarkGrid.Children.IndexOf(parent)] == _currGalleryID) {
-                _mainWindow.imageWatchingPage.ChangeBookmarkBtnState(false);
+            int targetIdx = BookmarkGrid.Children.IndexOf(parent);
+            Directory.Delete(_bookmarkedImagesFolderName + @"\" + bookmarkedGalleryInfo.ids[targetIdx], true);
+            if (bookmarkedGalleryInfo.ids[targetIdx] == _currGalleryID) {
+                _mainWindow.imageWatchingPage.ChangeBookmarkBtnState(true);
             }
-            bookmarkedGalleryIdList.RemoveAt(BookmarkGrid.Children.IndexOf(parent));
-            bookmarkedGalleryTitleList.RemoveAt(BookmarkGrid.Children.IndexOf(parent));
+            bookmarkedGalleryInfo.ids.RemoveAt(targetIdx);
+            bookmarkedGalleryInfo.titles.RemoveAt(targetIdx);
+            bookmarkedGalleryInfo.imgRatios.RemoveAt(targetIdx);
             BookmarkGrid.Children.Remove(parent);
+        }
+
+        private void GenerateTagValueOnlyText(object sender, RoutedEventArgs e) {
+            string text = "";
+            for (int i = 0; i < _tagTypes.Length; i++) {
+                foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+                    text += "\"" + tag + "\" ";
+                }
+                foreach (string tag in _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
+                    text += "-\"" + tag + "\" ";
+                }
+            }
+            text = text[..^1];
+            TagValueOnlyTextBox.Text = text;
         }
     }
 }

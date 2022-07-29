@@ -14,7 +14,6 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
-                <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -225,7 +224,7 @@
                         >
                     <TextBlock Text="Remove Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
-                <Button Click="ClearTag"
+                <Button Click="ClearTagTextboxes"
                         Grid.Row="14" Grid.RowSpan="2" HorizontalAlignment="Stretch"
                         Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                         BorderBrush="Black"
@@ -233,15 +232,33 @@
                     <TextBlock Text="Clear Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
             </Grid>
-            <TextBlock FontSize="36"
-                       Grid.Row="3"
-                       Grid.Column="0" Grid.ColumnSpan="3"
-                       Text="Bookmarked Galleries"/>
-            <StackPanel x:Name="BookmarkGrid"
-                        Orientation="Vertical"
-                        Grid.Row="4"
-                        Grid.Column="0" Grid.ColumnSpan="3">
-            </StackPanel>
+            <Grid Grid.Row="2"
+                  Grid.Column="0" Grid.ColumnSpan="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBlock FontSize="36"
+                            Grid.Row="0"
+                            Text="Bookmarked Galleries"/>
+                <Grid x:Name="BookmarkGrid"
+                            Grid.Row="1">
+                </Grid>
+            </Grid>
+            <Grid Grid.Row="3" Grid.ColumnSpan="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TagValueOnlyTextBox"
+                         Grid.Column="0"
+                         TextWrapping="Wrap"></TextBox>
+                <Button x:Name="GenerateTagValueOnlyBtn"
+                        Click="GenerateTagValueOnlyText"
+                        Grid.Column="1">
+                    <TextBlock FontSize="16">Generate tag value only text</TextBlock>
+                </Button>
+            </Grid>
         </Grid>
     </ScrollViewer>
 </Page>

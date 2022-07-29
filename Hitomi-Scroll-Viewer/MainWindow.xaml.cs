@@ -20,6 +20,8 @@ namespace Hitomi_Scroll_Viewer {
             
             searchPage = new(this);
             imageWatchingPage = new(this);
+            searchPage.Init();
+            imageWatchingPage.Init();
             _pages = new Page[] { searchPage, imageWatchingPage };
 
             RootFrame.Content = _pages[_pageNum];
@@ -35,7 +37,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void HandleWindowCloseEvent(object _, WindowEventArgs args) {
-            searchPage.SaveTagToFile();
+            searchPage.SaveInfoToFiles();
         }
 
         private void HandleDoubleTap(object _, DoubleTappedRoutedEventArgs args) {
