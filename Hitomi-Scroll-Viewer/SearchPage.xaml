@@ -94,7 +94,7 @@
                         Click="GenerateHyperlink"
                         Height="100"
                         FontSize="18"
-                        Content="Generate Link"
+                        Content="Generate and Copy Link"
                         />
                 <StackPanel x:Name="GeneratedHyperlinks"
                             Grid.Row="1" Grid.RowSpan="7"  HorizontalAlignment="Stretch"
@@ -244,20 +244,6 @@
                 <Grid x:Name="BookmarkGrid"
                             Grid.Row="1">
                 </Grid>
-            </Grid>
-            <Grid Grid.Row="3" Grid.ColumnSpan="3">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="TagValueOnlyTextBox"
-                         Grid.Column="0"
-                         TextWrapping="Wrap"></TextBox>
-                <Button x:Name="GenerateTagValueOnlyBtn"
-                        Click="GenerateTagValueOnlyText"
-                        Grid.Column="1">
-                    <TextBlock FontSize="16">Generate tag value only text</TextBlock>
-                </Button>
             </Grid>
         </Grid>
     </ScrollViewer>

@@ -6,15 +6,16 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-
+using Windows.ApplicationModel.DataTransfer;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
         private readonly string _hitomiBaseSearchDomain = "https://hitomi.la/search.html?";
-        private readonly string[] _tagTypes = { "language", "female", "male", "artist", "character", "series", "type", "tag" };
+        private readonly string[] _tagTypes = { "language", "female", "male", "artist", "character", "group", "series", "type", "tag" };
         private readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
         
         private readonly string _bookmarkedGalleryInfoFileName = "Bookmarked Gallery Info.json";
@@ -32,6 +33,9 @@ namespace Hitomi_Scroll_Viewer {
         private readonly TextBox[] _includeTagTextBoxes;
         private readonly TextBox[] _excludeTagTextBoxes;
         private readonly Grid[] _tagGrids = new Grid[2];
+        private readonly DataPackage dataPackage = new() {
+            RequestedOperation = DataPackageOperation.Copy
+        };
 
         private readonly MainWindow _mainWindow;
 
@@ -131,8 +135,10 @@ namespace Hitomi_Scroll_Viewer {
             }
 
             if (!File.Exists(_tagFileName)) {
-                string defaultTagList = """{"Default":{"includeTagTypes":{"language":["chinese"],"female":[],"male":[],"artist":[],"character":[],"series":[],"type":[],"tag":["non-h_imageset"]},"excludeTagTypes":{"language":[],"female":[],"male":[],"artist":[],"character":[],"series":[],"type":[],"tag":[]}}}""";
-                File.WriteAllText(_tagFileName, defaultTagList);
+                Tag defaultTag = new();
+                defaultTag.includeTagTypes["language"] = new string[] { "chinese" };
+                defaultTag.includeTagTypes["tag"] = new string[] { "non-h_imageset" };
+                File.WriteAllText(_tagFileName, JsonSerializer.Serialize(defaultTag, _serializerOptions));
             }
             _tag = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(_tagFileName), typeof(Dictionary<string, Tag>), _serializerOptions);
             if (_tag.Count > 0) {
@@ -141,7 +147,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 TagListComboBox.SelectedIndex = 0;
             }
-
+            
             if (!File.Exists(_bookmarkedGalleryInfoFileName)) {
                 File.WriteAllText(_bookmarkedGalleryInfoFileName, JsonSerializer.Serialize(new BookmarkedGalleryInfo(), _serializerOptions));
             }
@@ -324,6 +330,10 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void GenerateHyperlink(object sender, RoutedEventArgs e) {
+            // copy link to clipboard
+            dataPackage.SetText(GetAddress());
+            Clipboard.SetContent(dataPackage);
+
             Grid gd = new();
             for (int i = 0; i < 12; i++) {
                 gd.ColumnDefinitions.Add(new ColumnDefinition());
@@ -337,8 +347,8 @@ namespace Hitomi_Scroll_Viewer {
                 },
                 NavigateUri = new Uri(GetAddress()),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-
             };
+
             Grid.SetColumn(hb, 0);
             Grid.SetColumnSpan(hb, 10);
             gd.Children.Add(hb);
@@ -365,24 +375,24 @@ namespace Hitomi_Scroll_Viewer {
             GeneratedHyperlinks.Children.Remove(parent);
         }
 
-        private void HandleGalleryIDTextBoxKeyDown(object sender, KeyRoutedEventArgs e) {
-            if (e.Key == Windows.System.VirtualKey.Enter) {
-                string id = ExtractGalleryID();
-                if (string.IsNullOrEmpty(id)) {
-                    _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
-                    return;
-                }
-                LoadImages(id);
-            }
-        }
-
-        private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
+        private void ShowImages() {
             string id = ExtractGalleryID();
             if (string.IsNullOrEmpty(id)) {
                 _mainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
                 return;
             }
+            GalleryIDTextBox.Text = "";
             LoadImages(id);
+        }
+
+        private void HandleGalleryIDTextBoxKeyDown(object sender, KeyRoutedEventArgs e) {
+            if (e.Key == Windows.System.VirtualKey.Enter) {
+                ShowImages();
+            }
+        }
+
+        private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
+            ShowImages();
         }
 
         private string ExtractGalleryID() {
@@ -505,20 +515,6 @@ namespace Hitomi_Scroll_Viewer {
             bookmarkedGalleryInfo.titles.RemoveAt(targetIdx);
             bookmarkedGalleryInfo.imgRatios.RemoveAt(targetIdx);
             BookmarkGrid.Children.Remove(parent);
-        }
-
-        private void GenerateTagValueOnlyText(object sender, RoutedEventArgs e) {
-            string text = "";
-            for (int i = 0; i < _tagTypes.Length; i++) {
-                foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    text += "\"" + tag + "\" ";
-                }
-                foreach (string tag in _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    text += "-\"" + tag + "\" ";
-                }
-            }
-            text = text[..^1];
-            TagValueOnlyTextBox.Text = text;
         }
     }
 }

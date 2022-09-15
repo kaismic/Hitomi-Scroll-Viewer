@@ -17,6 +17,10 @@ namespace Hitomi_Scroll_Viewer {
             InitializeComponent();
 
             Title = "Hitomi Scroll Viewer";
+
+            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
+            _appWindow = AppWindow.GetFromWindowId(windowId);
             
             searchPage = new(this);
             imageWatchingPage = new(this);
@@ -24,16 +28,16 @@ namespace Hitomi_Scroll_Viewer {
             imageWatchingPage.Init();
             _pages = new Page[] { searchPage, imageWatchingPage };
 
-            RootFrame.Content = _pages[_pageNum];
-            
-            RootFrame.PointerPressed += HandleMouseClick;
             RootFrame.DoubleTapped += HandleDoubleTap;
+            RootFrame.Loaded += HandleInitLoad;
             Closed += HandleWindowCloseEvent;
+            
+            RootFrame.Content = _pages[_pageNum];
 
-            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            _appWindow = AppWindow.GetFromWindowId(windowId);
+        }
 
+        private void HandleInitLoad(object _, RoutedEventArgs e) {
+            (_appWindow.Presenter as OverlappedPresenter).Maximize();
         }
 
         private void HandleWindowCloseEvent(object _, WindowEventArgs args) {
@@ -50,12 +54,6 @@ namespace Hitomi_Scroll_Viewer {
         public void SwitchPage() {
             _pageNum = (_pageNum + 1) % _pages.Length;
             RootFrame.Content = _pages[_pageNum];
-        }
-
-        public void HandleMouseClick(object sender, PointerRoutedEventArgs e) {
-            if (e.GetCurrentPoint(sender as Page).Properties.IsRightButtonPressed) {
-                (_appWindow.Presenter as OverlappedPresenter).Minimize();
-            }
         }
 
         public async void AlertUser(string title, string text) {
