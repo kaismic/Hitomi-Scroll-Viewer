@@ -20,13 +20,13 @@ namespace Hitomi_Scroll_Viewer {
         public byte[][] currByteArrays;
 
         public bool scroll = false;
-        private bool _loop = false;
-        private int _scrollSpeed = 0;
+        private static bool _loop = false;
+        private static int _scrollSpeed = 0;
 
         private double _commandBarShowRange = 0.08;
 
-        private readonly HttpClient _httpClient = new();
-        private readonly string _imgInfoBaseDomain = "https://ltn.hitomi.la/galleries/";
+        private static readonly HttpClient _httpClient = new();
+        private static readonly string IMG_INFO_BASE_DOMAIN = "https://ltn.hitomi.la/galleries/";
 
         public int[] imgWidths;
         public int[] imgHeights;
@@ -116,7 +116,7 @@ namespace Hitomi_Scroll_Viewer {
         public async void ShowImages(string id) {
             ImageContainer.Children.Clear();
 
-            string galleryInfoAddress = _imgInfoBaseDomain + id + ".js";
+            string galleryInfoAddress = IMG_INFO_BASE_DOMAIN + id + ".js";
             HttpRequestMessage galleryInfoRequest = new() {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(galleryInfoAddress)
@@ -212,7 +212,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 ImageContainer.Children.Add(img);
             }
-            ChangeBookmarkBtnState(!_mainWindow.searchPage.bookmarkedGalleryInfo.ids.Contains(id));
+            ChangeBookmarkBtnState(!_mainWindow.searchPage.bookmarkedGalleryInfo.IdInList(id));
         }
 
         private static string[] GetImageAddresses(string[] imgHashList, string serverTime) {
@@ -262,7 +262,7 @@ namespace Hitomi_Scroll_Viewer {
         }
         #pragma warning restore CA1822 // Mark members as static
 
-        public async Task<byte[]> GetByteArray(string address) {
+        public static async Task<byte[]> GetByteArray(string address) {
             HttpRequestMessage request = new() {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(address),

@@ -9,8 +9,8 @@ namespace Hitomi_Scroll_Viewer {
         }
         public Tag(string[] tagTypes) {
             foreach (string tag in tagTypes) {
-                includeTagTypes[tag] = new string[] { "" };
-                excludeTagTypes[tag] = new string[] { "" };
+                includeTagTypes[tag] = System.Array.Empty<string>();
+                excludeTagTypes[tag] = System.Array.Empty<string>();
             }
         }
     }

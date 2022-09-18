@@ -10,7 +10,7 @@ namespace Hitomi_Scroll_Viewer {
         public readonly SearchPage searchPage;
         public readonly ImageWatchingPage imageWatchingPage;
         private readonly Page[] _pages;
-        private int _pageNum = 0;
+        private static int _currPageNum = 0;
         private readonly AppWindow _appWindow;
 
         public MainWindow() {
@@ -32,7 +32,7 @@ namespace Hitomi_Scroll_Viewer {
             RootFrame.Loaded += HandleInitLoad;
             Closed += HandleWindowCloseEvent;
             
-            RootFrame.Content = _pages[_pageNum];
+            RootFrame.Content = _pages[_currPageNum];
 
         }
 
@@ -52,8 +52,8 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void SwitchPage() {
-            _pageNum = (_pageNum + 1) % _pages.Length;
-            RootFrame.Content = _pages[_pageNum];
+            _currPageNum = (_currPageNum + 1) % _pages.Length;
+            RootFrame.Content = _pages[_currPageNum];
         }
 
         public async void AlertUser(string title, string text) {

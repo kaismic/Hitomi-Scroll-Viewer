@@ -8,242 +8,121 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer x:Name="MainScrollViewer">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <!--1-->
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <!--12-->
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Grid x:Name="IncludeTagGrid"
-                      Grid.Row="0"
-                      Grid.RowSpan="11"
-                      Grid.Column="0"
-                      BorderBrush="Black"
-                      BorderThickness="1"
-                      Margin="5"
-                      />
-                <Grid x:Name="ExcludeTagGrid"
-                      Grid.Row="0"
-                      Grid.RowSpan="11"
-                      Grid.Column="1"
-                      BorderBrush="Black"
-                      BorderThickness="1"
-                      Margin="5"
-                      />
-                <Grid Grid.Row="11" Height="30"/>
-                <!--margin-->
+        <!--3 rows, 3 columns-->
+        <Grid x:Name="RootGrid">
+            <!--Row 0, Column 0, Full Columnspan-->
+            <!--12 rows, 2 columns-->
+            <Grid x:Name="TagGrid" Grid.Row="0" Grid.Column="0">
+                <Grid x:Name="IncludeTagGrid" Grid.Column="0"/>
+                <Grid x:Name="ExcludeTagGrid" Grid.Column="1"/>
             </Grid>
-            <Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <!--1-->
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <!--8-->
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <!--1-->
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <!--12-->
-                </Grid.ColumnDefinitions>
-                <Button Grid.Row="0" HorizontalAlignment="Stretch"
-                        Grid.Column="1" Grid.ColumnSpan="10" VerticalAlignment="Top"
+            <!--Row 1, Column 0, 1 Columnspan-->
+            <!--8 rows, 12 columns-->
+            <Grid x:Name="HyperlinkGrid" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch">
+                <Button x:Name="GenerateHyperlinkBtn"
+                        Grid.Row="0"
                         Click="GenerateHyperlink"
                         Height="100"
                         FontSize="18"
                         Content="Generate and Copy Link"
                         />
                 <StackPanel x:Name="GeneratedHyperlinks"
-                            Grid.Row="1" Grid.RowSpan="7"  HorizontalAlignment="Stretch"
-                            Grid.Column="1" Grid.ColumnSpan="10" VerticalAlignment="Top"
+                            Grid.Row="1"
                             Orientation="Vertical"
                 />
             </Grid>
-            <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch">
+            <!--Row 1, Column 1, 1 Columnspan-->
+            <!--1 row, 12 columns-->
+            <Grid x:Name="LinkInputGrid" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <!--1-->
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <!--12-->
-                </Grid.ColumnDefinitions>
                 <TextBox x:Name="GalleryIDTextBox"
-                         Grid.Column="1"
-                         Grid.ColumnSpan="6"
-                         HorizontalAlignment="Stretch"
                          KeyDown="HandleGalleryIDTextBoxKeyDown"
                          TextWrapping="Wrap"
                          PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://..."
                          />
-                <Button Grid.Column="8"
-                        Grid.ColumnSpan="3"
-                        HorizontalAlignment="Stretch"
-                        Click="HandleLoadImageBtnClick"
-                        >
+                <Button x:Name="LoadImageBtn" Click="HandleLoadImageBtnClick">
                     <TextBlock Text="Load Images" TextWrapping="WrapWholeWords"/>
                 </Button>
             </Grid>
+            <!--Row 1, Column 2, 1 Columnspan-->
+            <!--16 rows, 16 columns-->
             <Grid x:Name="TagControlGrid" Grid.Row="1" Grid.Column="2" Height="500" VerticalAlignment="Top">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <!--1-->
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <!--16-->
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <!--1-->
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <!--16-->
-                </Grid.ColumnDefinitions>
                 <TextBox x:Name="TagNameTextBox"
-                         Grid.Row="0" Grid.RowSpan="1" HorizontalAlignment="Stretch"
+                         Grid.Row="0" Grid.RowSpan="1"
                          Grid.Column="0" Grid.ColumnSpan="7"
                          PlaceholderText="Tag List Name"
                          FontSize="16"
                          />
                 <ComboBox x:Name="TagListComboBox"
-                          Grid.Row="6" Grid.RowSpan="3" HorizontalAlignment="Stretch"
+                          Grid.Row="6" Grid.RowSpan="3"
                           Grid.Column="0" Grid.ColumnSpan="7"
                           SelectionChanged="LoadTagInTextBox"
                           />
                 <TextBlock x:Name="SaveTagConfirmationTextBlock"
-                           Grid.Row="10" Grid.RowSpan="3" HorizontalAlignment="Stretch"
+                           Grid.Row="10" Grid.RowSpan="3"
                            Grid.Column="0" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                            TextWrapping="Wrap"
                            />
 
                 <Button Click="CreateTag"
-                        Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Row="0" Grid.RowSpan="2"
                         Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                         BorderBrush="Blue"
                         >
                     <TextBlock Text="Create New Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
                 <Button Click="RenameTag"
-                        Grid.Row="3" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Row="3" Grid.RowSpan="2"
                         Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                         BorderBrush="Orange"
                         >
                     <TextBlock Text="Rename Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
                 <Button Click="SaveTag"
-                        Grid.Row="6" Grid.RowSpan="4" HorizontalAlignment="Stretch"
+                        Grid.Row="6" Grid.RowSpan="4"
                         Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                         BorderBrush="Green"
                         >
                     <TextBlock Text="Save Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
                 <Button Click="RemoveTag"
-                        Grid.Row="11" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Row="11" Grid.RowSpan="2"
                         Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                         BorderBrush="Red"
                         >
                     <TextBlock Text="Remove Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
                 <Button Click="ClearTagTextboxes"
-                        Grid.Row="14" Grid.RowSpan="2" HorizontalAlignment="Stretch"
+                        Grid.Row="14" Grid.RowSpan="2"
                         Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                         BorderBrush="Black"
                         >
                     <TextBlock Text="Clear Tag List" TextWrapping="WrapWholeWords"/>
                 </Button>
             </Grid>
+            <!--Row 2, Column 0, Full Columnspan-->
+            <!--2 rows, 1 column-->
             <Grid Grid.Row="2"
                   Grid.Column="0" Grid.ColumnSpan="3">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
+                    <RowDefinition/>
                 </Grid.RowDefinitions>
+                
                 <TextBlock FontSize="36"
-                            Grid.Row="0"
-                            Text="Bookmarked Galleries"/>
+                           Grid.Row="0"
+                           Text="Bookmarks"/>
                 <Grid x:Name="BookmarkGrid"
-                            Grid.Row="1">
+                      Grid.Row="2">
                 </Grid>
+                <StackPanel x:Name="BookmarkPageBtnsPanel"
+                            Grid.Row="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                </StackPanel>
             </Grid>
         </Grid>
     </ScrollViewer>
