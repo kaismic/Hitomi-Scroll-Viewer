@@ -35,11 +35,11 @@
                 <Slider
                         StepFrequency="1"
                         TickFrequency="1"
-                        Value="1"
+                        Value="5"
                         Minimum="0"
                         Maximum="10"
                         Width="240"
-                        Header="Scroll Speed"
+                        Header="Auto Scrolling Speed"
                         FontSize="14"
                         HorizontalAlignment="Center"
                         ValueChanged="SetScrollSpeed"/>

@@ -19,9 +19,9 @@ namespace Hitomi_Scroll_Viewer {
         public GalleryInfo currGalleryInfo;
         public byte[][] currByteArrays;
 
-        public bool scroll = false;
-        private static bool _loop = false;
-        private static int _scrollSpeed = 0;
+        public bool isAutoScrolling = false;
+        private static bool _is_looping = false;
+        private static int _scrollSpeed;
 
         private double _commandBarShowRange = 0.08;
 
@@ -44,12 +44,10 @@ namespace Hitomi_Scroll_Viewer {
             MainGrid.PointerMoved += HandleMouseMovement;
 
             BookmarkBtn.Click += _mainWindow.searchPage.AddGalleryToBookmark;
-
-            Task.Run(ScrollAutomatically);
         }
 
         private void HandleLoopToggleBtnClick(object _, RoutedEventArgs e) {
-            _loop = !_loop;
+            _is_looping = !_is_looping;
         }
 
         private void HandleMouseMovement(object _, PointerRoutedEventArgs args) {
@@ -78,25 +76,26 @@ namespace Hitomi_Scroll_Viewer {
         private void HandleKeyDownEvent(object _, KeyRoutedEventArgs e) {
             if ((Page)_mainWindow.RootFrame.Content == this) {
                 if (e.Key == Windows.System.VirtualKey.Space) {
-                    scroll = !scroll;
+                    if (!isAutoScrolling) {
+                        Task.Run(ScrollAutomatically);
+                    }
+                    isAutoScrolling = !isAutoScrolling;
                 }
             }
         }
 
         private void ScrollAutomatically() {
-            while (true) {
-                if (scroll) {
-                    _dispatcherQueue.TryEnqueue(() => {
-                        if (MainScrollViewer.VerticalOffset != MainScrollViewer.ScrollableHeight) {
-                            MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed);
+            while (isAutoScrolling) {
+                _dispatcherQueue.TryEnqueue(() => {
+                    if (MainScrollViewer.VerticalOffset != MainScrollViewer.ScrollableHeight) {
+                        MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed);
+                    }
+                    else {
+                        if (_is_looping) {
+                            MainScrollViewer.ScrollToVerticalOffset(0);
                         }
-                        else {
-                            if (_loop) {
-                                MainScrollViewer.ScrollToVerticalOffset(0);
-                            }
-                        }
-                    });
-                }
+                    }
+                });
             }
         }
 
@@ -243,8 +242,7 @@ namespace Hitomi_Scroll_Viewer {
             return result;
         }
 
-        #pragma warning disable CA1822 // Mark members as static
-        public async Task<BitmapImage> GetImage(byte[] imgData) {
+        public static async Task<BitmapImage> GetImage(byte[] imgData) {
             BitmapImage img = new();
 
             using InMemoryRandomAccessStream stream = new();
@@ -260,7 +258,6 @@ namespace Hitomi_Scroll_Viewer {
 
             return img;
         }
-        #pragma warning restore CA1822 // Mark members as static
 
         public static async Task<byte[]> GetByteArray(string address) {
             HttpRequestMessage request = new() {

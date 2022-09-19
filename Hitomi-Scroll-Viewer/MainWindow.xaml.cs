@@ -47,7 +47,7 @@ namespace Hitomi_Scroll_Viewer {
         private void HandleDoubleTap(object _, DoubleTappedRoutedEventArgs args) {
             SwitchPage();
             if (RootFrame.Content as Page != imageWatchingPage) {
-                imageWatchingPage.scroll = false;
+                imageWatchingPage.isAutoScrolling = false;
             }
         }
 

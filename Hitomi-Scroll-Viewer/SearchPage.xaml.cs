@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -577,7 +576,7 @@ namespace Hitomi_Scroll_Viewer {
 
             string imgStorageFolderPath = BM_IMGS_DIR_PATH + @"\" + bookmarkedGalleryInfo.Ids[idx];
             for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                BitmapImage bmpimg = await _mainWindow.imageWatchingPage.GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
+                BitmapImage bmpimg = await ImageWatchingPage.GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
                 Image img = new() {
                     Source = bmpimg,
                     Width = THUMBNAIL_IMG_WIDTH,
@@ -630,7 +629,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             bookmarkedGalleryInfo.AddBookmark(_currGalleryID, _mainWindow.imageWatchingPage.currGalleryInfo.title, imgRatios);
 
-            await CreateBookmarkGrid(bookmarkedGalleryInfo.Count-1);
+            await CreateBookmarkGrid(bookmarkedGalleryInfo.Count - 1);
 
             ShowBookmarkOnGrid(bookmarkedGalleryInfo.Count - 1);
         }
