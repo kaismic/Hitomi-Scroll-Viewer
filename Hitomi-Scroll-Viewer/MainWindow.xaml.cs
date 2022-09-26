@@ -41,7 +41,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void HandleWindowCloseEvent(object _, WindowEventArgs args) {
-            searchPage.SaveInfoToFiles();
+            searchPage.SaveDataToFiles();
         }
 
         private void HandleDoubleTap(object _, DoubleTappedRoutedEventArgs args) {

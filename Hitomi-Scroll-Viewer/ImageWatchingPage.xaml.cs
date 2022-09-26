@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -28,10 +29,16 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly HttpClient _httpClient = new();
         private static readonly string IMG_INFO_BASE_DOMAIN = "https://ltn.hitomi.la/galleries/";
 
-        public int[] imgWidths;
-        public int[] imgHeights;
-
         private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        public enum LoadingState {
+            Bookmarked,
+            Loaded,
+            Loading,
+            BookmarkFull
+        }
+
+        LoadingState currLoadingState = LoadingState.Loaded;
 
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
@@ -43,7 +50,7 @@ namespace Hitomi_Scroll_Viewer {
             _mainWindow.RootFrame.KeyDown += HandleKeyDownEvent;
             MainGrid.PointerMoved += HandleMouseMovement;
 
-            BookmarkBtn.Click += _mainWindow.searchPage.AddGalleryToBookmark;
+            BookmarkBtn.Click += _mainWindow.searchPage.AddCurrGalleryToBookmark;
         }
 
         private void HandleLoopToggleBtnClick(object _, RoutedEventArgs e) {
@@ -101,18 +108,32 @@ namespace Hitomi_Scroll_Viewer {
 
         private void ChangeImageSize(object sender, RangeBaseValueChangedEventArgs e) {
             if (ImageContainer != null) {
-                if (ImageContainer.Children.Count > 0 && imgWidths != null) {
-                    if (imgWidths.Length == ImageContainer.Children.Count) {
-                        for (int i = 0; i < ImageContainer.Children.Count; i++) {
-                            (ImageContainer.Children[i] as Image).Width = imgWidths[i] * (sender as Slider).Value;
-                            (ImageContainer.Children[i] as Image).Height = imgHeights[i] * (sender as Slider).Value;
-                        }
-                    }
+                for (int i = 0; i < ImageContainer.Children.Count; i++) {
+                    (ImageContainer.Children[i] as Image).Width = currGalleryInfo.files[i].width * (sender as Slider).Value;
+                    (ImageContainer.Children[i] as Image).Height = currGalleryInfo.files[i].height * (sender as Slider).Value;
                 }
             }
         }
 
-        public async void ShowImages(string id) {
+        public async void LoadImagesFromLocalFolder(int idx) {
+            ImageContainer.Children.Clear();
+
+            BitmapImage bmpimg;
+            Image img;
+            string imgStorageFolderPath = SearchPage.BM_IMGS_DIR_PATH + @"\" + _mainWindow.searchPage.bmGalleryInfo[idx].id;
+            for (int i = 0; i < _mainWindow.searchPage.bmGalleryInfo[idx].files.Count; i++) {
+                bmpimg = await GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
+                img = new() {
+                    Source = bmpimg,
+                    Width = _mainWindow.searchPage.bmGalleryInfo[idx].files[i].width * ImageSizeScaleSlider.Value,
+                    Height = _mainWindow.searchPage.bmGalleryInfo[idx].files[i].height * ImageSizeScaleSlider.Value,
+                };
+                ImageContainer.Children.Add(img);
+            }
+            ChangeBookmarkBtnState(LoadingState.Bookmarked);
+        }
+
+        public async void LoadImagesFromWeb(string id) {
             ImageContainer.Children.Clear();
 
             string galleryInfoAddress = IMG_INFO_BASE_DOMAIN + id + ".js";
@@ -138,17 +159,6 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            string[] imgHashList = new string[currGalleryInfo.files.Count];
-            imgWidths = new int[currGalleryInfo.files.Count];
-            imgHeights = new int[currGalleryInfo.files.Count];
-
-            for (int i = 0; i < currGalleryInfo.files.Count; i++) {
-                ImageInfo imgInfo = currGalleryInfo.files[i];
-                imgHashList[i] = imgInfo.hash;
-                imgWidths[i] = imgInfo.width;
-                imgHeights[i] = (imgInfo.height);
-            }
-
             string serverTimeAddress = "https://ltn.hitomi.la/gg.js";
             HttpRequestMessage serverTimeRequest = new() {
                 Method = HttpMethod.Get,
@@ -167,29 +177,33 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            string[] imgAddresses = GetImageAddresses(imgHashList, serverTime);
+            string[] imgHashArr = new string[currGalleryInfo.files.Count];
+            for (int i = 0; i < currGalleryInfo.files.Count; i++) {
+                imgHashArr[i] = currGalleryInfo.files[i].hash;
+            }
+
+            string[] imgAddresses = GetImageAddresses(imgHashArr, serverTime);
 
             Image img;
             currByteArrays = new byte[imgAddresses.Length][];
 
             for (int i = 0; i < imgAddresses.Length; i++) {
-                string imgAddress = imgAddresses[i];
                 try {
-                    currByteArrays[i] = await GetByteArray("https://aa." + imgAddress);
+                    currByteArrays[i] = await GetByteArray("https://aa." + imgAddresses[i]);
                     img = new() {
                         Source = await GetImage(currByteArrays[i]),
-                        Width = imgWidths[i] * ImageSizeScaleSlider.Value,
-                        Height = imgHeights[i] * ImageSizeScaleSlider.Value
+                        Width = currGalleryInfo.files[i].width * ImageSizeScaleSlider.Value,
+                        Height = currGalleryInfo.files[i].height * ImageSizeScaleSlider.Value
                     };
                 }
                 catch (HttpRequestException e) {
                     if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
                         try {
-                            currByteArrays[i] = await GetByteArray("https://ba." + imgAddress);
+                            currByteArrays[i] = await GetByteArray("https://ba." + imgAddresses[i]);
                             img = new() {
                                 Source = await GetImage(currByteArrays[i]),
-                                Width = imgWidths[i] * ImageSizeScaleSlider.Value,
-                                Height = imgHeights[i] * ImageSizeScaleSlider.Value
+                                Width = currGalleryInfo.files[i].width * ImageSizeScaleSlider.Value,
+                                Height = currGalleryInfo.files[i].height * ImageSizeScaleSlider.Value
                             };
                         }
                         catch (HttpRequestException e2) {
@@ -211,11 +225,25 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 ImageContainer.Children.Add(img);
             }
-            ChangeBookmarkBtnState(!_mainWindow.searchPage.bookmarkedGalleryInfo.IdInList(id));
+            // check if bookmark is full
+            if (_mainWindow.searchPage.bmGalleryInfo.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE) {
+                ChangeBookmarkBtnState(LoadingState.BookmarkFull);
+            }
+            // check if gallery is bookmarked
+            for (int i = 0; i < _mainWindow.searchPage.bmGalleryInfo.Count; i++) {
+                if (_mainWindow.searchPage.bmGalleryInfo[i].id == id) {
+                    ChangeBookmarkBtnState(LoadingState.Bookmarked);
+                    break;
+                }
+            }
+            // if currLoadingState is Loading then it is neither BookmarkFull or Bookmarked so change state to Loaded
+            if (currLoadingState == LoadingState.Loading) {
+                ChangeBookmarkBtnState(LoadingState.Loaded);
+            }
         }
 
-        private static string[] GetImageAddresses(string[] imgHashList, string serverTime) {
-            string[] result = new string[imgHashList.Length];
+        private static string[] GetImageAddresses(string[] imgHashArr, string serverTime) {
+            string[] result = new string[imgHashArr.Length];
             string hash;
             string twoCharPart;
             string oneCharPart;
@@ -223,8 +251,8 @@ namespace Hitomi_Scroll_Viewer {
             //int divisor;
             //string subdomain;
             string oneTwoCharInt;
-            for (int i = 0; i < imgHashList.Length; i++) {
-                hash = imgHashList[i];
+            for (int i = 0; i < imgHashArr.Length; i++) {
+                hash = imgHashArr[i];
                 twoCharPart = hash[^3..^1];
                 oneCharPart = hash[^1..];
                 //twoCharPartInt = Convert.ToInt32(twoCharPart, 16);
@@ -273,13 +301,27 @@ namespace Hitomi_Scroll_Viewer {
             return await response.Content.ReadAsByteArrayAsync();
         }
 
-        public void ChangeBookmarkBtnState(bool enable) {
-            if (enable) {
-                BookmarkBtn.IsEnabled = true;
-                BookmarkBtn.Label = "Bookmark this Gallery";
-            } else {
-                BookmarkBtn.IsEnabled = false;
-                BookmarkBtn.Label = "Bookmarked";
+        public void ChangeBookmarkBtnState(LoadingState state) {
+            currLoadingState = state;
+            switch (state) {
+                case LoadingState.Bookmarked:
+                    BookmarkBtn.Label = "Bookmarked";
+                    BookmarkBtn.IsEnabled = false;
+                    break;
+                case LoadingState.Loading:
+                    BookmarkBtn.Label = "Loading Images...";
+                    BookmarkBtn.IsEnabled = false;
+                    break;
+                case LoadingState.Loaded:
+                    BookmarkBtn.Label = "Bookmark this Gallery";
+                    BookmarkBtn.IsEnabled = true;
+                    break;
+                case LoadingState.BookmarkFull:
+                    BookmarkBtn.Label = "Bookmark is full";
+                    BookmarkBtn.IsEnabled = false;
+                    break;
+                default:
+                    break;
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Hitomi_Scroll_Viewer {
         public List<int> related = new();
         public string title = "";
         public string japanese_title = "";
-        public object groups = null;
+        public List<Dictionary<string, string>> groups = new();
         public string language_url = "";
         public List<int> scene_indexes = new();
         public List<Dictionary<string, string>> artists = new();
