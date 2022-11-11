@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.Threading.Tasks;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
@@ -40,8 +41,11 @@ namespace Hitomi_Scroll_Viewer {
             (_appWindow.Presenter as OverlappedPresenter).Maximize();
         }
 
-        private void HandleWindowCloseEvent(object _, WindowEventArgs args) {
-            searchPage.SaveDataToFiles();
+        private async void HandleWindowCloseEvent(object _, WindowEventArgs args) {
+            while (searchPage.isSavingBookmark) {
+                await Task.Delay(100);
+            }
+            searchPage.SaveDataToLocalStorage();
         }
 
         private void HandleDoubleTap(object _, DoubleTappedRoutedEventArgs args) {

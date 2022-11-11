@@ -10,6 +10,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
@@ -28,8 +29,13 @@ namespace Hitomi_Scroll_Viewer {
 
         private static readonly HttpClient _httpClient = new();
         private static readonly string IMG_INFO_BASE_DOMAIN = "https://ltn.hitomi.la/galleries/";
+        private static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
 
         private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        public CancellationTokenSource cts = new();
+        public CancellationToken ct;
+        public bool isLoadingImages = false;
 
         public enum LoadingState {
             Bookmarked,
@@ -115,130 +121,142 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public async void LoadImagesFromLocalFolder(int idx) {
-            ImageContainer.Children.Clear();
-
-            BitmapImage bmpimg;
-            Image img;
-            string imgStorageFolderPath = SearchPage.BM_IMGS_DIR_PATH + @"\" + _mainWindow.searchPage.bmGalleryInfo[idx].id;
-            for (int i = 0; i < _mainWindow.searchPage.bmGalleryInfo[idx].files.Count; i++) {
-                bmpimg = await GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
-                img = new() {
-                    Source = bmpimg,
-                    Width = _mainWindow.searchPage.bmGalleryInfo[idx].files[i].width * ImageSizeScaleSlider.Value,
-                    Height = _mainWindow.searchPage.bmGalleryInfo[idx].files[i].height * ImageSizeScaleSlider.Value,
-                };
-                ImageContainer.Children.Add(img);
+        private async Task CheckLoadingImages() {
+            if (isLoadingImages) {
+                cts.Cancel();
+                while (isLoadingImages) {
+                    await Task.Delay(100);
+                }
             }
-            ChangeBookmarkBtnState(LoadingState.Bookmarked);
+            if (!cts.TryReset()) {
+                cts.Dispose();
+                cts = new();
+                ct = cts.Token;
+            }
+            isLoadingImages = true;
+        }
+
+        public async void LoadImagesFromLocalFolder(int idx) {
+            await CheckLoadingImages();
+            ct.ThrowIfCancellationRequested();
+
+            try {
+                ImageContainer.Children.Clear();
+
+                BitmapImage bmpimg;
+                Image img;
+                string imgStorageFolderPath = SearchPage.BM_IMGS_DIR_PATH + @"\" + _mainWindow.searchPage.bmGalleryInfo[idx].id;
+                for (int i = 0; i < _mainWindow.searchPage.bmGalleryInfo[idx].files.Count; i++) {
+                    bmpimg = await GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
+                    img = new() {
+                        Source = bmpimg,
+                        Width = _mainWindow.searchPage.bmGalleryInfo[idx].files[i].width * ImageSizeScaleSlider.Value,
+                        Height = _mainWindow.searchPage.bmGalleryInfo[idx].files[i].height * ImageSizeScaleSlider.Value,
+                    };
+                    ImageContainer.Children.Add(img);
+                }
+                ChangeBookmarkBtnState(LoadingState.Bookmarked);
+            } catch (OperationCanceledException) {
+                return;
+            }
         }
 
         public async void LoadImagesFromWeb(string id) {
-            ImageContainer.Children.Clear();
+            await CheckLoadingImages();
+            ct.ThrowIfCancellationRequested();
 
-            string galleryInfoAddress = IMG_INFO_BASE_DOMAIN + id + ".js";
-            HttpRequestMessage galleryInfoRequest = new() {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(galleryInfoAddress)
-            };
             try {
-                HttpResponseMessage response = await _httpClient.SendAsync(galleryInfoRequest);
-                response.EnsureSuccessStatusCode();
-                string responseString = await response.Content.ReadAsStringAsync();
-                for (int i = 0; i < responseString.Length; i++) {
-                    if (responseString[i] == '{') {
-                        responseString = responseString[i..];
-                        break;
-                    }
-                }
-                JsonSerializerOptions serializerOptions = new() { IncludeFields = true };
-                currGalleryInfo = JsonSerializer.Deserialize<GalleryInfo>(responseString, serializerOptions);
-            }
-            catch (Exception ex) {
-                _mainWindow.AlertUser("Error. Please Try Again.", ex.Message);
-                return;
-            }
+                ImageContainer.Children.Clear();
 
-            string serverTimeAddress = "https://ltn.hitomi.la/gg.js";
-            HttpRequestMessage serverTimeRequest = new() {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(serverTimeAddress)
-            };
-            string serverTime;
-            try {
-                HttpResponseMessage response = await _httpClient.SendAsync(serverTimeRequest);
-                response.EnsureSuccessStatusCode();
-                string responseString = await response.Content.ReadAsStringAsync();
-
-                serverTime = Regex.Match(responseString, @"\'(.+?)/\'").Value[1..^2];
-            }
-            catch (Exception ex) {
-                _mainWindow.AlertUser("Error. Please Try Again.", ex.Message);
-                return;
-            }
-
-            string[] imgHashArr = new string[currGalleryInfo.files.Count];
-            for (int i = 0; i < currGalleryInfo.files.Count; i++) {
-                imgHashArr[i] = currGalleryInfo.files[i].hash;
-            }
-
-            string[] imgAddresses = GetImageAddresses(imgHashArr, serverTime);
-
-            Image img;
-            currByteArrays = new byte[imgAddresses.Length][];
-
-            for (int i = 0; i < imgAddresses.Length; i++) {
+                string galleryInfoAddress = IMG_INFO_BASE_DOMAIN + id + ".js";
+                HttpRequestMessage galleryInfoRequest = new() {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(galleryInfoAddress)
+                };
                 try {
-                    currByteArrays[i] = await GetByteArray("https://aa." + imgAddresses[i]);
-                    img = new() {
-                        Source = await GetImage(currByteArrays[i]),
-                        Width = currGalleryInfo.files[i].width * ImageSizeScaleSlider.Value,
-                        Height = currGalleryInfo.files[i].height * ImageSizeScaleSlider.Value
-                    };
+                    HttpResponseMessage response = await _httpClient.SendAsync(galleryInfoRequest);
+                    response.EnsureSuccessStatusCode();
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    for (int i = 0; i < responseString.Length; i++) {
+                        if (responseString[i] == '{') {
+                            responseString = responseString[i..];
+                            break;
+                        }
+                    }
+                    JsonSerializerOptions serializerOptions = new() { IncludeFields = true };
+                    currGalleryInfo = JsonSerializer.Deserialize<GalleryInfo>(responseString, serializerOptions);
                 }
-                catch (HttpRequestException e) {
-                    if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
+                catch (HttpRequestException ex) {
+                    _mainWindow.AlertUser("Error. Please Try Again.", ex.Message);
+                    return;
+                }
+
+                string serverTimeAddress = "https://ltn.hitomi.la/gg.js";
+                HttpRequestMessage serverTimeRequest = new() {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri(serverTimeAddress)
+                };
+                string serverTime;
+                try {
+                    HttpResponseMessage response = await _httpClient.SendAsync(serverTimeRequest);
+                    response.EnsureSuccessStatusCode();
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    serverTime = Regex.Match(responseString, @"\'(.+?)/\'").Value[1..^2];
+                }
+                catch (HttpRequestException ex) {
+                    _mainWindow.AlertUser("Error. Please Try Again.", ex.Message);
+                    return;
+                }
+
+                string[] imgHashArr = new string[currGalleryInfo.files.Count];
+                for (int i = 0; i < currGalleryInfo.files.Count; i++) {
+                    imgHashArr[i] = currGalleryInfo.files[i].hash;
+                }
+
+                string[] imgAddresses = GetImageAddresses(imgHashArr, serverTime);
+
+                Image img = new() {
+                    Width = 0,
+                    Height = 0,
+                };
+                currByteArrays = new byte[imgAddresses.Length][];
+
+                for (int i = 0; i < imgAddresses.Length; i++) {
+                    foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
                         try {
-                            currByteArrays[i] = await GetByteArray("https://ba." + imgAddresses[i]);
+                            currByteArrays[i] = await GetByteArray(subdomain + imgAddresses[i]);
                             img = new() {
                                 Source = await GetImage(currByteArrays[i]),
                                 Width = currGalleryInfo.files[i].width * ImageSizeScaleSlider.Value,
                                 Height = currGalleryInfo.files[i].height * ImageSizeScaleSlider.Value
                             };
                         }
-                        catch (HttpRequestException e2) {
-                            Debug.WriteLine("Message: " + e2.Message);
-                            Debug.WriteLine("Status Code:" + e2.StatusCode);
-                            img = new() {
-                                Width = 0,
-                                Height = 0,
-                            };
+                        catch (HttpRequestException e) {
+                            if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
+                                continue;
+                            }
+                            else {
+                                Debug.WriteLine("Message: " + e.Message);
+                                Debug.WriteLine("Status Code:" + e.StatusCode);
+                                img = new() {
+                                    Width = 0,
+                                    Height = 0,
+                                };
+                            }
                         }
-                    } else {
-                        Debug.WriteLine("Message: " + e.Message);
-                        Debug.WriteLine("Status Code:" + e.StatusCode);
-                        img = new() {
-                            Width = 0,
-                            Height = 0,
-                        };
                     }
+                    ImageContainer.Children.Add(img);
                 }
-                ImageContainer.Children.Add(img);
-            }
-            // check if bookmark is full
-            if (_mainWindow.searchPage.bmGalleryInfo.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE) {
-                ChangeBookmarkBtnState(LoadingState.BookmarkFull);
-            }
-            // check if gallery is bookmarked
-            for (int i = 0; i < _mainWindow.searchPage.bmGalleryInfo.Count; i++) {
-                if (_mainWindow.searchPage.bmGalleryInfo[i].id == id) {
-                    ChangeBookmarkBtnState(LoadingState.Bookmarked);
-                    break;
+                // check if bookmark is full
+                if (_mainWindow.searchPage.bmGalleryInfo.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE) {
+                    ChangeBookmarkBtnState(LoadingState.BookmarkFull);
+                } else {
+                    ChangeBookmarkBtnState(LoadingState.Loaded);
                 }
             }
-            // if currLoadingState is Loading then it is neither BookmarkFull or Bookmarked so change state to Loaded
-            if (currLoadingState == LoadingState.Loading) {
-                ChangeBookmarkBtnState(LoadingState.Loaded);
+            catch (OperationCanceledException) {
+                return;
             }
         }
 
