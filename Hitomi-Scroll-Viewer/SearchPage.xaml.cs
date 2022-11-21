@@ -549,7 +549,6 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
-
             // if gallery is already bookmarked
             for (int i = 0; i < _mainWindow.searchPage.bmGalleryInfo.Count; i++) {
                 if (_mainWindow.searchPage.bmGalleryInfo[i].id == id) {

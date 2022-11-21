@@ -44,12 +44,12 @@ namespace Hitomi_Scroll_Viewer {
             BookmarkFull
         }
 
-        LoadingState currLoadingState = LoadingState.Loaded;
-
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
             _mainWindow = mainWindow;
             Loaded += HandleInitLoad;
+
+            ct = cts.Token;
         }
 
         public void Init() {
@@ -127,18 +127,15 @@ namespace Hitomi_Scroll_Viewer {
                 while (isLoadingImages) {
                     await Task.Delay(100);
                 }
-            }
-            if (!cts.TryReset()) {
                 cts.Dispose();
                 cts = new();
                 ct = cts.Token;
             }
-            isLoadingImages = true;
         }
 
         public async void LoadImagesFromLocalFolder(int idx) {
             await CheckLoadingImages();
-            ct.ThrowIfCancellationRequested();
+            isLoadingImages = true;
 
             try {
                 ImageContainer.Children.Clear();
@@ -147,6 +144,7 @@ namespace Hitomi_Scroll_Viewer {
                 Image img;
                 string imgStorageFolderPath = SearchPage.BM_IMGS_DIR_PATH + @"\" + _mainWindow.searchPage.bmGalleryInfo[idx].id;
                 for (int i = 0; i < _mainWindow.searchPage.bmGalleryInfo[idx].files.Count; i++) {
+                    ct.ThrowIfCancellationRequested();
                     bmpimg = await GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
                     img = new() {
                         Source = bmpimg,
@@ -157,13 +155,15 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 ChangeBookmarkBtnState(LoadingState.Bookmarked);
             } catch (OperationCanceledException) {
+                isLoadingImages = false;
                 return;
             }
+            isLoadingImages = false;
         }
 
         public async void LoadImagesFromWeb(string id) {
             await CheckLoadingImages();
-            ct.ThrowIfCancellationRequested();
+            isLoadingImages = true;
 
             try {
                 ImageContainer.Children.Clear();
@@ -174,6 +174,7 @@ namespace Hitomi_Scroll_Viewer {
                     RequestUri = new Uri(galleryInfoAddress)
                 };
                 try {
+                    ct.ThrowIfCancellationRequested();
                     HttpResponseMessage response = await _httpClient.SendAsync(galleryInfoRequest);
                     response.EnsureSuccessStatusCode();
                     string responseString = await response.Content.ReadAsStringAsync();
@@ -187,6 +188,7 @@ namespace Hitomi_Scroll_Viewer {
                     currGalleryInfo = JsonSerializer.Deserialize<GalleryInfo>(responseString, serializerOptions);
                 }
                 catch (HttpRequestException ex) {
+                    isLoadingImages = false;
                     _mainWindow.AlertUser("Error. Please Try Again.", ex.Message);
                     return;
                 }
@@ -198,6 +200,7 @@ namespace Hitomi_Scroll_Viewer {
                 };
                 string serverTime;
                 try {
+                    ct.ThrowIfCancellationRequested();
                     HttpResponseMessage response = await _httpClient.SendAsync(serverTimeRequest);
                     response.EnsureSuccessStatusCode();
                     string responseString = await response.Content.ReadAsStringAsync();
@@ -205,6 +208,7 @@ namespace Hitomi_Scroll_Viewer {
                     serverTime = Regex.Match(responseString, @"\'(.+?)/\'").Value[1..^2];
                 }
                 catch (HttpRequestException ex) {
+                    isLoadingImages = false;
                     _mainWindow.AlertUser("Error. Please Try Again.", ex.Message);
                     return;
                 }
@@ -224,6 +228,7 @@ namespace Hitomi_Scroll_Viewer {
 
                 for (int i = 0; i < imgAddresses.Length; i++) {
                     foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
+                        ct.ThrowIfCancellationRequested();
                         try {
                             currByteArrays[i] = await GetByteArray(subdomain + imgAddresses[i]);
                             img = new() {
@@ -256,8 +261,10 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             catch (OperationCanceledException) {
+                isLoadingImages = false;
                 return;
             }
+            isLoadingImages = false;
         }
 
         private static string[] GetImageAddresses(string[] imgHashArr, string serverTime) {
@@ -320,7 +327,6 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void ChangeBookmarkBtnState(LoadingState state) {
-            currLoadingState = state;
             switch (state) {
                 case LoadingState.Bookmarked:
                     BookmarkBtn.Label = "Bookmarked";
