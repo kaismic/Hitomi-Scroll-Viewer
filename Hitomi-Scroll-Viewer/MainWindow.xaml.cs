@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
-        public readonly SearchPage searchPage;
-        public readonly ImageWatchingPage imageWatchingPage;
-        private readonly Page[] _pages;
+        public readonly SearchPage mySearchPage;
+        public readonly ImageWatchingPage myImageWatchingPage;
+        private readonly Page[] _appPages;
         private static int _currPageNum = 0;
-        private readonly AppWindow _appWindow;
+        private readonly AppWindow _myAppWindow;
 
         public MainWindow() {
             InitializeComponent();
@@ -21,43 +21,43 @@ namespace Hitomi_Scroll_Viewer {
 
             IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            _appWindow = AppWindow.GetFromWindowId(windowId);
+            _myAppWindow = AppWindow.GetFromWindowId(windowId);
             
-            searchPage = new(this);
-            imageWatchingPage = new(this);
-            searchPage.Init();
-            imageWatchingPage.Init();
-            _pages = new Page[] { searchPage, imageWatchingPage };
+            mySearchPage = new(this);
+            myImageWatchingPage = new(this);
+            mySearchPage.Init();
+            myImageWatchingPage.Init();
+            _appPages = new Page[] { mySearchPage, myImageWatchingPage };
 
             RootFrame.DoubleTapped += HandleDoubleTap;
             RootFrame.Loaded += HandleInitLoad;
             Closed += HandleWindowCloseEvent;
             
-            RootFrame.Content = _pages[_currPageNum];
+            RootFrame.Content = _appPages[_currPageNum];
 
         }
 
         private void HandleInitLoad(object _, RoutedEventArgs e) {
-            (_appWindow.Presenter as OverlappedPresenter).Maximize();
+            (_myAppWindow.Presenter as OverlappedPresenter).Maximize();
         }
 
         private async void HandleWindowCloseEvent(object _, WindowEventArgs args) {
-            while (searchPage.isSavingBookmark) {
+            while (mySearchPage.isSavingBookmark) {
                 await Task.Delay(100);
             }
-            searchPage.SaveDataToLocalStorage();
+            mySearchPage.SaveDataToLocalStorage();
         }
 
         private void HandleDoubleTap(object _, DoubleTappedRoutedEventArgs args) {
             SwitchPage();
-            if (RootFrame.Content as Page != imageWatchingPage) {
-                imageWatchingPage.isAutoScrolling = false;
+            if (RootFrame.Content as Page != myImageWatchingPage) {
+                myImageWatchingPage.isAutoScrolling = false;
             }
         }
 
         public void SwitchPage() {
-            _currPageNum = (_currPageNum + 1) % _pages.Length;
-            RootFrame.Content = _pages[_currPageNum];
+            _currPageNum = (_currPageNum + 1) % _appPages.Length;
+            RootFrame.Content = _appPages[_currPageNum];
         }
 
         public async void AlertUser(string title, string text) {
