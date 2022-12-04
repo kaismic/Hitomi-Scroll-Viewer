@@ -22,7 +22,7 @@ namespace Hitomi_Scroll_Viewer {
         public byte[][] currByteArrays;
 
         public bool isAutoScrolling = false;
-        private static bool _isLooping = false;
+        private static bool _isLooping;
         private static int _scrollSpeed;
 
         private double _commandBarShowRange = 0.08;
@@ -47,6 +47,8 @@ namespace Hitomi_Scroll_Viewer {
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
             _myMainWindow = mainWindow;
+            _isLooping = true;
+            LoopBtn.IsChecked = true;
             Loaded += HandleInitLoad;
 
             myCancellationToken = myCancellationTokenSource.Token;

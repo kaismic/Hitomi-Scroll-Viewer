@@ -45,7 +45,7 @@
                         ValueChanged="SetScrollSpeed"/>
             </AppBarElementContainer>
             <AppBarSeparator Width="50"/>
-            <AppBarToggleButton Label="Loop" Icon="RepeatAll" Click="HandleLoopToggleBtnClick"/>
+            <AppBarToggleButton x:Name="LoopBtn" Label="Loop" Icon="RepeatAll" Click="HandleLoopToggleBtnClick"/>
         </CommandBar>
         <ScrollViewer x:Name="MainScrollViewer">
             <StackPanel x:Name="ImageContainer" Orientation="Vertical"/>
