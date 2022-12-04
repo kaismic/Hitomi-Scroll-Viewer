@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.UI;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
@@ -169,6 +170,34 @@ namespace Hitomi_Scroll_Viewer {
                 TagControlGrid.ColumnDefinitions.Add(new ColumnDefinition());
             }
 
+            // Create Tag Control Buttons
+            int currRow = 0;
+
+            Button createTagBtn = CreateTagControlBtn("Create a New Tag List", Colors.Blue, currRow, 2);
+            createTagBtn.Click += CreateTag;
+            TagControlGrid.Children.Add(createTagBtn);
+            currRow += Grid.GetRowSpan(createTagBtn) + 1;
+
+            Button renameTagBtn = CreateTagControlBtn("Rename Current Tag List", Colors.Orange, currRow, 2);
+            renameTagBtn.Click += RenameTag;
+            TagControlGrid.Children.Add(renameTagBtn);
+            currRow += Grid.GetRowSpan(renameTagBtn) + 1;
+
+            Button saveTagBtn = CreateTagControlBtn("Save Current Tag List", Colors.Green, currRow, 4);
+            saveTagBtn.Click += SaveTag;
+            TagControlGrid.Children.Add(saveTagBtn);
+            currRow += Grid.GetRowSpan(saveTagBtn) + 1;
+
+            Button removeTagBtn = CreateTagControlBtn("Remove Current Tag List", Colors.Red, currRow, 2);
+            removeTagBtn.Click += RemoveTag;
+            TagControlGrid.Children.Add(removeTagBtn);
+            currRow += Grid.GetRowSpan(removeTagBtn) + 1;
+
+            Button ClearTagTextBoxesBtn = CreateTagControlBtn("Clear Current Tag Textboxes", Colors.Black, currRow, 2);
+            ClearTagTextBoxesBtn.Click += ClearTagTextboxes;
+            TagControlGrid.Children.Add(ClearTagTextBoxesBtn);
+
+
             // TagControlGrid Children
             foreach (FrameworkElement elem in TagControlGrid.Children.Cast<FrameworkElement>()) {
                 elem.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -289,6 +318,32 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
+        /*               
+                <Button x:Name="CreateBtn"
+                        Click="CreateTag"
+                        Grid.Row="0" Grid.RowSpan="2"
+                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
+                        BorderBrush="Blue"
+                        >
+                    <TextBlock Text="Create New Tag List" TextWrapping="WrapWholeWords"/>
+                </Button>
+         */
+        private static Button CreateTagControlBtn(string text, Color borderColor, int row, int rowSpan) {
+            Button btn = new() {
+                Content = new TextBlock() {
+                    Text = text,
+                    TextWrapping = TextWrapping.WrapWholeWords
+                },
+                BorderBrush = new SolidColorBrush(borderColor),
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+            Grid.SetRow(btn, row);
+            Grid.SetRowSpan(btn, rowSpan);
+            Grid.SetColumn(btn, 8);
+            Grid.SetColumnSpan(btn, 7);
+            return btn;
+        }
+
         public async void Init() {
             for (int i = 0; i < bmGalleryInfo.Count; i++) {
                 await CreateBookmarkGrid(i);
@@ -389,12 +444,12 @@ namespace Hitomi_Scroll_Viewer {
             string tagName = TagNameTextBox.Text.Trim();
             TagNameTextBox.Text = "";
             if (tagName.Length == 0) {
-                _myMainWindow.AlertUser("No Tag Name", "Please enter a tag Name");
+                _myMainWindow.AlertUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             foreach (string item in TagListComboBox.Items.Cast<string>()) {
                 if (item == tagName) {
-                    _myMainWindow.AlertUser("Same Tag Name", "A tag with the same name already exists");
+                    _myMainWindow.AlertUser("Same Tag Name", "A tag list with the same name already exists");
                     return;
                 }
             }
@@ -405,18 +460,18 @@ namespace Hitomi_Scroll_Viewer {
 
         private void RenameTag(object sender, RoutedEventArgs e) {
             if (TagListComboBox.SelectedIndex == -1) {
-                _myMainWindow.AlertUser("No Tags Selected", "There are no tags selected.");
+                _myMainWindow.AlertUser("No Tags Selected", "There is no tag list selected currently.");
                 return;
             }
             string tagName = TagNameTextBox.Text.Trim();
             TagNameTextBox.Text = "";
             if (tagName.Length == 0) {
-                _myMainWindow.AlertUser("No Tag Name", "Please enter a tag Name");
+                _myMainWindow.AlertUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             foreach (string item in TagListComboBox.Items.Cast<string>()) {
                 if (item == tagName) {
-                    _myMainWindow.AlertUser("Same Tag Name", "A tag with the same name already exists");
+                    _myMainWindow.AlertUser("Same Tag Name", "A tag list with the same name already exists");
                     return;
                 }
             }
@@ -430,7 +485,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private void SaveTag(object sender, RoutedEventArgs e) {
             if (TagListComboBox.SelectedIndex == -1) {
-                _myMainWindow.AlertUser("No Tags Selected", "There are no tags selected.");
+                _myMainWindow.AlertUser("No Tags Selected", "There is no tag list selected currently.");
                 return;
             }
             string selectedString = TagListComboBox.SelectedItem as string;
@@ -440,7 +495,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private void RemoveTag(object sender, RoutedEventArgs e) {
             if (TagListComboBox.SelectedIndex == -1) {
-                _myMainWindow.AlertUser("No Tags Selected", "There are no tags selected.");
+                _myMainWindow.AlertUser("No Tags Selected", "There is no tag list selected currently.");
                 return;
             }
             string selectedItem = TagListComboBox.SelectedItem as string;
@@ -537,7 +592,7 @@ namespace Hitomi_Scroll_Viewer {
         private void ShowImagesFromId() {
             string id = ExtractGalleryId();
             if (string.IsNullOrEmpty(id)) {
-                _myMainWindow.AlertUser("Invalid ID or URL", "Please enter a correct ID or URL");
+                _myMainWindow.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
                 return;
             }
             GalleryIDTextBox.Text = "";

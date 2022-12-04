@@ -65,42 +65,6 @@
                            Grid.Column="0" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
                            TextWrapping="Wrap"
                            />
-
-                <Button Click="CreateTag"
-                        Grid.Row="0" Grid.RowSpan="2"
-                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
-                        BorderBrush="Blue"
-                        >
-                    <TextBlock Text="Create New Tag List" TextWrapping="WrapWholeWords"/>
-                </Button>
-                <Button Click="RenameTag"
-                        Grid.Row="3" Grid.RowSpan="2"
-                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
-                        BorderBrush="Orange"
-                        >
-                    <TextBlock Text="Rename Tag List" TextWrapping="WrapWholeWords"/>
-                </Button>
-                <Button Click="SaveTag"
-                        Grid.Row="6" Grid.RowSpan="4"
-                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
-                        BorderBrush="Green"
-                        >
-                    <TextBlock Text="Save Tag List" TextWrapping="WrapWholeWords"/>
-                </Button>
-                <Button Click="RemoveTag"
-                        Grid.Row="11" Grid.RowSpan="2"
-                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
-                        BorderBrush="Red"
-                        >
-                    <TextBlock Text="Remove Tag List" TextWrapping="WrapWholeWords"/>
-                </Button>
-                <Button Click="ClearTagTextboxes"
-                        Grid.Row="14" Grid.RowSpan="2"
-                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
-                        BorderBrush="Black"
-                        >
-                    <TextBlock Text="Clear Tag List" TextWrapping="WrapWholeWords"/>
-                </Button>
             </Grid>
             <!--Row 2, Column 0, Full Columnspan-->
             <!--2 rows, 1 column-->
