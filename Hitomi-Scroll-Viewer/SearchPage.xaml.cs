@@ -632,7 +632,7 @@ namespace Hitomi_Scroll_Viewer {
         private void LoadImagesFromBookmark(int idx) {
             _myMainWindow.myImageWatchingPage.currGalleryInfo = bmGalleryInfo[idx];
             _myMainWindow.myImageWatchingPage.ChangeBookmarkBtnState(ImageWatchingPage.LoadingState.Loading);
-            _myMainWindow.myImageWatchingPage.LoadImagesFromLocalFolder(idx);
+            _myMainWindow.myImageWatchingPage.LoadImagesFromLocalDir(idx);
             _myMainWindow.SwitchPage();
         }
 
@@ -665,23 +665,30 @@ namespace Hitomi_Scroll_Viewer {
             Grid.SetColumnSpan(hb, columnSpan - 1);
             gr.Children.Add(hb);
 
-            string imgStorageFolderPath = BM_IMGS_DIR_PATH + @"\" + bmGalleryInfo[idx].id;
-            int imgIdx;
-            for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                imgIdx = i * bmGalleryInfo[idx].files.Count / THUMBNAIL_IMG_NUM;
-                BitmapImage bmpimg = await ImageWatchingPage.GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + imgIdx.ToString()));
-                Image img = new() {
-                    Source = bmpimg,
-                    Width = THUMBNAIL_IMG_WIDTH,
-                    Height = THUMBNAIL_IMG_WIDTH * bmGalleryInfo[idx].files[i].height / bmGalleryInfo[idx].files[i].width,
-                };
+            try {
+                string imgStorageDirPath = BM_IMGS_DIR_PATH + @"\" + bmGalleryInfo[idx].id;
+                int imgIdx;
+                for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
+                    imgIdx = i * bmGalleryInfo[idx].files.Count / THUMBNAIL_IMG_NUM;
+                        BitmapImage bmpimg = await ImageWatchingPage.GetImage(await File.ReadAllBytesAsync(imgStorageDirPath + @"\" + imgIdx.ToString()));    
+                    Image img = new() {
+                        Source = bmpimg,
+                        Width = THUMBNAIL_IMG_WIDTH,
+                        Height = THUMBNAIL_IMG_WIDTH * bmGalleryInfo[idx].files[i].height / bmGalleryInfo[idx].files[i].width,
+                    };
 
-                Grid.SetRow(img, 1);
-                Grid.SetRowSpan(img, rowSpan - 1);
-                Grid.SetColumn(img, i * (columnSpan - 1) / THUMBNAIL_IMG_NUM);
-                Grid.SetColumnSpan(img, (columnSpan - 1) / THUMBNAIL_IMG_NUM);
-                gr.Children.Add(img);
+                    Grid.SetRow(img, 1);
+                    Grid.SetRowSpan(img, rowSpan - 1);
+                    Grid.SetColumn(img, i * (columnSpan - 1) / THUMBNAIL_IMG_NUM);
+                    Grid.SetColumnSpan(img, (columnSpan - 1) / THUMBNAIL_IMG_NUM);
+                    gr.Children.Add(img);
 
+                }
+            }
+            catch (DirectoryNotFoundException) {
+                Debug.WriteLine("Image directory for " + bmGalleryInfo[idx].title + " (" + bmGalleryInfo[idx].id + ") not found");
+                (hb.Content as TextBlock).Text = bmGalleryInfo[idx].title + "\n" + bmGalleryInfo[idx].id + "\n" + "Image directory not found";
+                hb.IsEnabled = false;
             }
 
             Button btn = new() {
@@ -710,11 +717,11 @@ namespace Hitomi_Scroll_Viewer {
             isSavingBookmark = true;
             _myMainWindow.myImageWatchingPage.ChangeBookmarkBtnState(ImageWatchingPage.LoadingState.Bookmarked);
             
-            string imgStorageFolderPath = BM_IMGS_DIR_PATH + @"\" + _myMainWindow.myImageWatchingPage.currGalleryInfo.id;
-            Directory.CreateDirectory(imgStorageFolderPath);
+            string imgStorageDirPath = BM_IMGS_DIR_PATH + @"\" + _myMainWindow.myImageWatchingPage.currGalleryInfo.id;
+            Directory.CreateDirectory(imgStorageDirPath);
 
             for (int i = 0; i < _myMainWindow.myImageWatchingPage.currByteArrays.Length; i++) {
-                await File.WriteAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString(), _myMainWindow.myImageWatchingPage.currByteArrays[i]);
+                await File.WriteAllBytesAsync(imgStorageDirPath + @"\" + i.ToString(), _myMainWindow.myImageWatchingPage.currByteArrays[i]);
             }
             bmGalleryInfo.Add(_myMainWindow.myImageWatchingPage.currGalleryInfo);
 

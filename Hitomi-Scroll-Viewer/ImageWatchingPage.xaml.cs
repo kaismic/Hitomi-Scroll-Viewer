@@ -135,7 +135,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public async void LoadImagesFromLocalFolder(int idx) {
+        public async void LoadImagesFromLocalDir(int idx) {
             await CheckLoadingImages();
             isLoadingImages = true;
 
@@ -144,10 +144,10 @@ namespace Hitomi_Scroll_Viewer {
 
                 BitmapImage bmpimg;
                 Image img;
-                string imgStorageFolderPath = SearchPage.BM_IMGS_DIR_PATH + @"\" + _myMainWindow.mySearchPage.bmGalleryInfo[idx].id;
+                string imgStorageDirPath = SearchPage.BM_IMGS_DIR_PATH + @"\" + _myMainWindow.mySearchPage.bmGalleryInfo[idx].id;
                 for (int i = 0; i < _myMainWindow.mySearchPage.bmGalleryInfo[idx].files.Count; i++) {
                     myCancellationToken.ThrowIfCancellationRequested();
-                    bmpimg = await GetImage(await File.ReadAllBytesAsync(imgStorageFolderPath + @"\" + i.ToString()));
+                    bmpimg = await GetImage(await File.ReadAllBytesAsync(imgStorageDirPath + @"\" + i.ToString()));
                     img = new() {
                         Source = bmpimg,
                         Width = _myMainWindow.mySearchPage.bmGalleryInfo[idx].files[i].width * ImageSizeScaleSlider.Value,
