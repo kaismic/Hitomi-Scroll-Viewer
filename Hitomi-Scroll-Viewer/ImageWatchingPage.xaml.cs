@@ -49,15 +49,13 @@ namespace Hitomi_Scroll_Viewer {
             _myMainWindow = mainWindow;
             _isLooping = true;
             LoopBtn.IsChecked = true;
-            Loaded += HandleInitLoad;
+            Loaded += HandleLoad;
 
             myCancellationToken = myCancellationTokenSource.Token;
         }
 
         public void Init() {
-            _myMainWindow.RootFrame.KeyDown += HandleKeyDownEvent;
             MainGrid.PointerMoved += HandleMouseMovement;
-
             BookmarkBtn.Click += _myMainWindow.mySearchPage.AddCurrGalleryToBookmark;
         }
 
@@ -79,22 +77,19 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private void HandleInitLoad(object _, RoutedEventArgs e) {
+        private void HandleLoad(object _, RoutedEventArgs e) {
             _commandBarShowRange *= ActualHeight;
-            Loaded -= HandleInitLoad;
+            Loaded -= HandleLoad;
         }
 
         private void SetScrollSpeed(object sender, RangeBaseValueChangedEventArgs e) {
             _scrollSpeed = (int)(sender as Slider).Value;
         }
 
-        private void HandleKeyDownEvent(object _, KeyRoutedEventArgs e) {
-            if ((Page)_myMainWindow.RootFrame.Content == this) {
-                if (e.Key == Windows.System.VirtualKey.Space) {
-                    if (!isAutoScrolling) {
-                        Task.Run(ScrollAutomatically);
-                    }
-                    isAutoScrolling = !isAutoScrolling;
+        public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
+            if (e.Key == Windows.System.VirtualKey.Space) {
+                if (isAutoScrolling = !isAutoScrolling) {
+                    Task.Run(ScrollAutomatically);
                 }
             }
         }
@@ -299,18 +294,17 @@ namespace Hitomi_Scroll_Viewer {
 
         public static async Task<BitmapImage> GetImage(byte[] imgData) {
             BitmapImage img = new();
+            InMemoryRandomAccessStream stream = new();
 
-            using InMemoryRandomAccessStream stream = new();
-            using (DataWriter writer = new(stream)) {
-                writer.WriteBytes(imgData);
-                await writer.StoreAsync();
-                await writer.FlushAsync();
-                writer.DetachStream();
-            }
-
+            DataWriter writer = new(stream);
+            writer.WriteBytes(imgData);
+            await writer.StoreAsync();
+            await writer.FlushAsync();
+            writer.DetachStream();
             stream.Seek(0);
             await img.SetSourceAsync(stream);
 
+            stream.Dispose();
             return img;
         }
 

@@ -31,6 +31,7 @@ namespace Hitomi_Scroll_Viewer {
 
             RootFrame.DoubleTapped += HandleDoubleTap;
             RootFrame.Loaded += HandleInitLoad;
+            RootFrame.KeyDown += myImageWatchingPage.HandleKeyDown;
             Closed += HandleWindowCloseEvent;
             
             RootFrame.Content = _appPages[_currPageNum];

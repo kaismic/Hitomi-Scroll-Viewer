@@ -51,7 +51,7 @@ namespace Hitomi_Scroll_Viewer {
             InitializeComponent();
             InitLayout();
             _myMainWindow = mainWindow;
-
+            
             // create tag file if it doesn't exist
             if (!File.Exists(TAG_FILE_PATH)) {
                 Tag defaultTag = new();
@@ -742,8 +742,10 @@ namespace Hitomi_Scroll_Viewer {
             // remove bitmap images
             Directory.Delete(BM_IMGS_DIR_PATH + @"\" + bmGalleryInfo[targetIdx].id, true);
             // if the removing gallery is the current viewing gallery
-            if (bmGalleryInfo[targetIdx].id == _myMainWindow.myImageWatchingPage.currGalleryInfo.id) {
-                _myMainWindow.myImageWatchingPage.ChangeBookmarkBtnState(ImageWatchingPage.LoadingState.Loaded);
+            if (_myMainWindow.myImageWatchingPage.currGalleryInfo != null) {
+                if (bmGalleryInfo[targetIdx].id == _myMainWindow.myImageWatchingPage.currGalleryInfo.id) {
+                    _myMainWindow.myImageWatchingPage.ChangeBookmarkBtnState(ImageWatchingPage.LoadingState.Loaded);
+                }
             }
 
             bmGalleryInfo.RemoveAt(targetIdx);
