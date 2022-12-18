@@ -59,6 +59,10 @@ namespace Hitomi_Scroll_Viewer {
             BookmarkBtn.Click += _myMainWindow.mySearchPage.AddCurrGalleryToBookmark;
         }
 
+        private void HandleGoBackBtnClick(object _, RoutedEventArgs e) {
+            _myMainWindow.SwitchPage();
+        }
+
         private void HandleLoopToggleBtnClick(object _, RoutedEventArgs e) {
             _isLooping = !_isLooping;
         }
@@ -267,26 +271,10 @@ namespace Hitomi_Scroll_Viewer {
         private static string[] GetImageAddresses(string[] imgHashArr, string serverTime) {
             string[] result = new string[imgHashArr.Length];
             string hash;
-            string twoCharPart;
-            string oneCharPart;
-            //int twoCharPartInt;
-            //int divisor;
-            //string subdomain;
             string oneTwoCharInt;
             for (int i = 0; i < imgHashArr.Length; i++) {
                 hash = imgHashArr[i];
-                twoCharPart = hash[^3..^1];
-                oneCharPart = hash[^1..];
-                //twoCharPartInt = Convert.ToInt32(twoCharPart, 16);
-                oneTwoCharInt = Convert.ToInt32(oneCharPart + twoCharPart, 16).ToString();
-                //if (twoCharPartInt < 9) {
-                //    divisor = 1;
-                //} else if (twoCharPartInt < 48) {
-                //    divisor = 2;
-                //} else {
-                //    divisor = 3;
-                //subdomain = char.ToString((char)('a' + (twoCharPartInt % divisor)));
-                //result.Add($"https://{subdomain}a.hitomi.la/webp/{serverTime}/{oneTwoCharInt}/{hash}.webp");
+                oneTwoCharInt = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
                 result[i] = $"hitomi.la/webp/{serverTime}/{oneTwoCharInt}/{hash}.webp";
             }
             return result;
@@ -304,6 +292,7 @@ namespace Hitomi_Scroll_Viewer {
             stream.Seek(0);
             await img.SetSourceAsync(stream);
 
+            writer.Dispose();
             stream.Dispose();
             return img;
         }

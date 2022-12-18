@@ -10,6 +10,14 @@
 
     <Grid x:Name="MainGrid">
         <CommandBar x:Name="TopCommandBar" ClosedDisplayMode="Hidden" OverflowButtonVisibility="Collapsed" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <AppBarButton x:Name="SwitchPageBtn"
+                          Width="128"
+                          Icon="Back"
+                          Label="Go Back"
+                          HorizontalAlignment="Left"
+                          Click="HandleGoBackBtnClick"
+                          />
+            <AppBarSeparator Width="250"/>
             <AppBarButton x:Name="BookmarkBtn"
                           x:FieldModifier="public"
                           IsEnabled="False"

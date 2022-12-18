@@ -59,6 +59,7 @@ namespace Hitomi_Scroll_Viewer {
         public void SwitchPage() {
             _currPageNum = (_currPageNum + 1) % _appPages.Length;
             RootFrame.Content = _appPages[_currPageNum];
+            GC.Collect();
         }
 
         public async void AlertUser(string title, string text) {
