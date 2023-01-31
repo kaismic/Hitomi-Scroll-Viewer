@@ -18,7 +18,7 @@ using Windows.UI;
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
         public static readonly string HITOMI_BASE_DOMAIN = "https://hitomi.la/search.html?";
-        public static readonly int GALLERY_ID_LENGTH = 7;
+        public static readonly int[] GALLERY_ID_LENGTH_RANGE = new int[] { 6, 7 };
         public static readonly string[] _tagTypes = { "language", "female", "male", "artist", "character", "group", "series", "type", "tag" };
         public static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
@@ -615,7 +615,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private string ExtractGalleryId() {
-            string regex = @"\d{"+ GALLERY_ID_LENGTH + "}";
+            string regex = @"\d{"+ GALLERY_ID_LENGTH_RANGE[0] + "," + GALLERY_ID_LENGTH_RANGE[1] + "}";
             MatchCollection matches = Regex.Matches(GalleryIDTextBox.Text, regex);
             if (matches.Count == 0) {
                 return "";
