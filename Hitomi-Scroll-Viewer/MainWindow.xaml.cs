@@ -35,7 +35,6 @@ namespace Hitomi_Scroll_Viewer {
             Closed += HandleWindowCloseEvent;
             
             RootFrame.Content = _appPages[_currPageNum];
-
         }
 
         private void HandleInitLoad(object _, RoutedEventArgs e) {
