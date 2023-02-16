@@ -56,7 +56,7 @@ namespace Hitomi_Scroll_Viewer {
 
         public void Init() {
             MainGrid.PointerMoved += HandleMouseMovement;
-            BookmarkBtn.Click += _myMainWindow.mySearchPage.AddCurrGalleryToBookmark;
+            BookmarkBtn.Click += _myMainWindow.mySearchPage.AddBookmark;
         }
 
         private void HandleGoBackBtnClick(object _, RoutedEventArgs e) {

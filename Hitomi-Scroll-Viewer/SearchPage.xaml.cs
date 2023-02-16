@@ -43,8 +43,6 @@ namespace Hitomi_Scroll_Viewer {
             RequestedOperation = DataPackageOperation.Copy
         };
 
-        public bool isSavingBookmark = false;
-        
         private readonly MainWindow _myMainWindow;
 
         public SearchPage(MainWindow mainWindow) {
@@ -456,6 +454,8 @@ namespace Hitomi_Scroll_Viewer {
             _tag.Add(tagName, GetCurrTag());
             TagListComboBox.Items.Add(tagName);
             TagListComboBox.SelectedItem = tagName;
+
+            SaveTagInfoToLocalStorage();
         }
 
         private void RenameTag(object sender, RoutedEventArgs e) {
@@ -481,6 +481,8 @@ namespace Hitomi_Scroll_Viewer {
             TagListComboBox.Items.Add(tagName);
             TagListComboBox.SelectedItem = tagName;
             TagListComboBox.Items.Remove(selectedItem);
+
+            SaveTagInfoToLocalStorage();
         }
 
         private void SaveTag(object sender, RoutedEventArgs e) {
@@ -491,6 +493,8 @@ namespace Hitomi_Scroll_Viewer {
             string selectedString = TagListComboBox.SelectedItem as string;
             _tag[selectedString] = GetCurrTag();
             SaveTagConfirmationTextBlock.Text = '"' + selectedString + '"' + " was saved successfully.";
+
+            SaveTagInfoToLocalStorage();
         }
 
         private void RemoveTag(object sender, RoutedEventArgs e) {
@@ -501,6 +505,9 @@ namespace Hitomi_Scroll_Viewer {
             string selectedItem = TagListComboBox.SelectedItem as string;
             _tag.Remove(selectedItem);
             TagListComboBox.Items.Remove(selectedItem);
+            TagListComboBox.SelectedIndex = 0;
+
+            SaveTagInfoToLocalStorage();
         }
 
         private void ClearTagTextboxes(object sender, RoutedEventArgs e) {
@@ -512,8 +519,11 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public void SaveDataToLocalStorage() {
+        public void SaveTagInfoToLocalStorage() {
             File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(_tag, _serializerOptions));
+        }
+
+        public void SaveBookmarkInfoToLocalStorage() {
             File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(bmGalleryInfo, _serializerOptions));
         }
 
@@ -713,8 +723,7 @@ namespace Hitomi_Scroll_Viewer {
             BookmarkGrid.Children.Add(_bookmarkGrids[idx]);
         }
 
-        public async void AddCurrGalleryToBookmark(object _, RoutedEventArgs e) {
-            isSavingBookmark = true;
+        public async void AddBookmark(object _, RoutedEventArgs e) {
             _myMainWindow.myImageWatchingPage.ChangeBookmarkBtnState(ImageWatchingPage.LoadingState.Bookmarked);
             
             string imgStorageDirPath = BM_IMGS_DIR_PATH + @"\" + _myMainWindow.myImageWatchingPage.currGalleryInfo.id;
@@ -731,7 +740,8 @@ namespace Hitomi_Scroll_Viewer {
                 bmGalleryInfo.Count - 1 < (_currBookmarkPage + 1) * MAX_BOOKMARK_PER_PAGE) {
                 ShowBookmarkOnGrid(bmGalleryInfo.Count - 1);
             }
-            isSavingBookmark = false;
+
+            SaveBookmarkInfoToLocalStorage();
         }
 
         private void RemoveBookmark(object sender, RoutedEventArgs e) {
@@ -769,6 +779,8 @@ namespace Hitomi_Scroll_Viewer {
             if ((targetIdx + reallocatingGridNum)/MAX_BOOKMARK_PER_PAGE == _currBookmarkPage + 1) {
                 BookmarkGrid.Children.Add(_bookmarkGrids[targetIdx + reallocatingGridNum - 1]);
             }
+
+            SaveBookmarkInfoToLocalStorage();
         }
 
         private void FillBookmarkGrid() {

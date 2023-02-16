@@ -32,20 +32,11 @@ namespace Hitomi_Scroll_Viewer {
             RootFrame.DoubleTapped += HandleDoubleTap;
             RootFrame.Loaded += HandleInitLoad;
             RootFrame.KeyDown += myImageWatchingPage.HandleKeyDown;
-            Closed += HandleWindowCloseEvent;
-            
             RootFrame.Content = _appPages[_currPageNum];
         }
 
         private void HandleInitLoad(object _, RoutedEventArgs e) {
             (_myAppWindow.Presenter as OverlappedPresenter).Maximize();
-        }
-
-        private async void HandleWindowCloseEvent(object _, WindowEventArgs args) {
-            while (mySearchPage.isSavingBookmark) {
-                await Task.Delay(100);
-            }
-            mySearchPage.SaveDataToLocalStorage();
         }
 
         private void HandleDoubleTap(object _, DoubleTappedRoutedEventArgs args) {
