@@ -33,7 +33,7 @@
                         Minimum="0.1"
                         Maximum="1.5"
                         Width="240"
-                        Header="Image Size Scale"
+                        Header="Image Size"
                         FontSize="14"
                         HorizontalAlignment="Center"
                         ValueChanged="ChangeImageSize"/>
