@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace Hitomi_Scroll_Viewer {
-    public class GalleryInfo {
+    public class Gallery {
         public string type = "";
         public string language_localname = "";
         public string videofilename = "";
@@ -22,7 +22,7 @@ namespace Hitomi_Scroll_Viewer {
         public List<Dictionary<string, string>> parodys = new();
         public List<Dictionary<string, object>> tags = new();
 
-        public GalleryInfo() {
+        public Gallery() {
 
         }
     }

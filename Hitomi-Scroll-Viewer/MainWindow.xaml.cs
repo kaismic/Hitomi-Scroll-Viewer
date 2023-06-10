@@ -1,9 +1,12 @@
 ﻿using Microsoft.UI;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
@@ -13,6 +16,12 @@ namespace Hitomi_Scroll_Viewer {
         private static int _currPageNum = 0;
         private readonly AppWindow _myAppWindow;
 
+        public Gallery gallery;
+        public List<Gallery> BMGalleries;
+        public byte[][] images;
+
+        public DispatcherQueue _myDispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
         public MainWindow() {
             InitializeComponent();
 
@@ -21,7 +30,7 @@ namespace Hitomi_Scroll_Viewer {
             IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
             _myAppWindow = AppWindow.GetFromWindowId(windowId);
-            
+
             mySearchPage = new(this);
             myImageWatchingPage = new(this);
             mySearchPage.Init();
