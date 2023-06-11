@@ -41,11 +41,11 @@
             <AppBarSeparator Width="50"/>
             <AppBarElementContainer>
                 <Slider
-                        StepFrequency="1"
-                        TickFrequency="1"
-                        Value="5"
+                        StepFrequency="0.25"
+                        TickFrequency="0.25"
+                        Value="3"
                         Minimum="0"
-                        Maximum="10"
+                        Maximum="5"
                         Width="240"
                         Header="Auto Scrolling Speed"
                         FontSize="14"
@@ -56,7 +56,7 @@
             <AppBarToggleButton x:Name="LoopBtn" Label="Loop" Icon="RepeatAll" Click="HandleLoopToggleBtnClick"/>
         </CommandBar>
         <ScrollViewer x:Name="MainScrollViewer">
-            <StackPanel x:Name="ImageContainer" Orientation="Vertical"/>
+            <StackPanel x:Name="ImageContainer" Orientation="Vertical" x:FieldModifier="public"/>
         </ScrollViewer>
     </Grid>
 </Page>
