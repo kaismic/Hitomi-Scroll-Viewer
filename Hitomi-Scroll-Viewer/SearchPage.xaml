@@ -57,7 +57,7 @@
                 <ComboBox x:Name="TagListComboBox"
                           Grid.Row="6" Grid.RowSpan="3"
                           Grid.Column="0" Grid.ColumnSpan="7"
-                          SelectionChanged="LoadTagInTextBox"
+                          SelectionChanged="LoadTags"
                           />
                 <TextBlock x:Name="SaveTagConfirmationTextBlock"
                            Grid.Row="10" Grid.RowSpan="3"
