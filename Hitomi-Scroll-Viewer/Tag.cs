@@ -2,15 +2,16 @@
 
 namespace Hitomi_Scroll_Viewer {
     internal class Tag {
-        public Dictionary<string, string[]> includeTagTypes = new();
-        public Dictionary<string, string[]> excludeTagTypes = new();
-        public Tag() {
+        public static readonly string[] CATEGORIES = {
+            "language", "female", "male", "artist", "character", "group", "series", "type", "tag"
+        };
 
-        }
-        public Tag(string[] tagTypes) {
-            foreach (string tag in tagTypes) {
-                includeTagTypes[tag] = System.Array.Empty<string>();
-                excludeTagTypes[tag] = System.Array.Empty<string>();
+        public Dictionary<string, string[]> includeTags = new();
+        public Dictionary<string, string[]> excludeTags = new();
+        public Tag() {
+            foreach (string tag in CATEGORIES) {
+                includeTags[tag] = System.Array.Empty<string>();
+                excludeTags[tag] = System.Array.Empty<string>();
             }
         }
     }
