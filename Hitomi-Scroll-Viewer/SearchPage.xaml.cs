@@ -16,12 +16,12 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.UI;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 using static Hitomi_Scroll_Viewer.MainWindow;
+using static Hitomi_Scroll_Viewer.Tag;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
         public static readonly string HITOMI_BASE_DOMAIN = "https://hitomi.la/search.html?";
         public static readonly int[] GALLERY_ID_LENGTH_RANGE = new int[] { 6, 7 };
-        public static readonly string[] _tagTypes = { "language", "female", "male", "artist", "character", "group", "series", "type", "tag" };
         public static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
         public static readonly string BM_INFO_FILE_NAME = "BookmarkInfo.json";
@@ -36,14 +36,12 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly List<Grid> _bookmarkGrids = new(MAX_BOOKMARK_PER_PAGE * MAX_BOOKMARK_PAGE);
         private static int _currBookmarkPage = 0;
 
-        private static readonly TextBox[] _includeTagTextBoxes = new TextBox[_tagTypes.Length];
-        private static readonly TextBox[] _excludeTagTextBoxes = new TextBox[_tagTypes.Length];
+        private static readonly TextBox[] _includeTagTextBoxes = new TextBox[CATEGORIES.Length];
+        private static readonly TextBox[] _excludeTagTextBoxes = new TextBox[CATEGORIES.Length];
         private static readonly Grid[] _tagGrids = new Grid[2];
         private static readonly DataPackage _myDataPackage = new() {
             RequestedOperation = DataPackageOperation.Copy
         };
-
-        private static readonly DispatcherQueue _myDispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         private static MainWindow _mw;
 
@@ -55,7 +53,7 @@ namespace Hitomi_Scroll_Viewer {
             // create tag file if it doesn't exist
             if (!File.Exists(TAG_FILE_PATH)) {
                 Tag defaultTag = new();
-                defaultTag.includeTagTypes["tag"] = new string[] { "non-h_imageset" };
+                defaultTag.includeTags["tag"] = new string[] { "non-h_imageset" };
                 File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(defaultTag, _serializerOptions));
             }
             // read tag info from file
@@ -240,7 +238,7 @@ namespace Hitomi_Scroll_Viewer {
                 for (int j = 0; j < 3; j++) {
                     grid.RowDefinitions.Add(new RowDefinition());
                 }
-                for (int j = 0; j < _tagTypes.Length; j++) {
+                for (int j = 0; j < CATEGORIES.Length; j++) {
                     grid.ColumnDefinitions.Add(new ColumnDefinition());
                 }
             }
@@ -257,7 +255,7 @@ namespace Hitomi_Scroll_Viewer {
                 };
                 Grid.SetRow(headingBorder, 0);
                 Grid.SetColumn(headingBorder, 0);
-                Grid.SetColumnSpan(headingBorder, _tagTypes.Length);
+                Grid.SetColumnSpan(headingBorder, CATEGORIES.Length);
                 tagGrid.Children.Add(headingBorder);
 
                 TextBlock headingTextBlock = new() {
@@ -280,7 +278,7 @@ namespace Hitomi_Scroll_Viewer {
 
             for (int i = 0; i < _tagGrids.Length; i++) {
                 Grid tagGrid = _tagGrids[i];
-                for (int j = 0; j < _tagTypes.Length; j++) {
+                for (int j = 0; j < CATEGORIES.Length; j++) {
                     //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "1" Grid.Column = "i" >
                     //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "_tagTypes[i]" />
                     //</ Border >
@@ -295,7 +293,7 @@ namespace Hitomi_Scroll_Viewer {
                     TextBlock headingTextBlock = new() {
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
-                        Text = _tagTypes[j][..1].ToUpperInvariant() + _tagTypes[j][1..]
+                        Text = CATEGORIES[j][..1].ToUpperInvariant() + CATEGORIES[j][1..]
                     };
                     tagHeadingBorder.Child = headingTextBlock;
 
@@ -358,8 +356,8 @@ namespace Hitomi_Scroll_Viewer {
         private static string GetSearchAddress() {
             string param = "";
             string tagType;
-            for (int i = 0; i < _tagTypes.Length; i++) {
-                tagType = _tagTypes[i];
+            for (int i = 0; i < CATEGORIES.Length; i++) {
+                tagType = CATEGORIES[i];
                 foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
                     param += tagType + "%3A" + tag.Replace(' ', '_') + "%20";
                 }
@@ -373,8 +371,8 @@ namespace Hitomi_Scroll_Viewer {
         private static string GetHyperlinkDisplayText() {
             string linkText = "";
             string tagTypeText;
-            for (int i = 0; i < _tagTypes.Length; i++) {
-                tagTypeText = _tagTypes[i] + ": ";
+            for (int i = 0; i < CATEGORIES.Length; i++) {
+                tagTypeText = CATEGORIES[i] + ": ";
                 linkText += tagTypeText;
                 foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
                     linkText += tag + " ";
@@ -392,23 +390,23 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private static Tag GetCurrTag() {
-            Tag currTag = new(_tagTypes);
+            Tag currTag = new();
             string tagType;
             string[] tagArray;
-            for (int i = 0; i < _tagTypes.Length; i++) {
-                tagType = _tagTypes[i];
+            for (int i = 0; i < CATEGORIES.Length; i++) {
+                tagType = CATEGORIES[i];
 
                 tagArray = _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 for (int j = 0; j < tagArray.Length; j++) {
                     tagArray[j] = tagArray[j].Replace(' ', '_');
                 }
-                currTag.includeTagTypes[tagType] = tagArray;
+                currTag.includeTags[tagType] = tagArray;
 
                 tagArray = _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 for (int j = 0; j < tagArray.Length; j++) {
                     tagArray[j] = tagArray[j].Replace(' ', '_');
                 }
-                currTag.excludeTagTypes[tagType] = tagArray;
+                currTag.excludeTags[tagType] = tagArray;
             }
             return currTag;
         }
@@ -423,10 +421,10 @@ namespace Hitomi_Scroll_Viewer {
 
             string text;
             string tagType;
-            for (int i = 0; i < _tagTypes.Length; i++) {
-                tagType = _tagTypes[i];
+            for (int i = 0; i < CATEGORIES.Length; i++) {
+                tagType = CATEGORIES[i];
                 text = "";
-                foreach (string tag in selectedTag.includeTagTypes[tagType]) {
+                foreach (string tag in selectedTag.includeTags[tagType]) {
                     text += tag + Environment.NewLine;
                 }
                 if (text != "") {
@@ -434,7 +432,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 _includeTagTextBoxes[i].Text = text;
                 text = "";
-                foreach (string tag in selectedTag.excludeTagTypes[tagType]) {
+                foreach (string tag in selectedTag.excludeTags[tagType]) {
                     text += tag + Environment.NewLine;
                 }
                 if (text != "") {
