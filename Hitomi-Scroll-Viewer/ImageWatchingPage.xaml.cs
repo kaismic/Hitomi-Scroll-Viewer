@@ -183,7 +183,7 @@ namespace Hitomi_Scroll_Viewer {
         public async Task LoadGalleryFromLocalDir(int bmIdx) {
             await PrepareImageLoad();
 
-            SetGallery(BMGalleries[bmIdx]);
+            gallery = BMGalleries[bmIdx];
 
             Image[] images = new Image[BMGalleries[bmIdx].files.Count];
 
@@ -262,7 +262,7 @@ namespace Hitomi_Scroll_Viewer {
                 string response = await GetGalleryInfo(id);
                 
                 if (response != null) {
-                    SetGallery(JsonSerializer.Deserialize<Gallery>(response, serializerOptions));
+                    gallery = JsonSerializer.Deserialize<Gallery>(response, serializerOptions);
                 } else {
                     return;
                 }
@@ -376,10 +376,6 @@ namespace Hitomi_Scroll_Viewer {
                     BookmarkBtn.IsEnabled = false;
                     break;
             }
-        }
-
-        private static void SetGallery(Gallery newGallery) {
-            gallery = newGallery;
         }
     }
 }
