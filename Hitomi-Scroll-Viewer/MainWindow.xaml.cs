@@ -42,32 +42,32 @@ namespace Hitomi_Scroll_Viewer {
             sp.Init();
             iwp.Init();
 
-            RootFrame.DoubleTapped += HandleDoubleTap;
-            RootFrame.Loaded += HandleInitLoad;
+            // Switch page on double click
+            RootFrame.DoubleTapped += (object _, DoubleTappedRoutedEventArgs _) => {
+                if (RootFrame.Content as Page != iwp) {
+                    ImageWatchingPage.isAutoScrolling = false;
+                }
+                SwitchPage();
+            };
+
+            // Maximise window on load
+            RootFrame.Loaded += (object _, RoutedEventArgs _) => {
+                (_myAppWindow.Presenter as OverlappedPresenter).Maximize();
+            };
+
             RootFrame.KeyDown += iwp.HandleKeyDown;
-            Closed += HandleWindowCloseEvent;
+
+            // Handle window close
+            Closed += (object _, WindowEventArgs _) => {
+                ImageWatchingPage.isAutoScrolling = false;
+                if (gallery != null) {
+                    if (!IsBookmarked()) {
+                        DeleteGallery(gallery.id);
+                    }
+                }
+            };
 
             RootFrame.Content = _appPages[_currPageNum];
-        }
-
-        private static void HandleInitLoad(object _, RoutedEventArgs e) {
-            (_myAppWindow.Presenter as OverlappedPresenter).Maximize();
-        }
-
-        private void HandleDoubleTap(object _, DoubleTappedRoutedEventArgs args) {
-            if (RootFrame.Content as Page != iwp) {
-                ImageWatchingPage.isAutoScrolling = false;
-            }
-            SwitchPage();
-        }
-
-        private void HandleWindowCloseEvent(object _, WindowEventArgs args) {
-            ImageWatchingPage.isAutoScrolling = false;
-            if (gallery != null) {
-                if (!IsBookmarked()) {
-                    DeleteGallery(gallery.id);
-                }
-            }
         }
 
         public void SwitchPage() {
