@@ -9,6 +9,14 @@ using static Hitomi_Scroll_Viewer.Tag;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class TagContainer : Grid {
+        /*
+         * apparently we can't just use Environment.NewLine as separator
+         * because of this disgusting TextBox bug which somehow force-converts \r\n to \r and it's still not fixed...
+         * https://github.com/microsoft/microsoft-ui-xaml/issues/1826
+         * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
+        */
+        public static readonly string[] newlineSep = new[] { Environment.NewLine, "\r" };
+
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly bool _isExclude;
         private readonly StringSplitOptions _splitOption = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
@@ -80,7 +88,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public string GetTagParameters(int idx) {
             string result = "";
-            string[] tags = _tagTextBoxes[idx].Text.Split(Environment.NewLine, _splitOption);
+            string[] tags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
             foreach (string tag in tags) {
                 if (_isExclude) {
                     result += '-';
@@ -92,7 +100,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public string GetTagStrings(int idx) {
             string result = "";
-            string[] tags = _tagTextBoxes[idx].Text.Split(Environment.NewLine, _splitOption);
+            string[] tags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
             foreach (string tag in tags) {
                 if (_isExclude) {
                     result += '-';
@@ -102,10 +110,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             return result;
         }
 
-        public void InsertTags(Dictionary<string, string[]> dict) {
+        public void InsertTags(Dictionary<string, string[]> tagList) {
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 string text = "";
-                foreach (string tag in dict[CATEGORIES[i]]) {
+                foreach (string tag in tagList[CATEGORIES[i]]) {
                     text += tag + Environment.NewLine;
                 }
                 _tagTextBoxes[i].Text = text;
@@ -113,15 +121,15 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         public Dictionary<string, string[]> GetTags() {
-            Dictionary<string, string[]> dict = new();
+            Dictionary<string, string[]> tagList = new();
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                string[] tags = _tagTextBoxes[i].Text.Split(Environment.NewLine, _splitOption);
+                string[] tags = _tagTextBoxes[i].Text.Split(newlineSep, _splitOption);
                 for (int j = 0; j < tags.Length; j++) {
                     tags[j] = tags[j].Replace(' ', '_');
                 }
-                dict.Add(CATEGORIES[i], tags);
+                tagList.Add(CATEGORIES[i], tags);
             }
-            return dict;
+            return tagList;
         }
     }
 }
