@@ -4,70 +4,54 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.UI;
 using static Hitomi_Scroll_Viewer.Tag;
 
 namespace Hitomi_Scroll_Viewer {
-    public sealed class TagContainer : Grid {
+    public sealed partial class TagContainer : Grid {
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly bool _isExclude;
         private readonly StringSplitOptions _splitOption = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
         public TagContainer(bool isExclude, string headerText, Color headerColor, int rowSpan) {
+            InitializeComponent();
+
             _isExclude = isExclude;
 
-            SetRow(this, 0);
             SetRowSpan(this, rowSpan);
-            BorderBrush = new SolidColorBrush(Colors.Black);
-            BorderThickness = new Thickness(1);
-            Margin = new Thickness(5);
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 ColumnDefinitions.Add(new ColumnDefinition());
             }
 
-            //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "0" Grid.Column = "0" Grid.ColumnSpan = "_tagTypes.Length" >
+            //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "0" Grid.Column = "0" Grid.ColumnSpan = "CATEGORIES.Length" >
             //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "Include/Exclude" />
             //</ Border >
 
-            Border headerBorder = new() {
-                BorderBrush = new SolidColorBrush(Colors.Black),
-                BorderThickness = new Thickness(1),
-            };
-            SetRow(headerBorder, 0);
-            SetColumn(headerBorder, 0);
-            SetColumnSpan(headerBorder, CATEGORIES.Length);
-            Children.Add(headerBorder);
+            SetColumnSpan(HeaderBorder, CATEGORIES.Length);
 
-            TextBlock headerTextBlock = new() {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 20,
-                FontWeight = new Windows.UI.Text.FontWeight(600),
-                Text = headerText,
-                Foreground = new SolidColorBrush(headerColor)
-            };
-
-            headerBorder.Child = headerTextBlock;
+            Header.Text = headerText;
+            Header.Foreground = new SolidColorBrush(headerColor);
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "1" Grid.Column = "i" >
-                //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "_tagTypes[i]" />
+                //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "CATEGORIES[i]" />
                 //</ Border >
-                Border tagHeadingBorder = new() {
+                Border categoryHeaderBorder = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
                 };
-                SetRow(tagHeadingBorder, 1);
-                SetColumn(tagHeadingBorder, i);
-                Children.Add(tagHeadingBorder);
+                SetRow(categoryHeaderBorder, 1);
+                SetColumn(categoryHeaderBorder, i);
+                Children.Add(categoryHeaderBorder);
 
-                TextBlock headingTextBlock = new() {
+                TextBlock categoryHeader = new() {
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     Text = char.ToUpper(CATEGORIES[i][0]) + CATEGORIES[i][1..]
                 };
-                tagHeadingBorder.Child = headingTextBlock;
+                categoryHeaderBorder.Child = categoryHeader;
 
                 //< TextBox BorderBrush = "Black" BorderThickness = "1" Grid.Row = "2" Grid.Column = "i" AcceptsReturn = "True" TextWrapping = "Wrap" Height = "200" CornerRadius = "0" ></ TextBox >
                 _tagTextBoxes[i] = new() {
@@ -84,26 +68,13 @@ namespace Hitomi_Scroll_Viewer {
                 Children.Add(_tagTextBoxes[i]);
             }
             
-            // add row definition according to the final number of children
-            for (int i = 0; i < Children.Count; i++) {
+            // add 3 row definitions
+            for (int i = 0; i < 3; i++) {
                 RowDefinitions.Add(new RowDefinition());
             }
         }
-        
-        public async Task ConfirmClearAsync() {
-            ContentDialog dialog = new() {
-                Title = "Clear all current tags?",
-                IsPrimaryButtonEnabled = true,
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "No",
-                XamlRoot = XamlRoot
-            };
-            // TODO call Clear() on button click
-            // TODO implement TagContainer to SearchPage
-            await dialog.ShowAsync();
-        }
 
-        private void Clear() {
+        public void Clear() {
             foreach (TextBox tb in _tagTextBoxes) {
                 tb.Text = "";
             }
@@ -133,7 +104,7 @@ namespace Hitomi_Scroll_Viewer {
             return result;
         }
 
-        public void SetTags(Dictionary<string, string[]> dict) {
+        public void InsertTags(Dictionary<string, string[]> dict) {
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 string text = "";
                 foreach (string tag in dict[CATEGORIES[i]]) {
