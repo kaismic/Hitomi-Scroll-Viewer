@@ -56,6 +56,7 @@
                     <ComboBox x:Name="TagListComboBox"
                               Margin="0 16 0 16"
                               SelectionChanged="LoadTagsInTextBox"
+                              HorizontalAlignment="Stretch"
                               />
                 </StackPanel>
                 <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"></StackPanel>
