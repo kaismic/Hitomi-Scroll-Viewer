@@ -18,20 +18,19 @@ namespace Hitomi_Scroll_Viewer {
 
         public SearchPage sp;
         public ImageWatchingPage iwp;
-        private Page[] _appPages;
+        private readonly Page[] _appPages;
         private static int _currPageNum = 0;
         private static AppWindow _myAppWindow;
 
         public static Gallery gallery;
         public static List<Gallery> BMGalleries;
 
-        public static DispatcherQueue _myDispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
         public MainWindow() {
             InitializeComponent();
 
             Title = "Hitomi Scroll Viewer";
 
+            // Maximise window
             IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
             _myAppWindow = AppWindow.GetFromWindowId(windowId);
