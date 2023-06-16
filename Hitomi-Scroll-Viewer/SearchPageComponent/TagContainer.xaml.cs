@@ -4,12 +4,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Windows.UI;
 using static Hitomi_Scroll_Viewer.Tag;
 
-namespace Hitomi_Scroll_Viewer {
+namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class TagContainer : Grid {
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly bool _isExclude;
