@@ -4,18 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:hsv="using:Hitomi_Scroll_Viewer"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer x:Name="MainScrollViewer">
         <!--3 rows, 3 columns-->
         <Grid x:Name="RootGrid">
-            <!--Row 0, Column 0, Full Columnspan-->
-            <!--12 rows, 2 columns-->
-            <Grid x:Name="TagGrid" Grid.Row="0" Grid.Column="0">
-                <Grid x:Name="IncludeTagGrid" Grid.Column="0"/>
-                <Grid x:Name="ExcludeTagGrid" Grid.Column="1"/>
-            </Grid>
+            <Grid x:Name="TagContainerGrid" Grid.Row="0" Grid.Column="0"></Grid>
             <!--Row 1, Column 0, 1 Columnspan-->
             <!--8 rows, 12 columns-->
             <Grid x:Name="HyperlinkGrid" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch">
@@ -38,7 +32,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBox x:Name="GalleryIDTextBox"
-                         KeyDown="HandleGalleryIDTextBoxKeyDown"
+                         KeyDown="HandleGalleryIDSubmitKeyDown"
                          TextWrapping="Wrap"
                          PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://..."
                          />
@@ -58,7 +52,7 @@
                 <ComboBox x:Name="TagListComboBox"
                           Grid.Row="6" Grid.RowSpan="3"
                           Grid.Column="0" Grid.ColumnSpan="7"
-                          SelectionChanged="LoadTags"
+                          SelectionChanged="LoadTagsInTextBox"
                           />
                 <TextBlock x:Name="SaveTagConfirmationTextBlock"
                            Grid.Row="10" Grid.RowSpan="3"
