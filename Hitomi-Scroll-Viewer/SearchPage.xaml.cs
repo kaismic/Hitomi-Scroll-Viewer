@@ -20,7 +20,7 @@ using static Hitomi_Scroll_Viewer.Tag;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
-        public static readonly string HITOMI_BASE_DOMAIN = "https://hitomi.la/search.html?";
+        public static readonly string BASE_DOMAIN = "https://hitomi.la/search.html?";
         public static readonly int[] GALLERY_ID_LENGTH_RANGE = new int[] { 6, 7 };
         public static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
@@ -36,9 +36,26 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly List<Grid> _bookmarkGrids = new(MAX_BOOKMARK_PER_PAGE * MAX_BOOKMARK_PAGE);
         private static int _currBookmarkPage = 0;
 
-        private static readonly TextBox[] _includeTagTextBoxes = new TextBox[CATEGORIES.Length];
-        private static readonly TextBox[] _excludeTagTextBoxes = new TextBox[CATEGORIES.Length];
-        private static readonly Grid[] _tagGrids = new Grid[2];
+        /* TODO
+         * global tag list which gets applied for every URL generated
+         * disable remove and rename button when the current selected tag list is global tag list
+         * 
+         * add default view mode view (view one page at a time) and auto page turning
+         * 
+         * confirm on save, remove, clear
+         * 
+         * Save confirm:
+         * Save current tags on "Tag List Name"?
+         * The tags on "Tag List Name" will be overwritten.
+         * 
+         * Remove confirm:
+         * Remove tag list "Tag List Name"?
+         * "Tag List Name" will be deleted and cannot be recovered.
+         * 
+         * 
+         */
+        private static readonly TagContainer[] _tagContainers = new TagContainer[2];
+
         private static readonly DataPackage _myDataPackage = new() {
             RequestedOperation = DataPackageOperation.Copy
         };
@@ -71,11 +88,10 @@ namespace Hitomi_Scroll_Viewer {
                 File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(new List<Gallery>(), _serializerOptions));
             }
             // read bookmarked galleries' info from file
-            SetBMGalleries(
+            BMGalleries =
                 (List<Gallery>)JsonSerializer.Deserialize(
-                File.ReadAllText(BM_INFO_FILE_NAME), typeof(List<Gallery>),
-                _serializerOptions)
-                );
+                File.ReadAllText(BM_INFO_FILE_NAME),
+                typeof(List<Gallery>),_serializerOptions);
 
             // create image storing directory if it doesn't exist
             Directory.CreateDirectory(IMAGE_DIR);
@@ -93,25 +109,33 @@ namespace Hitomi_Scroll_Viewer {
                 RootGrid.ColumnDefinitions.Add(new ColumnDefinition());
             }
 
-            // TagGrid
+            // TagContainerGrid
             int TAG_GRID_ROW_NUM = 12;
-            int TAG_GRID_COLUMN_NUM = 2;
+            int TAG_GRID_COLUMN_NUM = _tagContainers.Length;
 
             for (int i = 0; i < TAG_GRID_ROW_NUM; i++) {
-                TagGrid.RowDefinitions.Add(new RowDefinition());
+                TagContainerGrid.RowDefinitions.Add(new RowDefinition());
             }
             for (int i = 0; i < TAG_GRID_COLUMN_NUM; i++) {
-                TagGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                TagContainerGrid.ColumnDefinitions.Add(new ColumnDefinition());
             }
-            Grid.SetColumnSpan(TagGrid, ROOT_GRID_COLUMN_NUM);
+            Grid.SetColumnSpan(TagContainerGrid, ROOT_GRID_COLUMN_NUM);
 
-            // for space (margin) between TagGrid and row below
+            // tag containers
+            _tagContainers[0] = new(false, "Include", Colors.Green, TAG_GRID_ROW_NUM - 1);
+            _tagContainers[1] = new(true, "Exclude", Colors.Red, TAG_GRID_ROW_NUM - 1);
+            for (int i = 0; i < _tagContainers.Length; i++) {
+                Grid.SetColumn(_tagContainers[i], i);
+                TagContainerGrid.Children.Add(_tagContainers[i]);
+            }
+
+            // for space (margin) between TagContainerGrid and row below
             Grid marginGrid = new() {
                 Height = 30
             };
             Grid.SetRow(marginGrid, TAG_GRID_ROW_NUM - 1);
             Grid.SetColumnSpan(marginGrid, TAG_GRID_COLUMN_NUM);
-            TagGrid.Children.Add(marginGrid);
+            TagContainerGrid.Children.Add(marginGrid);
 
             // HyperlinkGrid
             int HYPERLINK_GRID_ROW_NUM = 8;
@@ -195,8 +219,8 @@ namespace Hitomi_Scroll_Viewer {
             TagControlGrid.Children.Add(removeTagBtn);
             currRow += Grid.GetRowSpan(removeTagBtn) + 1;
 
-            Button ClearTagTextBoxesBtn = CreateTagControlBtn("Clear Current Tag Textboxes", Colors.Black, currRow, 2);
-            ClearTagTextBoxesBtn.Click += ClearTagTextboxes;
+            Button ClearTagTextBoxesBtn = CreateTagControlBtn("Clear Current Tags", Colors.Black, currRow, 2);
+            ClearTagTextBoxesBtn.Click += ConfirmClear;
             TagControlGrid.Children.Add(ClearTagTextBoxesBtn);
 
 
@@ -222,101 +246,6 @@ namespace Hitomi_Scroll_Viewer {
                 };
                 pageNumBtn.Click += ChangeBookmarkPage;
                 BookmarkPageBtnsPanel.Children.Add(pageNumBtn);
-            }
-
-            // Include, Exclude Tag Grid
-            _tagGrids[0] = IncludeTagGrid;
-            _tagGrids[1] = ExcludeTagGrid;
-
-            foreach (Grid grid in _tagGrids) {
-                Grid.SetRow(grid, 0);
-                Grid.SetRowSpan(grid, TAG_GRID_ROW_NUM - 1);
-                grid.BorderBrush = new SolidColorBrush(Colors.Black);
-                grid.BorderThickness = new Thickness(1);
-                grid.Margin = new Thickness(5);
-
-                for (int j = 0; j < 3; j++) {
-                    grid.RowDefinitions.Add(new RowDefinition());
-                }
-                for (int j = 0; j < CATEGORIES.Length; j++) {
-                    grid.ColumnDefinitions.Add(new ColumnDefinition());
-                }
-            }
-
-            //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "0" Grid.Column = "0" Grid.ColumnSpan = "_tagTypes.Length" >
-            //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "Include/Exclude" />
-            //</ Border >
-
-            for (int i = 0; i < _tagGrids.Length; i++) {
-                Grid tagGrid = _tagGrids[i];
-                Border headingBorder = new() {
-                    BorderBrush = new SolidColorBrush(Colors.Black),
-                    BorderThickness = new Thickness(1),
-                };
-                Grid.SetRow(headingBorder, 0);
-                Grid.SetColumn(headingBorder, 0);
-                Grid.SetColumnSpan(headingBorder, CATEGORIES.Length);
-                tagGrid.Children.Add(headingBorder);
-
-                TextBlock headingTextBlock = new() {
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    FontSize = 20,
-                    FontWeight = new Windows.UI.Text.FontWeight(600),
-                };
-                if (i == 0) {
-                    headingTextBlock.Text = "Include";
-                    headingTextBlock.Foreground = new SolidColorBrush(Colors.Green);
-                }
-                else {
-                    headingTextBlock.Text = "Exclude";
-                    headingTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                }
-
-                headingBorder.Child = headingTextBlock;
-            }
-
-            for (int i = 0; i < _tagGrids.Length; i++) {
-                Grid tagGrid = _tagGrids[i];
-                for (int j = 0; j < CATEGORIES.Length; j++) {
-                    //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "1" Grid.Column = "i" >
-                    //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "_tagTypes[i]" />
-                    //</ Border >
-                    Border tagHeadingBorder = new() {
-                        BorderBrush = new SolidColorBrush(Colors.Black),
-                        BorderThickness = new Thickness(1),
-                    };
-                    Grid.SetRow(tagHeadingBorder, 1);
-                    Grid.SetColumn(tagHeadingBorder, j);
-                    tagGrid.Children.Add(tagHeadingBorder);
-
-                    TextBlock headingTextBlock = new() {
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Text = CATEGORIES[j][..1].ToUpperInvariant() + CATEGORIES[j][1..]
-                    };
-                    tagHeadingBorder.Child = headingTextBlock;
-
-                    //< TextBox BorderBrush = "Black" BorderThickness = "1" Grid.Row = "2" Grid.Column = "i" AcceptsReturn = "True" TextWrapping = "Wrap" Height = "200" CornerRadius = "0" ></ TextBox >
-                    TextBox textBox = new() {
-                        BorderBrush = new SolidColorBrush(Colors.Black),
-                        BorderThickness = new Thickness(1),
-                        AcceptsReturn = true,
-                        TextWrapping = TextWrapping.Wrap,
-                        CornerRadius = new CornerRadius(0),
-                        Padding = new Thickness(0),
-                        Height = 200
-                    };
-                    Grid.SetRow(textBox, 2);
-                    Grid.SetColumn(textBox, j);
-                    tagGrid.Children.Add(textBox);
-                    if (i == 0) {
-                        _includeTagTextBoxes[j] = textBox;
-                    }
-                    else {
-                        _excludeTagTextBoxes[j] = textBox;
-                    }
-                }
             }
         }
 
@@ -355,90 +284,50 @@ namespace Hitomi_Scroll_Viewer {
 
         private static string GetSearchAddress() {
             string param = "";
-            string tagType;
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                tagType = CATEGORIES[i];
-                foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    param += tagType + "%3A" + tag.Replace(' ', '_') + "%20";
-                }
-                foreach (string tag in _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    param += "-" + tagType + "%3A" + tag.Replace(' ', '_') + "%20";
-                }
+                param += _tagContainers[0].GetTagParameters(i);
+                param += _tagContainers[1].GetTagParameters(i);
             }
-            return HITOMI_BASE_DOMAIN + param;
+            return BASE_DOMAIN + param;
         }
 
         private static string GetHyperlinkDisplayText() {
             string linkText = "";
-            string tagTypeText;
+            string tagTexts;
+
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                tagTypeText = CATEGORIES[i] + ": ";
-                linkText += tagTypeText;
-                foreach (string tag in _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    linkText += tag + " ";
-                }
-                foreach (string tag in _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)) {
-                    linkText += "-" + tag + " ";
-                }
-                if (linkText[^tagTypeText.Length..] == tagTypeText) {
-                    linkText = linkText[..^tagTypeText.Length];
-                } else {
-                    linkText += "\n";
+                tagTexts = "";
+                tagTexts += _tagContainers[0].GetTagStrings(i);
+                tagTexts += _tagContainers[1].GetTagStrings(i);
+
+                // if tag textbox is not empty
+                if (tagTexts.Length > 0) {
+                    linkText += CATEGORIES[i] + ": " + tagTexts;
+                    linkText += Environment.NewLine;
                 }
             }
             return linkText;
         }
 
         private static Tag GetCurrTag() {
-            Tag currTag = new();
-            string tagType;
-            string[] tagArray;
+            Tag tag = new();
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                tagType = CATEGORIES[i];
-
-                tagArray = _includeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                for (int j = 0; j < tagArray.Length; j++) {
-                    tagArray[j] = tagArray[j].Replace(' ', '_');
-                }
-                currTag.includeTags[tagType] = tagArray;
-
-                tagArray = _excludeTagTextBoxes[i].Text.Split(new[] { Environment.NewLine, "\r" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                for (int j = 0; j < tagArray.Length; j++) {
-                    tagArray[j] = tagArray[j].Replace(' ', '_');
-                }
-                currTag.excludeTags[tagType] = tagArray;
+                tag.includeTags = _tagContainers[0].GetTags();
+                tag.excludeTags = _tagContainers[1].GetTags();
             }
-            return currTag;
+            return tag;
         }
 
-        private void LoadTags(object sender, SelectionChangedEventArgs _) {
-            ComboBox comboBox = sender as ComboBox;
-            if (comboBox.SelectedIndex == -1) {
+        private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _) {
+            ComboBox tagList = sender as ComboBox;
+            if (tagList.SelectedIndex == -1) {
                 return;
             }
-            string selectedTagString = comboBox.SelectedItem as string;
+            string selectedTagString = tagList.SelectedItem as string;
             Tag selectedTag = _tag[selectedTagString];
-
-            string text;
-            string tagType;
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                tagType = CATEGORIES[i];
-                text = "";
-                foreach (string tag in selectedTag.includeTags[tagType]) {
-                    text += tag + Environment.NewLine;
-                }
-                if (text != "") {
-                    text = text.TrimEnd();
-                }
-                _includeTagTextBoxes[i].Text = text;
-                text = "";
-                foreach (string tag in selectedTag.excludeTags[tagType]) {
-                    text += tag + Environment.NewLine;
-                }
-                if (text != "") {
-                    text = text.TrimEnd();
-                }
-                _excludeTagTextBoxes[i].Text = text;
+                _tagContainers[0].InsertTags(selectedTag.includeTags);
+                _tagContainers[1].InsertTags(selectedTag.excludeTags);
             }
         }
 
@@ -514,13 +403,23 @@ namespace Hitomi_Scroll_Viewer {
             SaveTagInfo();
         }
 
-        private static void ClearTagTextboxes(object sender, RoutedEventArgs e) {
-            foreach (TextBox tb in _includeTagTextBoxes) {
-                tb.Text = string.Empty;
-            }
-            foreach (TextBox tb in _excludeTagTextBoxes) {
-                tb.Text = string.Empty;
-            }
+        public async void ConfirmClear(object sender, RoutedEventArgs e) {
+            ContentDialog dialog = new() {
+                Title = "Clear all tags in text box?",
+                IsPrimaryButtonEnabled = true,
+                PrimaryButtonText = "Yes",
+                CloseButtonText = "Cancel",
+                XamlRoot = XamlRoot
+            };
+            dialog.PrimaryButtonClick += ClearTagTextboxes;
+
+            // TODO call ClearTagTextboxes() on button click
+            await dialog.ShowAsync();
+        }
+
+        private static void ClearTagTextboxes(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
+            _tagContainers[0].Clear();
+            _tagContainers[1].Clear();
         }
 
         public static void SaveTagInfo() {
@@ -578,7 +477,7 @@ namespace Hitomi_Scroll_Viewer {
             GeneratedHyperlinks.Children.Remove(parent);
         }
 
-        private async void HandleGalleryIDTextBoxKeyDown(object sender, KeyRoutedEventArgs e) {
+        private async void HandleGalleryIDSubmitKeyDown(object sender, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
                 await LoadGalleryFromId();
             }
@@ -797,10 +696,6 @@ namespace Hitomi_Scroll_Viewer {
             BookmarkGrid.Children.Clear();
             _currBookmarkPage = targetPageIdx;
             FillBookmarkGrid();
-        }
-
-        private static void SetBMGalleries(List<Gallery> galleries) {
-            BMGalleries = galleries;
         }
     }
 }
