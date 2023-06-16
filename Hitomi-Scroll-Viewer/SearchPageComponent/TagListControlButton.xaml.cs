@@ -7,7 +7,7 @@ using Windows.UI;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class TagListControlButton : Button {
-        private readonly ContentDialog _confirmDialog;
+        public readonly ContentDialog confirmDialog;
         public TagListControlButton(string text, Color borderColor, bool confirmAction) {
             InitializeComponent();
 
@@ -19,14 +19,14 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             BorderBrush = new SolidColorBrush(borderColor);
 
             if (confirmAction) {
-                _confirmDialog = new() {
+                confirmDialog = new() {
                     IsPrimaryButtonEnabled = true,
                     PrimaryButtonText = "Yes",
                     CloseButtonText = "Cancel"
                 };
                 Click += ConfirmAction;
                 Loaded += (object sender, RoutedEventArgs e) => {
-                    _confirmDialog.XamlRoot = XamlRoot;
+                    confirmDialog.XamlRoot = XamlRoot;
                 };
             }
         }
@@ -34,17 +34,17 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public Func<bool> buttonClickFunc;
 
         public void SetDialog(string title, string text) {
-            _confirmDialog.Title = title;
-            _confirmDialog.Content = text;
+            confirmDialog.Title = title;
+            confirmDialog.Content = text;
         }
 
         public void SetAction(TypedEventHandler<ContentDialog, ContentDialogButtonClickEventArgs> action) {
-            _confirmDialog.PrimaryButtonClick += action;
+            confirmDialog.PrimaryButtonClick += action;
         }
 
         public async void ConfirmAction(object sender, RoutedEventArgs e) {
             if (buttonClickFunc.Invoke()) {
-                await _confirmDialog.ShowAsync();
+                await confirmDialog.ShowAsync();
             }
         }
     }
