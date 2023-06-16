@@ -22,7 +22,7 @@ namespace Hitomi_Scroll_Viewer {
         private static AppWindow _myAppWindow;
 
         public static Gallery gallery;
-        public static List<Gallery> BMGalleries;
+        public static List<Gallery> bmGalleries;
 
         public MainWindow() {
             InitializeComponent();
@@ -106,8 +106,8 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static bool IsBookmarked() {
-            for (int i = 0; i < BMGalleries.Count; i++) {
-                if (BMGalleries[i].id == gallery.id) {
+            for (int i = 0; i < bmGalleries.Count; i++) {
+                if (bmGalleries[i].id == gallery.id) {
                     return true;
                 }
             }

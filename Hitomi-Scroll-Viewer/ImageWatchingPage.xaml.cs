@@ -183,11 +183,11 @@ namespace Hitomi_Scroll_Viewer {
         public async Task LoadGalleryFromLocalDir(int bmIdx) {
             await PrepareImageLoad();
 
-            gallery = BMGalleries[bmIdx];
+            gallery = bmGalleries[bmIdx];
 
-            Image[] images = new Image[BMGalleries[bmIdx].files.Count];
+            Image[] images = new Image[bmGalleries[bmIdx].files.Count];
 
-            string path = IMAGE_DIR + @"\" + BMGalleries[bmIdx].id;
+            string path = IMAGE_DIR + @"\" + bmGalleries[bmIdx].id;
 
             for (int i = 0; i < images.Length; i++) {
                 if (ct.IsCancellationRequested) {
@@ -197,8 +197,8 @@ namespace Hitomi_Scroll_Viewer {
 
                 images[i] = new() {
                     Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + i.ToString())),
-                    Width = BMGalleries[bmIdx].files[i].width * ImageSizeScaleSlider.Value,
-                    Height = BMGalleries[bmIdx].files[i].height * ImageSizeScaleSlider.Value,
+                    Width = bmGalleries[bmIdx].files[i].width * ImageSizeScaleSlider.Value,
+                    Height = bmGalleries[bmIdx].files[i].height * ImageSizeScaleSlider.Value,
                 };
             }
 
@@ -307,7 +307,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
 
                 // check if bookmark is full
-                if (BMGalleries.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE) {
+                if (bmGalleries.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE) {
                     ChangeBookmarkBtnState(LoadingState.BookmarkFull);
                 } else {
                     ChangeBookmarkBtnState(LoadingState.Loaded);
