@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.UI;
 using static Hitomi_Scroll_Viewer.Tag;
 
@@ -88,8 +89,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public string GetTagParameters(int idx) {
             string result = "";
-            string[] tags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
-            foreach (string tag in tags) {
+            string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
+            string[] globalTags = SearchPage.GetGlobalTag(CATEGORIES[idx], _isExclude);
+            foreach (string tag in curTags.Union(globalTags)) {
                 if (_isExclude) {
                     result += '-';
                 }
@@ -100,8 +102,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public string GetTagStrings(int idx) {
             string result = "";
-            string[] tags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
-            foreach (string tag in tags) {
+            string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
+            string[] globalTags = SearchPage.GetGlobalTag(CATEGORIES[idx], _isExclude);
+            foreach (string tag in curTags.Union(globalTags)) {
                 if (_isExclude) {
                     result += '-';
                 }

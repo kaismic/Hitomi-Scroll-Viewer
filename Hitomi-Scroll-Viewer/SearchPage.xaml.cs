@@ -38,13 +38,10 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly List<Grid> _bookmarkGrids = new(MAX_BOOKMARK_PER_PAGE * MAX_BOOKMARK_PAGE);
         private static int _currBookmarkPage = 0;
 
-        private TagListControlButton renameTagBtn;
-        private TagListControlButton removeTagBtn;
+        private TagListControlButton _renameTagBtn;
+        private TagListControlButton _removeTagBtn;
 
         /* TODO
-         * global tag list which gets applied for every URL generated
-         * disable remove and rename button when the current selected tag list is global tag list
-         * 
          * add default view mode view (view one page at a time) and auto page turning
          */
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
@@ -65,7 +62,7 @@ namespace Hitomi_Scroll_Viewer {
                 Tag globalTag = new();
                 globalTag.includeTags["tag"] = new string[] { "non-h_imageset" };
                 Dictionary<string, Tag> initTagDict = new() {
-                    { "Global", globalTag }
+                    { GLOBAL_TAG_NAME, globalTag }
                 };
                 File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(initTagDict, _serializerOptions));
             }
@@ -84,7 +81,7 @@ namespace Hitomi_Scroll_Viewer {
                 File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(new List<Gallery>(), _serializerOptions));
             }
             // read bookmarked galleries' info from file
-            BMGalleries =
+            bmGalleries =
                 (List<Gallery>)JsonSerializer.Deserialize(
                 File.ReadAllText(BM_INFO_FILE_NAME),
                 typeof(List<Gallery>),_serializerOptions);
@@ -186,9 +183,9 @@ namespace Hitomi_Scroll_Viewer {
             createTagBtn.Click += CreateTag;
             ControlButtonContainer.Children.Add(createTagBtn);
 
-            renameTagBtn = new("Rename current tag list", Colors.Orange, false);
-            renameTagBtn.Click += RenameTag;
-            ControlButtonContainer.Children.Add(renameTagBtn);
+            _renameTagBtn = new("Rename current tag list", Colors.Orange, false);
+            _renameTagBtn.Click += RenameTag;
+            ControlButtonContainer.Children.Add(_renameTagBtn);
 
             TagListControlButton saveTagBtn = new("Save current tag list", Colors.Green, true);
             saveTagBtn.SetAction(SaveTag);
@@ -207,18 +204,18 @@ namespace Hitomi_Scroll_Viewer {
             };
             ControlButtonContainer.Children.Add(saveTagBtn);
 
-            removeTagBtn = new("Remove current tag list", Colors.Red, true);
-            removeTagBtn.SetAction(RemoveTag);
-            removeTagBtn.buttonClickFunc = () => {
+            _removeTagBtn = new("Remove current tag list", Colors.Red, true);
+            _removeTagBtn.SetAction(RemoveTag);
+            _removeTagBtn.buttonClickFunc = () => {
                 string selection = (string)TagListComboBox.SelectedItem;
                 if (selection == null) {
                     _mw.AlertUser("No tag list selected", "");
                     return false;
                 }
-                removeTagBtn.SetDialog($"Remove '{selection}'?", "");
+                _removeTagBtn.SetDialog($"Remove '{selection}'?", "");
                 return true;
             };
-            ControlButtonContainer.Children.Add(removeTagBtn);
+            ControlButtonContainer.Children.Add(_removeTagBtn);
 
             TagListControlButton clearTagBtn = new("Clear current tags", Colors.Black, true);
             clearTagBtn.SetAction(ClearTagTextbox);
@@ -249,10 +246,17 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public async void Init() {
-            for (int i = 0; i < BMGalleries.Count; i++) {
+            for (int i = 0; i < bmGalleries.Count; i++) {
                 await CreateBookmarkGrid(i);
             }
             FillBookmarkGrid();
+        }
+
+        public static string[] GetGlobalTag(string tagCategory, bool isExclude) {
+            if (isExclude) {
+                return _tagDict[GLOBAL_TAG_NAME].excludeTags[tagCategory];
+            }
+            return _tagDict[GLOBAL_TAG_NAME].includeTags[tagCategory];
         }
 
         private static string GetSearchAddress() {
@@ -275,7 +279,7 @@ namespace Hitomi_Scroll_Viewer {
 
                 // if tag textbox is not empty
                 if (tagTexts.Length > 0) {
-                    linkText += CATEGORIES[i] + ": " + tagTexts + Environment.NewLine;
+                    linkText += char.ToUpper(CATEGORIES[i][0]) + CATEGORIES[i][1..] + ": " + tagTexts + Environment.NewLine;
                 }
             }
             return linkText;
@@ -294,11 +298,11 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             if (tagName == GLOBAL_TAG_NAME) {
-                renameTagBtn.IsEnabled = false;
-                removeTagBtn.IsEnabled = false;
+                _renameTagBtn.IsEnabled = false;
+                _removeTagBtn.IsEnabled = false;
             } else {
-                renameTagBtn.IsEnabled = true;
-                removeTagBtn.IsEnabled = true;
+                _renameTagBtn.IsEnabled = true;
+                _removeTagBtn.IsEnabled = true;
             }
             Tag tag = _tagDict[tagName];
             _tagContainers[0].InsertTags(tag.includeTags);
@@ -376,7 +380,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void SaveBookmarkInfo() {
-            File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(BMGalleries, _serializerOptions));
+            File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(bmGalleries, _serializerOptions));
         }
 
         private void GenerateHyperlink(object sender, RoutedEventArgs e) {
@@ -442,7 +446,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // if gallery is already loaded
             if (gallery != null) {
-                if (BMGalleries[idx].id == gallery.id) {
+                if (bmGalleries[idx].id == gallery.id) {
                     _mw.SwitchPage();
                     return;
                 }
@@ -469,8 +473,8 @@ namespace Hitomi_Scroll_Viewer {
             }
 
             // if gallery is already bookmarked
-            for (int i = 0; i < BMGalleries.Count; i++) {
-                if (BMGalleries[i].id == id) {
+            for (int i = 0; i < bmGalleries.Count; i++) {
+                if (bmGalleries[i].id == id) {
                     LoadGalleryFromBookmark(i);
                     return;
                 }
@@ -507,7 +511,7 @@ namespace Hitomi_Scroll_Viewer {
 
             HyperlinkButton hb = new() {
                 Content = new TextBlock() {
-                    Text = BMGalleries[idx].title + Environment.NewLine + BMGalleries[idx].id,
+                    Text = bmGalleries[idx].title + Environment.NewLine + bmGalleries[idx].id,
                     TextWrapping = TextWrapping.WrapWholeWords,
                     FontSize = 24,
                 },
@@ -521,14 +525,14 @@ namespace Hitomi_Scroll_Viewer {
             gr.Children.Add(hb);
 
             try {
-                string path = IMAGE_DIR + @"\" + BMGalleries[idx].id;
+                string path = IMAGE_DIR + @"\" + bmGalleries[idx].id;
                 int imgIdx;
                 for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                    imgIdx = i * BMGalleries[idx].files.Count / THUMBNAIL_IMG_NUM;
+                    imgIdx = i * bmGalleries[idx].files.Count / THUMBNAIL_IMG_NUM;
                     Image img = new() {
                         Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + imgIdx.ToString())),
                         Width = THUMBNAIL_IMG_WIDTH,
-                        Height = THUMBNAIL_IMG_WIDTH * BMGalleries[idx].files[i].height / BMGalleries[idx].files[i].width,
+                        Height = THUMBNAIL_IMG_WIDTH * bmGalleries[idx].files[i].height / bmGalleries[idx].files[i].width,
                     };
 
                     Grid.SetRow(img, 1);
@@ -540,8 +544,8 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             catch (DirectoryNotFoundException) {
-                Debug.WriteLine("Image directory for " + BMGalleries[idx].title + " (" + BMGalleries[idx].id + ") not found");
-                (hb.Content as TextBlock).Text = BMGalleries[idx].title + Environment.NewLine + BMGalleries[idx].id + Environment.NewLine + "Image directory not found";
+                Debug.WriteLine("Image directory for " + bmGalleries[idx].title + " (" + bmGalleries[idx].id + ") not found");
+                (hb.Content as TextBlock).Text = bmGalleries[idx].title + Environment.NewLine + bmGalleries[idx].id + Environment.NewLine + "Image directory not found";
                 hb.IsEnabled = false;
             }
 
@@ -570,13 +574,13 @@ namespace Hitomi_Scroll_Viewer {
         public async void AddBookmark(object _, RoutedEventArgs e) {
             _mw.iwp.ChangeBookmarkBtnState(LoadingState.Bookmarked);
 
-            BMGalleries.Add(gallery);
+            bmGalleries.Add(gallery);
 
-            await CreateBookmarkGrid(BMGalleries.Count - 1);
+            await CreateBookmarkGrid(bmGalleries.Count - 1);
 
-            if (BMGalleries.Count - 1 >= _currBookmarkPage * MAX_BOOKMARK_PER_PAGE && 
-                BMGalleries.Count - 1 < (_currBookmarkPage + 1) * MAX_BOOKMARK_PER_PAGE) {
-                ShowBookmarkOnGrid(BMGalleries.Count - 1);
+            if (bmGalleries.Count - 1 >= _currBookmarkPage * MAX_BOOKMARK_PER_PAGE && 
+                bmGalleries.Count - 1 < (_currBookmarkPage + 1) * MAX_BOOKMARK_PER_PAGE) {
+                ShowBookmarkOnGrid(bmGalleries.Count - 1);
             }
 
             SaveBookmarkInfo();
@@ -588,16 +592,16 @@ namespace Hitomi_Scroll_Viewer {
             int targetIdx = _bookmarkGrids.IndexOf(bmGrid);
 
             // remove gallery files
-            DeleteGallery(BMGalleries[targetIdx].id);
+            DeleteGallery(bmGalleries[targetIdx].id);
 
             // if the removing gallery is the current viewing gallery
             if (gallery != null) {
-                if (BMGalleries[targetIdx].id == gallery.id) {
+                if (bmGalleries[targetIdx].id == gallery.id) {
                     _mw.iwp.ChangeBookmarkBtnState(LoadingState.Loaded);
                 }
             }
 
-            BMGalleries.RemoveAt(targetIdx);
+            bmGalleries.RemoveAt(targetIdx);
             _bookmarkGrids.RemoveAt(targetIdx);
 
             int targetIdxInGrid = targetIdx % MAX_BOOKMARK_PER_PAGE;
@@ -624,7 +628,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private void FillBookmarkGrid() {
             int startingIdx = _currBookmarkPage * MAX_BOOKMARK_PER_PAGE;
-            int bookmarkCount = BMGalleries.Count;
+            int bookmarkCount = bmGalleries.Count;
             if (startingIdx >= bookmarkCount) {
                 return;
             }
