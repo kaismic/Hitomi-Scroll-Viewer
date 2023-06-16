@@ -1,6 +1,5 @@
 ﻿using Hitomi_Scroll_Viewer.SearchPageComponent;
 using Microsoft.UI;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -14,7 +13,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.UI;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 using static Hitomi_Scroll_Viewer.MainWindow;
 using static Hitomi_Scroll_Viewer.Tag;
