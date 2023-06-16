@@ -43,22 +43,22 @@
             <!--Row 1, Column 2, 1 Columnspan-->
             <!--16 rows, 16 columns-->
             <Grid x:Name="TagControlGrid" Grid.Row="1" Grid.Column="2" Height="500" VerticalAlignment="Top">
-                <TextBox x:Name="TagNameTextBox"
-                         Grid.Row="0" Grid.RowSpan="1"
-                         Grid.Column="0" Grid.ColumnSpan="7"
-                         PlaceholderText="Tag List Name"
-                         FontSize="16"
-                         />
-                <ComboBox x:Name="TagListComboBox"
-                          Grid.Row="6" Grid.RowSpan="3"
-                          Grid.Column="0" Grid.ColumnSpan="7"
-                          SelectionChanged="LoadTagsInTextBox"
-                          />
-                <TextBlock x:Name="SaveTagConfirmationTextBlock"
-                           Grid.Row="10" Grid.RowSpan="3"
-                           Grid.Column="0" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
-                           TextWrapping="Wrap"
-                           />
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <TextBox x:Name="TagNameTextBox"
+                             PlaceholderText="Tag List Name"
+                             FontSize="16"
+                             Margin="0 8 0 16"
+                             />
+                    <ComboBox x:Name="TagListComboBox"
+                              Margin="0 16 0 16"
+                              SelectionChanged="LoadTagsInTextBox"
+                              />
+                </StackPanel>
+                <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"></StackPanel>
             </Grid>
             <!--Row 2, Column 0, Full Columnspan-->
             <!--2 rows, 1 column-->

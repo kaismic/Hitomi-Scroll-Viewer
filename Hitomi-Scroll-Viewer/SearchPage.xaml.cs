@@ -1,4 +1,5 @@
-﻿using Microsoft.UI;
+﻿using Hitomi_Scroll_Viewer.SearchPageComponent;
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -41,18 +42,6 @@ namespace Hitomi_Scroll_Viewer {
          * disable remove and rename button when the current selected tag list is global tag list
          * 
          * add default view mode view (view one page at a time) and auto page turning
-         * 
-         * confirm on save, remove, clear
-         * 
-         * Save confirm:
-         * Save current tags on "Tag List Name"?
-         * The tags on "Tag List Name" will be overwritten.
-         * 
-         * Remove confirm:
-         * Remove tag list "Tag List Name"?
-         * "Tag List Name" will be deleted and cannot be recovered.
-         * 
-         * 
          */
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
 
@@ -185,49 +174,48 @@ namespace Hitomi_Scroll_Viewer {
             int LOAD_IMAGE_BTN_COLUMN_SPAN = 1 * (LINK_INPUT_GRID_COLUMN_NUM - 3) / 3;
             Grid.SetColumnSpan(LoadImageBtn, LOAD_IMAGE_BTN_COLUMN_SPAN);
 
-            // TagControlGrid
-            int TAG_CONTROL_GRID_ROW_NUM = 16;
-            int TAG_CONTROL_GRID_COLUMN_NUM = 16;
-
-            for (int i = 0; i < TAG_CONTROL_GRID_ROW_NUM; i++) {
-                TagControlGrid.RowDefinitions.Add(new RowDefinition());
-            }
-            for (int i = 0; i < TAG_CONTROL_GRID_COLUMN_NUM; i++) {
-                TagControlGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-
             // Create Tag Control Buttons
-            int currRow = 0;
-
-            Button createTagBtn = CreateTagControlBtn("Create a New Tag List", Colors.Blue, currRow, 2);
+            TagListControlButton createTagBtn = new("Create a new tag list", Colors.Blue, false);
             createTagBtn.Click += CreateTag;
-            TagControlGrid.Children.Add(createTagBtn);
-            currRow += Grid.GetRowSpan(createTagBtn) + 1;
+            ControlButtonContainer.Children.Add(createTagBtn);
 
-            Button renameTagBtn = CreateTagControlBtn("Rename Current Tag List", Colors.Orange, currRow, 2);
+            TagListControlButton renameTagBtn = new("Rename current tag list", Colors.Orange, false);
             renameTagBtn.Click += RenameTag;
-            TagControlGrid.Children.Add(renameTagBtn);
-            currRow += Grid.GetRowSpan(renameTagBtn) + 1;
+            ControlButtonContainer.Children.Add(renameTagBtn);
 
-            Button saveTagBtn = CreateTagControlBtn("Save Current Tag List", Colors.Green, currRow, 4);
-            saveTagBtn.Click += SaveTag;
-            TagControlGrid.Children.Add(saveTagBtn);
-            currRow += Grid.GetRowSpan(saveTagBtn) + 1;
+            TagListControlButton saveTagBtn = new("Save current tag list", Colors.Green, true);
+            saveTagBtn.SetAction(SaveTag);
+            saveTagBtn.buttonClickFunc = () => {
+                string selection = (string)TagListComboBox.SelectedItem;
+                if (selection == null) {
+                    _mw.AlertUser("No tag list selected", "");
+                    return false;
+                }
+                saveTagBtn.SetDialog($"Save current tags on '{selection}'?", $"'{selection}' will be overwritten.");
+                return true;
+            };
+            ControlButtonContainer.Children.Add(saveTagBtn);
 
-            Button removeTagBtn = CreateTagControlBtn("Remove Current Tag List", Colors.Red, currRow, 2);
-            removeTagBtn.Click += RemoveTag;
-            TagControlGrid.Children.Add(removeTagBtn);
-            currRow += Grid.GetRowSpan(removeTagBtn) + 1;
+            TagListControlButton removeTagBtn = new("Remove current tag list", Colors.Red, true);
+            removeTagBtn.SetAction(RemoveTag);
+            removeTagBtn.buttonClickFunc = () => {
+                string selection = (string)TagListComboBox.SelectedItem;
+                if (selection == null) {
+                    _mw.AlertUser("No tag list selected", "");
+                    return false;
+                }
+                removeTagBtn.SetDialog($"Remove '{selection}'?", "");
+                return true;
+            };
+            ControlButtonContainer.Children.Add(removeTagBtn);
 
-            Button ClearTagTextBoxesBtn = CreateTagControlBtn("Clear Current Tags", Colors.Black, currRow, 2);
-            ClearTagTextBoxesBtn.Click += ConfirmClear;
-            TagControlGrid.Children.Add(ClearTagTextBoxesBtn);
-
-
-            // TagControlGrid Children
-            foreach (FrameworkElement elem in TagControlGrid.Children.Cast<FrameworkElement>()) {
-                elem.HorizontalAlignment = HorizontalAlignment.Stretch;
-            }
+            TagListControlButton clearTagBtn = new("Clear current tags", Colors.Black, true);
+            clearTagBtn.SetAction(ClearTagTextbox);
+            clearTagBtn.buttonClickFunc = () => {
+                clearTagBtn.SetDialog("Clear all tags in text box?", "");
+                return true;
+            };
+            ControlButtonContainer.Children.Add(clearTagBtn);
 
             // BookmarkGrid
             for (int i = 0; i < MAX_BOOKMARK_PER_PAGE; i++) {
@@ -247,32 +235,6 @@ namespace Hitomi_Scroll_Viewer {
                 pageNumBtn.Click += ChangeBookmarkPage;
                 BookmarkPageBtnsPanel.Children.Add(pageNumBtn);
             }
-        }
-
-        /*               
-                <Button x:Name="CreateBtn"
-                        Click="CreateTag"
-                        Grid.Row="0" Grid.RowSpan="2"
-                        Grid.Column="8" Grid.ColumnSpan="7" VerticalAlignment="Stretch"
-                        BorderBrush="Blue"
-                        >
-                    <TextBlock Text="Create New Tag List" TextWrapping="WrapWholeWords"/>
-                </Button>
-         */
-        private static Button CreateTagControlBtn(string text, Color borderColor, int row, int rowSpan) {
-            Button btn = new() {
-                Content = new TextBlock() {
-                    Text = text,
-                    TextWrapping = TextWrapping.WrapWholeWords
-                },
-                BorderBrush = new SolidColorBrush(borderColor),
-                VerticalAlignment = VerticalAlignment.Stretch
-            };
-            Grid.SetRow(btn, row);
-            Grid.SetRowSpan(btn, rowSpan);
-            Grid.SetColumn(btn, 8);
-            Grid.SetColumnSpan(btn, 7);
-            return btn;
         }
 
         public async void Init() {
@@ -340,7 +302,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             foreach (string item in TagListComboBox.Items.Cast<string>()) {
                 if (item == tagName) {
-                    _mw.AlertUser("Same Tag Name", "A tag list with the same name already exists");
+                    _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
                     return;
                 }
             }
@@ -364,7 +326,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             foreach (string item in TagListComboBox.Items.Cast<string>()) {
                 if (item == tagName) {
-                    _mw.AlertUser("Same Tag Name", "A tag list with the same name already exists");
+                    _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
                     return;
                 }
             }
@@ -378,46 +340,21 @@ namespace Hitomi_Scroll_Viewer {
             SaveTagInfo();
         }
 
-        private void SaveTag(object sender, RoutedEventArgs e) {
-            if (TagListComboBox.SelectedIndex == -1) {
-                _mw.AlertUser("No Tags Selected", "There is no tag list selected currently.");
-                return;
-            }
-            string selectedString = TagListComboBox.SelectedItem as string;
+        private void SaveTag(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
+            string selectedString = (string)TagListComboBox.SelectedItem;
             _tag[selectedString] = GetCurrTag();
-            SaveTagConfirmationTextBlock.Text = '"' + selectedString + '"' + " was saved successfully.";
-
+            _mw.AlertUser($"'{selectedString}' was saved successfully.", "");
             SaveTagInfo();
         }
 
-        private void RemoveTag(object sender, RoutedEventArgs e) {
-            if (TagListComboBox.SelectedIndex == -1) {
-                _mw.AlertUser("No Tags Selected", "There is no tag list selected currently.");
-                return;
-            }
+        private void RemoveTag(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
             string selectedItem = TagListComboBox.SelectedItem as string;
             _tag.Remove(selectedItem);
             TagListComboBox.Items.Remove(selectedItem);
-            TagListComboBox.SelectedIndex = 0;
-
             SaveTagInfo();
         }
 
-        public async void ConfirmClear(object sender, RoutedEventArgs e) {
-            ContentDialog dialog = new() {
-                Title = "Clear all tags in text box?",
-                IsPrimaryButtonEnabled = true,
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "Cancel",
-                XamlRoot = XamlRoot
-            };
-            dialog.PrimaryButtonClick += ClearTagTextboxes;
-
-            // TODO call ClearTagTextboxes() on button click
-            await dialog.ShowAsync();
-        }
-
-        private static void ClearTagTextboxes(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
+        private static void ClearTagTextbox(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
             _tagContainers[0].Clear();
             _tagContainers[1].Clear();
         }
