@@ -24,16 +24,22 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
         private static readonly string BM_INFO_FILE_NAME = "BookmarkInfo.json";
-
         private static readonly string TAG_FILE_PATH = "Tag.json";
+
+        private static readonly string GLOBAL_TAG_NAME = "Global";
+
         private static Dictionary<string, Tag> _tagDict;
 
         private static readonly double THUMBNAIL_IMG_WIDTH = 350;
         private static readonly int THUMBNAIL_IMG_NUM = 3;
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
         public static readonly int MAX_BOOKMARK_PAGE = 5;
+
         private static readonly List<Grid> _bookmarkGrids = new(MAX_BOOKMARK_PER_PAGE * MAX_BOOKMARK_PAGE);
         private static int _currBookmarkPage = 0;
+
+        private TagListControlButton renameTagBtn;
+        private TagListControlButton removeTagBtn;
 
         /* TODO
          * global tag list which gets applied for every URL generated
@@ -58,10 +64,10 @@ namespace Hitomi_Scroll_Viewer {
             if (!File.Exists(TAG_FILE_PATH)) {
                 Tag globalTag = new();
                 globalTag.includeTags["tag"] = new string[] { "non-h_imageset" };
-                Dictionary<string, Tag> tagList = new() {
+                Dictionary<string, Tag> initTagDict = new() {
                     { "Global", globalTag }
                 };
-                File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(tagList, _serializerOptions));
+                File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(initTagDict, _serializerOptions));
             }
             // read tag info from file
             _tagDict = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAG_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
@@ -180,7 +186,7 @@ namespace Hitomi_Scroll_Viewer {
             createTagBtn.Click += CreateTag;
             ControlButtonContainer.Children.Add(createTagBtn);
 
-            TagListControlButton renameTagBtn = new("Rename current tag list", Colors.Orange, false);
+            renameTagBtn = new("Rename current tag list", Colors.Orange, false);
             renameTagBtn.Click += RenameTag;
             ControlButtonContainer.Children.Add(renameTagBtn);
 
@@ -201,7 +207,7 @@ namespace Hitomi_Scroll_Viewer {
             };
             ControlButtonContainer.Children.Add(saveTagBtn);
 
-            TagListControlButton removeTagBtn = new("Remove current tag list", Colors.Red, true);
+            removeTagBtn = new("Remove current tag list", Colors.Red, true);
             removeTagBtn.SetAction(RemoveTag);
             removeTagBtn.buttonClickFunc = () => {
                 string selection = (string)TagListComboBox.SelectedItem;
@@ -286,6 +292,13 @@ namespace Hitomi_Scroll_Viewer {
             ComboBox tagList = (ComboBox)sender;
             if (tagList.SelectedItem is not string tagName) {
                 return;
+            }
+            if (tagName == GLOBAL_TAG_NAME) {
+                renameTagBtn.IsEnabled = false;
+                removeTagBtn.IsEnabled = false;
+            } else {
+                renameTagBtn.IsEnabled = true;
+                removeTagBtn.IsEnabled = true;
             }
             Tag tag = _tagDict[tagName];
             _tagContainers[0].InsertTags(tag.includeTags);
