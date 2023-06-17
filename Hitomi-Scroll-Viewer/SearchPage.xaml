@@ -9,7 +9,7 @@
     <ScrollViewer x:Name="MainScrollViewer">
         <!--3 rows, 3 columns-->
         <Grid x:Name="RootGrid">
-            <Grid x:Name="TagContainerGrid" Grid.Row="0" Grid.Column="0"></Grid>
+            <Grid x:Name="TagContainerGrid" Grid.Row="0" Grid.Column="0"/>
             <!--Row 1, Column 0, 1 Columnspan-->
             <!--8 rows, 12 columns-->
             <Grid x:Name="HyperlinkGrid" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch">
@@ -41,7 +41,6 @@
                 </Button>
             </Grid>
             <!--Row 1, Column 2, 1 Columnspan-->
-            <!--16 rows, 16 columns-->
             <Grid x:Name="TagControlGrid" Grid.Row="1" Grid.Column="2" Height="500" VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -59,7 +58,7 @@
                               HorizontalAlignment="Stretch"
                               />
                 </StackPanel>
-                <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"></StackPanel>
+                <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"/>
             </Grid>
             <!--Row 2, Column 0, Full Columnspan-->
             <!--2 rows, 1 column-->
@@ -74,14 +73,11 @@
                 <TextBlock FontSize="36"
                            Grid.Row="0"
                            Text="Bookmarks"/>
-                <Grid x:Name="BookmarkGrid"
-                      Grid.Row="2">
-                </Grid>
+                <Grid x:Name="BookmarkGrid" Grid.Row="2"/>
                 <StackPanel x:Name="BookmarkPageBtnsPanel"
                             Grid.Row="1"
                             Orientation="Horizontal"
-                            HorizontalAlignment="Center">
-                </StackPanel>
+                            HorizontalAlignment="Center"/>
             </Grid>
         </Grid>
     </ScrollViewer>
