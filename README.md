@@ -1,16 +1,22 @@
 # Hitomi Scroll Viewer
 
 ## Bugs
-Currently memory leaks occur when you load images and switch between pages. Refer to this issue: https://github.com/microsoft/microsoft-ui-xaml/issues/5978
+### Critical
+1. Currently memory leaks occur when you load images and switch between pages. It is likely that the bug exists due to this issue: https://github.com/microsoft/microsoft-ui-xaml/issues/5978
+### Non-critical
+1.
+    https://github.com/soobakjonmat/Hitomi-Scroll-Viewer/blob/0f0fa705c211e4094ce43473598d7bfb57b5dc78/Hitomi-Scroll-Viewer/SearchPageComponent/TagContainer.xaml.cs#L13-L19
+    Refer to this issue: https://github.com/microsoft/microsoft-ui-xaml/issues/1826
 
-### Controls
-- Doubleclick to switch between pages.
+## Controls
+- Doubleclick to switch between pages
 
 In image watching page:
-- Press spacebar to enable/disable auto-scrolling
-- Click on loop button (top right)  to enable/disable looping (scrolls automatically to the top of page when end of page is reached) when auto-scrolling is enabled.
+- Press spacebar to enable/disable auto page turning/auto scrolling
+- Default mode:
+    - Use (Left/Right) (keys/mouse buttons) to switch between images
 
-### Preview
+## Preview (old version)
 <div>
     <img src="images/preview_0.png" style="width: 100%;">
     <img src="images/preview_1.png" style="width: 100%;">
