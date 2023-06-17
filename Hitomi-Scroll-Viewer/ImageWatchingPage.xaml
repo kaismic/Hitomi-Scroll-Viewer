@@ -2,7 +2,6 @@
     x:Class="Hitomi_Scroll_Viewer.ImageWatchingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Hitomi_Scroll_Viewer"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -17,7 +16,15 @@
                           HorizontalAlignment="Left"
                           Click="HandleGoBackBtnClick"
                           />
-            <AppBarSeparator Width="250"/>
+            <AppBarSeparator Width="100"/>
+            <AppBarButton x:Name="ViewModeChangeBtn"
+                          Width="128"
+                          Icon="ViewAll"
+                          Label="Change View Mode"
+                          Click="HandleViewModeChangeBtnClick"
+                          />
+            <AppBarSeparator Width="100"/>
+
             <AppBarButton x:Name="BookmarkBtn"
                           x:FieldModifier="public"
                           IsEnabled="False"
@@ -25,8 +32,9 @@
                           Icon="Save"
                           />
             <AppBarSeparator Width="50"/>
+
             <AppBarElementContainer>
-                <Slider x:Name="ImageSizeScaleSlider"
+                <Slider x:Name="ImageScaleSlider"
                         StepFrequency="0.1"
                         TickFrequency="0.1"
                         Value="0.5"
@@ -47,7 +55,7 @@
                         Minimum="0"
                         Maximum="5"
                         Width="240"
-                        Header="Auto Scrolling Speed"
+                        Header="Auto Scrolling / Page Turning Speed"
                         FontSize="14"
                         HorizontalAlignment="Center"
                         ValueChanged="SetScrollSpeed"/>
@@ -55,7 +63,7 @@
             <AppBarSeparator Width="50"/>
             <AppBarToggleButton x:Name="LoopBtn" Label="Loop" Icon="RepeatAll" Click="HandleLoopToggleBtnClick"/>
         </CommandBar>
-        <ScrollViewer x:Name="MainScrollViewer">
+        <ScrollViewer x:Name="MainScrollViewer" KeyDown="HandleKeyDown" IsTabStop="True">
             <StackPanel x:Name="ImageContainer" Orientation="Vertical" x:FieldModifier="public"/>
         </ScrollViewer>
     </Grid>
