@@ -6,7 +6,6 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
@@ -44,7 +43,7 @@ namespace Hitomi_Scroll_Viewer {
             // Switch page on double click
             RootFrame.DoubleTapped += (object _, DoubleTappedRoutedEventArgs _) => {
                 if (RootFrame.Content as Page != iwp) {
-                    ImageWatchingPage.isAutoScrolling = false;
+                    ImageWatchingPage.StopAutoScrolling();
                 }
                 SwitchPage();
             };
@@ -54,11 +53,9 @@ namespace Hitomi_Scroll_Viewer {
                 (_myAppWindow.Presenter as OverlappedPresenter).Maximize();
             };
 
-            RootFrame.KeyDown += iwp.HandleKeyDown;
-
             // Handle window close
             Closed += (object _, WindowEventArgs _) => {
-                ImageWatchingPage.isAutoScrolling = false;
+                ImageWatchingPage.StopAutoScrolling();
                 if (gallery != null) {
                     if (!IsBookmarked()) {
                         DeleteGallery(gallery.id);
@@ -74,7 +71,7 @@ namespace Hitomi_Scroll_Viewer {
             RootFrame.Content = _appPages[_currPageNum];
         }
 
-        public Page GetCurrPage() {
+        public Page GetPage() {
             return _appPages[_currPageNum];
         }
 
@@ -89,6 +86,9 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static async Task<BitmapImage> GetBitmapImage(byte[] imgData) {
+            if (imgData == null) {
+                return null;
+            }
             BitmapImage img = new();
             InMemoryRandomAccessStream stream = new();
 
@@ -126,9 +126,7 @@ namespace Hitomi_Scroll_Viewer {
         public static void DeleteGallery(string id) {
             try {
                 Directory.Delete(IMAGE_DIR + @"\" + id, true);
-            } catch (DirectoryNotFoundException e) {
-                Debug.WriteLine(e.Message);
-            }
+            } catch (DirectoryNotFoundException) {}
         }
 
     }
