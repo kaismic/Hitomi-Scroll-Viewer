@@ -41,9 +41,6 @@ namespace Hitomi_Scroll_Viewer {
         private TagListControlButton _renameTagBtn;
         private TagListControlButton _removeTagBtn;
 
-        /* TODO
-         * add default view mode view (view one page at a time) and auto page turning
-         */
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
 
         private static readonly DataPackage _myDataPackage = new() {
