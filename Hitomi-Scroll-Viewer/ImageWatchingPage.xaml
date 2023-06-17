@@ -55,7 +55,7 @@
                         Minimum="0"
                         Maximum="5"
                         Width="240"
-                        Header="Auto Scrolling / Page Turning Speed"
+                        Header="Auto (Page Turning / Scrolling) Speed"
                         FontSize="14"
                         HorizontalAlignment="Center"
                         ValueChanged="SetScrollSpeed"/>
