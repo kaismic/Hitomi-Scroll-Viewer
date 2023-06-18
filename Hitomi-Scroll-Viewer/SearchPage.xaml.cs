@@ -439,7 +439,7 @@ namespace Hitomi_Scroll_Viewer {
             LoadGalleryFromId();
         }
 
-        private void HandleBookmarkClick(object sender, RoutedEventArgs e) {
+        private async void HandleBookmarkClick(object sender, RoutedEventArgs e) {
             Grid bmGrid = (sender as HyperlinkButton).Parent as Grid;
             int idx = BookmarkGrid.Children.IndexOf(bmGrid) + _currBookmarkPage * MAX_BOOKMARK_PER_PAGE;
 
@@ -450,12 +450,10 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
-            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            _iwp.LoadGalleryFromLocalDir(idx);
-            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            await _iwp.LoadGalleryFromLocalDir(idx);
         }
 
-        private void LoadGalleryFromId() {
+        private async void LoadGalleryFromId() {
             string id = ExtractGalleryId();
             if (string.IsNullOrEmpty(id)) {
                 _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
@@ -471,23 +469,21 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
 
-            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             // if gallery is already bookmarked
             for (int i = 0; i < bmGalleries.Count; i++) {
                 if (bmGalleries[i].id == id) {
-                    _iwp.LoadGalleryFromLocalDir(i);
+                    await _iwp.LoadGalleryFromLocalDir(i);
                     return;
                 }
             }
-            _iwp.LoadImagesFromWeb(id);
-            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            await _iwp.LoadImagesFromWeb(id);
         }
 
         private string ExtractGalleryId() {
             string regex = @"\d{"+ GALLERY_ID_LENGTH_RANGE[0] + "," + GALLERY_ID_LENGTH_RANGE[1] + "}";
             MatchCollection matches = Regex.Matches(GalleryIDTextBox.Text, regex);
             if (matches.Count == 0) {
-                return "";
+                return null;
             }
             return matches[^1].Value;
         }
@@ -569,7 +565,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public async void AddBookmark(object _, RoutedEventArgs e) {
-            _iwp.ChangeBookmarkBtnState(LoadingState.Bookmarked);
+            _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarked);
 
             bmGalleries.Add(gallery);
 
@@ -594,7 +590,7 @@ namespace Hitomi_Scroll_Viewer {
             // if the removing gallery is the current viewing gallery
             if (gallery != null) {
                 if (bmGalleries[targetIdx].id == gallery.id) {
-                    _iwp.ChangeBookmarkBtnState(LoadingState.Loaded);
+                    _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
                 }
             }
 
