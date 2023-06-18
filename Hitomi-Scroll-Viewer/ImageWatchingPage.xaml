@@ -21,10 +21,11 @@
                           Click="HandleGoBackBtnClick"
                           />
             <AppBarSeparator Width="50"/>
-            <AppBarButton MinWidth="120"
+            <AppBarButton x:Name="ViewModeBtn"
+                          MinWidth="120"
                           Icon="ViewAll"
                           Label="Change View Mode"
-                          Click="HandleViewModeChangeBtnClick"
+                          Click="HandleViewModeBtnClick"
                           />
             <AppBarSeparator Width="50"/>
             <AppBarButton x:Name="BookmarkBtn"
@@ -33,7 +34,8 @@
                           />
             <AppBarSeparator Width="50"/>
             <AppBarElementContainer>
-                <Slider StepFrequency="0.1"
+                <Slider x:Name="ImageScaleSlider"
+                        StepFrequency="0.1"
                         TickFrequency="0.1"
                         Value="0.5"
                         Minimum="0.1"
