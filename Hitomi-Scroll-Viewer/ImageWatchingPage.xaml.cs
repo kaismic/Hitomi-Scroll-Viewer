@@ -22,17 +22,15 @@ namespace Hitomi_Scroll_Viewer {
         private static bool _isLooping = true;
         private static double _scrollSpeed;
 
-        private static int _currGalleryPageNum = 0;
+        private static int _currPage = 0;
 
-        public enum ViewMode {
+        private enum ViewMode {
             Default,
             Scroll
         }
         private static ViewMode _viewMode = ViewMode.Default;
 
-        private static double _topCommandBarHeight;
-
-        private static readonly HttpClient _myHttpClient = new();
+        private static readonly HttpClient _httpClient = new();
         private static readonly string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
         private static readonly string SERVER_TIME_ADDRESS = "https://ltn.hitomi.la/gg.js";
         private static readonly string REFERER = "https://hitomi.la/";
@@ -42,13 +40,16 @@ namespace Hitomi_Scroll_Viewer {
         private static CancellationTokenSource _cts = new();
         private static CancellationToken _ct = _cts.Token;
 
-        public enum LoadingState {
+        public enum GalleryState {
             Bookmarked,
             Loaded,
             Loading,
-            BookmarkFull
+            BookmarkFull,
+            Empty
         }
         private static bool _isLoading = false;
+
+        private static int _loadRequestCounter = 0;
 
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
@@ -97,53 +98,86 @@ namespace Hitomi_Scroll_Viewer {
             // }
             string path = IMAGE_DIR + @"\" + gallery.id;
             Image image = new() {
-                Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + _currGalleryPageNum)),
-                Width = gallery.files[_currGalleryPageNum].width * _imageScale,
-                Height = gallery.files[_currGalleryPageNum].height * _imageScale,
+                Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + _currPage)),
+                Width = gallery.files[_currPage].width * _imageScale,
+                Height = gallery.files[_currPage].height * _imageScale,
             };
             // accessing UI thread {
             ImageContainer.Children.Add(image);
             // }
         }
 
-        private async void HandleViewModeChangeBtnClick(object _, RoutedEventArgs e) {
-            StopAutoScrolling();
-            string path = IMAGE_DIR + @"\" + gallery.id;
+        private async void HandleViewModeBtnClick(object _, RoutedEventArgs e) {
+            if (!await RequestLoadPermit()) {
+                return;
+            }
+            StartLoading();
             switch (_viewMode) {
                 case ViewMode.Default:
-                    // accessing UI thread {
-                    ImageContainer.Children.Clear();
-                    // }
                     _viewMode = ViewMode.Scroll;
-                    Image[] images = new Image[gallery.files.Count];
-                    for (int i = 0; i < images.Length; i++) {
-                        images[i] = new() {
-                            Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + i.ToString())),
-                            Width = gallery.files[i].width * _imageScale,
-                            Height = gallery.files[i].height * _imageScale,
-                        };
-                    }
-                    // accessing UI thread {
-                    for (int i = 0; i < images.Length; i++) {
-                        ImageContainer.Children.Add(images[i]);
-                    }
-                    MainScrollViewer.ScrollToVerticalOffset(GetScrollOffset());
-                    // }
                     break;
                 case ViewMode.Scroll:
                     _viewMode = ViewMode.Default;
-                    GetCurrScrollPage();
-                    SetCurrGalleryPage();
                     break;
+            }
+            if (gallery == null) {
+                FinishLoading(GalleryState.Empty);
+                return;
+            }
+            try {
+                switch (_viewMode) {
+                    case ViewMode.Default:
+                        _ct.ThrowIfCancellationRequested();
+                        GetCurrScrollPage();
+                        _ct.ThrowIfCancellationRequested();
+                        SetCurrGalleryPage();
+                        break;
+                    case ViewMode.Scroll:
+                        _ct.ThrowIfCancellationRequested();
+                        // accessing UI thread {
+                        ImageContainer.Children.Clear();
+                        // }
+                        Image[] images = new Image[gallery.files.Count];
+                        string path = IMAGE_DIR + @"\" + gallery.id;
+
+                        for (int i = 0; i < images.Length; i++) {
+                            _ct.ThrowIfCancellationRequested();
+                            images[i] = new() {
+                                Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + i.ToString())),
+                                Width = gallery.files[i].width * _imageScale,
+                                Height = gallery.files[i].height * _imageScale,
+                            };
+                        }
+                        // accessing UI thread {
+                        for (int i = 0; i < images.Length; i++) {
+                            _ct.ThrowIfCancellationRequested();
+                            ImageContainer.Children.Add(images[i]);
+                        }
+                        // }
+                        MainScrollViewer.ScrollToVerticalOffset(GetScrollOffset());
+                        break;
+                }
+                if (IsBookmarked()) {
+                    FinishLoading(GalleryState.Bookmarked);
+                }
+                else if (IsBookmarkFull()) {
+                    FinishLoading(GalleryState.BookmarkFull);
+                }
+                else {
+                    FinishLoading(GalleryState.Loaded);
+                }
+            }
+            catch (OperationCanceledException) {
+                FinishLoading(GalleryState.Loading);
             }
         }
 
         private void GetCurrScrollPage() {
             double imageHeightSum = 0;
-            for (int i = 0; i < ImageContainer.Children.Count; i++) {
+            for (int i = 0; i < gallery.files.Count; i++) {
                 imageHeightSum += ((Image)ImageContainer.Children[i]).Height;
                 if (imageHeightSum > MainScrollViewer.VerticalOffset) {
-                    _currGalleryPageNum = i;
+                    _currPage = i;
                     break;
                 }
             }
@@ -151,8 +185,8 @@ namespace Hitomi_Scroll_Viewer {
 
         private double GetScrollOffset() {
             double offset = 0;
-            for (int i = 0; i < ImageContainer.Children.Count; i++) {
-                if (i < _currGalleryPageNum) {
+            for (int i = 0; i < gallery.files.Count; i++) {
+                if (i < _currPage) {
                     offset += ((Image)ImageContainer.Children[i]).Height;
                 }
             }
@@ -163,35 +197,37 @@ namespace Hitomi_Scroll_Viewer {
             _scrollSpeed = (slider as Slider).Value;
         }
 
-        private static void IncrementCurrGalleryPageNum(int num) {
-            _currGalleryPageNum = (_currGalleryPageNum + num + gallery.files.Count) % gallery.files.Count;
+        private static void IncrementPage(int num) {
+            _currPage = (_currPage + num + gallery.files.Count) % gallery.files.Count;
         }
 
         public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
-            switch (_viewMode) {
-                case ViewMode.Default:
-                    if (e.Key == Windows.System.VirtualKey.Left || e.Key == Windows.System.VirtualKey.LeftButton) {
-                        IncrementCurrGalleryPageNum(1);
-                        SetCurrGalleryPage();
-                    } else if (e.Key == Windows.System.VirtualKey.Right || e.Key == Windows.System.VirtualKey.RightButton) {
-                        IncrementCurrGalleryPageNum(-1);
-                        SetCurrGalleryPage();
-                    }
-                    if (e.Key == Windows.System.VirtualKey.Space) {
-                        if (_isAutoScrolling = !_isAutoScrolling) {
-                            Task.Run(ScrollAutomatically);
+            if (gallery != null && !_isLoading) {
+                switch (_viewMode) {
+                    case ViewMode.Default:
+                        if (e.Key == Windows.System.VirtualKey.Left || e.Key == Windows.System.VirtualKey.LeftButton) {
+                            IncrementPage(1);
+                            SetCurrGalleryPage();
+                        } else if (e.Key == Windows.System.VirtualKey.Right || e.Key == Windows.System.VirtualKey.RightButton) {
+                            IncrementPage(-1);
+                            SetCurrGalleryPage();
                         }
-                    }
-                    break;
-                case ViewMode.Scroll:
-                    if (e.Key == Windows.System.VirtualKey.Space) {
-                        stopwatch.Reset();
-                        if (_isAutoScrolling = !_isAutoScrolling) {
-                            stopwatch.Start();
-                            Task.Run(ScrollAutomatically);
+                        if (e.Key == Windows.System.VirtualKey.Space) {
+                            if (_isAutoScrolling = !_isAutoScrolling) {
+                                Task.Run(ScrollAutomatically);
+                            }
                         }
-                    }
-                    break;
+                        break;
+                    case ViewMode.Scroll:
+                        if (e.Key == Windows.System.VirtualKey.Space) {
+                            stopwatch.Reset();
+                            if (_isAutoScrolling = !_isAutoScrolling) {
+                                stopwatch.Start();
+                                Task.Run(ScrollAutomatically);
+                            }
+                        }
+                        break;
+                }
             }
         }
 
@@ -205,7 +241,7 @@ namespace Hitomi_Scroll_Viewer {
                         // delay = -1.9*(slider value) + 11 in seconds
                         double delay = (-1.9 * _scrollSpeed + 11) * 1000;
                         await Task.Delay((int)delay);
-                        IncrementCurrGalleryPageNum(1);
+                        IncrementPage(1);
                         // accessing UI thread {
                         DispatcherQueue.TryEnqueue(SetCurrGalleryPage);
                         // }
@@ -243,8 +279,8 @@ namespace Hitomi_Scroll_Viewer {
                 switch (_viewMode) {
                     case ViewMode.Default:
                         Image image = (Image)ImageContainer.Children[0];
-                        image.Width = gallery.files[_currGalleryPageNum].width * _imageScale;
-                        image.Height = gallery.files[_currGalleryPageNum].height * _imageScale;
+                        image.Width = gallery.files[_currPage].width * _imageScale;
+                        image.Height = gallery.files[_currPage].height * _imageScale;
                         break;
                     case ViewMode.Scroll:
                         GetCurrScrollPage();
@@ -260,29 +296,61 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private static async Task CheckLoading() {
+        private void StartLoading() {
+            _isLoading = true;
+            StopAutoScrolling();
+            ViewModeBtn.IsEnabled = false;
+            ImageScaleSlider.IsEnabled = false;
+            ChangeBookmarkBtnState(GalleryState.Loading);
+        }
+
+        private void FinishLoading(GalleryState state) {
+            _isLoading = false;
+            ViewModeBtn.IsEnabled = true;
+            ImageScaleSlider.IsEnabled = true;
+            ChangeBookmarkBtnState(state);
+        }
+
+        // TODO Debug overall loading algorithm
+        /**
+         * <summary>Returns <c>true</c> if the load request is permitted, otherwise <c>false</c>.</summary>
+         */
+        private static async Task<bool> RequestLoadPermit() {
             if (_isLoading) {
-                _cts.Cancel();
+                int rank = Interlocked.Increment(ref _loadRequestCounter);
+                if (rank == 1) {
+                    // first load request so send cancel request
+                    _cts.Cancel();
+                }
                 while (_isLoading) {
                     await Task.Delay(10);
+                    // this request is not the latest request anymore
+                    if (_loadRequestCounter != rank) {
+                        return false;
+                    }
                 }
+                // loading finished
+                // this request is the latest request
+                _isLoading = true;
+                _loadRequestCounter = 0;
                 _cts.Dispose();
                 _cts = new();
                 _ct = _cts.Token;
+                return true;
             }
+            _isLoading = true;
+            return true;
         }
 
-        private async Task PrepareImageLoad() {
-            await CheckLoading();
-
-            ChangeBookmarkBtnState(LoadingState.Loading);
-            _isLoading = true;
-
+        private async Task<bool> PrepareImageLoad() {
+            if (!await RequestLoadPermit()) {
+                return false;
+            }
+            StartLoading();
             // accessing UI thread {
             ImageContainer.Children.Clear();
             _mw.SwitchPage();
             // }
-
             // check if we have a gallery already loaded
             if (gallery != null) {
                 // if the loaded gallery is not bookmarked delete it from local directory
@@ -290,52 +358,53 @@ namespace Hitomi_Scroll_Viewer {
                     DeleteGallery(gallery.id);
                 }
             }
+            return true;
         }
 
         public async Task LoadGalleryFromLocalDir(int bmIdx) {
-            await PrepareImageLoad();
-
-            gallery = bmGalleries[bmIdx];
-
-            string path = IMAGE_DIR + @"\" + bmGalleries[bmIdx].id;
-
-            switch (_viewMode) {
-                case ViewMode.Default:
-                    _currGalleryPageNum = 0;
-                    Image image = new() {
-                        Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + _currGalleryPageNum)),
-                        Width = bmGalleries[bmIdx].files[_currGalleryPageNum].width * _imageScale,
-                        Height = bmGalleries[bmIdx].files[_currGalleryPageNum].height * _imageScale,
-                    };
-                    // accessing UI thread {
-                    ImageContainer.Children.Add(image);
-                    // }
-                    break;
-                case ViewMode.Scroll:
-                    Image[] images = new Image[bmGalleries[bmIdx].files.Count];
-
-                    for (int i = 0; i < images.Length; i++) {
-                        if (_ct.IsCancellationRequested) {
-                            _isLoading = false;
-                            return;
-                        }
-
-                        images[i] = new() {
-                            Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + i.ToString())),
-                            Width = bmGalleries[bmIdx].files[i].width * _imageScale,
-                            Height = bmGalleries[bmIdx].files[i].height * _imageScale,
-                        };
-                    }
-
-                    // accessing UI thread {
-                    for (int i = 0; i < images.Length; i++) {
-                        ImageContainer.Children.Add(images[i]);
-                    }
-                    // }
-                    break;
+            if (!await PrepareImageLoad()) {
+                return;
             }
-            ChangeBookmarkBtnState(LoadingState.Bookmarked);
-            _isLoading = false;
+            gallery = bmGalleries[bmIdx];
+            string path = IMAGE_DIR + @"\" + bmGalleries[bmIdx].id;
+            try {
+                switch (_viewMode) {
+                    case ViewMode.Default:
+                        _ct.ThrowIfCancellationRequested();
+                        _currPage = 0;
+                        Image image = new() {
+                            Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + _currPage)),
+                            Width = bmGalleries[bmIdx].files[_currPage].width * _imageScale,
+                            Height = bmGalleries[bmIdx].files[_currPage].height * _imageScale,
+                        };
+                        // accessing UI thread {
+                        ImageContainer.Children.Add(image);
+                        // }
+                        break;
+                    case ViewMode.Scroll:
+                        _ct.ThrowIfCancellationRequested();
+                        Image[] images = new Image[bmGalleries[bmIdx].files.Count];
+                        for (int i = 0; i < images.Length; i++) {
+                            _ct.ThrowIfCancellationRequested();
+                            images[i] = new() {
+                                Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + i.ToString())),
+                                Width = bmGalleries[bmIdx].files[i].width * _imageScale,
+                                Height = bmGalleries[bmIdx].files[i].height * _imageScale,
+                            };
+                        }
+                        // accessing UI thread {
+                        for (int i = 0; i < images.Length; i++) {
+                            _ct.ThrowIfCancellationRequested();
+                            ImageContainer.Children.Add(images[i]);
+                        }
+                        // }
+                        break;
+                }
+                FinishLoading(GalleryState.Bookmarked);
+            }
+            catch (OperationCanceledException) {
+                FinishLoading(GalleryState.Loading);
+            }
         }
 
         private static async Task<string> GetGalleryInfo(string id) {
@@ -344,11 +413,10 @@ namespace Hitomi_Scroll_Viewer {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(address)
             };
-            HttpResponseMessage response = await _myHttpClient.SendAsync(galleryInfoRequest);
+            HttpResponseMessage response = await _httpClient.SendAsync(galleryInfoRequest);
             try {
                 response.EnsureSuccessStatusCode();
             } catch (HttpRequestException ex) {
-                _isLoading = false;
                 _mw.AlertUser("An error has occurred while getting gallery info. Please try again.", ex.Message);
                 return null;
             }
@@ -367,12 +435,11 @@ namespace Hitomi_Scroll_Viewer {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(SERVER_TIME_ADDRESS)
             };
-            HttpResponseMessage response = await _myHttpClient.SendAsync(serverTimeRequest);
+            HttpResponseMessage response = await _httpClient.SendAsync(serverTimeRequest);
             try {
                 response.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException ex) {
-                _isLoading = false;
                 _mw.AlertUser("An error has occurred while getting server time. Please try again.", ex.Message);
                 return null;
             }
@@ -381,19 +448,27 @@ namespace Hitomi_Scroll_Viewer {
             return Regex.Match(responseString, @"\'(.+?)/\'").Value[1..^2];
         }
 
+        // TODO read about http request sockets, multithreading, concurrent requests, etc.
+        // and implement them accordingly
+        // search: c# concurrent http requests
+        // to check if images are requested asynchrounously print out i for loop
+
         public async Task LoadImagesFromWeb(string id) {
-            await PrepareImageLoad();
+            if (!await PrepareImageLoad()) {
+                return;
+            }
 
             try {
-                string response = await GetGalleryInfo(id);
+                _ct.ThrowIfCancellationRequested();
+
+                string galleryInfo = await GetGalleryInfo(id);
                 
-                if (response != null) {
-                    gallery = JsonSerializer.Deserialize<Gallery>(response, serializerOptions);
-                } else {
+                if (galleryInfo == null) {
+                    FinishLoading(GalleryState.Empty);
                     return;
                 }
+                gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
 
-                // check if cancellation requested
                 _ct.ThrowIfCancellationRequested();
 
                 string[] imgHashArr = new string[gallery.files.Count];
@@ -401,36 +476,46 @@ namespace Hitomi_Scroll_Viewer {
                     imgHashArr[i] = gallery.files[i].hash;
                 }
 
-                string[] imgAddresses = GetImageAddresses(imgHashArr, await GetServerTime());
+                string serverTime = await GetServerTime();
+                string[] imgAddresses;
+                if (serverTime != null) {
+                    FinishLoading(GalleryState.Empty);
+                    return;
+                }
+                imgAddresses = GetImageAddresses(imgHashArr, serverTime);
 
-                // check if cancellation requested
                 _ct.ThrowIfCancellationRequested();
 
                 byte[][] imageBytes = new byte[imgAddresses.Length][];
 
                 for (int i = 0; i < imgAddresses.Length; i++) {
-                    // check if cancellation requested
                     _ct.ThrowIfCancellationRequested();
                     foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
                         imageBytes[i] = await GetImageBytesFromWeb(subdomain + imgAddresses[i]);
                     }
                 }
 
+                // save gallery to local directory
+                await SaveGallery(gallery.id, imageBytes);
+
                 switch (_viewMode) {
                     case ViewMode.Default:
-                        _currGalleryPageNum = 0;
+                        _ct.ThrowIfCancellationRequested();
+                        _currPage = 0;
                         Image image = new() {
-                            Source = await GetBitmapImage(imageBytes[_currGalleryPageNum]),
-                            Width = gallery.files[_currGalleryPageNum].width * _imageScale,
-                            Height = gallery.files[_currGalleryPageNum].height * _imageScale
+                            Source = await GetBitmapImage(imageBytes[_currPage]),
+                            Width = gallery.files[_currPage].width * _imageScale,
+                            Height = gallery.files[_currPage].height * _imageScale
                         };
                         // accessing UI thread {
                         ImageContainer.Children.Add(image);
                         // }
                         break;
                     case ViewMode.Scroll:
+                        _ct.ThrowIfCancellationRequested();
                         Image[] images = new Image[imgAddresses.Length];
                         for (int i = 0; i < imgAddresses.Length; i++) {
+                            _ct.ThrowIfCancellationRequested();
                             images[i] = new() {
                                 Source = await GetBitmapImage(imageBytes[i]),
                                 Width = gallery.files[i].width * _imageScale,
@@ -439,27 +524,23 @@ namespace Hitomi_Scroll_Viewer {
                         }
                         // accessing UI thread {
                         for (int i = 0; i < images.Length; i++) {
+                            _ct.ThrowIfCancellationRequested();
                             ImageContainer.Children.Add(images[i]);
                         }
                         // }
                         break;
                 }
-
-                // save gallery to local directory
-                await SaveGallery(gallery.id, imageBytes);
-
-                // check if bookmark is full
-                if (bmGalleries.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE) {
-                    ChangeBookmarkBtnState(LoadingState.BookmarkFull);
-                } else {
-                    ChangeBookmarkBtnState(LoadingState.Loaded);
+                if (IsBookmarkFull()) {
+                    FinishLoading(GalleryState.BookmarkFull);
+                }
+                else {
+                    FinishLoading(GalleryState.Loaded);
                 }
             }
             catch (OperationCanceledException) {
-                _isLoading = false;
+                FinishLoading(GalleryState.Loading);
                 return;
             }
-            _isLoading = false;
         }
 
         private static string[] GetImageAddresses(string[] imgHashArr, string serverTime) {
@@ -480,7 +561,7 @@ namespace Hitomi_Scroll_Viewer {
                     {"referer", REFERER }
                 },
             };
-            HttpResponseMessage response = await _myHttpClient.SendAsync(request);
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
             try {
                 response.EnsureSuccessStatusCode();
             } catch (HttpRequestException) {
@@ -489,22 +570,26 @@ namespace Hitomi_Scroll_Viewer {
             return await response.Content.ReadAsByteArrayAsync();
         }
 
-        public void ChangeBookmarkBtnState(LoadingState state) {
+        public void ChangeBookmarkBtnState(GalleryState state) {
             switch (state) {
-                case LoadingState.Bookmarked:
+                case GalleryState.Bookmarked:
                     BookmarkBtn.Label = "Bookmarked";
                     BookmarkBtn.IsEnabled = false;
                     break;
-                case LoadingState.Loading:
+                case GalleryState.Loading:
                     BookmarkBtn.Label = "Loading Images...";
                     BookmarkBtn.IsEnabled = false;
                     break;
-                case LoadingState.Loaded:
+                case GalleryState.Loaded:
                     BookmarkBtn.Label = "Bookmark this Gallery";
                     BookmarkBtn.IsEnabled = true;
                     break;
-                case LoadingState.BookmarkFull:
+                case GalleryState.BookmarkFull:
                     BookmarkBtn.Label = "Bookmark is full";
+                    BookmarkBtn.IsEnabled = false;
+                    break;
+                case GalleryState.Empty:
+                    BookmarkBtn.Label = "";
                     BookmarkBtn.IsEnabled = false;
                     break;
             }
