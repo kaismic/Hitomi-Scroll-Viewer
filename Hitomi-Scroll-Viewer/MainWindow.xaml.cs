@@ -112,6 +112,10 @@ namespace Hitomi_Scroll_Viewer {
             return false;
         }
 
+        public static bool IsBookmarkFull() {
+            return bmGalleries.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE;
+        }
+
         public static async Task SaveGallery(string id, byte[][] imageBytes) {
             string path = IMAGE_DIR + @"\" + id;
             Directory.CreateDirectory(path);
