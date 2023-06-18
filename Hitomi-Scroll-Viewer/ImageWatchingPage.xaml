@@ -8,63 +8,58 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid x:Name="MainGrid">
-        <CommandBar x:Name="TopCommandBar" ClosedDisplayMode="Hidden" OverflowButtonVisibility="Collapsed" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-            <AppBarButton x:Name="SwitchPageBtn"
-                          Width="128"
-                          Icon="Back"
+        <ScrollViewer x:Name="MainScrollViewer" KeyDown="HandleKeyDown" IsTabStop="True">
+            <StackPanel x:Name="ImageContainer" Orientation="Vertical"/>
+        </ScrollViewer>
+        <CommandBar x:Name="TopCommandBar"
+                    ClosedDisplayMode="Minimal"
+                    OverflowButtonVisibility="Collapsed"
+                    HorizontalAlignment="Center"
+                    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+            <AppBarButton Icon="Back"
                           Label="Go Back"
-                          HorizontalAlignment="Left"
                           Click="HandleGoBackBtnClick"
                           />
-            <AppBarSeparator Width="100"/>
-            <AppBarButton x:Name="ViewModeChangeBtn"
-                          Width="128"
+            <AppBarSeparator Width="50"/>
+            <AppBarButton MinWidth="120"
                           Icon="ViewAll"
                           Label="Change View Mode"
                           Click="HandleViewModeChangeBtnClick"
                           />
-            <AppBarSeparator Width="100"/>
-
+            <AppBarSeparator Width="50"/>
             <AppBarButton x:Name="BookmarkBtn"
-                          x:FieldModifier="public"
                           IsEnabled="False"
-                          Width="300"
                           Icon="Save"
                           />
             <AppBarSeparator Width="50"/>
-
             <AppBarElementContainer>
-                <Slider x:Name="ImageScaleSlider"
-                        StepFrequency="0.1"
+                <Slider StepFrequency="0.1"
                         TickFrequency="0.1"
                         Value="0.5"
                         Minimum="0.1"
                         Maximum="1.5"
-                        Width="240"
+                        MinWidth="240"
                         Header="Image Size"
                         FontSize="14"
-                        HorizontalAlignment="Center"
                         ValueChanged="ChangeImageSize"/>
             </AppBarElementContainer>
             <AppBarSeparator Width="50"/>
             <AppBarElementContainer>
-                <Slider
-                        StepFrequency="0.25"
+                <Slider StepFrequency="0.25"
                         TickFrequency="0.25"
                         Value="3"
-                        Minimum="0"
+                        Minimum="0.25"
                         Maximum="5"
-                        Width="240"
+                        MinWidth="240"
                         Header="Auto (Page Turning / Scrolling) Speed"
                         FontSize="14"
-                        HorizontalAlignment="Center"
                         ValueChanged="SetScrollSpeed"/>
             </AppBarElementContainer>
             <AppBarSeparator Width="50"/>
-            <AppBarToggleButton x:Name="LoopBtn" Label="Loop" Icon="RepeatAll" Click="HandleLoopToggleBtnClick"/>
+            <AppBarToggleButton IsChecked="True"
+                                Label="Loop"
+                                Icon="RepeatAll"
+                                Click="HandleLoopToggleBtnClick"/>
         </CommandBar>
-        <ScrollViewer x:Name="MainScrollViewer" KeyDown="HandleKeyDown" IsTabStop="True">
-            <StackPanel x:Name="ImageContainer" Orientation="Vertical" x:FieldModifier="public"/>
-        </ScrollViewer>
     </Grid>
 </Page>
