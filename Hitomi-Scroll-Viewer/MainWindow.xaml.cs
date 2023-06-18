@@ -14,8 +14,6 @@ namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
         public static readonly string IMAGE_DIR = "images";
 
-        public SearchPage sp;
-        public ImageWatchingPage iwp;
         private readonly Page[] _appPages;
         private static int _currPageNum = 0;
         private static AppWindow _myAppWindow;
@@ -33,12 +31,12 @@ namespace Hitomi_Scroll_Viewer {
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
             _myAppWindow = AppWindow.GetFromWindowId(windowId);
 
-            sp = new(this);
-            iwp = new(this);
+            SearchPage sp = new(this);
+            ImageWatchingPage iwp = new(this);
             _appPages = new Page[] { sp, iwp };
 
-            sp.Init();
-            iwp.Init();
+            sp.Init(iwp);
+            iwp.Init(sp);
 
             // Switch page on double click
             RootFrame.DoubleTapped += (object _, DoubleTappedRoutedEventArgs _) => {

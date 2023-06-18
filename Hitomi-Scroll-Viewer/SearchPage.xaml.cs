@@ -48,6 +48,7 @@ namespace Hitomi_Scroll_Viewer {
         };
 
         private static MainWindow _mw;
+        private static ImageWatchingPage _iwp;
 
         public SearchPage(MainWindow mainWindow) {
             InitializeComponent();
@@ -85,6 +86,14 @@ namespace Hitomi_Scroll_Viewer {
 
             // create image storing directory if it doesn't exist
             Directory.CreateDirectory(IMAGE_DIR);
+        }
+
+        public async void Init(ImageWatchingPage iwp) {
+            _iwp = iwp;
+            for (int i = 0; i < bmGalleries.Count; i++) {
+                await CreateBookmarkGrid(i);
+            }
+            FillBookmarkGrid();
         }
 
         private void InitLayout() {
@@ -240,13 +249,6 @@ namespace Hitomi_Scroll_Viewer {
                 pageNumBtn.Click += ChangeBookmarkPage;
                 BookmarkPageBtnsPanel.Children.Add(pageNumBtn);
             }
-        }
-
-        public async void Init() {
-            for (int i = 0; i < bmGalleries.Count; i++) {
-                await CreateBookmarkGrid(i);
-            }
-            FillBookmarkGrid();
         }
 
         public static string[] GetGlobalTag(string tagCategory, bool isExclude) {
@@ -427,14 +429,14 @@ namespace Hitomi_Scroll_Viewer {
             GeneratedHyperlinks.Children.Remove(parent);
         }
 
-        private async void HandleGalleryIDSubmitKeyDown(object sender, KeyRoutedEventArgs e) {
+        private void HandleGalleryIDSubmitKeyDown(object sender, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
-                await LoadGalleryFromId();
+                LoadGalleryFromId();
             }
         }
 
-        private async void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
-            await LoadGalleryFromId();
+        private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
+            LoadGalleryFromId();
         }
 
         private void HandleBookmarkClick(object sender, RoutedEventArgs e) {
@@ -448,12 +450,12 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
-
-            LoadGalleryFromBookmark(idx);
-
+            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            _iwp.LoadGalleryFromLocalDir(idx);
+            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
-        private async Task LoadGalleryFromId() {
+        private void LoadGalleryFromId() {
             string id = ExtractGalleryId();
             if (string.IsNullOrEmpty(id)) {
                 _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
@@ -469,14 +471,16 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
 
+            #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             // if gallery is already bookmarked
             for (int i = 0; i < bmGalleries.Count; i++) {
                 if (bmGalleries[i].id == id) {
-                    LoadGalleryFromBookmark(i);
+                    _iwp.LoadGalleryFromLocalDir(i);
                     return;
                 }
             }
-            await _mw.iwp.LoadImagesFromWeb(id);
+            _iwp.LoadImagesFromWeb(id);
+            #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
 
         private string ExtractGalleryId() {
@@ -486,10 +490,6 @@ namespace Hitomi_Scroll_Viewer {
                 return "";
             }
             return matches[^1].Value;
-        }
-
-        private static async void LoadGalleryFromBookmark(int idx) {
-            await _mw.iwp.LoadGalleryFromLocalDir(idx);
         }
 
         private async Task CreateBookmarkGrid(int idx) {
@@ -569,7 +569,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public async void AddBookmark(object _, RoutedEventArgs e) {
-            _mw.iwp.ChangeBookmarkBtnState(LoadingState.Bookmarked);
+            _iwp.ChangeBookmarkBtnState(LoadingState.Bookmarked);
 
             bmGalleries.Add(gallery);
 
@@ -594,7 +594,7 @@ namespace Hitomi_Scroll_Viewer {
             // if the removing gallery is the current viewing gallery
             if (gallery != null) {
                 if (bmGalleries[targetIdx].id == gallery.id) {
-                    _mw.iwp.ChangeBookmarkBtnState(LoadingState.Loaded);
+                    _iwp.ChangeBookmarkBtnState(LoadingState.Loaded);
                 }
             }
 
