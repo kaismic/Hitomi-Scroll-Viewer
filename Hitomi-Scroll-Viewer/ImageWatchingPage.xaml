@@ -16,23 +16,25 @@
                     OverflowButtonVisibility="Collapsed"
                     HorizontalAlignment="Center"
                     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-            <AppBarButton Icon="Back"
+            <AppBarButton MinWidth="50"
+                          Icon="Back"
                           Label="Go Back"
                           Click="HandleGoBackBtnClick"
                           />
-            <AppBarSeparator Width="50"/>
+            <AppBarSeparator MinWidth="50"/>
             <AppBarButton x:Name="ViewModeBtn"
                           MinWidth="120"
                           Icon="ViewAll"
                           Label="Change View Mode"
                           Click="HandleViewModeBtnClick"
                           />
-            <AppBarSeparator Width="50"/>
+            <AppBarSeparator MinWidth="50"/>
             <AppBarButton x:Name="BookmarkBtn"
+                          MinWidth="140"
                           IsEnabled="False"
                           Icon="Save"
                           />
-            <AppBarSeparator Width="50"/>
+            <AppBarSeparator MinWidth="50"/>
             <AppBarElementContainer>
                 <Slider x:Name="ImageScaleSlider"
                         StepFrequency="0.1"
@@ -45,7 +47,7 @@
                         FontSize="14"
                         ValueChanged="ChangeImageSize"/>
             </AppBarElementContainer>
-            <AppBarSeparator Width="50"/>
+            <AppBarSeparator MinWidth="50"/>
             <AppBarElementContainer>
                 <Slider StepFrequency="0.25"
                         TickFrequency="0.25"
@@ -57,7 +59,7 @@
                         FontSize="14"
                         ValueChanged="SetScrollSpeed"/>
             </AppBarElementContainer>
-            <AppBarSeparator Width="50"/>
+            <AppBarSeparator MinWidth="50"/>
             <AppBarToggleButton IsChecked="True"
                                 Label="Loop"
                                 Icon="RepeatAll"
