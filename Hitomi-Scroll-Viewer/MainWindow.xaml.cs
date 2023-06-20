@@ -59,6 +59,9 @@ namespace Hitomi_Scroll_Viewer {
                         DeleteGallery(gallery.id);
                     }
                 }
+                while (ImageWatchingPage.galleryState == ImageWatchingPage.GalleryState.Bookmarking) {
+                    Task.Delay(10);
+                }
             };
 
             RootFrame.Content = _appPages[_currPageNum];
@@ -126,9 +129,10 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void DeleteGallery(string id) {
-            try {
-                Directory.Delete(IMAGE_DIR + @"\" + id, true);
-            } catch (DirectoryNotFoundException) {}
+            string path = IMAGE_DIR + @"\" + id;
+            if (Directory.Exists(path)) {
+                Directory.Delete(path, true);
+            }
         }
 
     }
