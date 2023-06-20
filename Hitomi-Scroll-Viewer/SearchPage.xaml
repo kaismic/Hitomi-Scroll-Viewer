@@ -73,11 +73,11 @@
                 <TextBlock FontSize="36"
                            Grid.Row="0"
                            Text="Bookmarks"/>
-                <Grid x:Name="BookmarkGrid" Grid.Row="2"/>
                 <StackPanel x:Name="BookmarkPageBtnsPanel"
                             Grid.Row="1"
                             Orientation="Horizontal"
                             HorizontalAlignment="Center"/>
+                <Grid x:Name="BookmarkGrid" Grid.Row="2"/>
             </Grid>
         </Grid>
     </ScrollViewer>
