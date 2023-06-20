@@ -564,8 +564,31 @@ namespace Hitomi_Scroll_Viewer {
             BookmarkGrid.Children.Add(_bookmarkGrids[idx]);
         }
 
+        /**
+         * <summary>Call this method before and after bookmarking.</summary>
+        */
+        private void HandleBookmarking(bool isStarting) {
+            if (isStarting) {
+                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarking);
+            } else {
+                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarked);
+            }
+            GalleryIDTextBox.IsEnabled = !isStarting;
+            LoadImageBtn.IsEnabled = !isStarting;
+
+            // disable page buttons
+            foreach (Button btn in BookmarkPageBtnsPanel.Children.Cast<Button>()) {
+                btn.IsEnabled = !isStarting;
+            }
+
+            // disable bookmarked galleries
+            foreach (Grid grid in BookmarkGrid.Children.Cast<Grid>()) {
+                ((HyperlinkButton)grid.Children[0]).IsEnabled = !isStarting;
+            }
+        }
+
         public async void AddBookmark(object _, RoutedEventArgs e) {
-            _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarked);
+            HandleBookmarking(true);
 
             bmGalleries.Add(gallery);
 
@@ -577,6 +600,8 @@ namespace Hitomi_Scroll_Viewer {
             }
 
             SaveBookmarkInfo();
+
+            HandleBookmarking(false);
         }
 
         private void RemoveBookmark(object sender, RoutedEventArgs e) {
@@ -635,7 +660,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void ChangeBookmarkPage(object sender, RoutedEventArgs e) {
-            int targetPageIdx = BookmarkPageBtnsPanel.Children.IndexOf(sender as Button);
+            int targetPageIdx = BookmarkPageBtnsPanel.Children.IndexOf((Button)sender);
             if (_currBookmarkPage == targetPageIdx) {
                 return;
             }
