@@ -32,6 +32,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private static readonly HttpClient _httpClient = new();
         private static readonly string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
+        private static readonly string GALLERY_INFO_EXCLUDE_STRING = "var galleryinfo = ";
         private static readonly string SERVER_TIME_ADDRESS = "https://ltn.hitomi.la/gg.js";
         private static readonly string REFERER = "https://hitomi.la/";
         private static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
@@ -297,23 +298,22 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void StartLoading() {
-            _isLoading = true;
             StopAutoScrolling();
             ViewModeBtn.IsEnabled = false;
             ImageScaleSlider.IsEnabled = false;
             ChangeBookmarkBtnState(GalleryState.Loading);
+            _isLoading = true;
         }
 
         private void FinishLoading(GalleryState state) {
-            _isLoading = false;
             ViewModeBtn.IsEnabled = true;
             ImageScaleSlider.IsEnabled = true;
             ChangeBookmarkBtnState(state);
+            _isLoading = false;
         }
 
-        // TODO Debug overall loading algorithm
         /**
-         * <summary>Returns <c>true</c> if the load request is permitted, otherwise <c>false</c>.</summary>
+         * <returns><c>true</c> if the load request is permitted, otherwise <c>false</c></returns>
          */
         private static async Task<bool> RequestLoadPermit() {
             if (_isLoading) {
@@ -421,13 +421,7 @@ namespace Hitomi_Scroll_Viewer {
                 return null;
             }
             string responseString = await response.Content.ReadAsStringAsync();
-            for (int i = 0; i < responseString.Length; i++) {
-                if (responseString[i] == '{') {
-                    responseString = responseString[i..];
-                    break;
-                }
-            }
-            return responseString;
+            return responseString[GALLERY_INFO_EXCLUDE_STRING.Length..];
         }
 
         private static async Task<string> GetServerTime() {
@@ -462,7 +456,7 @@ namespace Hitomi_Scroll_Viewer {
                 _ct.ThrowIfCancellationRequested();
 
                 string galleryInfo = await GetGalleryInfo(id);
-                
+
                 if (galleryInfo == null) {
                     FinishLoading(GalleryState.Empty);
                     return;
@@ -478,7 +472,7 @@ namespace Hitomi_Scroll_Viewer {
 
                 string serverTime = await GetServerTime();
                 string[] imgAddresses;
-                if (serverTime != null) {
+                if (serverTime == null) {
                     FinishLoading(GalleryState.Empty);
                     return;
                 }
@@ -492,6 +486,9 @@ namespace Hitomi_Scroll_Viewer {
                     _ct.ThrowIfCancellationRequested();
                     foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
                         imageBytes[i] = await GetImageBytesFromWeb(subdomain + imgAddresses[i]);
+                        if (imageBytes[i] != null) {
+                            break;
+                        }
                     }
                 }
 
@@ -553,6 +550,9 @@ namespace Hitomi_Scroll_Viewer {
             return result;
         }
 
+        /**
+         * <returns>The image <c>byte[]</c> if the given address is valid, otherwise <c>null</c>.</returns>
+         */
         public static async Task<byte[]> GetImageBytesFromWeb(string address) {
             HttpRequestMessage request = new() {
                 Method = HttpMethod.Get,
@@ -561,36 +561,41 @@ namespace Hitomi_Scroll_Viewer {
                     {"referer", REFERER }
                 },
             };
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            HttpResponseMessage response;
             try {
+                response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
-            } catch (HttpRequestException) {
+            } catch (HttpRequestException e) {
+                if (e.StatusCode != System.Net.HttpStatusCode.NotFound) {
+                    Debug.WriteLine(e.Message);
+                    Debug.WriteLine("Status Code: " + e.StatusCode);
+                }
                 return null;
             }
             return await response.Content.ReadAsByteArrayAsync();
         }
 
         public void ChangeBookmarkBtnState(GalleryState state) {
+            if (state == GalleryState.Loaded) {
+                BookmarkBtn.IsEnabled = true;
+            } else {
+                BookmarkBtn.IsEnabled = false;
+            }
             switch (state) {
                 case GalleryState.Bookmarked:
                     BookmarkBtn.Label = "Bookmarked";
-                    BookmarkBtn.IsEnabled = false;
                     break;
                 case GalleryState.Loading:
                     BookmarkBtn.Label = "Loading Images...";
-                    BookmarkBtn.IsEnabled = false;
                     break;
                 case GalleryState.Loaded:
                     BookmarkBtn.Label = "Bookmark this Gallery";
-                    BookmarkBtn.IsEnabled = true;
                     break;
                 case GalleryState.BookmarkFull:
                     BookmarkBtn.Label = "Bookmark is full";
-                    BookmarkBtn.IsEnabled = false;
                     break;
                 case GalleryState.Empty:
                     BookmarkBtn.Label = "";
-                    BookmarkBtn.IsEnabled = false;
                     break;
             }
         }
