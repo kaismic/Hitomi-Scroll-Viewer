@@ -11,9 +11,10 @@
 - Doubleclick to switch between pages
 
 In image watching page:
-- Press spacebar to enable/disable auto page turning/auto scrolling
+- Press 'L' key to enable/disable loop
+- Press spacebar to start/stop auto page turning/auto scrolling
 - Default mode:
-    - Use (Left/Right) (keys/mouse buttons) to switch between images
+    - Use left/right keys/mouse buttons to switch images
 
 ## Bugs
 ### Critical
