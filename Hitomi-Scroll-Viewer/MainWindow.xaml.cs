@@ -40,9 +40,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // Switch page on double click
             RootFrame.DoubleTapped += (object _, DoubleTappedRoutedEventArgs _) => {
-                if (RootFrame.Content as Page != iwp) {
-                    ImageWatchingPage.StopAutoScrolling();
-                }
+                iwp.SetAutoScroll(false);
                 SwitchPage();
             };
 
@@ -53,7 +51,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // Handle window close
             Closed += (object _, WindowEventArgs _) => {
-                ImageWatchingPage.StopAutoScrolling();
+                iwp.SetAutoScroll(false);
                 if (gallery != null) {
                     if (!IsBookmarked()) {
                         DeleteGallery(gallery.id);
