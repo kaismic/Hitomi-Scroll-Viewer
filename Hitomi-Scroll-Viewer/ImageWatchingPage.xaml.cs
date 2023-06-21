@@ -149,15 +149,12 @@ namespace Hitomi_Scroll_Viewer {
             for (int i = 0; i < images.Length; i++) {
                 _ct.ThrowIfCancellationRequested();
                 tasks[i] = GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + i.ToString()));
-            }
-
-            for (int i = 0; i < tasks.Length; i++) {
-                _ct.ThrowIfCancellationRequested();
                 images[i] = new() {
                     Source = await tasks[i],
                     Height = gallery.files[i].height * _imageScale
                 };
             }
+
             for (int i = 0; i < images.Length; i++) {
                 _ct.ThrowIfCancellationRequested();
                 ImageContainer.Children.Add(images[i]);
@@ -174,19 +171,19 @@ namespace Hitomi_Scroll_Viewer {
                     case ViewMode.Default:
                         _viewMode = ViewMode.Scroll;
                         await InsertImages();
-                        DispatcherQueue.TryEnqueue(async () => {
-                            bool allAdded = false;
-                            while (!allAdded) {
-                                await Task.Delay(10);
-                                allAdded = true;
-                                for (int i = 0; i < ImageContainer.Children.Count; i++) {
-                                    if (((Image)ImageContainer.Children[i]).ActualHeight == 0) {
-                                        allAdded = false;
-                                    }
+                        bool allAdded = false;
+                        // wait for all images to be added
+                        while (!allAdded) {
+                            await Task.Delay(10);
+                            allAdded = true;
+                            for (int i = 0; i < ImageContainer.Children.Count; i++) {
+                                if (((Image)ImageContainer.Children[i]).ActualHeight == 0) {
+                                    allAdded = false;
+                                    break;
                                 }
                             }
-                            MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage());
-                        });
+                        }
+                        DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
                         break;
                     case ViewMode.Scroll:
                         _viewMode = ViewMode.Default;
