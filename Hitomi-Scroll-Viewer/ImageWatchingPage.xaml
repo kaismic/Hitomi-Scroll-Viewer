@@ -55,15 +55,20 @@
                         Minimum="0.25"
                         Maximum="5"
                         MinWidth="240"
-                        Header="Auto (Page Turning / Scrolling) Speed"
+                        Header="Auto Page Turning / Scrolling Speed"
                         FontSize="14"
                         ValueChanged="SetScrollSpeed"/>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="50"/>
-            <AppBarToggleButton IsChecked="True"
-                                Label="Loop"
+            <AppBarToggleButton x:Name="AutoScrollBtn"
+                                MinWidth="240"
+                                Click="HandleAutoScrollBtnClick"/>
+            <AppBarToggleButton x:Name="LoopBtn"
+                                IsChecked="True"
+                                Label="Toggle Loop"
                                 Icon="RepeatAll"
-                                Click="HandleLoopToggleBtnClick"/>
+                                MinWidth="90"
+                                Click="HandleLoopBtnClick"/>
         </CommandBar>
     </Grid>
 </Page>
