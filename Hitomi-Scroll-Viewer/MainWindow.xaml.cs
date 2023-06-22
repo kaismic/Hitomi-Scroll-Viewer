@@ -16,7 +16,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private readonly Page[] _appPages;
         private static int _currPageNum = 0;
-        private static AppWindow _myAppWindow;
+        public AppWindow appWindow;
 
         public static Gallery gallery;
         public static List<Gallery> bmGalleries;
@@ -26,10 +26,9 @@ namespace Hitomi_Scroll_Viewer {
 
             Title = "Hitomi Scroll Viewer";
 
-            // Maximise window
             IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            _myAppWindow = AppWindow.GetFromWindowId(windowId);
+            appWindow = AppWindow.GetFromWindowId(windowId);
 
             SearchPage sp = new(this);
             ImageWatchingPage iwp = new(this);
@@ -46,7 +45,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // Maximise window on load
             RootFrame.Loaded += (object _, RoutedEventArgs _) => {
-                (_myAppWindow.Presenter as OverlappedPresenter).Maximize();
+                ((OverlappedPresenter)appWindow.Presenter).Maximize();
             };
 
             // Handle window close
