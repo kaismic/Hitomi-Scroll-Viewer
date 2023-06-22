@@ -61,15 +61,20 @@ namespace Hitomi_Scroll_Viewer {
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
 
-            ImageContainer.Margin = new Thickness(0,TopCommandBar.ActualHeight,0,0);
-
             DisableAction();
 
             _mw = mainWindow;
 
+            // Set ImageContainer top margin based on top commandbar height
+            void handleSizeChange(object cb, SizeChangedEventArgs e) {
+                ImageContainer.Margin = new Thickness(0, ((CommandBar)cb).ActualHeight, 0, 0);
+            }
+
+            TopCommandBar.SizeChanged += handleSizeChange;
+
             // handle mouse movement on commandbar
-            void handlePointerEnter(object commandBar, PointerRoutedEventArgs args) {
-                ((CommandBar)commandBar).IsOpen = true;
+            void handlePointerEnter(object cb, PointerRoutedEventArgs args) {
+                ((CommandBar)cb).IsOpen = true;
             }
             TopCommandBar.PointerEntered += handlePointerEnter;
 
@@ -135,7 +140,8 @@ namespace Hitomi_Scroll_Viewer {
             ImageContainer.Children.Clear();
             Image image = new() {
                 Source = await GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + _currPage)),
-                Height = gallery.files[_currPage].height * _imageScale,
+                Width = gallery.files[_currPage].width * _imageScale,
+                Height = gallery.files[_currPage].height * _imageScale
             };
             ImageContainer.Children.Add(image);
         }
@@ -151,6 +157,7 @@ namespace Hitomi_Scroll_Viewer {
                 tasks[i] = GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + i.ToString()));
                 images[i] = new() {
                     Source = await tasks[i],
+                    Width = gallery.files[i].width * _imageScale,
                     Height = gallery.files[i].height * _imageScale
                 };
             }
@@ -172,7 +179,7 @@ namespace Hitomi_Scroll_Viewer {
                         _viewMode = ViewMode.Scroll;
                         await InsertImages();
                         bool allAdded = false;
-                        // wait for all images to be added
+                        // wait for the actual image heights to be updated
                         while (!allAdded) {
                             await Task.Delay(10);
                             allAdded = true;
@@ -197,23 +204,30 @@ namespace Hitomi_Scroll_Viewer {
                 EnableAction();
             }
         }
-        // TODO make half offset of the pages be the division point for calculating page number
+
         private void GetPageFromScrollOffset() {
+            double currOffset = MainScrollViewer.VerticalOffset;
             double imageHeightSum = ImageContainer.Margin.Top;
+            if (currOffset < imageHeightSum) {
+                _currPage = 0;
+                return;
+            }
+            // half of the window height is the reference height for page calculation
+            double pageHalfOffset = currOffset + _mw.appWindow.ClientSize.Height / 2;
             for (int i = 0; i < gallery.files.Count; i++) {
                 imageHeightSum += ((Image)ImageContainer.Children[i]).Height;
-                if (imageHeightSum > MainScrollViewer.VerticalOffset) {
+                if (imageHeightSum >= pageHalfOffset) {
                     _currPage = i;
-                    break;
+                    return;
                 }
             }
         }
 
         private double GetScrollOffsetFromPage() {
-            double offset = 0;
-            if (_currPage != 0) {
-                offset = ImageContainer.Margin.Top;
+            if (_currPage == 0) {
+                return 0;
             }
+            double offset = ImageContainer.Margin.Top;
             for (int i = 0; i < gallery.files.Count; i++) {
                 if (i >= _currPage) {
                     return offset;
@@ -302,18 +316,25 @@ namespace Hitomi_Scroll_Viewer {
          * Change image size and re-position vertical offset to the page that the user was already at.
          * </summary>
          */
-        private void ChangeImageSize(object slider, RangeBaseValueChangedEventArgs e) {
+        private async void ChangeImageSize(object slider, RangeBaseValueChangedEventArgs e) {
             _imageScale = ((Slider)slider).Value;
             if (ImageContainer != null && gallery != null) {
                 switch (_viewMode) {
                     case ViewMode.Default:
                         Image image = (Image)ImageContainer.Children[0];
+                        image.Width = gallery.files[_currPage].width * _imageScale;
                         image.Height = gallery.files[_currPage].height * _imageScale;
                         break;
                     case ViewMode.Scroll:
+                        double scrollableHeight = MainScrollViewer.ScrollableHeight;
                         GetPageFromScrollOffset();
                         for (int i = 0; i < ImageContainer.Children.Count; i++) {
+                            ((Image)ImageContainer.Children[i]).Width = gallery.files[i].width * _imageScale;
                             ((Image)ImageContainer.Children[i]).Height = gallery.files[i].height * _imageScale;
+                        }
+                        // wait for the actual image heights to be updated
+                        while (scrollableHeight == MainScrollViewer.ScrollableHeight) {
+                            await Task.Delay(10);
                         }
                         // set vertical offset according to the new image scale
                         MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage());
