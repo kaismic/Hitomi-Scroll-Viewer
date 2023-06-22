@@ -75,6 +75,7 @@ namespace Hitomi_Scroll_Viewer {
             // handle mouse movement on commandbar
             void handlePointerEnter(object cb, PointerRoutedEventArgs args) {
                 ((CommandBar)cb).IsOpen = true;
+                PageNumDisplay.Visibility = Visibility.Visible;
             }
             TopCommandBar.PointerEntered += handlePointerEnter;
 
@@ -87,6 +88,7 @@ namespace Hitomi_Scroll_Viewer {
                 // * 3 is the height of the commandbar when it is open and ClosedDisplayMode="Minimal"
                 if (pos.Y > commandBar.ActualHeight * 3 || pos.X < center - cbHalfWidth || pos.X > center + cbHalfWidth) {
                     commandBar.IsOpen = false;
+                    PageNumDisplay.Visibility = Visibility.Collapsed;
                 }
             }
             TopCommandBar.PointerMoved += handlePointerMove;
@@ -103,6 +105,13 @@ namespace Hitomi_Scroll_Viewer {
 
         public void Init(SearchPage sp) {
             BookmarkBtn.Click += sp.AddBookmark;
+        }
+
+        private void HandleScrollViewChange(object _, ScrollViewerViewChangingEventArgs e) {
+            if (_viewMode == ViewMode.Scroll) {
+                GetPageFromScrollOffset();
+                PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
+            }
         }
 
         private void HandleGoBackBtnClick(object _, RoutedEventArgs e) {
@@ -137,6 +146,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async Task InsertSingleImage() {
+            PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
             ImageContainer.Children.Clear();
             Image image = new() {
                 Source = await GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + _currPage)),
@@ -484,13 +494,6 @@ namespace Hitomi_Scroll_Viewer {
         // and implement them accordingly
         // search: c# concurrent http requests
         // to check if images are requested asynchrounously print out i for loop
-
-        // TODO
-        // show page number when top command bar is opened
-        // with half transparent floating text label at the middle
-
-        // TODO
-        // progress bar / ring
 
         public async Task LoadImagesFromWeb(string id) {
             if (!await StartLoading()) {
