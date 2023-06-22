@@ -487,7 +487,8 @@ namespace Hitomi_Scroll_Viewer {
             }
             return matches[^1].Value;
         }
-
+        // TODO
+        // create bookmark component
         private async Task CreateBookmarkGrid(int idx) {
             int rowSpan = 6;
             int columnSpan = 13;
