@@ -402,6 +402,7 @@ namespace Hitomi_Scroll_Viewer {
             DisableAction();
 
             ChangeBookmarkBtnState(GalleryState.Loading);
+            LoadingProgressBar.Visibility = Visibility.Visible;
 
             // check if we have a gallery already loaded
             if (gallery != null) {
@@ -415,6 +416,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private void FinishLoading(GalleryState state) {
             ChangeBookmarkBtnState(state);
+            LoadingProgressBar.Visibility = Visibility.Collapsed;
             EnableAction();
         }
 
@@ -483,6 +485,13 @@ namespace Hitomi_Scroll_Viewer {
         // search: c# concurrent http requests
         // to check if images are requested asynchrounously print out i for loop
 
+        // TODO
+        // show page number when top command bar is opened
+        // with half transparent floating text label at the middle
+
+        // TODO
+        // progress bar / ring
+
         public async Task LoadImagesFromWeb(string id) {
             if (!await StartLoading()) {
                 return;
@@ -497,6 +506,7 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
                 gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
+                LoadingProgressBar.Maximum = gallery.files.Count;
 
                 _ct.ThrowIfCancellationRequested();
 
@@ -518,6 +528,7 @@ namespace Hitomi_Scroll_Viewer {
                 byte[][] imageBytes = new byte[imgAddresses.Length][];
 
                 for (int i = 0; i < imgAddresses.Length; i++) {
+                    LoadingProgressBar.Value++;
                     _ct.ThrowIfCancellationRequested();
                     foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
                         imageBytes[i] = await GetImageBytesFromWeb(subdomain + imgAddresses[i]);

@@ -11,6 +11,7 @@
         <ScrollViewer x:Name="MainScrollViewer" KeyDown="HandleKeyDown" IsTabStop="True">
             <StackPanel x:Name="ImageContainer" Orientation="Vertical"/>
         </ScrollViewer>
+        <!--TextBlock Text="Page 5 of 16" Margin="0 100 0 0"HorizontalAlignment="Center" VerticalAlignment="Top"/-->
         <CommandBar x:Name="TopCommandBar"
                     ClosedDisplayMode="Minimal"
                     OverflowButtonVisibility="Collapsed"
@@ -70,5 +71,8 @@
                                 MinWidth="90"
                                 Click="HandleLoopBtnClick"/>
         </CommandBar>
+        <ProgressBar x:Name="LoadingProgressBar"
+                     VerticalAlignment="Top" Minimum="0" Maximum="100" Value="0"
+                     Visibility="Collapsed"/>
     </Grid>
 </Page>
