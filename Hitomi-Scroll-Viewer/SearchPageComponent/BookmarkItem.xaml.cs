@@ -19,7 +19,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             bmGallery = newGallery;
 
-            Orientation = Orientation.Horizontal;
+            Orientation = Orientation.Vertical;
             BorderBrush = new SolidColorBrush(Colors.Black);
             BorderThickness = new Thickness(1);
 
@@ -33,6 +33,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             _hb.Click += sp.HandleBookmarkClick;
             Children.Add(_hb);
 
+            StackPanel subContainer = new() {
+                Orientation = Orientation.Horizontal
+            };
+            Children.Add(subContainer);
+
             _images = new Image[THUMBNAIL_IMG_NUM];
             for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
                 _images[i] = new() {
@@ -40,7 +45,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     Width = THUMBNAIL_IMG_WIDTH,
                     Height = THUMBNAIL_IMG_WIDTH * bmGallery.files[i].height / bmGallery.files[i].width,
                 };
-                Children.Add(_images[i]);
+                subContainer.Children.Add(_images[i]);
 
             }
             SetImages();
@@ -53,7 +58,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 FontSize = 18,
             };
             btn.Click += sp.RemoveBookmark;
-            Children.Add(btn);
+            subContainer.Children.Add(btn);
         }
 
         private async void SetImages() {
