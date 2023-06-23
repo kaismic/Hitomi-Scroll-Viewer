@@ -34,7 +34,7 @@ namespace Hitomi_Scroll_Viewer {
             ImageWatchingPage iwp = new(this);
             _appPages = new Page[] { sp, iwp };
 
-            sp.Init(iwp);
+            SearchPage.Init(iwp);
             iwp.Init(sp);
 
             // Switch page on double click
@@ -53,7 +53,7 @@ namespace Hitomi_Scroll_Viewer {
                 iwp.SetAutoScroll(false);
                 if (gallery != null) {
                     if (!IsBookmarked()) {
-                        DeleteGallery(gallery.id);
+                        DeleteGallery(gallery);
                     }
                 }
                 while (ImageWatchingPage.galleryState == ImageWatchingPage.GalleryState.Bookmarking) {
@@ -125,8 +125,8 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public static void DeleteGallery(string id) {
-            string path = IMAGE_DIR + @"\" + id;
+        public static void DeleteGallery(Gallery removingGallery) {
+            string path = IMAGE_DIR + @"\" + removingGallery.id;
             if (Directory.Exists(path)) {
                 Directory.Delete(path, true);
             }
