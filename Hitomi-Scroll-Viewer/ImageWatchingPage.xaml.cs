@@ -165,8 +165,14 @@ namespace Hitomi_Scroll_Viewer {
             for (int i = 0; i < images.Length; i++) {
                 _ct.ThrowIfCancellationRequested();
                 tasks[i] = GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + i.ToString()));
+            }
+
+            await Task.WhenAll(tasks);
+
+            for (int i = 0; i < images.Length; i++) {
+                _ct.ThrowIfCancellationRequested();
                 images[i] = new() {
-                    Source = await tasks[i],
+                    Source = tasks[i].Result,
                     Width = gallery.files[i].width * _imageScale,
                     Height = gallery.files[i].height * _imageScale
                 };
@@ -418,7 +424,7 @@ namespace Hitomi_Scroll_Viewer {
             if (gallery != null) {
                 // if the loaded gallery is not bookmarked delete it from local directory
                 if (!IsBookmarked()) {
-                    DeleteGallery(gallery.id);
+                    DeleteGallery(gallery);
                 }
             }
             return true;
@@ -430,11 +436,11 @@ namespace Hitomi_Scroll_Viewer {
             EnableAction();
         }
 
-        public async Task LoadGalleryFromLocalDir(int bmIdx) {
+        public async Task LoadGalleryFromLocalDir(Gallery newGallery) {
             if (!await StartLoading()) {
                 return;
             }
-            gallery = bmGalleries[bmIdx];
+            gallery = newGallery;
             try {
                 switch (_viewMode) {
                     case ViewMode.Default:
@@ -495,6 +501,19 @@ namespace Hitomi_Scroll_Viewer {
         // search: c# concurrent http requests
         // to check if images are requested asynchrounously print out i for loop
 
+        private async Task<byte[]> TryGetImageBytesFromWeb(string imgAddress) {
+            byte[] imageBytes;
+            _ct.ThrowIfCancellationRequested();
+            foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
+                imageBytes = await GetImageBytesFromWeb(subdomain + imgAddress);
+                if (imageBytes != null) {
+                    LoadingProgressBar.Value++;
+                    return imageBytes;
+                }
+            }
+            return null;
+        }
+
         public async Task LoadImagesFromWeb(string id) {
             if (!await StartLoading()) {
                 return;
@@ -525,20 +544,20 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
                 imgAddresses = GetImageAddresses(imgHashArr, serverTime);
-
                 _ct.ThrowIfCancellationRequested();
 
-                byte[][] imageBytes = new byte[imgAddresses.Length][];
+                Task<byte[]>[] tasks = new Task<byte[]>[imgAddresses.Length];
 
                 for (int i = 0; i < imgAddresses.Length; i++) {
-                    LoadingProgressBar.Value++;
-                    _ct.ThrowIfCancellationRequested();
-                    foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
-                        imageBytes[i] = await GetImageBytesFromWeb(subdomain + imgAddresses[i]);
-                        if (imageBytes[i] != null) {
-                            break;
-                        }
-                    }
+                    tasks[i] = TryGetImageBytesFromWeb(imgAddresses[i]);
+                }
+
+                await Task.WhenAll(tasks);
+
+                byte[][] imageBytes = new byte[tasks.Length][];
+
+                for (int i = 0; i < imageBytes.Length; i++) {
+                    imageBytes[i] = tasks[i].Result;
                 }
 
                 // save gallery to local directory
