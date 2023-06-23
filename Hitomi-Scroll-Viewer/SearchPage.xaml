@@ -60,25 +60,13 @@
                 </StackPanel>
                 <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"/>
             </Grid>
-            <!--Row 2, Column 0, Full Columnspan-->
-            <!--2 rows, 1 column-->
-            <Grid Grid.Row="2"
-                  Grid.Column="0" Grid.ColumnSpan="3">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                
-                <TextBlock FontSize="36"
-                           Grid.Row="0"
-                           Text="Bookmarks"/>
+            <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Vertical">
+                <TextBlock FontSize="36" Text="Bookmarks"/>
                 <StackPanel x:Name="BookmarkPageBtnsPanel"
-                            Grid.Row="1"
                             Orientation="Horizontal"
                             HorizontalAlignment="Center"/>
-                <Grid x:Name="BookmarkGrid" Grid.Row="2"/>
-            </Grid>
+                <StackPanel x:Name="BookmarkPanel" Orientation="Vertical"/>
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 </Page>

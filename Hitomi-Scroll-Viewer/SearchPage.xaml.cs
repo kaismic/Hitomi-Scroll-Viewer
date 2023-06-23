@@ -30,12 +30,12 @@ namespace Hitomi_Scroll_Viewer {
 
         private static Dictionary<string, Tag> _tagDict;
 
-        private static readonly double THUMBNAIL_IMG_WIDTH = 350;
-        private static readonly int THUMBNAIL_IMG_NUM = 3;
+        public static readonly double THUMBNAIL_IMG_WIDTH = 350;
+        public static readonly int THUMBNAIL_IMG_NUM = 3;
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
         public static readonly int MAX_BOOKMARK_PAGE = 5;
 
-        private static readonly List<Grid> _bookmarkGrids = new(MAX_BOOKMARK_PER_PAGE * MAX_BOOKMARK_PAGE);
+        private static readonly List<BookmarkItem> _bookmarkItems = new();
         private static int _currBookmarkPage = 0;
 
         private TagListControlButton _renameTagBtn;
@@ -79,21 +79,23 @@ namespace Hitomi_Scroll_Viewer {
                 File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(new List<Gallery>(), _serializerOptions));
             }
             // read bookmarked galleries' info from file
-            bmGalleries =
-                (List<Gallery>)JsonSerializer.Deserialize(
+            bmGalleries = (List<Gallery>)JsonSerializer.Deserialize(
                 File.ReadAllText(BM_INFO_FILE_NAME),
                 typeof(List<Gallery>),_serializerOptions);
 
             // create image storing directory if it doesn't exist
-            Directory.CreateDirectory(IMAGE_DIR);
-        }
+            if (!Directory.Exists(IMAGE_DIR)) {
+                Directory.CreateDirectory(IMAGE_DIR);
+            }
 
-        public async void Init(ImageWatchingPage iwp) {
-            _iwp = iwp;
             for (int i = 0; i < bmGalleries.Count; i++) {
-                await CreateBookmarkGrid(i);
+                _bookmarkItems.Add(new(bmGalleries[i], this));
             }
             FillBookmarkGrid();
+        }
+
+        public static void Init(ImageWatchingPage iwp) {
+            _iwp = iwp;
         }
 
         private void InitLayout() {
@@ -230,11 +232,6 @@ namespace Hitomi_Scroll_Viewer {
                 return true;
             };
             ControlButtonContainer.Children.Add(clearTagBtn);
-
-            // BookmarkGrid
-            for (int i = 0; i < MAX_BOOKMARK_PER_PAGE; i++) {
-                BookmarkGrid.RowDefinitions.Add(new RowDefinition());
-            }
 
             // BookmarkPageBtns
             for (int i = 0; i < MAX_BOOKMARK_PAGE; i++) {
@@ -382,6 +379,7 @@ namespace Hitomi_Scroll_Viewer {
             File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(bmGalleries, _serializerOptions));
         }
 
+        // TODO convert grid to stackpanel
         private void GenerateHyperlink(object sender, RoutedEventArgs e) {
             string address = GetSearchAddress();
             // copy link to clipboard
@@ -420,7 +418,6 @@ namespace Hitomi_Scroll_Viewer {
             gd.Children.Add(btn);
             
             GeneratedHyperlinks.Children.Add(gd);
-
         }
 
         private void RemoveHyperlink(object sender, RoutedEventArgs e) {
@@ -437,20 +434,6 @@ namespace Hitomi_Scroll_Viewer {
 
         private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
             LoadGalleryFromId();
-        }
-
-        private async void HandleBookmarkClick(object sender, RoutedEventArgs e) {
-            Grid bmGrid = (sender as HyperlinkButton).Parent as Grid;
-            int idx = BookmarkGrid.Children.IndexOf(bmGrid) + _currBookmarkPage * MAX_BOOKMARK_PER_PAGE;
-
-            // if gallery is already loaded
-            if (gallery != null) {
-                if (bmGalleries[idx].id == gallery.id) {
-                    _mw.SwitchPage();
-                    return;
-                }
-            }
-            await _iwp.LoadGalleryFromLocalDir(idx);
         }
 
         private async void LoadGalleryFromId() {
@@ -472,7 +455,7 @@ namespace Hitomi_Scroll_Viewer {
             // if gallery is already bookmarked
             for (int i = 0; i < bmGalleries.Count; i++) {
                 if (bmGalleries[i].id == id) {
-                    await _iwp.LoadGalleryFromLocalDir(i);
+                    await _iwp.LoadGalleryFromLocalDir(bmGalleries[i]);
                     return;
                 }
             }
@@ -487,186 +470,87 @@ namespace Hitomi_Scroll_Viewer {
             }
             return matches[^1].Value;
         }
-        // TODO
-        // create bookmark component
-        private async Task CreateBookmarkGrid(int idx) {
-            int rowSpan = 6;
-            int columnSpan = 13;
 
-            Grid gr = new();
-            for (int i = 0; i < rowSpan; i++) {
-                gr.RowDefinitions.Add(new RowDefinition());
-            }
-            for (int i = 0; i < columnSpan; i++) {
-                gr.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-            gr.BorderBrush = new SolidColorBrush(Colors.Black);
-            gr.BorderThickness = new Thickness(1);
+        public async void HandleBookmarkClick(object sender, RoutedEventArgs e) {
+            BookmarkItem bmItem = (BookmarkItem)((HyperlinkButton)sender).Parent;
 
-            HyperlinkButton hb = new() {
-                Content = new TextBlock() {
-                    Text = bmGalleries[idx].title + Environment.NewLine + bmGalleries[idx].id,
-                    TextWrapping = TextWrapping.WrapWholeWords,
-                    FontSize = 24,
-                },
-            };
-            hb.Click += HandleBookmarkClick;
-
-            Grid.SetRow(hb, 0);
-            Grid.SetRowSpan(hb, 1);
-            Grid.SetColumn(hb, 0);
-            Grid.SetColumnSpan(hb, columnSpan - 1);
-            gr.Children.Add(hb);
-
-            try {
-                string path = IMAGE_DIR + @"\" + bmGalleries[idx].id;
-                int imgIdx;
-                for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                    imgIdx = i * bmGalleries[idx].files.Count / THUMBNAIL_IMG_NUM;
-                    Image img = new() {
-                        Source = await GetBitmapImage(await File.ReadAllBytesAsync(path + @"\" + imgIdx.ToString())),
-                        Width = THUMBNAIL_IMG_WIDTH,
-                        Height = THUMBNAIL_IMG_WIDTH * bmGalleries[idx].files[i].height / bmGalleries[idx].files[i].width,
-                    };
-
-                    Grid.SetRow(img, 1);
-                    Grid.SetRowSpan(img, rowSpan - 1);
-                    Grid.SetColumn(img, i * (columnSpan - 1) / THUMBNAIL_IMG_NUM);
-                    Grid.SetColumnSpan(img, (columnSpan - 1) / THUMBNAIL_IMG_NUM);
-                    gr.Children.Add(img);
-
+            // if gallery is already loaded
+            if (gallery != null) {
+                if (bmItem.bmGallery == gallery) {
+                    _mw.AlertUser("Gallery is already loaded", "");
+                    return;
                 }
             }
-            catch (DirectoryNotFoundException) {
-                Debug.WriteLine("Image directory for " + bmGalleries[idx].title + " (" + bmGalleries[idx].id + ") not found");
-                (hb.Content as TextBlock).Text = bmGalleries[idx].title + Environment.NewLine + bmGalleries[idx].id + Environment.NewLine + "Image directory not found";
-                hb.IsEnabled = false;
-            }
-
-            Button btn = new() {
-                Content = new TextBlock() {
-                    Text = "Remove",
-                    TextWrapping = TextWrapping.WrapWholeWords,
-                },
-                FontSize = 18,
-            };
-            btn.Click += RemoveBookmark;
-            Grid.SetRow(btn, 0);
-            Grid.SetRowSpan(btn, rowSpan);
-            Grid.SetColumn(btn, columnSpan - 1);
-            Grid.SetColumnSpan(btn, 1);
-            gr.Children.Add(btn);
-
-            _bookmarkGrids.Add(gr);
-        }
-
-        private void ShowBookmarkOnGrid(int idx) {
-            Grid.SetRow(_bookmarkGrids[idx], idx % MAX_BOOKMARK_PER_PAGE);
-            BookmarkGrid.Children.Add(_bookmarkGrids[idx]);
+            await _iwp.LoadGalleryFromLocalDir(bmItem.bmGallery);
         }
 
         /**
          * <summary>Call this method before and after bookmarking.</summary>
         */
-        private void HandleBookmarking(bool isStarting) {
-            if (isStarting) {
-                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarking);
-            } else {
+        private void HandleBookmarking(bool isFinished) {
+            if (isFinished) {
                 _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarked);
+            } else {
+                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarking);
             }
-            GalleryIDTextBox.IsEnabled = !isStarting;
-            LoadImageBtn.IsEnabled = !isStarting;
+            GalleryIDTextBox.IsEnabled = isFinished;
+            LoadImageBtn.IsEnabled = isFinished;
 
-            // disable page buttons
+            // enable/disable bookmark page buttons
             foreach (Button btn in BookmarkPageBtnsPanel.Children.Cast<Button>()) {
-                btn.IsEnabled = !isStarting;
+                btn.IsEnabled = isFinished;
             }
 
-            // disable bookmarked galleries
-            foreach (Grid grid in BookmarkGrid.Children.Cast<Grid>()) {
-                ((HyperlinkButton)grid.Children[0]).IsEnabled = !isStarting;
+            // enable/disable bookmark item hyperlink buttons
+            foreach (BookmarkItem bmItem in BookmarkPanel.Children.Cast<BookmarkItem>()) {
+                bmItem.EnableButton(isFinished);
             }
         }
 
-        public async void AddBookmark(object _, RoutedEventArgs e) {
-            HandleBookmarking(true);
+        public void AddBookmark(object _, RoutedEventArgs e) {
+            HandleBookmarking(false);
 
             bmGalleries.Add(gallery);
-
-            await CreateBookmarkGrid(bmGalleries.Count - 1);
-
-            if (bmGalleries.Count - 1 >= _currBookmarkPage * MAX_BOOKMARK_PER_PAGE && 
-                bmGalleries.Count - 1 < (_currBookmarkPage + 1) * MAX_BOOKMARK_PER_PAGE) {
-                ShowBookmarkOnGrid(bmGalleries.Count - 1);
-            }
-
+            _bookmarkItems.Add(new BookmarkItem(gallery, this));
+            FillBookmarkGrid();
             SaveBookmarkInfo();
 
-            HandleBookmarking(false);
+            HandleBookmarking(true);
         }
 
-        private void RemoveBookmark(object sender, RoutedEventArgs e) {
-            Button btn = sender as Button;
-            Grid bmGrid = btn.Parent as Grid;
-            int targetIdx = _bookmarkGrids.IndexOf(bmGrid);
-
-            // remove gallery files
-            DeleteGallery(bmGalleries[targetIdx].id);
+        public void RemoveBookmark(object sender, RoutedEventArgs e) {
+            BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
 
             // if the removing gallery is the current viewing gallery
             if (gallery != null) {
-                if (bmGalleries[targetIdx].id == gallery.id) {
+                if (bmItem.bmGallery == gallery) {
                     _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
                 }
             }
-
-            bmGalleries.RemoveAt(targetIdx);
-            _bookmarkGrids.RemoveAt(targetIdx);
-
-            int targetIdxInGrid = targetIdx % MAX_BOOKMARK_PER_PAGE;
-            BookmarkGrid.Children.RemoveAt(targetIdxInGrid);
-
-            // number of bookmark grids to re-allocate to new row
-            int reallocatingGridNum = MAX_BOOKMARK_PER_PAGE - targetIdxInGrid;
-            if (_bookmarkGrids.Count - targetIdx < MAX_BOOKMARK_PER_PAGE) {
-                reallocatingGridNum = _bookmarkGrids.Count - targetIdx;
-            }
-
-            // reallocate rows of each grid by decrementing the row position by 1
-            for (int i = 0; i < reallocatingGridNum; i++) {
-                Grid.SetRow(_bookmarkGrids[targetIdx + i], targetIdxInGrid + i);
-            }
-            
-            // if the last bookmark grid is from next page
-            if ((targetIdx + reallocatingGridNum)/MAX_BOOKMARK_PER_PAGE == _currBookmarkPage + 1) {
-                BookmarkGrid.Children.Add(_bookmarkGrids[targetIdx + reallocatingGridNum - 1]);
-            }
-
+            bmGalleries.Remove(bmItem.bmGallery);
+            _bookmarkItems.Remove(bmItem);
             SaveBookmarkInfo();
+            FillBookmarkGrid();
         }
 
         private void FillBookmarkGrid() {
+            BookmarkPanel.Children.Clear();
             int startingIdx = _currBookmarkPage * MAX_BOOKMARK_PER_PAGE;
-            int bookmarkCount = bmGalleries.Count;
-            if (startingIdx >= bookmarkCount) {
-                return;
-            }
             int endingIdx = (_currBookmarkPage + 1) * MAX_BOOKMARK_PER_PAGE;
-            if (endingIdx > bookmarkCount) {
-                endingIdx = bookmarkCount;
-            }
+
             for (int i = startingIdx; i < endingIdx; i++) {
-                ShowBookmarkOnGrid(i);
+                if (i < bmGalleries.Count) {
+                    BookmarkPanel.Children.Add(_bookmarkItems[i]);
+                }
             }
         }
 
         private void ChangeBookmarkPage(object sender, RoutedEventArgs e) {
-            int targetPageIdx = BookmarkPageBtnsPanel.Children.IndexOf((Button)sender);
-            if (_currBookmarkPage == targetPageIdx) {
+            int btnIdx = BookmarkPageBtnsPanel.Children.IndexOf((Button)sender);
+            if (_currBookmarkPage == btnIdx) {
                 return;
             }
-            BookmarkGrid.Children.Clear();
-            _currBookmarkPage = targetPageIdx;
+            _currBookmarkPage = btnIdx;
             FillBookmarkGrid();
         }
     }
