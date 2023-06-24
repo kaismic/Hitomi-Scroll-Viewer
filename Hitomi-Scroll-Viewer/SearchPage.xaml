@@ -7,66 +7,69 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer x:Name="MainScrollViewer">
-        <!--3 rows, 3 columns-->
-        <Grid x:Name="RootGrid">
-            <Grid x:Name="TagContainerGrid" Grid.Row="0" Grid.Column="0"/>
-            <!--Row 1, Column 0, 1 Columnspan-->
-            <!--8 rows, 12 columns-->
-            <Grid x:Name="HyperlinkGrid" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch">
-                <Button x:Name="GenerateHyperlinkBtn"
-                        Grid.Row="0"
-                        Click="GenerateHyperlink"
-                        Height="100"
-                        FontSize="18"
-                        Content="Generate and Copy Link"
-                        />
-                <StackPanel x:Name="GeneratedHyperlinks"
-                            Grid.Row="1"
-                            Orientation="Vertical"
-                />
-            </Grid>
-            <!--Row 1, Column 1, 1 Columnspan-->
-            <!--1 row, 12 columns-->
-            <Grid x:Name="LinkInputGrid" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <TextBox x:Name="GalleryIDTextBox"
-                         KeyDown="HandleGalleryIDSubmitKeyDown"
-                         TextWrapping="Wrap"
-                         PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://..."
-                         />
-                <Button x:Name="LoadImageBtn" Click="HandleLoadImageBtnClick">
-                    <TextBlock Text="Load Images" TextWrapping="WrapWholeWords"/>
-                </Button>
-            </Grid>
-            <!--Row 1, Column 2, 1 Columnspan-->
-            <Grid x:Name="TagControlGrid" Grid.Row="1" Grid.Column="2" Height="500" VerticalAlignment="Top">
+        <StackPanel Orientation="Vertical">
+            <Grid x:Name="TagContainerGrid"/>
+            <Grid Margin="0 10 0 0" ColumnSpacing="20">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Orientation="Vertical">
-                    <TextBox x:Name="TagNameTextBox"
-                             PlaceholderText="Tag List Name"
-                             FontSize="16"
-                             Margin="0 8 0 16"
-                             />
-                    <ComboBox x:Name="TagListComboBox"
-                              Margin="0 16 0 16"
-                              SelectionChanged="LoadTagsInTextBox"
-                              HorizontalAlignment="Stretch"
-                              />
+                <StackPanel x:Name="HyperlinkGrid"
+                            Grid.Column="0"
+                            Orientation="Vertical"
+                            Spacing="20">
+                    <Button Click="GenerateHyperlink"
+                            MinHeight="80"
+                            FontSize="18"
+                            BorderBrush="DeepPink"
+                            HorizontalAlignment="Center"
+                            Content="Generate and Copy Link"
+                            />
+                    <StackPanel x:Name="HyperlinkPanel"
+                                Orientation="Vertical"
+                    />
                 </StackPanel>
-                <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"/>
+                <StackPanel x:Name="LinkInputGrid" Grid.Column="1"
+                            Orientation="Vertical" Spacing="20">
+                    <TextBox x:Name="GalleryIDTextBox"
+                             KeyDown="HandleGalleryIDSubmitKeyDown"
+                             TextWrapping="Wrap"
+                             MinHeight="80"
+                             PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://hitomi.la/..."
+                             />
+                    <Button x:Name="LoadImageBtn" Click="HandleLoadImageBtnClick"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text="Load Images" TextWrapping="WrapWholeWords"/>
+                    </Button>
+                </StackPanel>
+                <Grid x:Name="TagControlGrid" Grid.Column="2"
+                      ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Vertical"
+                                Spacing="20">
+                        <TextBox x:Name="TagNameTextBox"
+                                 PlaceholderText="Tag List Name"
+                                 FontSize="16"
+                                 />
+                        <ComboBox x:Name="TagListComboBox"
+                                  SelectionChanged="LoadTagsInTextBox"
+                                  HorizontalAlignment="Stretch"
+                                  />
+                    </StackPanel>
+                    <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"
+                                Orientation="Vertical" Spacing="20" Margin="0 0 20 0"/>
+                </Grid>
             </Grid>
-            <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Vertical">
-                <TextBlock FontSize="36" Text="Bookmarks"/>
-                <StackPanel x:Name="BookmarkPageBtnsPanel"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Center"/>
-                <StackPanel x:Name="BookmarkPanel" Orientation="Vertical"/>
-            </StackPanel>
-        </Grid>
+            <TextBlock FontSize="36" Text="Bookmarks"/>
+            <StackPanel x:Name="BookmarkPageBtnsPanel"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="20"/>
+            <StackPanel x:Name="BookmarkPanel" Orientation="Vertical"/>
+        </StackPanel>
     </ScrollViewer>
 </Page>

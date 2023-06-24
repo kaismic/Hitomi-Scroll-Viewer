@@ -21,12 +21,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly bool _isExclude;
         private readonly StringSplitOptions _splitOption = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
-        public TagContainer(bool isExclude, string headerText, Color headerColor, int rowSpan) {
+        public TagContainer(bool isExclude, string headerText, Color headerColor) {
             InitializeComponent();
 
             _isExclude = isExclude;
-
-            SetRowSpan(this, rowSpan);
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 ColumnDefinitions.Add(new ColumnDefinition());

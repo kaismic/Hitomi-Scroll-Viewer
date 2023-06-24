@@ -5,10 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    
-    Margin="8"
+
+    MinHeight="80"
     CornerRadius="8"
-    Height="80"
     HorizontalAlignment="Stretch"
     >
 </Button>

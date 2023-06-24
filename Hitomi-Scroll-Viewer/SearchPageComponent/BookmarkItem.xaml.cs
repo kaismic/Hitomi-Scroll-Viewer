@@ -33,32 +33,43 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             _hb.Click += sp.HandleBookmarkClick;
             Children.Add(_hb);
 
-            StackPanel subContainer = new() {
-                Orientation = Orientation.Horizontal
-            };
-            Children.Add(subContainer);
+            Grid imageContainer = new();
+            Children.Add(imageContainer);
 
             _images = new Image[THUMBNAIL_IMG_NUM];
             for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
+                imageContainer.ColumnDefinitions.Add(
+                    new ColumnDefinition() {
+                        Width = new GridLength(2, GridUnitType.Star)
+                    }
+                );
                 _images[i] = new() {
                     Source = null,
                     Width = THUMBNAIL_IMG_WIDTH,
                     Height = THUMBNAIL_IMG_WIDTH * bmGallery.files[i].height / bmGallery.files[i].width,
+                    HorizontalAlignment = HorizontalAlignment.Center
                 };
-                subContainer.Children.Add(_images[i]);
-
+                Grid.SetColumn(_images[i], i);
+                imageContainer.Children.Add(_images[i]);
             }
             SetImages();
 
-            Button btn = new() {
+            // add another ColumnDefinition for remove button
+            imageContainer.ColumnDefinitions.Add(
+                new ColumnDefinition() {
+                    Width = new GridLength(1, GridUnitType.Star)
+                }
+            ); Button removeBtn = new() {
                 Content = new TextBlock() {
                     Text = "Remove",
                     TextWrapping = TextWrapping.WrapWholeWords,
                 },
                 FontSize = 18,
+                HorizontalAlignment = HorizontalAlignment.Center
             };
-            btn.Click += sp.RemoveBookmark;
-            subContainer.Children.Add(btn);
+            Grid.SetColumn(removeBtn, THUMBNAIL_IMG_NUM);
+            removeBtn.Click += sp.RemoveBookmark;
+            imageContainer.Children.Add(removeBtn);
         }
 
         private async void SetImages() {

@@ -6,7 +6,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    Grid.Row="0"
     BorderThickness="1"
     BorderBrush="Black"
     Margin="5"

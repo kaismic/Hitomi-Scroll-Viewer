@@ -99,92 +99,14 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void InitLayout() {
-            // RootGrid
-            int ROOT_GRID_ROW_NUM = 3;
-            int ROOT_GRID_COLUMN_NUM = 3;
-
-            for (int i = 0; i < ROOT_GRID_ROW_NUM; i++) {
-                RootGrid.RowDefinitions.Add(new RowDefinition());
-            }
-            for (int i = 0; i < ROOT_GRID_COLUMN_NUM; i++) {
-                RootGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-
-            // TagContainerGrid
-            int TAG_GRID_ROW_NUM = 12;
-            int TAG_GRID_COLUMN_NUM = _tagContainers.Length;
-
-            for (int i = 0; i < TAG_GRID_ROW_NUM; i++) {
-                TagContainerGrid.RowDefinitions.Add(new RowDefinition());
-            }
-            for (int i = 0; i < TAG_GRID_COLUMN_NUM; i++) {
-                TagContainerGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-            Grid.SetColumnSpan(TagContainerGrid, ROOT_GRID_COLUMN_NUM);
-
             // tag containers
-            _tagContainers[0] = new(false, "Include", Colors.Green, TAG_GRID_ROW_NUM - 1);
-            _tagContainers[1] = new(true, "Exclude", Colors.Red, TAG_GRID_ROW_NUM - 1);
+            _tagContainers[0] = new(false, "Include", Colors.Green);
+            _tagContainers[1] = new(true, "Exclude", Colors.Red);
             for (int i = 0; i < _tagContainers.Length; i++) {
+                TagContainerGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 Grid.SetColumn(_tagContainers[i], i);
                 TagContainerGrid.Children.Add(_tagContainers[i]);
             }
-
-            // for space (margin) between TagContainerGrid and row below
-            Grid marginGrid = new() {
-                Height = 30
-            };
-            Grid.SetRow(marginGrid, TAG_GRID_ROW_NUM - 1);
-            Grid.SetColumnSpan(marginGrid, TAG_GRID_COLUMN_NUM);
-            TagContainerGrid.Children.Add(marginGrid);
-
-            // HyperlinkGrid
-            int HYPERLINK_GRID_ROW_NUM = 8;
-            int HYPERLINK_GRID_COLUMN_NUM = 12;
-
-            for (int i = 0; i < HYPERLINK_GRID_ROW_NUM; i++) {
-                HyperlinkGrid.RowDefinitions.Add(new RowDefinition());
-            }
-            for (int i = 0; i < HYPERLINK_GRID_COLUMN_NUM; i++) {
-                HyperlinkGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-
-            // HyperlinkGrid Children
-            foreach (FrameworkElement elem in HyperlinkGrid.Children.Cast<FrameworkElement>()) {
-                Grid.SetColumnSpan(elem, HYPERLINK_GRID_COLUMN_NUM - 2);
-                Grid.SetColumn(elem, 1);
-                elem.VerticalAlignment = VerticalAlignment.Top;
-                elem.HorizontalAlignment = HorizontalAlignment.Stretch;
-            }
-
-            // GenerateHyperlinkBtn
-            Grid.SetRowSpan(GenerateHyperlinkBtn, 1);
-
-            // GeneratedHyperlinks
-            Grid.SetRowSpan(GeneratedHyperlinks, HYPERLINK_GRID_ROW_NUM - 1);
-
-            // LinkInputGrid
-            int LINK_INPUT_GRID_COLUMN_NUM = 12;
-            for (int i = 0; i < LINK_INPUT_GRID_COLUMN_NUM; i++) {
-                LinkInputGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-
-            // LinkInputGrid Children
-            foreach (FrameworkElement elem in LinkInputGrid.Children.Cast<FrameworkElement>()) {
-                elem.HorizontalAlignment = HorizontalAlignment.Stretch;
-            }
-
-            // GalleryIDTextBox
-            int GALLERY_ID_TEXTBOX_COLUMN = 1;
-            Grid.SetColumn(GalleryIDTextBox, GALLERY_ID_TEXTBOX_COLUMN);
-            int GALLERY_ID_TEXTBOX_COLUMN_SPAN = 2 * (LINK_INPUT_GRID_COLUMN_NUM - 3) / 3;
-            Grid.SetColumnSpan(GalleryIDTextBox, GALLERY_ID_TEXTBOX_COLUMN_SPAN);
-
-            // LoadImageBtn
-            int LOAD_IMAGE_BTN_COLUMN = GALLERY_ID_TEXTBOX_COLUMN + GALLERY_ID_TEXTBOX_COLUMN_SPAN + 1;
-            Grid.SetColumn(LoadImageBtn, LOAD_IMAGE_BTN_COLUMN);
-            int LOAD_IMAGE_BTN_COLUMN_SPAN = 1 * (LINK_INPUT_GRID_COLUMN_NUM - 3) / 3;
-            Grid.SetColumnSpan(LoadImageBtn, LOAD_IMAGE_BTN_COLUMN_SPAN);
 
             // Create Tag Control Buttons
             TagListControlButton createTagBtn = new("Create a new tag list", Colors.Blue, false);
@@ -241,7 +163,6 @@ namespace Hitomi_Scroll_Viewer {
                         FontSize = 24,
                         Margin = new Thickness(6, 0, 6, 0)
                     },
-                    Margin = new Thickness(18, 0, 18, 0)
                 };
                 pageNumBtn.Click += ChangeBookmarkPage;
                 BookmarkPageBtnsPanel.Children.Add(pageNumBtn);
@@ -342,7 +263,7 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
-            string selectedItem = TagListComboBox.SelectedItem as string;
+            string selectedItem = (string)TagListComboBox.SelectedItem;
             _tagDict.Add(tagName, _tagDict[selectedItem]);
             _tagDict.Remove(selectedItem);
             TagListComboBox.Items.Add(tagName);
@@ -359,7 +280,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void RemoveTag(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
-            string selectedItem = TagListComboBox.SelectedItem as string;
+            string selectedItem = (string)TagListComboBox.SelectedItem;
             _tagDict.Remove(selectedItem);
             TagListComboBox.Items.Remove(selectedItem);
             TagListComboBox.SelectedIndex = 0;
@@ -386,10 +307,12 @@ namespace Hitomi_Scroll_Viewer {
             _myDataPackage.SetText(address);
             Clipboard.SetContent(_myDataPackage);
 
-            Grid gd = new();
-            for (int i = 0; i < 12; i++) {
-                gd.ColumnDefinitions.Add(new ColumnDefinition());
-            }
+            Grid gridItem = new() {
+                ColumnDefinitions = {
+                    new ColumnDefinition() { Width = new GridLength(7, GridUnitType.Star) },
+                    new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) },
+                },
+            };
 
             HyperlinkButton hb = new() {
                 Content = new TextBlock() {
@@ -402,28 +325,24 @@ namespace Hitomi_Scroll_Viewer {
             };
 
             Grid.SetColumn(hb, 0);
-            Grid.SetColumnSpan(hb, 10);
-            gd.Children.Add(hb);
+            gridItem.Children.Add(hb);
             
-            Button btn = new() {
+            Button removeBtn = new() {
                 Content = new TextBlock() {
                     Text = "Remove",
                     TextWrapping = TextWrapping.WrapWholeWords,
                 },
                 FontSize = 12,
             };
-            btn.Click += RemoveHyperlink;
-            Grid.SetColumn(btn, 10);
-            Grid.SetColumnSpan(btn, 2);
-            gd.Children.Add(btn);
+            removeBtn.Click += RemoveHyperlink;
+            Grid.SetColumn(removeBtn, 1);
+            gridItem.Children.Add(removeBtn);
             
-            GeneratedHyperlinks.Children.Add(gd);
+            HyperlinkPanel.Children.Add(gridItem);
         }
 
         private void RemoveHyperlink(object sender, RoutedEventArgs e) {
-            Button btn = sender as Button;
-            Grid parent = btn.Parent as Grid;
-            GeneratedHyperlinks.Children.Remove(parent);
+            HyperlinkPanel.Children.Remove((Grid)((Button)sender).Parent);
         }
 
         private void HandleGalleryIDSubmitKeyDown(object sender, KeyRoutedEventArgs e) {
