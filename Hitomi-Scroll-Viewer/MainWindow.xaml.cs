@@ -120,9 +120,13 @@ namespace Hitomi_Scroll_Viewer {
             string path = IMAGE_DIR + @"\" + id;
             Directory.CreateDirectory(path);
 
+            List<Task> tasks = new();
             for (int i = 0; i < imageBytes.Length; i++) {
-                await File.WriteAllBytesAsync(path + @"\" + i.ToString(), imageBytes[i]);
+                if (imageBytes[i] != null) {
+                    tasks.Add(File.WriteAllBytesAsync(path + @"\" + i.ToString(), imageBytes[i]));
+                }
             }
+            await Task.WhenAll(tasks);
         }
 
         public static void DeleteGallery(Gallery removingGallery) {
