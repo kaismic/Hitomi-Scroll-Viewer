@@ -84,9 +84,7 @@ namespace Hitomi_Scroll_Viewer {
                 typeof(List<Gallery>),_serializerOptions);
 
             // create image storing directory if it doesn't exist
-            if (!Directory.Exists(IMAGE_DIR)) {
-                Directory.CreateDirectory(IMAGE_DIR);
-            }
+            Directory.CreateDirectory(IMAGE_DIR);
 
             for (int i = 0; i < bmGalleries.Count; i++) {
                 _bookmarkItems.Add(new(bmGalleries[i], this));
