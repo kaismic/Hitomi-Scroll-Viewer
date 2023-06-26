@@ -27,8 +27,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 
-        private static Dictionary<string, Tag> _tags;
-        public static Dictionary<string, Tag> Tags { get { return _tags; } }
+        public static Dictionary<string, Tag> Tags { get; set; }
 
         public static readonly double THUMBNAIL_IMG_WIDTH = 350;
         public static readonly int THUMBNAIL_IMG_NUM = 3;
@@ -81,10 +80,10 @@ namespace Hitomi_Scroll_Viewer {
 
             if (File.Exists(TAG_FILE_PATH)) {
                 // read tag info from file
-                _tags = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAG_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
+                Tags = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAG_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
             } else {
                 //  if tag file doesn't exist, initialise _tags with Global tag list
-                _tags = new() {
+                Tags = new() {
                     { GLOBAL_TAG_NAME,
                         new() {
                             includeTags = new() {
@@ -95,7 +94,7 @@ namespace Hitomi_Scroll_Viewer {
                         }
                     }
                 };
-                File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(_tags, _serializerOptions));
+                File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
             }
 
             //TagListComboBox.SelectedIndex = 0;
@@ -174,7 +173,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void SaveTagInfo() {
-            File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(_tags, _serializerOptions));
+            File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
         }
 
         private async void CreateTag(object _0, RoutedEventArgs _1) {
@@ -183,7 +182,7 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.AlertUser("No Tag Name", "Please enter a tag name");
                 return;
             }
-            if (_tags.ContainsKey(newTagName)) {
+            if (Tags.ContainsKey(newTagName)) {
                 _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
@@ -194,7 +193,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             TagNameTextBox.Text = "";
             KeyValuePair<string, Tag> newPair = new(newTagName, GetCurrTag());
-            _ = _tags.Append(newPair);
+            _ = Tags.Append(newPair);
             TagListComboBox.SelectedItem = newPair;
             SaveTagInfo();
             _mw.AlertUser($"'{newTagName}' has been created", "");
@@ -206,7 +205,7 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.AlertUser("No Tag Name", "Please enter a tag name");
                 return;
             }
-            if (_tags.ContainsKey(newTagName)) {
+            if (Tags.ContainsKey(newTagName)) {
                 _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
@@ -218,8 +217,8 @@ namespace Hitomi_Scroll_Viewer {
             TagNameTextBox.Text = "";
             string oldTagName = _currTagName;
             KeyValuePair<string, Tag> newPair = new(newTagName, (Tag)TagListComboBox.SelectedValue);
-            _ = _tags.Append(newPair);
-            _tags.Remove(oldTagName);
+            _ = Tags.Append(newPair);
+            Tags.Remove(oldTagName);
             TagListComboBox.SelectedItem = newPair;
             SaveTagInfo();
             _mw.AlertUser($"'{oldTagName}' has been renamed to '{newTagName}'", "");
@@ -232,7 +231,7 @@ namespace Hitomi_Scroll_Viewer {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            _tags[_currTagName] = GetCurrTag();
+            Tags[_currTagName] = GetCurrTag();
             SaveTagInfo();
             _mw.AlertUser($"'{_currTagName}' has been saved", "");
         }
@@ -243,7 +242,7 @@ namespace Hitomi_Scroll_Viewer {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            _tags.Remove(_currTagName);
+            Tags.Remove(_currTagName);
             TagListComboBox.SelectedIndex = 0;
             SaveTagInfo();
             _mw.AlertUser($"'{_currTagName}' has been removed", "");
@@ -261,9 +260,9 @@ namespace Hitomi_Scroll_Viewer {
 
         public static string[] GetGlobalTag(string tagCategory, bool isExclude) {
             if (isExclude) {
-                return _tags[GLOBAL_TAG_NAME].excludeTags[tagCategory];
+                return Tags[GLOBAL_TAG_NAME].excludeTags[tagCategory];
             }
-            return _tags[GLOBAL_TAG_NAME].includeTags[tagCategory];
+            return Tags[GLOBAL_TAG_NAME].includeTags[tagCategory];
         }
 
         private static string GetSearchAddress() {
@@ -310,7 +309,7 @@ namespace Hitomi_Scroll_Viewer {
                 _controlButtons[(int)TagListAction.Rename].IsEnabled = true;
                 _controlButtons[(int)TagListAction.Remove].IsEnabled = true;
             }
-            Tag tag = _tags[_currTagName];
+            Tag tag = Tags[_currTagName];
             _tagContainers[0].InsertTags(tag.includeTags);
             _tagContainers[1].InsertTags(tag.excludeTags);
         }
