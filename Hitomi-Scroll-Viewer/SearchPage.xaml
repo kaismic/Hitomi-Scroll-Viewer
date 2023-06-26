@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:Hitomi_Scroll_Viewer"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer x:Name="MainScrollViewer">
@@ -58,6 +59,9 @@
                         <ComboBox x:Name="TagListComboBox"
                                   SelectionChanged="LoadTagsInTextBox"
                                   HorizontalAlignment="Stretch"
+                                  ItemsSource="{x:Bind local:SearchPage.Tags}"
+                                  DisplayMemberPath="Key"
+                                  SelectedValuePath="Value"
                                   />
                     </StackPanel>
                     <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"

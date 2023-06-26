@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 using static Hitomi_Scroll_Viewer.MainWindow;
@@ -24,11 +23,12 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
         private static readonly string BM_INFO_FILE_NAME = "BookmarkInfo.json";
-        private static readonly string TAG_FILE_PATH = "Tag.json";
+        private static readonly string TAG_FILE_PATH = "sample1.json";
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 
-        private static Dictionary<string, Tag> _tagDict;
+        private static Dictionary<string, Tag> _tags;
+        public static Dictionary<string, Tag> Tags { get { return _tags; } }
 
         public static readonly double THUMBNAIL_IMG_WIDTH = 350;
         public static readonly int THUMBNAIL_IMG_NUM = 3;
@@ -38,13 +38,37 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly List<BookmarkItem> _bookmarkItems = new();
         private static int _currBookmarkPage = 0;
 
-        private TagListControlButton _renameTagBtn;
-        private TagListControlButton _removeTagBtn;
-
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
 
         private static readonly DataPackage _myDataPackage = new() {
             RequestedOperation = DataPackageOperation.Copy
+        };
+
+        private string _currTagName;
+
+        public enum TagListAction {
+            Create,
+            Rename,
+            Save,
+            Remove,
+            Clear
+        }
+
+        private readonly ContentDialog[] _confirmDialogs = new ContentDialog[Enum.GetNames<TagListAction>().Length];
+        private readonly Button[] _controlButtons = new Button[Enum.GetNames<TagListAction>().Length];
+        private readonly string[] _controlButtonTexts = new string[] {
+            "Create a new tag list",
+            "Rename current tag list",
+            "Save current tag list",
+            "Remove current tag list",
+            "Clear texts in tag containers",
+        };
+        private readonly SolidColorBrush[] _controlButtonBorderColors = new SolidColorBrush[] {
+            new SolidColorBrush(Colors.Blue),
+            new SolidColorBrush(Colors.Orange),
+            new SolidColorBrush(Colors.Green),
+            new SolidColorBrush(Colors.Red),
+            new SolidColorBrush(Colors.Black)
         };
 
         private static MainWindow _mw;
@@ -55,24 +79,26 @@ namespace Hitomi_Scroll_Viewer {
             InitLayout();
             _mw = mainWindow;
 
-            //  if tag file doesn't exist create it and initialise with Global tag list
-            if (!File.Exists(TAG_FILE_PATH)) {
-                Tag globalTag = new();
-                globalTag.includeTags["tag"] = new string[] { "non-h_imageset" };
-                Dictionary<string, Tag> initTagDict = new() {
-                    { GLOBAL_TAG_NAME, globalTag }
+            if (File.Exists(TAG_FILE_PATH)) {
+                // read tag info from file
+                _tags = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAG_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
+            } else {
+                //  if tag file doesn't exist, initialise _tags with Global tag list
+                _tags = new() {
+                    { GLOBAL_TAG_NAME,
+                        new() {
+                            includeTags = new() {
+                                {
+                                    "tag", new string[] { "non-h_imageset" }
+                                }
+                            }
+                        }
+                    }
                 };
-                File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(initTagDict, _serializerOptions));
+                File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(_tags, _serializerOptions));
             }
-            // read tag info from file
-            _tagDict = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAG_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
-            // add tags to TagListComboBox
-            if (_tagDict.Count > 0) {
-                foreach (KeyValuePair<string, Tag> item in _tagDict) {
-                    TagListComboBox.Items.Add(item.Key);
-                }
-                TagListComboBox.SelectedIndex = 0;
-            }
+
+            //TagListComboBox.SelectedIndex = 0;
 
             // create bookmarked galleries' info file if it doesn't exist
             if (!File.Exists(BM_INFO_FILE_NAME)) {
@@ -107,51 +133,31 @@ namespace Hitomi_Scroll_Viewer {
             }
 
             // Create Tag Control Buttons
-            TagListControlButton createTagBtn = new("Create a new tag list", Colors.Blue, false);
-            createTagBtn.Click += CreateTag;
-            ControlButtonContainer.Children.Add(createTagBtn);
-
-            _renameTagBtn = new("Rename current tag list", Colors.Orange, false);
-            _renameTagBtn.Click += RenameTag;
-            ControlButtonContainer.Children.Add(_renameTagBtn);
-
-            TagListControlButton saveTagBtn = new("Save current tag list", Colors.Green, true);
-            saveTagBtn.SetAction(SaveTag);
-            saveTagBtn.buttonClickFunc = () => {
-                string selection = (string)TagListComboBox.SelectedItem;
-                if (selection == null) {
-                    _mw.AlertUser("No tag list selected", "");
-                    return false;
-                }
-                saveTagBtn.SetDialog($"Save current tags on '{selection}'?", $"'{selection}' will be overwritten.");
-                return true;
-            };
-            saveTagBtn.confirmDialog.Closed += (ContentDialog _, ContentDialogClosedEventArgs _) => {
-                string selection = (string)TagListComboBox.SelectedItem;
-                _mw.AlertUser($"'{selection}' was saved successfully.", "");
-            };
-            ControlButtonContainer.Children.Add(saveTagBtn);
-
-            _removeTagBtn = new("Remove current tag list", Colors.Red, true);
-            _removeTagBtn.SetAction(RemoveTag);
-            _removeTagBtn.buttonClickFunc = () => {
-                string selection = (string)TagListComboBox.SelectedItem;
-                if (selection == null) {
-                    _mw.AlertUser("No tag list selected", "");
-                    return false;
-                }
-                _removeTagBtn.SetDialog($"Remove '{selection}'?", "");
-                return true;
-            };
-            ControlButtonContainer.Children.Add(_removeTagBtn);
-
-            TagListControlButton clearTagBtn = new("Clear current tags", Colors.Black, true);
-            clearTagBtn.SetAction(ClearTagTextbox);
-            clearTagBtn.buttonClickFunc = () => {
-                clearTagBtn.SetDialog("Clear all tags in text box?", "");
-                return true;
-            };
-            ControlButtonContainer.Children.Add(clearTagBtn);
+            CornerRadius radius = new(8);
+            for (int i = 0; i < Enum.GetNames<TagListAction>().Length; i++) {
+                _controlButtons[i] = new() {
+                    MinHeight = 80,
+                    CornerRadius = radius,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    BorderBrush = _controlButtonBorderColors[i],
+                    Content = new TextBlock() {
+                        Text = _controlButtonTexts[i],
+                        TextWrapping = TextWrapping.WrapWholeWords
+                    }
+                };
+                ControlButtonContainer.Children.Add(_controlButtons[i]);
+                _confirmDialogs[i] = new() {
+                    IsPrimaryButtonEnabled = true,
+                    PrimaryButtonText = "Yes",
+                    CloseButtonText = "Cancel",
+                    XamlRoot = XamlRoot
+                };
+            }
+            _controlButtons[(int)TagListAction.Create].Click += CreateTag;
+            _controlButtons[(int)TagListAction.Rename].Click += RenameTag;
+            _controlButtons[(int)TagListAction.Save].Click += SaveTag;
+            _controlButtons[(int)TagListAction.Remove].Click += RemoveTag;
+            _controlButtons[(int)TagListAction.Clear].Click += ClearTagTextbox;
 
             // BookmarkPageBtns
             for (int i = 0; i < MAX_BOOKMARK_PAGE; i++) {
@@ -167,11 +173,97 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
+        public static void SaveTagInfo() {
+            File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(_tags, _serializerOptions));
+        }
+
+        private async void CreateTag(object _0, RoutedEventArgs _1) {
+            string newTagName = TagNameTextBox.Text.Trim();
+            if (newTagName.Length == 0) {
+                _mw.AlertUser("No Tag Name", "Please enter a tag name");
+                return;
+            }
+            if (_tags.ContainsKey(newTagName)) {
+                _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
+                return;
+            }
+            _confirmDialogs[(int)TagListAction.Create].Title = $"Create '{newTagName}'?";
+            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Create].ShowAsync();
+            if (cdr != ContentDialogResult.Primary) {
+                return;
+            }
+            TagNameTextBox.Text = "";
+            KeyValuePair<string, Tag> newPair = new(newTagName, GetCurrTag());
+            _ = _tags.Append(newPair);
+            TagListComboBox.SelectedItem = newPair;
+            SaveTagInfo();
+            _mw.AlertUser($"'{newTagName}' has been created", "");
+        }
+
+        private async void RenameTag(object _0, RoutedEventArgs _1) {
+            string newTagName = TagNameTextBox.Text.Trim();
+            if (newTagName.Length == 0) {
+                _mw.AlertUser("No Tag Name", "Please enter a tag name");
+                return;
+            }
+            if (_tags.ContainsKey(newTagName)) {
+                _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
+                return;
+            }
+            _confirmDialogs[(int)TagListAction.Rename].Title = $"Rename {TagListComboBox.DisplayMemberPath} to '{newTagName}'?";
+            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Rename].ShowAsync();
+            if (cdr != ContentDialogResult.Primary) {
+                return;
+            }
+            TagNameTextBox.Text = "";
+            string oldTagName = _currTagName;
+            KeyValuePair<string, Tag> newPair = new(newTagName, (Tag)TagListComboBox.SelectedValue);
+            _ = _tags.Append(newPair);
+            _tags.Remove(oldTagName);
+            TagListComboBox.SelectedItem = newPair;
+            SaveTagInfo();
+            _mw.AlertUser($"'{oldTagName}' has been renamed to '{newTagName}'", "");
+        }
+
+        private async void SaveTag(object _0, RoutedEventArgs _1) {
+            _confirmDialogs[(int)TagListAction.Save].Title = $"Save current tags on '{_currTagName}'?";
+            _confirmDialogs[(int)TagListAction.Save].Content = $"'{_currTagName}' will be overwritten.";
+            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Save].ShowAsync();
+            if (cdr != ContentDialogResult.Primary) {
+                return;
+            }
+            _tags[_currTagName] = GetCurrTag();
+            SaveTagInfo();
+            _mw.AlertUser($"'{_currTagName}' has been saved", "");
+        }
+
+        private async void RemoveTag(object _0, RoutedEventArgs _1) {
+            _confirmDialogs[(int)TagListAction.Remove].Title = $"Remove '{_currTagName}'?";
+            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Remove].ShowAsync();
+            if (cdr != ContentDialogResult.Primary) {
+                return;
+            }
+            _tags.Remove(_currTagName);
+            TagListComboBox.SelectedIndex = 0;
+            SaveTagInfo();
+            _mw.AlertUser($"'{_currTagName}' has been removed", "");
+        }
+
+        private async void ClearTagTextbox(object _0, RoutedEventArgs _1) {
+            _confirmDialogs[(int)TagListAction.Clear].Title = "Clear all texts in tag containers?";
+            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Clear].ShowAsync();
+            if (cdr != ContentDialogResult.Primary) {
+                return;
+            }
+            _tagContainers[0].Clear();
+            _tagContainers[1].Clear();
+        }
+
         public static string[] GetGlobalTag(string tagCategory, bool isExclude) {
             if (isExclude) {
-                return _tagDict[GLOBAL_TAG_NAME].excludeTags[tagCategory];
+                return _tags[GLOBAL_TAG_NAME].excludeTags[tagCategory];
             }
-            return _tagDict[GLOBAL_TAG_NAME].includeTags[tagCategory];
+            return _tags[GLOBAL_TAG_NAME].includeTags[tagCategory];
         }
 
         private static string GetSearchAddress() {
@@ -208,97 +300,21 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _) {
-            ComboBox tagList = (ComboBox)sender;
-            if (tagList.SelectedItem is not string tagName) {
-                return;
+            _currTagName = ((ComboBox)sender).DisplayMemberPath;
+            // disable rename and remove button is global tag is selected
+            if (_currTagName == GLOBAL_TAG_NAME) {
+                _controlButtons[(int)TagListAction.Rename].IsEnabled = false;
+                _controlButtons[(int)TagListAction.Remove].IsEnabled = false;
             }
-            if (tagName == GLOBAL_TAG_NAME) {
-                _renameTagBtn.IsEnabled = false;
-                _removeTagBtn.IsEnabled = false;
-            } else {
-                _renameTagBtn.IsEnabled = true;
-                _removeTagBtn.IsEnabled = true;
+            else {
+                _controlButtons[(int)TagListAction.Rename].IsEnabled = true;
+                _controlButtons[(int)TagListAction.Remove].IsEnabled = true;
             }
-            Tag tag = _tagDict[tagName];
+            Tag tag = _tags[_currTagName];
             _tagContainers[0].InsertTags(tag.includeTags);
             _tagContainers[1].InsertTags(tag.excludeTags);
         }
 
-        private void CreateTag(object sender, RoutedEventArgs e) {
-            string tagName = TagNameTextBox.Text.Trim();
-            TagNameTextBox.Text = "";
-            if (tagName.Length == 0) {
-                _mw.AlertUser("No Tag Name", "Please enter a tag name");
-                return;
-            }
-            foreach (string item in TagListComboBox.Items.Cast<string>()) {
-                if (item == tagName) {
-                    _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
-                    return;
-                }
-            }
-            _tagDict.Add(tagName, GetCurrTag());
-            TagListComboBox.Items.Add(tagName);
-            TagListComboBox.SelectedItem = tagName;
-
-            SaveTagInfo();
-        }
-
-        private void RenameTag(object sender, RoutedEventArgs e) {
-            if (TagListComboBox.SelectedIndex == -1) {
-                _mw.AlertUser("No Tags Selected", "There is no tag list selected currently.");
-                return;
-            }
-            string tagName = TagNameTextBox.Text.Trim();
-            TagNameTextBox.Text = "";
-            if (tagName.Length == 0) {
-                _mw.AlertUser("No Tag Name", "Please enter a tag name");
-                return;
-            }
-            foreach (string item in TagListComboBox.Items.Cast<string>()) {
-                if (item == tagName) {
-                    _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
-                    return;
-                }
-            }
-            string selectedItem = (string)TagListComboBox.SelectedItem;
-            _tagDict.Add(tagName, _tagDict[selectedItem]);
-            _tagDict.Remove(selectedItem);
-            TagListComboBox.Items.Add(tagName);
-            TagListComboBox.SelectedItem = tagName;
-            TagListComboBox.Items.Remove(selectedItem);
-
-            SaveTagInfo();
-        }
-
-        private void SaveTag(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
-            string selectedString = (string)TagListComboBox.SelectedItem;
-            _tagDict[selectedString] = GetCurrTag();
-            SaveTagInfo();
-        }
-
-        private void RemoveTag(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
-            string selectedItem = (string)TagListComboBox.SelectedItem;
-            _tagDict.Remove(selectedItem);
-            TagListComboBox.Items.Remove(selectedItem);
-            TagListComboBox.SelectedIndex = 0;
-            SaveTagInfo();
-        }
-
-        private static void ClearTagTextbox(ContentDialog cd, ContentDialogButtonClickEventArgs e) {
-            _tagContainers[0].Clear();
-            _tagContainers[1].Clear();
-        }
-
-        public static void SaveTagInfo() {
-            File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(_tagDict, _serializerOptions));
-        }
-
-        public static void SaveBookmarkInfo() {
-            File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(bmGalleries, _serializerOptions));
-        }
-
-        // TODO convert grid to stackpanel
         private void GenerateHyperlink(object sender, RoutedEventArgs e) {
             string address = GetSearchAddress();
             // copy link to clipboard
@@ -422,6 +438,9 @@ namespace Hitomi_Scroll_Viewer {
             foreach (BookmarkItem bmItem in BookmarkPanel.Children.Cast<BookmarkItem>()) {
                 bmItem.EnableButton(isFinished);
             }
+        }
+        public static void SaveBookmarkInfo() {
+            File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(bmGalleries, _serializerOptions));
         }
 
         public void AddBookmark(object _, RoutedEventArgs e) {
