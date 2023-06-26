@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace Hitomi_Scroll_Viewer {
-    internal class Tag {
+    public class Tag {
         public static readonly string[] CATEGORIES = {
             "language", "female", "male", "artist", "character", "group", "series", "type", "tag"
         };
