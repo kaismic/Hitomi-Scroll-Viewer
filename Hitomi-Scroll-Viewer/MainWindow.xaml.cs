@@ -73,14 +73,15 @@ namespace Hitomi_Scroll_Viewer {
             return _appPages[_currPageNum];
         }
 
+        private readonly ContentDialog _dialog = new() {
+            CloseButtonText = "Ok",
+        };
+
         public async void AlertUser(string title, string text) {
-            ContentDialog dialog = new() {
-                Title = title,
-                Content = text,
-                CloseButtonText = "Ok",
-                XamlRoot = Content.XamlRoot
-            };
-            await dialog.ShowAsync();
+            _dialog.Title = title;
+            _dialog.Content = text;
+            _dialog.XamlRoot = Content.XamlRoot;
+            await _dialog.ShowAsync();
         }
 
         public static async Task<BitmapImage> GetBitmapImage(byte[] imgData) {
