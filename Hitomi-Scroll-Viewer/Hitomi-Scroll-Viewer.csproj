@@ -33,7 +33,6 @@
     <None Remove="ImageWatchingPage.xaml" />
     <None Remove="SearchPage.xaml" />
     <None Remove="SearchPageComponent\BookmarkItem.xaml" />
-    <None Remove="SearchPageComponent\TagListControlButton.xaml" />
     <None Remove="SearchPageComponent\TagContainer.xaml" />
   </ItemGroup>
 
@@ -65,12 +64,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="SearchPage\TagListControlButton.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="TagContainer.xaml">
+    <Page Update="SearchPageComponent\TagContainer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
