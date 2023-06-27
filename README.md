@@ -18,8 +18,8 @@ In image watching page:
 
 ## Bugs
 ### Critical
-1. Currently memory leaks occur when you load images and switch between pages. It is likely that the bug exists due to this issue: https://github.com/microsoft/microsoft-ui-xaml/issues/5978
+1. Currently memory leaks occur when you load images and switch between pages. It's happening probably because of this issue: https://github.com/microsoft/microsoft-ui-xaml/issues/5978
 ### Non-critical
 1.
-    https://github.com/soobakjonmat/Hitomi-Scroll-Viewer/blob/0f0fa705c211e4094ce43473598d7bfb57b5dc78/Hitomi-Scroll-Viewer/SearchPageComponent/TagContainer.xaml.cs#L13-L19
+    https://github.com/kaismic/Hitomi-Scroll-Viewer/blob/6b785fa2a59347cdaaae857cecc734238ab5ca9c/Hitomi-Scroll-Viewer/SearchPageComponent/TagContainer.xaml.cs#L13-L19
     Refer to this issue: https://github.com/microsoft/microsoft-ui-xaml/issues/1826
