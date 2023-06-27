@@ -136,6 +136,5 @@ namespace Hitomi_Scroll_Viewer {
                 Directory.Delete(path, true);
             }
         }
-
     }
 }
