@@ -12,7 +12,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class TagContainer : Grid {
         /*
          * apparently we can't just use Environment.NewLine as separator
-         * because of this disgusting TextBox bug which somehow force-converts \r\n to \r and it's still not fixed...
+         * because of this TextBox bug which somehow force-converts \r\n to \r and it's still not fixed...
          * https://github.com/microsoft/microsoft-ui-xaml/issues/1826
          * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
         */
