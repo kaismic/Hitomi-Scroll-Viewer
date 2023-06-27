@@ -61,7 +61,7 @@ namespace Hitomi_Scroll_Viewer {
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
 
-            DisableAction();
+            StartAction();
 
             _mw = mainWindow;
 
@@ -98,10 +98,6 @@ namespace Hitomi_Scroll_Viewer {
             };
             _httpClient = new(shh);
         }
-
-        // For testing
-        // https://hitomi.la/doujinshi/radiata-%E6%97%A5%E6%9C%AC%E8%AA%9E-2472850.html#1
-        // 9 images
 
         public void Init(SearchPage sp) {
             BookmarkBtn.Click += sp.AddBookmark;
@@ -148,31 +144,59 @@ namespace Hitomi_Scroll_Viewer {
         private async Task InsertSingleImage() {
             PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
             ImageContainer.Children.Clear();
+            // TODO figure out if how file system works with winui app
+            // and try to use Uri for image source
+            // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
+            // https://hitomi.la/doujinshi/radiata-%E6%97%A5%E6%9C%AC%E8%AA%9E-2472850.html#1
+            // make image loading from web not asynchronous and see if it solves 503 error
+            // because it is likely due to sending too many requests at a time
+            Uri uri = new(IMAGE_DIR + @"\" + gallery.id + @"\" + _currPage + ".webp");
             Image image = new() {
-                Source = await GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + _currPage)),
+                //Source = await GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + _currPage)),
+                Source = new BitmapImage(uri),
                 Width = gallery.files[_currPage].width * _imageScale,
                 Height = gallery.files[_currPage].height * _imageScale
             };
+            Debug.WriteLine(uri.AbsoluteUri);
+            Debug.WriteLine(Directory.GetCurrentDirectory());
+            
             ImageContainer.Children.Add(image);
+            LoadingProgressBar.Value++;
         }
 
         private async Task InsertImages() {
             ImageContainer.Children.Clear();
-            Image[] images = new Image[gallery.files.Count];
+            
+            Task<BitmapImage>[] tasks = new Task<BitmapImage>[gallery.files.Count];
+            Task[] progressBarTasks = new Task[gallery.files.Count];
 
-            Task<BitmapImage>[] tasks = new Task<BitmapImage>[images.Length];
-
-            for (int i = 0; i < images.Length; i++) {
+            for (int i = 0; i < gallery.files.Count; i++) {
                 _ct.ThrowIfCancellationRequested();
                 tasks[i] = GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + i.ToString()));
+                progressBarTasks[i] = tasks[i].ContinueWith(t => {
+                    LoadingProgressBar.Value++;
+                });
+                
             }
 
-            await Task.WhenAll(tasks);
+            try {
+                await Task.WhenAll(tasks);
+            } catch (FileNotFoundException) {
 
+            }
+
+            BitmapImage[] sources = new BitmapImage[gallery.files.Count];
+            for (int i = 0; i < gallery.files.Count; i++) {
+                if (tasks[i] != null) {
+                    sources[i] = tasks[i].Result;
+                }
+            }
+
+            Image[] images = new Image[gallery.files.Count];
             for (int i = 0; i < images.Length; i++) {
                 _ct.ThrowIfCancellationRequested();
                 images[i] = new() {
-                    Source = tasks[i].Result,
+                    Source = sources[i],
                     Width = gallery.files[i].width * _imageScale,
                     Height = gallery.files[i].height * _imageScale
                 };
@@ -188,20 +212,24 @@ namespace Hitomi_Scroll_Viewer {
             if (!await RequestActionPermit()) {
                 return;
             }
-            DisableAction();
+            StartAction();
+            // LoadingProgressBar maximum
+            // InsertSingleImage OR InsertImages
+            // = 1 OR toal images count
             try {
                 switch (_viewMode) {
                     case ViewMode.Default:
                         _viewMode = ViewMode.Scroll;
+                        LoadingProgressBar.Maximum = gallery.files.Count;
                         await InsertImages();
-                        bool allAdded = false;
+                        bool allLoaded = false;
                         // wait for the actual image heights to be updated
-                        while (!allAdded) {
+                        while (!allLoaded) {
                             await Task.Delay(10);
-                            allAdded = true;
+                            allLoaded = true;
                             for (int i = 0; i < ImageContainer.Children.Count; i++) {
-                                if (((Image)ImageContainer.Children[i]).ActualHeight == 0) {
-                                    allAdded = false;
+                                if (!((Image)ImageContainer.Children[i]).IsLoaded) {
+                                    allLoaded = false;
                                     break;
                                 }
                             }
@@ -210,6 +238,7 @@ namespace Hitomi_Scroll_Viewer {
                         break;
                     case ViewMode.Scroll:
                         _viewMode = ViewMode.Default;
+                        LoadingProgressBar.Maximum = 1;
                         GetPageFromScrollOffset();
                         await InsertSingleImage();
                         break;
@@ -217,7 +246,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             catch (OperationCanceledException) {}
             finally {
-                EnableAction();
+                StopAction();
             }
         }
 
@@ -254,7 +283,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void SetScrollSpeed(object slider, RangeBaseValueChangedEventArgs e) {
-            _scrollSpeed = (slider as Slider).Value;
+            _scrollSpeed = ((Slider)slider).Value;
             // delay = -1.9*(slider value) + 11 in seconds
             _pageTurnDelay = (-1.9 * _scrollSpeed + 11) * 1000;
         }
@@ -362,21 +391,23 @@ namespace Hitomi_Scroll_Viewer {
         /**
          * <summary>
          * <see cref="RequestActionPermit"/> or <see cref="StartLoading"/> must be called before calling this method
-         * to set <see cref="_isInAction"/> to <c>true</c>.
          * </summary>
          */
-        private void DisableAction() {
+        private void StartAction() {
             SetAutoScroll(false);
             ViewModeBtn.IsEnabled = false;
             ImageScaleSlider.IsEnabled = false;
             AutoScrollBtn.IsEnabled = false;
+            LoadingProgressBar.Value = 0;
+            LoadingProgressBar.Visibility = Visibility.Visible;
         }
 
-        private void EnableAction() {
+        private void StopAction() {
             ViewModeBtn.IsEnabled = true;
             ImageScaleSlider.IsEnabled = true;
             AutoScrollBtn.IsEnabled = true;
             _isInAction = false;
+            LoadingProgressBar.Visibility = Visibility.Collapsed;
         }
 
         /**
@@ -415,10 +446,9 @@ namespace Hitomi_Scroll_Viewer {
                 return false;
             }
 
-            DisableAction();
+            StartAction();
 
             ChangeBookmarkBtnState(GalleryState.Loading);
-            LoadingProgressBar.Visibility = Visibility.Visible;
 
             // check if we have a gallery already loaded
             if (gallery != null) {
@@ -432,8 +462,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private void FinishLoading(GalleryState state) {
             ChangeBookmarkBtnState(state);
-            LoadingProgressBar.Visibility = Visibility.Collapsed;
-            EnableAction();
+            StopAction();
         }
 
         public async Task LoadGalleryFromLocalDir(Gallery newGallery) {
@@ -441,15 +470,20 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             gallery = newGallery;
+            // LoadingProgressBar maximum
+            // InsertSingleImage OR InsertImages
+            // = 1 OR toal images count
             try {
                 switch (_viewMode) {
                     case ViewMode.Default:
                         _ct.ThrowIfCancellationRequested();
+                        LoadingProgressBar.Maximum = 1;
                         _currPage = 0;
                         await InsertSingleImage();
                         break;
                     case ViewMode.Scroll:
                         _ct.ThrowIfCancellationRequested();
+                        LoadingProgressBar.Maximum = gallery.files.Count;
                         await InsertImages();
                         break;
                 }
@@ -501,6 +535,8 @@ namespace Hitomi_Scroll_Viewer {
         // search: c# concurrent http requests
         // to check if images are requested asynchrounously print out i for loop
 
+        // TODO reload button
+
         private async Task<byte[]> TryGetImageBytesFromWeb(string imgAddress) {
             byte[] imageBytes;
             _ct.ThrowIfCancellationRequested();
@@ -528,7 +564,6 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
                 gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
-                LoadingProgressBar.Maximum = gallery.files.Count;
 
                 _ct.ThrowIfCancellationRequested();
 
@@ -545,6 +580,18 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 imgAddresses = GetImageAddresses(imgHashArr, serverTime);
                 _ct.ThrowIfCancellationRequested();
+
+                // LoadingProgressBar maximum
+                // imageBytes + (InsertSingleImage OR InsertImages)
+                // = (toal images count + 1) OR 2 * (toal images count)
+                switch (_viewMode) {
+                    case ViewMode.Default:
+                        LoadingProgressBar.Maximum = gallery.files.Count + 1;
+                        break;
+                    case ViewMode.Scroll:
+                        LoadingProgressBar.Maximum = 2 * gallery.files.Count;
+                        break;
+                }
 
                 Task<byte[]>[] tasks = new Task<byte[]>[imgAddresses.Length];
 
