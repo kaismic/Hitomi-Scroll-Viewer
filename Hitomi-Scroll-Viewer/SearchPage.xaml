@@ -59,9 +59,6 @@
                         <ComboBox x:Name="TagListComboBox"
                                   SelectionChanged="LoadTagsInTextBox"
                                   HorizontalAlignment="Stretch"
-                                  ItemsSource="{x:Bind local:SearchPage.Tags}"
-                                  DisplayMemberPath="Key"
-                                  SelectedValuePath="Value"
                                   />
                     </StackPanel>
                     <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"

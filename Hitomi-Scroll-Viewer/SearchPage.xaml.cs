@@ -23,7 +23,7 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
         private static readonly string BM_INFO_FILE_NAME = "BookmarkInfo.json";
-        private static readonly string TAG_FILE_PATH = "sample1.json";
+        private static readonly string TAG_FILE_PATH = "Tags.json";
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 
@@ -63,15 +63,17 @@ namespace Hitomi_Scroll_Viewer {
             "Clear texts in tag containers",
         };
         private readonly SolidColorBrush[] _controlButtonBorderColors = new SolidColorBrush[] {
-            new SolidColorBrush(Colors.Blue),
-            new SolidColorBrush(Colors.Orange),
-            new SolidColorBrush(Colors.Green),
-            new SolidColorBrush(Colors.Red),
-            new SolidColorBrush(Colors.Black)
+            new(Colors.Blue),
+            new(Colors.Orange),
+            new(Colors.Green),
+            new(Colors.Red),
+            new(Colors.Black)
         };
 
         private static MainWindow _mw;
         private static ImageWatchingPage _iwp;
+        
+        // TODO ignore Global tag toggle button
 
         public SearchPage(MainWindow mainWindow) {
             InitializeComponent();
@@ -84,20 +86,16 @@ namespace Hitomi_Scroll_Viewer {
             } else {
                 //  if tag file doesn't exist, initialise _tags with Global tag list
                 Tags = new() {
-                    { GLOBAL_TAG_NAME,
-                        new() {
-                            includeTags = new() {
-                                {
-                                    "tag", new string[] { "non-h_imageset" }
-                                }
-                            }
-                        }
-                    }
+                    { GLOBAL_TAG_NAME, new() }
                 };
+                Tags[GLOBAL_TAG_NAME].includeTags["tag"] = new string[] { "non-h_imageset" };
                 File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
             }
 
-            //TagListComboBox.SelectedIndex = 0;
+            foreach (KeyValuePair<string, Tag> item in Tags) {
+                TagListComboBox.Items.Add(item.Key);
+            }
+            TagListComboBox.SelectedIndex = 0;
 
             // create bookmarked galleries' info file if it doesn't exist
             if (!File.Exists(BM_INFO_FILE_NAME)) {
@@ -106,7 +104,8 @@ namespace Hitomi_Scroll_Viewer {
             // read bookmarked galleries' info from file
             bmGalleries = (List<Gallery>)JsonSerializer.Deserialize(
                 File.ReadAllText(BM_INFO_FILE_NAME),
-                typeof(List<Gallery>),_serializerOptions);
+                typeof(List<Gallery>),_serializerOptions
+                );
 
             // create image storing directory if it doesn't exist
             Directory.CreateDirectory(IMAGE_DIR);
@@ -192,14 +191,15 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             TagNameTextBox.Text = "";
-            KeyValuePair<string, Tag> newPair = new(newTagName, GetCurrTag());
-            _ = Tags.Append(newPair);
-            TagListComboBox.SelectedItem = newPair;
+            Tags.Add(newTagName, GetCurrTag());
+            TagListComboBox.Items.Add(newTagName);
+            TagListComboBox.SelectedItem = newTagName;
             SaveTagInfo();
             _mw.AlertUser($"'{newTagName}' has been created", "");
         }
 
         private async void RenameTag(object _0, RoutedEventArgs _1) {
+            string oldTagName = _currTagName;
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
                 _mw.AlertUser("No Tag Name", "Please enter a tag name");
@@ -215,11 +215,11 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             TagNameTextBox.Text = "";
-            string oldTagName = _currTagName;
-            KeyValuePair<string, Tag> newPair = new(newTagName, (Tag)TagListComboBox.SelectedValue);
-            _ = Tags.Append(newPair);
+            Tags.Add(newTagName, Tags[oldTagName]);
+            TagListComboBox.Items.Add(newTagName);
             Tags.Remove(oldTagName);
-            TagListComboBox.SelectedItem = newPair;
+            TagListComboBox.Items.Remove(TagListComboBox.SelectedItem);
+            TagListComboBox.SelectedItem = newTagName;
             SaveTagInfo();
             _mw.AlertUser($"'{oldTagName}' has been renamed to '{newTagName}'", "");
         }
@@ -243,6 +243,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             Tags.Remove(_currTagName);
+            TagListComboBox.Items.Remove(TagListComboBox.SelectedItem);
             TagListComboBox.SelectedIndex = 0;
             SaveTagInfo();
             _mw.AlertUser($"'{_currTagName}' has been removed", "");
@@ -299,7 +300,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _) {
-            _currTagName = ((ComboBox)sender).DisplayMemberPath;
+            _currTagName = (string)(((ComboBox)sender).SelectedItem);
             // disable rename and remove button is global tag is selected
             if (_currTagName == GLOBAL_TAG_NAME) {
                 _controlButtons[(int)TagListAction.Rename].IsEnabled = false;
