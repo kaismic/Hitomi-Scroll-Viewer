@@ -264,7 +264,7 @@ namespace Hitomi_Scroll_Viewer {
             _tagContainers[1].Clear();
         }
 
-        private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _) {
+        private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _1) {
             ComboBox cb = (ComboBox)sender;
             if (cb.SelectedItem == null) {
                 cb.SelectedIndex = 0;
@@ -324,7 +324,7 @@ namespace Hitomi_Scroll_Viewer {
             };
         }
 
-        private void GenerateHyperlink(object sender, RoutedEventArgs e) {
+        private void GenerateHyperlink(object _0, RoutedEventArgs _1) {
             string address = GetSearchAddress();
             // copy link to clipboard
             _myDataPackage.SetText(address);
@@ -364,17 +364,17 @@ namespace Hitomi_Scroll_Viewer {
             HyperlinkPanel.Children.Add(gridItem);
         }
 
-        private void RemoveHyperlink(object sender, RoutedEventArgs e) {
+        private void RemoveHyperlink(object sender, RoutedEventArgs _1) {
             HyperlinkPanel.Children.Remove((Grid)((Button)sender).Parent);
         }
 
-        private void HandleGalleryIDSubmitKeyDown(object sender, KeyRoutedEventArgs e) {
+        private void HandleGalleryIDSubmitKeyDown(object _0, KeyRoutedEventArgs _1) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
                 LoadGalleryFromId();
             }
         }
 
-        private void HandleLoadImageBtnClick(object sender, RoutedEventArgs e) {
+        private void HandleLoadImageBtnClick(object _0, RoutedEventArgs _1) {
             LoadGalleryFromId();
         }
 
@@ -413,7 +413,7 @@ namespace Hitomi_Scroll_Viewer {
             return matches[^1].Value;
         }
 
-        public async void HandleBookmarkClick(object sender, RoutedEventArgs e) {
+        public async void HandleBookmarkClick(object sender, RoutedEventArgs _1) {
             BookmarkItem bmItem = (BookmarkItem)((HyperlinkButton)sender).Parent;
 
             // if gallery is already loaded
@@ -452,7 +452,7 @@ namespace Hitomi_Scroll_Viewer {
             File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(bmGalleries, _serializerOptions));
         }
 
-        public void AddBookmark(object _, RoutedEventArgs e) {
+        public void AddBookmark(object _0, RoutedEventArgs _1) {
             HandleBookmarking(false);
 
             bmGalleries.Add(gallery);
@@ -463,8 +463,8 @@ namespace Hitomi_Scroll_Viewer {
             HandleBookmarking(true);
         }
 
-        public void RemoveBookmark(object sender, RoutedEventArgs e) {
-            BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
+        public void RemoveBookmark(object sender, RoutedEventArgs _1) {
+            BookmarkItem bmItem = (BookmarkItem)((Grid)((Button)sender).Parent).Parent;
 
             // if the removing gallery is the current viewing gallery
             if (gallery != null) {
