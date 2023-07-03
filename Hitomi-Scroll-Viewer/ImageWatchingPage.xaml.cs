@@ -6,10 +6,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -26,6 +24,7 @@ namespace Hitomi_Scroll_Viewer {
         private static double _imageScale = 1;
 
         private static int _currPage = 0;
+        private static Image[] _images;
 
         private enum ViewMode {
             Default,
@@ -38,6 +37,7 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
         private static readonly string GALLERY_INFO_EXCLUDE_STRING = "var galleryinfo = ";
         private static readonly string SERVER_TIME_ADDRESS = "https://ltn.hitomi.la/gg.js";
+        private static readonly string SERVER_TIME_EXCLUDE_STRING = "9999999999/'\r\n};";
         private static readonly string REFERER = "https://hitomi.la/";
         private static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
         private static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true };
@@ -141,70 +141,21 @@ namespace Hitomi_Scroll_Viewer {
             LoopBtn.IsChecked = newValue;
         }
 
-        private async Task InsertSingleImage() {
+        // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
+        // https://hitomi.la/doujinshi/radiata-%E6%97%A5%E6%9C%AC%E8%AA%9E-2472850.html#1
+        // TODO make image loading from web not asynchronous and see if it solves 503 error
+        // because it is likely due to sending too many requests at a time
+        private void InsertSingleImage() {
             PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
             ImageContainer.Children.Clear();
-            // TODO figure out if how file system works with winui app
-            // and try to use Uri for image source
-            // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
-            // https://hitomi.la/doujinshi/radiata-%E6%97%A5%E6%9C%AC%E8%AA%9E-2472850.html#1
-            // make image loading from web not asynchronous and see if it solves 503 error
-            // because it is likely due to sending too many requests at a time
-            Uri uri = new(IMAGE_DIR + @"\" + gallery.id + @"\" + _currPage + ".webp");
-            Image image = new() {
-                //Source = await GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + _currPage)),
-                Source = new BitmapImage(uri),
-                Width = gallery.files[_currPage].width * _imageScale,
-                Height = gallery.files[_currPage].height * _imageScale
-            };
-            Debug.WriteLine(uri.AbsoluteUri);
-            Debug.WriteLine(Directory.GetCurrentDirectory());
-            
-            ImageContainer.Children.Add(image);
-            LoadingProgressBar.Value++;
+            ImageContainer.Children.Add(_images[_currPage]);
         }
 
-        private async Task InsertImages() {
+        private void InsertImages() {
             ImageContainer.Children.Clear();
-            
-            Task<BitmapImage>[] tasks = new Task<BitmapImage>[gallery.files.Count];
-            Task[] progressBarTasks = new Task[gallery.files.Count];
-
-            for (int i = 0; i < gallery.files.Count; i++) {
+            for (int i = 0; i < _images.Length; i++) {
                 _ct.ThrowIfCancellationRequested();
-                tasks[i] = GetBitmapImage(await File.ReadAllBytesAsync(IMAGE_DIR + @"\" + gallery.id + @"\" + i.ToString()));
-                progressBarTasks[i] = tasks[i].ContinueWith(t => {
-                    LoadingProgressBar.Value++;
-                });
-                
-            }
-
-            try {
-                await Task.WhenAll(tasks);
-            } catch (FileNotFoundException) {
-
-            }
-
-            BitmapImage[] sources = new BitmapImage[gallery.files.Count];
-            for (int i = 0; i < gallery.files.Count; i++) {
-                if (tasks[i] != null) {
-                    sources[i] = tasks[i].Result;
-                }
-            }
-
-            Image[] images = new Image[gallery.files.Count];
-            for (int i = 0; i < images.Length; i++) {
-                _ct.ThrowIfCancellationRequested();
-                images[i] = new() {
-                    Source = sources[i],
-                    Width = gallery.files[i].width * _imageScale,
-                    Height = gallery.files[i].height * _imageScale
-                };
-            }
-
-            for (int i = 0; i < images.Length; i++) {
-                _ct.ThrowIfCancellationRequested();
-                ImageContainer.Children.Add(images[i]);
+                ImageContainer.Children.Add(_images[i]);
             }
         }
 
@@ -213,22 +164,18 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             StartAction();
-            // LoadingProgressBar maximum
-            // InsertSingleImage OR InsertImages
-            // = 1 OR toal images count
             try {
                 switch (_viewMode) {
                     case ViewMode.Default:
                         _viewMode = ViewMode.Scroll;
-                        LoadingProgressBar.Maximum = gallery.files.Count;
-                        await InsertImages();
+                        InsertImages();
                         bool allLoaded = false;
                         // wait for the actual image heights to be updated
                         while (!allLoaded) {
                             await Task.Delay(10);
                             allLoaded = true;
-                            for (int i = 0; i < ImageContainer.Children.Count; i++) {
-                                if (!((Image)ImageContainer.Children[i]).IsLoaded) {
+                            for (int i = 0; i < _images.Length; i++) {
+                                if (!_images[i].IsLoaded) {
                                     allLoaded = false;
                                     break;
                                 }
@@ -238,9 +185,8 @@ namespace Hitomi_Scroll_Viewer {
                         break;
                     case ViewMode.Scroll:
                         _viewMode = ViewMode.Default;
-                        LoadingProgressBar.Maximum = 1;
                         GetPageFromScrollOffset();
-                        await InsertSingleImage();
+                        InsertSingleImage();
                         break;
                 }
             }
@@ -259,8 +205,8 @@ namespace Hitomi_Scroll_Viewer {
             }
             // half of the window height is the reference height for page calculation
             double pageHalfOffset = currOffset + _mw.appWindow.ClientSize.Height / 2;
-            for (int i = 0; i < gallery.files.Count; i++) {
-                imageHeightSum += ((Image)ImageContainer.Children[i]).Height;
+            for (int i = 0; i < _images.Length; i++) {
+                imageHeightSum += _images[i].Height;
                 if (imageHeightSum >= pageHalfOffset) {
                     _currPage = i;
                     return;
@@ -273,18 +219,18 @@ namespace Hitomi_Scroll_Viewer {
                 return 0;
             }
             double offset = ImageContainer.Margin.Top;
-            for (int i = 0; i < gallery.files.Count; i++) {
+            for (int i = 0; i < _images.Length; i++) {
                 if (i >= _currPage) {
                     return offset;
                 }
-                offset += ((Image)ImageContainer.Children[i]).Height;
+                offset += _images[i].Height;
             }
             return offset;
         }
 
         private void SetScrollSpeed(object slider, RangeBaseValueChangedEventArgs e) {
             _scrollSpeed = ((Slider)slider).Value;
-            // delay = -1.9*(slider value) + 11 in seconds
+            // hardcoded value linear equation
             _pageTurnDelay = (-1.9 * _scrollSpeed + 11) * 1000;
         }
 
@@ -292,7 +238,7 @@ namespace Hitomi_Scroll_Viewer {
             _currPage = (_currPage + num + gallery.files.Count) % gallery.files.Count;
         }
 
-        public async void HandleKeyDown(object _, KeyRoutedEventArgs e) {
+        public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.L) {
                 SetLoop(!_isLooping);
             }
@@ -301,10 +247,10 @@ namespace Hitomi_Scroll_Viewer {
                 if (_viewMode == ViewMode.Default) {
                     if (e.Key is Windows.System.VirtualKey.Right or Windows.System.VirtualKey.RightButton) {
                         IncrementPage(1);
-                        await InsertSingleImage();
+                        InsertSingleImage();
                     } else if (e.Key is Windows.System.VirtualKey.Left or Windows.System.VirtualKey.LeftButton) {
                         IncrementPage(-1);
-                        await InsertSingleImage();
+                        InsertSingleImage();
                     }
                 }
                 if (e.Key == Windows.System.VirtualKey.Space) {
@@ -332,7 +278,7 @@ namespace Hitomi_Scroll_Viewer {
                                 return;
                             }
                             IncrementPage(1);
-                            DispatcherQueue.TryEnqueue(async () => await InsertSingleImage());
+                            DispatcherQueue.TryEnqueue(InsertSingleImage);
                         }
                         break;
                     case ViewMode.Scroll:
@@ -366,16 +312,15 @@ namespace Hitomi_Scroll_Viewer {
             if (ImageContainer != null && gallery != null) {
                 switch (_viewMode) {
                     case ViewMode.Default:
-                        Image image = (Image)ImageContainer.Children[0];
-                        image.Width = gallery.files[_currPage].width * _imageScale;
-                        image.Height = gallery.files[_currPage].height * _imageScale;
+                        _images[_currPage].Width = gallery.files[_currPage].width * _imageScale;
+                        _images[_currPage].Height = gallery.files[_currPage].height * _imageScale;
                         break;
                     case ViewMode.Scroll:
                         double scrollableHeight = MainScrollViewer.ScrollableHeight;
                         GetPageFromScrollOffset();
-                        for (int i = 0; i < ImageContainer.Children.Count; i++) {
-                            ((Image)ImageContainer.Children[i]).Width = gallery.files[i].width * _imageScale;
-                            ((Image)ImageContainer.Children[i]).Height = gallery.files[i].height * _imageScale;
+                        for (int i = 0; i < _images.Length; i++) {
+                            _images[i].Width = gallery.files[i].width * _imageScale;
+                            _images[i].Height = gallery.files[i].height * _imageScale;
                         }
                         // wait for the actual image heights to be updated
                         while (scrollableHeight == MainScrollViewer.ScrollableHeight) {
@@ -398,8 +343,6 @@ namespace Hitomi_Scroll_Viewer {
             ViewModeBtn.IsEnabled = false;
             ImageScaleSlider.IsEnabled = false;
             AutoScrollBtn.IsEnabled = false;
-            LoadingProgressBar.Value = 0;
-            LoadingProgressBar.Visibility = Visibility.Visible;
         }
 
         private void StopAction() {
@@ -407,7 +350,6 @@ namespace Hitomi_Scroll_Viewer {
             ImageScaleSlider.IsEnabled = true;
             AutoScrollBtn.IsEnabled = true;
             _isInAction = false;
-            LoadingProgressBar.Visibility = Visibility.Collapsed;
         }
 
         /**
@@ -470,28 +412,36 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             gallery = newGallery;
-            // LoadingProgressBar maximum
-            // InsertSingleImage OR InsertImages
-            // = 1 OR toal images count
+            _images = new Image[gallery.files.Count];
+            string dir = IMAGE_DIR + @"\" + gallery.id + @"\";
+            for (int i = 0; i < _images.Length; i++) {
+                _ct.ThrowIfCancellationRequested();
+                _images[i] = new() {
+                    Source = new BitmapImage(new(dir + i + IMAGE_EXT)),
+                    Width = gallery.files[i].width * _imageScale,
+                    Height = gallery.files[i].height * _imageScale
+                };
+            }
             try {
                 switch (_viewMode) {
                     case ViewMode.Default:
                         _ct.ThrowIfCancellationRequested();
-                        LoadingProgressBar.Maximum = 1;
                         _currPage = 0;
-                        await InsertSingleImage();
+                        InsertSingleImage();
                         break;
                     case ViewMode.Scroll:
                         _ct.ThrowIfCancellationRequested();
-                        LoadingProgressBar.Maximum = gallery.files.Count;
-                        await InsertImages();
+                        InsertImages();
                         break;
                 }
             }
-            catch (OperationCanceledException) {
-                FinishLoading(GalleryState.Loading);
-            } finally {
-                FinishLoading(GalleryState.Bookmarked);
+            catch (OperationCanceledException) {}
+            finally {
+                if (_ct.IsCancellationRequested) {
+                    FinishLoading(GalleryState.Loading);
+                } else {
+                    FinishLoading(GalleryState.Bookmarked);
+                }
             }
         }
 
@@ -501,11 +451,16 @@ namespace Hitomi_Scroll_Viewer {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(address)
             };
-            HttpResponseMessage response = await _httpClient.SendAsync(galleryInfoRequest);
+            HttpResponseMessage response;
             try {
+                response = await _httpClient.SendAsync(galleryInfoRequest, _ct);
                 response.EnsureSuccessStatusCode();
-            } catch (HttpRequestException ex) {
+            }
+            catch (HttpRequestException ex) {
                 _mw.AlertUser("An error has occurred while getting gallery info. Please try again.", ex.Message);
+                return null;
+            }
+            catch (TaskCanceledException) {
                 return null;
             }
             string responseString = await response.Content.ReadAsStringAsync();
@@ -517,17 +472,22 @@ namespace Hitomi_Scroll_Viewer {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(SERVER_TIME_ADDRESS)
             };
-            HttpResponseMessage response = await _httpClient.SendAsync(serverTimeRequest);
+            HttpResponseMessage response;
             try {
+                response = await _httpClient.SendAsync(serverTimeRequest, _ct);
                 response.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException ex) {
                 _mw.AlertUser("An error has occurred while getting server time. Please try again.", ex.Message);
                 return null;
             }
+            catch (TaskCanceledException) {
+                return null;
+            }
             string responseString = await response.Content.ReadAsStringAsync();
 
-            return Regex.Match(responseString, @"\'(.+?)/\'").Value[1..^2];
+            // get numbers between ' and /'
+            return responseString.Substring(responseString.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
         }
 
         // TODO read about http request sockets, multithreading, concurrent requests, etc.
@@ -565,6 +525,11 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
 
+                // show LoadingProgressBar
+                LoadingProgressBar.Value = 0;
+                LoadingProgressBar.Maximum = gallery.files.Count;
+                LoadingProgressBar.Visibility = Visibility.Visible;
+
                 _ct.ThrowIfCancellationRequested();
 
                 string[] imgHashArr = new string[gallery.files.Count];
@@ -581,21 +546,10 @@ namespace Hitomi_Scroll_Viewer {
                 imgAddresses = GetImageAddresses(imgHashArr, serverTime);
                 _ct.ThrowIfCancellationRequested();
 
-                // LoadingProgressBar maximum
-                // imageBytes + (InsertSingleImage OR InsertImages)
-                // = (toal images count + 1) OR 2 * (toal images count)
-                switch (_viewMode) {
-                    case ViewMode.Default:
-                        LoadingProgressBar.Maximum = gallery.files.Count + 1;
-                        break;
-                    case ViewMode.Scroll:
-                        LoadingProgressBar.Maximum = 2 * gallery.files.Count;
-                        break;
-                }
-
                 Task<byte[]>[] tasks = new Task<byte[]>[imgAddresses.Length];
 
                 for (int i = 0; i < imgAddresses.Length; i++) {
+                    _ct.ThrowIfCancellationRequested();
                     tasks[i] = TryGetImageBytesFromWeb(imgAddresses[i]);
                 }
 
@@ -604,34 +558,48 @@ namespace Hitomi_Scroll_Viewer {
                 byte[][] imageBytes = new byte[tasks.Length][];
 
                 for (int i = 0; i < imageBytes.Length; i++) {
-                    imageBytes[i] = tasks[i].Result;
+                    if (tasks[i] != null) {
+                        imageBytes[i] = tasks[i].Result;
+                    }
                 }
 
                 // save gallery to local directory
                 await SaveGallery(gallery.id, imageBytes);
 
+                _images = new Image[gallery.files.Count];
+                string dir = IMAGE_DIR + @"\" + gallery.id + @"\";
+                for (int i = 0; i < gallery.files.Count; i++) {
+                    _ct.ThrowIfCancellationRequested();
+                    _images[i] = new() {
+                        Source = new BitmapImage(new(dir + i + IMAGE_EXT)),
+                        Width = gallery.files[i].width * _imageScale,
+                        Height = gallery.files[i].height * _imageScale
+                    };
+                }
+
                 switch (_viewMode) {
                     case ViewMode.Default:
                         _ct.ThrowIfCancellationRequested();
                         _currPage = 0;
-                        await InsertSingleImage();
+                        InsertSingleImage();
                         break;
                     case ViewMode.Scroll:
                         _ct.ThrowIfCancellationRequested();
-                        await InsertImages();
+                        InsertImages();
                         break;
                 }
             }
-            catch (OperationCanceledException) {
-                FinishLoading(GalleryState.Loading);
-                return;
-            } finally {
-                if (IsBookmarkFull()) {
+            catch (OperationCanceledException) {}
+            finally {
+                if (_ct.IsCancellationRequested) {
+                    FinishLoading(GalleryState.Loading);
+                } else if (IsBookmarkFull()) {
                     FinishLoading(GalleryState.BookmarkFull);
-                }
-                else {
+                } else {
                     FinishLoading(GalleryState.Loaded);
                 }
+                // hide LoadingProgressBar
+                LoadingProgressBar.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -658,13 +626,15 @@ namespace Hitomi_Scroll_Viewer {
             };
             HttpResponseMessage response;
             try {
-                response = await _httpClient.SendAsync(request);
+                response = await _httpClient.SendAsync(request, _ct);
                 response.EnsureSuccessStatusCode();
             } catch (HttpRequestException e) {
                 if (e.StatusCode != System.Net.HttpStatusCode.NotFound) {
                     Debug.WriteLine(e.Message);
                     Debug.WriteLine("Status Code: " + e.StatusCode);
                 }
+                return null;
+            } catch (TaskCanceledException) {
                 return null;
             }
             return await response.Content.ReadAsByteArrayAsync();

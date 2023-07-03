@@ -3,16 +3,16 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Windows.Storage.Streams;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
-        public static readonly string IMAGE_DIR = "images";
+        public static readonly string ROOT_DIR = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\HSV";
+        public static readonly string IMAGE_DIR = ROOT_DIR + @"\images";
+        public static readonly string IMAGE_EXT = ".webp";
 
         private readonly Page[] _appPages;
         private static int _currPageNum = 0;
@@ -26,9 +26,9 @@ namespace Hitomi_Scroll_Viewer {
 
             Title = "Hitomi Scroll Viewer";
 
-            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            appWindow = AppWindow.GetFromWindowId(windowId);
+            // create directories if they don't exist
+            Directory.CreateDirectory(ROOT_DIR);
+            Directory.CreateDirectory(IMAGE_DIR);
 
             SearchPage sp = new(this);
             ImageWatchingPage iwp = new(this);
@@ -42,6 +42,10 @@ namespace Hitomi_Scroll_Viewer {
                 iwp.SetAutoScroll(false);
                 SwitchPage();
             };
+
+            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
+            appWindow = AppWindow.GetFromWindowId(windowId);
 
             // Maximise window on load
             RootFrame.Loaded += (object _, RoutedEventArgs _) => {
@@ -84,26 +88,6 @@ namespace Hitomi_Scroll_Viewer {
             await _dialog.ShowAsync();
         }
 
-        public static async Task<BitmapImage> GetBitmapImage(byte[] imgData) {
-            if (imgData == null) {
-                return null;
-            }
-            BitmapImage img = new();
-            InMemoryRandomAccessStream stream = new();
-
-            DataWriter writer = new(stream);
-            writer.WriteBytes(imgData);
-            await writer.StoreAsync();
-            await writer.FlushAsync();
-            writer.DetachStream();
-            stream.Seek(0);
-            await img.SetSourceAsync(stream);
-
-            writer.Dispose();
-            stream.Dispose();
-            return img;
-        }
-
         public static bool IsBookmarked() {
             for (int i = 0; i < bmGalleries.Count; i++) {
                 if (bmGalleries[i].id == gallery.id) {
@@ -124,7 +108,7 @@ namespace Hitomi_Scroll_Viewer {
             List<Task> tasks = new();
             for (int i = 0; i < imageBytes.Length; i++) {
                 if (imageBytes[i] != null) {
-                    tasks.Add(File.WriteAllBytesAsync(path + @"\" + i.ToString(), imageBytes[i]));
+                    tasks.Add(File.WriteAllBytesAsync(path + @"\" + i.ToString() + IMAGE_EXT, imageBytes[i]));
                 }
             }
             await Task.WhenAll(tasks);
