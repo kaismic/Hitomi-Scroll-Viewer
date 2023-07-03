@@ -20,6 +20,8 @@ namespace Hitomi_Scroll_Viewer {
         private static bool _isAutoScrolling = false;
         private static bool _isLooping = true;
         private static double _scrollSpeed;
+        private static readonly double SCROLL_SPEED_SCALE = 0.25;
+        // TODO separate text and value for slider when switching between modes
         private static double _pageTurnDelay;
         private static double _imageScale = 1;
 
@@ -166,7 +168,11 @@ namespace Hitomi_Scroll_Viewer {
             StartAction();
             try {
                 switch (_viewMode) {
+                        // TODO set silder text and min max range
                     case ViewMode.Default:
+
+
+
                         _viewMode = ViewMode.Scroll;
                         InsertImages();
                         bool allLoaded = false;
@@ -229,8 +235,11 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void SetScrollSpeed(object slider, RangeBaseValueChangedEventArgs e) {
+            switch (_viewMode) {
+                // TODO set silder text and min max range
+            }
             _scrollSpeed = ((Slider)slider).Value;
-            // hardcoded value linear equation
+            // hardcoded linear equation
             _pageTurnDelay = (-1.9 * _scrollSpeed + 11) * 1000;
         }
 
@@ -282,10 +291,11 @@ namespace Hitomi_Scroll_Viewer {
                         }
                         break;
                     case ViewMode.Scroll:
+                        await Task.Delay(10);
                         DispatcherQueue.TryEnqueue(() => {
                             if (MainScrollViewer.VerticalOffset != MainScrollViewer.ScrollableHeight) {
                                 stopwatch.Stop();
-                                MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
+                                MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds * 0.25);
                                 stopwatch.Restart();
                             }
                             else {
@@ -312,8 +322,10 @@ namespace Hitomi_Scroll_Viewer {
             if (ImageContainer != null && gallery != null) {
                 switch (_viewMode) {
                     case ViewMode.Default:
-                        _images[_currPage].Width = gallery.files[_currPage].width * _imageScale;
-                        _images[_currPage].Height = gallery.files[_currPage].height * _imageScale;
+                        for (int i = 0; i < _images.Length; i++) {
+                            _images[i].Width = gallery.files[i].width * _imageScale;
+                            _images[i].Height = gallery.files[i].height * _imageScale;
+                        }
                         break;
                     case ViewMode.Scroll:
                         double scrollableHeight = MainScrollViewer.ScrollableHeight;
