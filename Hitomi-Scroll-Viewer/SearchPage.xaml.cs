@@ -23,7 +23,7 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
         private static readonly string BM_INFO_FILE_NAME = "BookmarkInfo.json";
-        private static readonly string TAG_FILE_PATH = "Tags.json";
+        private static readonly string TAGS_FILE_PATH = "Tags.json";
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 
@@ -80,16 +80,16 @@ namespace Hitomi_Scroll_Viewer {
             InitLayout();
             _mw = mainWindow;
 
-            if (File.Exists(TAG_FILE_PATH)) {
+            if (File.Exists(TAGS_FILE_PATH)) {
                 // read tag info from file
-                Tags = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAG_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
+                Tags = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAGS_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
             } else {
                 //  if tag file doesn't exist, initialise _tags with Global tag list
                 Tags = new() {
                     { GLOBAL_TAG_NAME, new() }
                 };
                 Tags[GLOBAL_TAG_NAME].includeTags["tag"] = new string[] { "non-h_imageset" };
-                File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
+                File.WriteAllText(TAGS_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
             }
 
             foreach (KeyValuePair<string, Tag> item in Tags) {
@@ -148,9 +148,16 @@ namespace Hitomi_Scroll_Viewer {
                     IsPrimaryButtonEnabled = true,
                     PrimaryButtonText = "Yes",
                     CloseButtonText = "Cancel",
-                    XamlRoot = XamlRoot
                 };
             }
+            void setXamlRoot(object s, RoutedEventArgs e) {
+                for (int i = 0; i < Enum.GetNames<TagListAction>().Length; i++) {
+                    _confirmDialogs[i].XamlRoot = XamlRoot;
+                }
+                Loaded -= setXamlRoot;
+            };
+            Loaded += setXamlRoot;
+
             _controlButtons[(int)TagListAction.Create].Click += CreateTag;
             _controlButtons[(int)TagListAction.Rename].Click += RenameTag;
             _controlButtons[(int)TagListAction.Save].Click += SaveTag;
@@ -172,7 +179,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void SaveTagInfo() {
-            File.WriteAllText(TAG_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
+            File.WriteAllText(TAGS_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
         }
 
         private async void CreateTag(object _0, RoutedEventArgs _1) {
@@ -209,7 +216,7 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
-            _confirmDialogs[(int)TagListAction.Rename].Title = $"Rename {TagListComboBox.DisplayMemberPath} to '{newTagName}'?";
+            _confirmDialogs[(int)TagListAction.Rename].Title = $"Rename '{oldTagName}' to '{newTagName}'?";
             ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Rename].ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
                 return;
@@ -218,8 +225,8 @@ namespace Hitomi_Scroll_Viewer {
             Tags.Add(newTagName, Tags[oldTagName]);
             TagListComboBox.Items.Add(newTagName);
             Tags.Remove(oldTagName);
-            TagListComboBox.Items.Remove(TagListComboBox.SelectedItem);
             TagListComboBox.SelectedItem = newTagName;
+            TagListComboBox.Items.Remove(oldTagName);
             SaveTagInfo();
             _mw.AlertUser($"'{oldTagName}' has been renamed to '{newTagName}'", "");
         }
@@ -243,7 +250,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             Tags.Remove(_currTagName);
-            TagListComboBox.Items.Remove(TagListComboBox.SelectedItem);
+            TagListComboBox.Items.Remove(_currTagName);
             TagListComboBox.SelectedIndex = 0;
             SaveTagInfo();
             _mw.AlertUser($"'{_currTagName}' has been removed", "");
@@ -257,6 +264,26 @@ namespace Hitomi_Scroll_Viewer {
             }
             _tagContainers[0].Clear();
             _tagContainers[1].Clear();
+        }
+
+        private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _) {
+            ComboBox cb = (ComboBox)sender;
+            if (cb.SelectedItem == null) {
+                cb.SelectedIndex = 0;
+            }
+            _currTagName = (string)cb.SelectedItem;
+            // disable rename and remove button is global tag is selected
+            if (_currTagName == GLOBAL_TAG_NAME) {
+                _controlButtons[(int)TagListAction.Rename].IsEnabled = false;
+                _controlButtons[(int)TagListAction.Remove].IsEnabled = false;
+            }
+            else {
+                _controlButtons[(int)TagListAction.Rename].IsEnabled = true;
+                _controlButtons[(int)TagListAction.Remove].IsEnabled = true;
+            }
+            Tag tag = Tags[_currTagName];
+            _tagContainers[0].InsertTags(tag.includeTags);
+            _tagContainers[1].InsertTags(tag.excludeTags);
         }
 
         public static string[] GetGlobalTag(string tagCategory, bool isExclude) {
@@ -297,22 +324,6 @@ namespace Hitomi_Scroll_Viewer {
                 includeTags = _tagContainers[0].GetTags(),
                 excludeTags = _tagContainers[1].GetTags()
             };
-        }
-
-        private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _) {
-            _currTagName = (string)(((ComboBox)sender).SelectedItem);
-            // disable rename and remove button is global tag is selected
-            if (_currTagName == GLOBAL_TAG_NAME) {
-                _controlButtons[(int)TagListAction.Rename].IsEnabled = false;
-                _controlButtons[(int)TagListAction.Remove].IsEnabled = false;
-            }
-            else {
-                _controlButtons[(int)TagListAction.Rename].IsEnabled = true;
-                _controlButtons[(int)TagListAction.Remove].IsEnabled = true;
-            }
-            Tag tag = Tags[_currTagName];
-            _tagContainers[0].InsertTags(tag.includeTags);
-            _tagContainers[1].InsertTags(tag.excludeTags);
         }
 
         private void GenerateHyperlink(object sender, RoutedEventArgs e) {
