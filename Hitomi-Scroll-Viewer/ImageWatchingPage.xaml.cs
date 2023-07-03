@@ -558,21 +558,11 @@ namespace Hitomi_Scroll_Viewer {
                 imgAddresses = GetImageAddresses(imgHashArr, serverTime);
                 _ct.ThrowIfCancellationRequested();
 
-                Task<byte[]>[] tasks = new Task<byte[]>[imgAddresses.Length];
-
-                for (int i = 0; i < imgAddresses.Length; i++) {
-                    _ct.ThrowIfCancellationRequested();
-                    tasks[i] = TryGetImageBytesFromWeb(imgAddresses[i]);
-                }
-
-                await Task.WhenAll(tasks);
-
-                byte[][] imageBytes = new byte[tasks.Length][];
+                byte[][] imageBytes = new byte[imgAddresses.Length][];
 
                 for (int i = 0; i < imageBytes.Length; i++) {
-                    if (tasks[i] != null) {
-                        imageBytes[i] = tasks[i].Result;
-                    }
+                    _ct.ThrowIfCancellationRequested();
+                    imageBytes[i] = await TryGetImageBytesFromWeb(imgAddresses[i]);
                 }
 
                 // save gallery to local directory
