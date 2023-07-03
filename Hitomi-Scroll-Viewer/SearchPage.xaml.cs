@@ -368,7 +368,7 @@ namespace Hitomi_Scroll_Viewer {
             HyperlinkPanel.Children.Remove((Grid)((Button)sender).Parent);
         }
 
-        private void HandleGalleryIDSubmitKeyDown(object _0, KeyRoutedEventArgs _1) {
+        private void HandleGalleryIDSubmitKeyDown(object _0, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
                 LoadGalleryFromId();
             }
