@@ -37,8 +37,8 @@
             <AppBarSeparator MinWidth="50"/>
             <AppBarElementContainer>
                 <Slider x:Name="ImageScaleSlider"
-                        StepFrequency="0.1"
-                        TickFrequency="0.1"
+                        StepFrequency="0.01"
+                        TickFrequency="0.01"
                         Value="0.5"
                         Minimum="0.1"
                         Maximum="1.5"
