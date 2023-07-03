@@ -242,16 +242,17 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void RemoveTag(object _0, RoutedEventArgs _1) {
-            _confirmDialogs[(int)TagListAction.Remove].Title = $"Remove '{_currTagName}'?";
+            string oldTagName = _currTagName;
+            _confirmDialogs[(int)TagListAction.Remove].Title = $"Remove '{oldTagName}'?";
             ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Remove].ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            Tags.Remove(_currTagName);
-            TagListComboBox.Items.Remove(_currTagName);
+            Tags.Remove(oldTagName);
+            TagListComboBox.Items.Remove(oldTagName);
             TagListComboBox.SelectedIndex = 0;
             SaveTagInfo();
-            _mw.AlertUser($"'{_currTagName}' has been removed", "");
+            _mw.AlertUser($"'{oldTagName}' has been removed", "");
         }
 
         private async void ClearTagTextbox(object _0, RoutedEventArgs _1) {
