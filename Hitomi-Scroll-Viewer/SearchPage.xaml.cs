@@ -22,8 +22,8 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly int[] GALLERY_ID_LENGTH_RANGE = new int[] { 6, 7 };
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
-        private static readonly string BM_INFO_FILE_NAME = "BookmarkInfo.json";
-        private static readonly string TAGS_FILE_PATH = "Tags.json";
+        private static readonly string BM_INFO_FILE_PATH = ROOT_DIR + @"\BookmarkInfo.json";
+        private static readonly string TAGS_FILE_PATH = ROOT_DIR + @"\Tags.json";
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 
@@ -98,18 +98,16 @@ namespace Hitomi_Scroll_Viewer {
             TagListComboBox.SelectedIndex = 0;
 
             // create bookmarked galleries' info file if it doesn't exist
-            if (!File.Exists(BM_INFO_FILE_NAME)) {
-                File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(new List<Gallery>(), _serializerOptions));
+            if (!File.Exists(BM_INFO_FILE_PATH)) {
+                File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(new List<Gallery>(), _serializerOptions));
             }
             // read bookmarked galleries' info from file
             bmGalleries = (List<Gallery>)JsonSerializer.Deserialize(
-                File.ReadAllText(BM_INFO_FILE_NAME),
+                File.ReadAllText(BM_INFO_FILE_PATH),
                 typeof(List<Gallery>),_serializerOptions
                 );
 
-            // create image storing directory if it doesn't exist
-            Directory.CreateDirectory(IMAGE_DIR);
-
+            // fill bookmarks
             for (int i = 0; i < bmGalleries.Count; i++) {
                 _bookmarkItems.Add(new(bmGalleries[i], this));
             }
@@ -451,7 +449,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
         public static void SaveBookmarkInfo() {
-            File.WriteAllText(BM_INFO_FILE_NAME, JsonSerializer.Serialize(bmGalleries, _serializerOptions));
+            File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(bmGalleries, _serializerOptions));
         }
 
         public void AddBookmark(object _, RoutedEventArgs e) {
