@@ -114,8 +114,9 @@ namespace Hitomi_Scroll_Viewer {
             FillBookmarkGrid();
         }
 
-        public static void Init(ImageWatchingPage iwp) {
+        public void Init(ImageWatchingPage iwp) {
             _iwp = iwp;
+            _iwp.BookmarkBtn.Click += AddBookmark;
         }
 
         private void InitLayout() {

@@ -34,8 +34,7 @@ namespace Hitomi_Scroll_Viewer {
             ImageWatchingPage iwp = new(this);
             _appPages = new Page[] { sp, iwp };
 
-            SearchPage.Init(iwp);
-            iwp.Init(sp);
+            sp.Init(iwp);
 
             // Switch page on double click
             RootFrame.DoubleTapped += (object _, DoubleTappedRoutedEventArgs _) => {
@@ -60,9 +59,7 @@ namespace Hitomi_Scroll_Viewer {
                         DeleteGallery(gallery);
                     }
                 }
-                while (ImageWatchingPage.galleryState == ImageWatchingPage.GalleryState.Bookmarking) {
-                    Task.Delay(10);
-                }
+                ImageWatchingPage.WaitBookmarking();
             };
 
             RootFrame.Content = _appPages[_currPageNum];
