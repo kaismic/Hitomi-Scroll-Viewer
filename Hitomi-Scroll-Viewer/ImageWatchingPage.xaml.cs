@@ -17,13 +17,17 @@ namespace Hitomi_Scroll_Viewer {
     public sealed partial class ImageWatchingPage : Page {
         private static MainWindow _mw;
 
-        private static bool _isAutoScrolling = false;
-        private static bool _isLooping = true;
-        private static double _scrollSpeed;
-        private static readonly double SCROLL_SPEED_SCALE = 0.25;
-        // TODO separate text and value for slider when switching between modes
-        private static double _pageTurnDelay;
-        private static double _imageScale = 1;
+        private static readonly string SCROLL_SPEED_TEXT = "Auto Scroll Speed";
+        private static readonly string PAGE_TURN_DELAY_TEXT = "Auto Page Turn Delay";
+        private static readonly (double, double) SCROLL_SPEED_RANGE = (0.001, 0.5);
+        private static readonly (double, double) PAGE_TURN_DELAY_RANGE = (1, 10);
+        private static readonly double SCROLL_SPEED_FREQ = 0.001;
+        private static readonly double PAGE_TURN_DELAY_FREQ = 0.5;
+        private static double _scrollSpeed = 0.05;
+        private static double _pageTurnDelay = 2; // in seconds
+        private bool _isAutoScrolling = false;
+        private bool _isLooping = true;
+        private double _imageScale = 0.5;
 
         private static int _currPage = 0;
         private static Image[] _images;
@@ -55,27 +59,33 @@ namespace Hitomi_Scroll_Viewer {
             Loading,
             Empty
         }
-        public static GalleryState galleryState = GalleryState.Empty; 
+
+        private static GalleryState _galleryState = GalleryState.Empty;
         private static bool _isInAction = false;
 
         private static int _loadRequestCounter = 0;
 
+        // galleries for testing
+        // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
+        // https://hitomi.la/doujinshi/radiata-%E6%97%A5%E6%9C%AC%E8%AA%9E-2472850.html#1
+
         public ImageWatchingPage(MainWindow mainWindow) {
             InitializeComponent();
 
-            StartAction();
+            DisableControls();
+            SetScrollSpeedSlider();
 
             _mw = mainWindow;
 
             // Set ImageContainer top margin based on top commandbar height
-            void handleSizeChange(object cb, SizeChangedEventArgs e) {
+            void handleSizeChange(object cb, SizeChangedEventArgs _1) {
                 ImageContainer.Margin = new Thickness(0, ((CommandBar)cb).ActualHeight, 0, 0);
             }
 
             TopCommandBar.SizeChanged += handleSizeChange;
 
             // handle mouse movement on commandbar
-            void handlePointerEnter(object cb, PointerRoutedEventArgs args) {
+            void handlePointerEnter(object cb, PointerRoutedEventArgs _1) {
                 ((CommandBar)cb).IsOpen = true;
                 PageNumDisplay.Visibility = Visibility.Visible;
             }
@@ -95,58 +105,69 @@ namespace Hitomi_Scroll_Viewer {
             }
             TopCommandBar.PointerMoved += handlePointerMove;
 
+            // set max connection per server for http client
             SocketsHttpHandler shh = new() {
-                MaxConnectionsPerServer = 30,
+                MaxConnectionsPerServer = 500,
             };
             _httpClient = new(shh);
         }
 
-        public void Init(SearchPage sp) {
-            BookmarkBtn.Click += sp.AddBookmark;
+        private void SetScrollSpeedSlider() {
+            switch (_viewMode) {
+                case ViewMode.Default:
+                    // save prev value because it SetScrollSpeed is called when min max is set
+                    double pageTurnDelay = _pageTurnDelay;
+                    ScrollSpeedSlider.StepFrequency = PAGE_TURN_DELAY_FREQ;
+                    ScrollSpeedSlider.TickFrequency = PAGE_TURN_DELAY_FREQ;
+                    ScrollSpeedSlider.Minimum = PAGE_TURN_DELAY_RANGE.Item1;
+                    ScrollSpeedSlider.Maximum = PAGE_TURN_DELAY_RANGE.Item2;
+                    ScrollSpeedSlider.Header = PAGE_TURN_DELAY_TEXT;
+                    ScrollSpeedSlider.Value = pageTurnDelay;
+                    _pageTurnDelay = pageTurnDelay;
+                    break;
+                case ViewMode.Scroll:
+                    // save prev value because it SetScrollSpeed is called when min max is set
+                    double scrollSpeed = _scrollSpeed;
+                    ScrollSpeedSlider.StepFrequency = SCROLL_SPEED_FREQ;
+                    ScrollSpeedSlider.TickFrequency = SCROLL_SPEED_FREQ;
+                    ScrollSpeedSlider.Minimum = SCROLL_SPEED_RANGE.Item1;
+                    ScrollSpeedSlider.Maximum = SCROLL_SPEED_RANGE.Item2;
+                    ScrollSpeedSlider.Header = SCROLL_SPEED_TEXT;
+                    ScrollSpeedSlider.Value = scrollSpeed;
+                    _scrollSpeed = scrollSpeed;
+                    break;
+            }
         }
 
-        private void HandleScrollViewChange(object _, ScrollViewerViewChangingEventArgs e) {
+        private void HandleScrollViewChange(object _0, ScrollViewerViewChangingEventArgs _1) {
             if (_viewMode == ViewMode.Scroll) {
                 GetPageFromScrollOffset();
                 PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
             }
         }
 
-        private void HandleGoBackBtnClick(object _, RoutedEventArgs e) {
+        private void HandleGoBackBtnClick(object _0, RoutedEventArgs _1) {
             _mw.SwitchPage();
         }
 
-        private void HandleAutoScrollBtnClick(object _, RoutedEventArgs e) {
-            SetAutoScroll(!_isAutoScrolling);
+        private void HandleAutoScrollBtnClick(object _0, RoutedEventArgs _1) {
+            SetAutoScroll(_isAutoScrolling);
         }
 
         public void SetAutoScroll(bool newValue) {
-            _isAutoScrolling = newValue;
-            stopwatch.Reset();
             AutoScrollBtn.IsChecked = newValue;
-            if (newValue) {
+            stopwatch.Reset();
+            if (_isAutoScrolling) {
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Pause);
-                AutoScrollBtn.Label = "Stop";
+                AutoScrollBtn.Label = "Stop Auto Page Turning / Scrolling";
                 Task.Run(ScrollAutomatically);
-            } else {
+            }
+            else {
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Play);
                 AutoScrollBtn.Label = "Start Auto Page Turning / Scrolling";
             }
         }
 
-        private void HandleLoopBtnClick(object _, RoutedEventArgs e) {
-            _isLooping = !_isLooping;
-        }
-
-        private void SetLoop(bool newValue) {
-            _isLooping = newValue;
-            LoopBtn.IsChecked = newValue;
-        }
-
-        // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
-        // https://hitomi.la/doujinshi/radiata-%E6%97%A5%E6%9C%AC%E8%AA%9E-2472850.html#1
-        // TODO make image loading from web not asynchronous and see if it solves 503 error
-        // because it is likely due to sending too many requests at a time
         private void InsertSingleImage() {
             PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
             ImageContainer.Children.Clear();
@@ -161,18 +182,14 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private async void HandleViewModeBtnClick(object _, RoutedEventArgs e) {
+        private async void HandleViewModeBtnClick(object _0, RoutedEventArgs _1) {
             if (!await RequestActionPermit()) {
                 return;
             }
-            StartAction();
+            DisableControls();
             try {
                 switch (_viewMode) {
-                        // TODO set silder text and min max range
                     case ViewMode.Default:
-
-
-
                         _viewMode = ViewMode.Scroll;
                         InsertImages();
                         bool allLoaded = false;
@@ -195,8 +212,9 @@ namespace Hitomi_Scroll_Viewer {
                         InsertSingleImage();
                         break;
                 }
+                SetScrollSpeedSlider();
             }
-            catch (OperationCanceledException) {}
+            catch (OperationCanceledException) { }
             finally {
                 StopAction();
             }
@@ -236,11 +254,13 @@ namespace Hitomi_Scroll_Viewer {
 
         private void SetScrollSpeed(object slider, RangeBaseValueChangedEventArgs e) {
             switch (_viewMode) {
-                // TODO set silder text and min max range
+                case ViewMode.Default:
+                    _pageTurnDelay = ((Slider)slider).Value;
+                    break;
+                case ViewMode.Scroll:
+                    _scrollSpeed = ((Slider)slider).Value;
+                    break;
             }
-            _scrollSpeed = ((Slider)slider).Value;
-            // hardcoded linear equation
-            _pageTurnDelay = (-1.9 * _scrollSpeed + 11) * 1000;
         }
 
         private static void IncrementPage(int num) {
@@ -249,7 +269,7 @@ namespace Hitomi_Scroll_Viewer {
 
         public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.L) {
-                SetLoop(!_isLooping);
+                LoopBtn.IsChecked = !LoopBtn.IsChecked;
             }
             if (gallery != null && !_isInAction) {
                 _isInAction = true;
@@ -257,7 +277,8 @@ namespace Hitomi_Scroll_Viewer {
                     if (e.Key is Windows.System.VirtualKey.Right or Windows.System.VirtualKey.RightButton) {
                         IncrementPage(1);
                         InsertSingleImage();
-                    } else if (e.Key is Windows.System.VirtualKey.Left or Windows.System.VirtualKey.LeftButton) {
+                    }
+                    else if (e.Key is Windows.System.VirtualKey.Left or Windows.System.VirtualKey.LeftButton) {
                         IncrementPage(-1);
                         InsertSingleImage();
                     }
@@ -280,7 +301,7 @@ namespace Hitomi_Scroll_Viewer {
                             DispatcherQueue.TryEnqueue(() => SetAutoScroll(false));
                             return;
                         }
-                        await Task.Delay((int)_pageTurnDelay);
+                        await Task.Delay((int)(_pageTurnDelay * 1000));
                         if (_isAutoScrolling) {
                             if (_currPage + 1 == gallery.files.Count && !_isLooping) {
                                 DispatcherQueue.TryEnqueue(() => SetAutoScroll(false));
@@ -295,13 +316,14 @@ namespace Hitomi_Scroll_Viewer {
                         DispatcherQueue.TryEnqueue(() => {
                             if (MainScrollViewer.VerticalOffset != MainScrollViewer.ScrollableHeight) {
                                 stopwatch.Stop();
-                                MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds * 0.25);
+                                MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
                                 stopwatch.Restart();
                             }
                             else {
                                 if (_isLooping) {
                                     MainScrollViewer.ScrollToVerticalOffset(0);
-                                } else {
+                                }
+                                else {
                                     SetAutoScroll(false);
                                     return;
                                 }
@@ -318,7 +340,6 @@ namespace Hitomi_Scroll_Viewer {
          * </summary>
          */
         private async void ChangeImageSize(object slider, RangeBaseValueChangedEventArgs e) {
-            _imageScale = ((Slider)slider).Value;
             if (ImageContainer != null && gallery != null) {
                 switch (_viewMode) {
                     case ViewMode.Default:
@@ -345,12 +366,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        /**
-         * <summary>
-         * <see cref="RequestActionPermit"/> or <see cref="StartLoading"/> must be called before calling this method
-         * </summary>
-         */
-        private void StartAction() {
+        private void DisableControls() {
             SetAutoScroll(false);
             ViewModeBtn.IsEnabled = false;
             ImageScaleSlider.IsEnabled = false;
@@ -400,7 +416,7 @@ namespace Hitomi_Scroll_Viewer {
                 return false;
             }
 
-            StartAction();
+            DisableControls();
 
             ChangeBookmarkBtnState(GalleryState.Loading);
 
@@ -447,11 +463,12 @@ namespace Hitomi_Scroll_Viewer {
                         break;
                 }
             }
-            catch (OperationCanceledException) {}
+            catch (OperationCanceledException) { }
             finally {
                 if (_ct.IsCancellationRequested) {
                     FinishLoading(GalleryState.Loading);
-                } else {
+                }
+                else {
                     FinishLoading(GalleryState.Bookmarked);
                 }
             }
@@ -502,11 +519,7 @@ namespace Hitomi_Scroll_Viewer {
             return responseString.Substring(responseString.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
         }
 
-        // TODO read about http request sockets, multithreading, concurrent requests, etc.
-        // and implement them accordingly
-        // search: c# concurrent http requests
-        // to check if images are requested asynchrounously print out i for loop
-
+        // TODO try implementing queue request e.g. requesting max 5 at a time concurrently
         // TODO reload button
 
         private async Task<byte[]> TryGetImageBytesFromWeb(string imgAddress) {
@@ -591,13 +604,15 @@ namespace Hitomi_Scroll_Viewer {
                         break;
                 }
             }
-            catch (OperationCanceledException) {}
+            catch (OperationCanceledException) { }
             finally {
                 if (_ct.IsCancellationRequested) {
                     FinishLoading(GalleryState.Loading);
-                } else if (IsBookmarkFull()) {
+                }
+                else if (IsBookmarkFull()) {
                     FinishLoading(GalleryState.BookmarkFull);
-                } else {
+                }
+                else {
                     FinishLoading(GalleryState.Loaded);
                 }
                 // hide LoadingProgressBar
@@ -630,23 +645,26 @@ namespace Hitomi_Scroll_Viewer {
             try {
                 response = await _httpClient.SendAsync(request, _ct);
                 response.EnsureSuccessStatusCode();
-            } catch (HttpRequestException e) {
+            }
+            catch (HttpRequestException e) {
                 if (e.StatusCode != System.Net.HttpStatusCode.NotFound) {
                     Debug.WriteLine(e.Message);
                     Debug.WriteLine("Status Code: " + e.StatusCode);
                 }
                 return null;
-            } catch (TaskCanceledException) {
+            }
+            catch (TaskCanceledException) {
                 return null;
             }
             return await response.Content.ReadAsByteArrayAsync();
         }
 
         public void ChangeBookmarkBtnState(GalleryState state) {
-            galleryState = state;
+            _galleryState = state;
             if (state == GalleryState.Loaded) {
                 BookmarkBtn.IsEnabled = true;
-            } else {
+            }
+            else {
                 BookmarkBtn.IsEnabled = false;
             }
             switch (state) {
@@ -668,6 +686,12 @@ namespace Hitomi_Scroll_Viewer {
                 case GalleryState.Empty:
                     BookmarkBtn.Label = "";
                     break;
+            }
+        }
+
+        public static void WaitBookmarking() {
+            while (_galleryState == GalleryState.Bookmarking) {
+                Task.Delay(10).Wait();
             }
         }
     }
