@@ -373,15 +373,15 @@ namespace Hitomi_Scroll_Viewer {
 
         private void HandleGalleryIDSubmitKeyDown(object _0, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
-                LoadGalleryFromId();
+                CheckGalleryFromId();
             }
         }
 
         private void HandleLoadImageBtnClick(object _0, RoutedEventArgs _1) {
-            LoadGalleryFromId();
+            CheckGalleryFromId();
         }
 
-        private async void LoadGalleryFromId() {
+        private async void CheckGalleryFromId() {
             string id = ExtractGalleryId();
             if (string.IsNullOrEmpty(id)) {
                 _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
@@ -400,11 +400,13 @@ namespace Hitomi_Scroll_Viewer {
             // if gallery is already bookmarked
             for (int i = 0; i < bmGalleries.Count; i++) {
                 if (bmGalleries[i].id == id) {
+                    _mw.SwitchPage();
                     await _iwp.LoadGalleryFromLocalDir(bmGalleries[i]);
                     return;
                 }
             }
-            await _iwp.LoadImagesFromWeb(id);
+            _mw.SwitchPage();
+            await _iwp.LoadGalleryFromWeb(id);
         }
 
         private string ExtractGalleryId() {
@@ -426,6 +428,7 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
+            _mw.SwitchPage();
             await _iwp.LoadGalleryFromLocalDir(bmItem.bmGallery);
         }
 

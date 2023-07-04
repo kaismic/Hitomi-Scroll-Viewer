@@ -154,6 +154,10 @@ namespace Hitomi_Scroll_Viewer {
             SetAutoScroll(_isAutoScrolling);
         }
 
+        private async void HandleReloadBtnClick(object _0, RoutedEventArgs _1) {
+            await LoadGalleryFromWeb(gallery.id);
+        }
+
         public void SetAutoScroll(bool newValue) {
             AutoScrollBtn.IsChecked = newValue;
             stopwatch.Reset();
@@ -371,12 +375,14 @@ namespace Hitomi_Scroll_Viewer {
             ViewModeBtn.IsEnabled = false;
             ImageScaleSlider.IsEnabled = false;
             AutoScrollBtn.IsEnabled = false;
+            ReloadBtn.IsEnabled = false;
         }
 
         private void StopAction() {
             ViewModeBtn.IsEnabled = true;
             ImageScaleSlider.IsEnabled = true;
             AutoScrollBtn.IsEnabled = true;
+            ReloadBtn.IsEnabled = true;
             _isInAction = false;
         }
 
@@ -411,7 +417,6 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async Task<bool> StartLoading() {
-            _mw.SwitchPage();
             if (!await RequestActionPermit()) {
                 return false;
             }
@@ -535,7 +540,7 @@ namespace Hitomi_Scroll_Viewer {
             return null;
         }
 
-        public async Task LoadImagesFromWeb(string id) {
+        public async Task LoadGalleryFromWeb(string id) {
             if (!await StartLoading()) {
                 return;
             }
@@ -611,6 +616,9 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 else if (IsBookmarkFull()) {
                     FinishLoading(GalleryState.BookmarkFull);
+                }
+                else if (IsBookmarked()) {
+                    FinishLoading(GalleryState.Bookmarked);
                 }
                 else {
                     FinishLoading(GalleryState.Loaded);

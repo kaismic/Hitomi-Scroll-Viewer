@@ -69,7 +69,8 @@
             <AppBarButton x:Name="ReloadBtn"
                           Label="Reload Gallery"
                           Icon="Sync"
-                          MinWidth="90"/>
+                          MinWidth="90"
+                          Click="HandleReloadBtnClick"/>
         </CommandBar>
         <TextBlock x:Name="PageNumDisplay" Visibility="Collapsed"
                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 100 0 0"/>
