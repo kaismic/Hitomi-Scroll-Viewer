@@ -147,7 +147,7 @@ namespace Hitomi_Scroll_Viewer {
         private void HandleScrollViewChange(object _0, ScrollViewerViewChangingEventArgs _1) {
             if (_viewMode == ViewMode.Scroll) {
                 GetPageFromScrollOffset();
-                PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
+                PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Length}";
             }
         }
 
@@ -178,7 +178,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void InsertSingleImage() {
-            PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Count}";
+            PageNumDisplay.Text = $"Page {_currPage + 1} of {gallery.files.Length}";
             ImageContainer.Children.Clear();
             ImageContainer.Children.Add(_images[_currPage]);
         }
@@ -273,7 +273,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private static void IncrementPage(int num) {
-            _currPage = (_currPage + num + gallery.files.Count) % gallery.files.Count;
+            _currPage = (_currPage + num + gallery.files.Length) % gallery.files.Length;
         }
 
         public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
@@ -306,13 +306,13 @@ namespace Hitomi_Scroll_Viewer {
             while (_isAutoScrolling) {
                 switch (_viewMode) {
                     case ViewMode.Default:
-                        if (_currPage + 1 == gallery.files.Count && !_isLooping) {
+                        if (_currPage + 1 == gallery.files.Length && !_isLooping) {
                             DispatcherQueue.TryEnqueue(() => SetAutoScroll(false));
                             return;
                         }
                         await Task.Delay((int)(_pageTurnDelay * 1000));
                         if (_isAutoScrolling) {
-                            if (_currPage + 1 == gallery.files.Count && !_isLooping) {
+                            if (_currPage + 1 == gallery.files.Length && !_isLooping) {
                                 DispatcherQueue.TryEnqueue(() => SetAutoScroll(false));
                                 return;
                             }
@@ -462,7 +462,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             gallery = newGallery;
-            _images = new Image[gallery.files.Count];
+            _images = new Image[gallery.files.Length];
             string dir = IMAGE_DIR + @"\" + gallery.id + @"\";
             for (int i = 0; i < _images.Length; i++) {
                 _ct.ThrowIfCancellationRequested();
@@ -606,13 +606,13 @@ namespace Hitomi_Scroll_Viewer {
 
                 // show LoadingProgressBar
                 LoadingProgressBar.Value = 0;
-                LoadingProgressBar.Maximum = gallery.files.Count;
+                LoadingProgressBar.Maximum = gallery.files.Length;
                 LoadingProgressBar.Visibility = Visibility.Visible;
 
                 _ct.ThrowIfCancellationRequested();
 
-                string[] imgHashArr = new string[gallery.files.Count];
-                for (int i = 0; i < gallery.files.Count; i++) {
+                string[] imgHashArr = new string[gallery.files.Length];
+                for (int i = 0; i < gallery.files.Length; i++) {
                     imgHashArr[i] = gallery.files[i].hash;
                 }
 
@@ -636,9 +636,9 @@ namespace Hitomi_Scroll_Viewer {
 
                 await Task.WhenAll(tasks);
 
-                _images = new Image[gallery.files.Count];
+                _images = new Image[gallery.files.Length];
                 string dir = IMAGE_DIR + @"\" + gallery.id + @"\";
-                for (int i = 0; i < gallery.files.Count; i++) {
+                for (int i = 0; i < gallery.files.Length; i++) {
                     _ct.ThrowIfCancellationRequested();
                     _images[i] = new() {
                         Source = new BitmapImage(new(dir + i + IMAGE_EXT)),
