@@ -25,8 +25,6 @@ namespace Hitomi_Scroll_Viewer {
         public MainWindow() {
             InitializeComponent();
 
-            Title = "Hitomi Scroll Viewer";
-
             // create directories if they don't exist
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
