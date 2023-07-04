@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -107,9 +108,13 @@ namespace Hitomi_Scroll_Viewer {
 
             // set max connection per server for http client
             SocketsHttpHandler shh = new() {
-                MaxConnectionsPerServer = 500,
+                MaxConnectionsPerServer = 1,
             };
-            _httpClient = new(shh);
+            _httpClient = new(shh) {
+                DefaultRequestHeaders = {
+                    {"referer", REFERER }
+                },
+            };
         }
 
         private void SetScrollSpeedSlider() {
@@ -197,7 +202,7 @@ namespace Hitomi_Scroll_Viewer {
                         _viewMode = ViewMode.Scroll;
                         InsertImages();
                         bool allLoaded = false;
-                        // wait for the actual image heights to be updated
+                        // wait for the images to be actually loaded into scrollview
                         while (!allLoaded) {
                             await Task.Delay(10);
                             allLoaded = true;
@@ -234,7 +239,7 @@ namespace Hitomi_Scroll_Viewer {
             // half of the window height is the reference height for page calculation
             double pageHalfOffset = currOffset + _mw.appWindow.ClientSize.Height / 2;
             for (int i = 0; i < _images.Length; i++) {
-                imageHeightSum += _images[i].Height;
+                imageHeightSum += _images[i].ActualHeight;
                 if (imageHeightSum >= pageHalfOffset) {
                     _currPage = i;
                     return;
@@ -251,7 +256,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (i >= _currPage) {
                     return offset;
                 }
-                offset += _images[i].Height;
+                offset += _images[i].ActualHeight;
             }
             return offset;
         }
@@ -343,31 +348,43 @@ namespace Hitomi_Scroll_Viewer {
          * Change image size and re-position vertical offset to the page that the user was already at.
          * </summary>
          */
-        private async void ChangeImageSize(object slider, RangeBaseValueChangedEventArgs e) {
+        private async void ChangeImageSize(object sender, RangeBaseValueChangedEventArgs _1) {
+            ((Slider)sender).IsEnabled = false;
+            Slider slider = (Slider)sender;
+            _imageScale = slider.Value;
             if (ImageContainer != null && gallery != null) {
-                switch (_viewMode) {
-                    case ViewMode.Default:
-                        for (int i = 0; i < _images.Length; i++) {
-                            _images[i].Width = gallery.files[i].width * _imageScale;
-                            _images[i].Height = gallery.files[i].height * _imageScale;
+                if (_viewMode == ViewMode.Scroll) {
+                    GetPageFromScrollOffset();
+                }
+                for (int i = 0; i < _images.Length; i++) {
+                    _images[i].Width = gallery.files[i].width * _imageScale;
+                    _images[i].Height = gallery.files[i].height * _imageScale;
+                }
+                if (_viewMode == ViewMode.Scroll) {
+                    // wait for the actual image heights to be updated
+                    double PIXEL_MARGIN = 1;
+                    bool heightAllSet = false;
+                    int startIdx = 0;
+                    while (!heightAllSet) {
+                        heightAllSet = true;
+                        for (int i = startIdx; i < _images.Length; i++) {
+                            Debug.WriteLine(i + " Height = " + _images[i].Height + " Actual Height = " + _images[i].ActualHeight);
+                            // if actual height is not within the expected height range 
+                            if (_images[i].ActualHeight < _images[i].Height - PIXEL_MARGIN
+                                || _images[i].ActualHeight > _images[i].Height + PIXEL_MARGIN) {
+                                Debug.WriteLine("called at i = " + i + " _imageScale = " + _imageScale);
+                                startIdx = i;
+                                heightAllSet = false;
+                                await Task.Delay(10);
+                                break;
+                            }
                         }
-                        break;
-                    case ViewMode.Scroll:
-                        double scrollableHeight = MainScrollViewer.ScrollableHeight;
-                        GetPageFromScrollOffset();
-                        for (int i = 0; i < _images.Length; i++) {
-                            _images[i].Width = gallery.files[i].width * _imageScale;
-                            _images[i].Height = gallery.files[i].height * _imageScale;
-                        }
-                        // wait for the actual image heights to be updated
-                        while (scrollableHeight == MainScrollViewer.ScrollableHeight) {
-                            await Task.Delay(10);
-                        }
-                        // set vertical offset according to the new image scale
-                        MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage());
-                        break;
+                    }
+                    // set vertical offset according to the new image scale
+                    MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage());
                 }
             }
+            slider.IsEnabled = true;
         }
 
         private void DisableControls() {
@@ -524,20 +541,52 @@ namespace Hitomi_Scroll_Viewer {
             return responseString.Substring(responseString.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
         }
 
-        // TODO try implementing queue request e.g. requesting max 5 at a time concurrently
-        // TODO reload button
+        private static string[] GetImageAddresses(string[] imgHashArr, string serverTime) {
+            string[] result = new string[imgHashArr.Length];
+            for (int i = 0; i < imgHashArr.Length; i++) {
+                string hash = imgHashArr[i];
+                string oneTwoCharInt = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
+                result[i] = $"hitomi.la/webp/{serverTime}/{oneTwoCharInt}/{hash}.webp";
+            }
+            return result;
+        }
 
-        private async Task<byte[]> TryGetImageBytesFromWeb(string imgAddress) {
+        /**
+         * <returns>The image <c>byte[]</c> if the given address is valid, otherwise <c>null</c>.</returns>
+         */
+        public async Task<byte[]> GetImageBytesFromWeb(string address) {
+            HttpRequestMessage request = new() {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(address),
+            };
+            HttpResponseMessage response;
+            try {
+                response = await _httpClient.SendAsync(request, _ct);
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException e) {
+                if (e.StatusCode != System.Net.HttpStatusCode.NotFound) {
+                    Debug.WriteLine(e.Message);
+                    Debug.WriteLine("Status Code: " + e.StatusCode);
+                }
+                return null;
+            }
+            catch (TaskCanceledException) {
+                return null;
+            }
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+
+        private async Task TryGetImageBytesFromWeb(string imgAddress, int idx) {
             byte[] imageBytes;
             _ct.ThrowIfCancellationRequested();
             foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
                 imageBytes = await GetImageBytesFromWeb(subdomain + imgAddress);
                 if (imageBytes != null) {
+                    await SaveImage(gallery.id, idx, imageBytes, _ct);
                     LoadingProgressBar.Value++;
-                    return imageBytes;
                 }
             }
-            return null;
         }
 
         public async Task LoadGalleryFromWeb(string id) {
@@ -576,15 +625,16 @@ namespace Hitomi_Scroll_Viewer {
                 imgAddresses = GetImageAddresses(imgHashArr, serverTime);
                 _ct.ThrowIfCancellationRequested();
 
-                byte[][] imageBytes = new byte[imgAddresses.Length][];
+                Directory.CreateDirectory(IMAGE_DIR + @"\" + id);
 
-                for (int i = 0; i < imageBytes.Length; i++) {
+                Task[] tasks = new Task[imgAddresses.Length];
+
+                for (int i = 0; i < imgAddresses.Length; i++) {
                     _ct.ThrowIfCancellationRequested();
-                    imageBytes[i] = await TryGetImageBytesFromWeb(imgAddresses[i]);
+                    tasks[i] = TryGetImageBytesFromWeb(imgAddresses[i], i);
                 }
 
-                // save gallery to local directory
-                await SaveGallery(gallery.id, imageBytes);
+                await Task.WhenAll(tasks);
 
                 _images = new Image[gallery.files.Count];
                 string dir = IMAGE_DIR + @"\" + gallery.id + @"\";
@@ -626,45 +676,6 @@ namespace Hitomi_Scroll_Viewer {
                 // hide LoadingProgressBar
                 LoadingProgressBar.Visibility = Visibility.Collapsed;
             }
-        }
-
-        private static string[] GetImageAddresses(string[] imgHashArr, string serverTime) {
-            string[] result = new string[imgHashArr.Length];
-            for (int i = 0; i < imgHashArr.Length; i++) {
-                string hash = imgHashArr[i];
-                string oneTwoCharInt = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
-                result[i] = $"hitomi.la/webp/{serverTime}/{oneTwoCharInt}/{hash}.webp";
-            }
-            return result;
-        }
-
-        /**
-         * <returns>The image <c>byte[]</c> if the given address is valid, otherwise <c>null</c>.</returns>
-         */
-        public async Task<byte[]> GetImageBytesFromWeb(string address) {
-            HttpRequestMessage request = new() {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(address),
-                Headers = {
-                    {"referer", REFERER }
-                },
-            };
-            HttpResponseMessage response;
-            try {
-                response = await _httpClient.SendAsync(request, _ct);
-                response.EnsureSuccessStatusCode();
-            }
-            catch (HttpRequestException e) {
-                if (e.StatusCode != System.Net.HttpStatusCode.NotFound) {
-                    Debug.WriteLine(e.Message);
-                    Debug.WriteLine("Status Code: " + e.StatusCode);
-                }
-                return null;
-            }
-            catch (TaskCanceledException) {
-                return null;
-            }
-            return await response.Content.ReadAsByteArrayAsync();
         }
 
         public void ChangeBookmarkBtnState(GalleryState state) {
