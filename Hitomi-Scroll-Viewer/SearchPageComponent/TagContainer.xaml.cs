@@ -21,9 +21,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly bool _isExclude;
         private readonly StringSplitOptions _splitOption = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
-        public TagContainer(bool isExclude, string headerText, Color headerColor) {
+        private readonly SearchPage _sp;
+        public TagContainer(SearchPage sp, bool isExclude, string headerText, Color headerColor) {
             InitializeComponent();
 
+            _sp = sp;
             _isExclude = isExclude;
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
@@ -88,7 +90,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public string GetTagParameters(int idx) {
             string result = "";
             string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
-            string[] globalTags = SearchPage.GetGlobalTag(CATEGORIES[idx], _isExclude);
+            string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
             foreach (string tag in curTags.Union(globalTags)) {
                 if (_isExclude) {
                     result += '-';
@@ -101,7 +103,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public string GetTagStrings(int idx) {
             string result = "";
             string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
-            string[] globalTags = SearchPage.GetGlobalTag(CATEGORIES[idx], _isExclude);
+            string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
             foreach (string tag in curTags.Union(globalTags)) {
                 if (_isExclude) {
                     result += '-';
