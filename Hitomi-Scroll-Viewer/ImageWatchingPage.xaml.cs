@@ -368,11 +368,9 @@ namespace Hitomi_Scroll_Viewer {
                     while (!heightAllSet) {
                         heightAllSet = true;
                         for (int i = startIdx; i < _images.Length; i++) {
-                            Debug.WriteLine(i + " Height = " + _images[i].Height + " Actual Height = " + _images[i].ActualHeight);
                             // if actual height is not within the expected height range 
                             if (_images[i].ActualHeight < _images[i].Height - PIXEL_MARGIN
                                 || _images[i].ActualHeight > _images[i].Height + PIXEL_MARGIN) {
-                                Debug.WriteLine("called at i = " + i + " _imageScale = " + _imageScale);
                                 startIdx = i;
                                 heightAllSet = false;
                                 await Task.Delay(10);
