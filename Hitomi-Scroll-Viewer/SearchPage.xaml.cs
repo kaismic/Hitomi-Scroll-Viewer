@@ -423,13 +423,13 @@ namespace Hitomi_Scroll_Viewer {
 
             // if gallery is already loaded
             if (gallery != null) {
-                if (bmItem.bmGallery == gallery) {
+                if (bmItem.gallery == gallery) {
                     _mw.AlertUser("Gallery is already loaded", "");
                     return;
                 }
             }
             _mw.SwitchPage();
-            await _iwp.LoadGalleryFromLocalDir(bmItem.bmGallery);
+            await _iwp.LoadGalleryFromLocalDir(bmItem.gallery);
         }
 
         /**
@@ -474,11 +474,11 @@ namespace Hitomi_Scroll_Viewer {
 
             // if the removing gallery is the current viewing gallery
             if (gallery != null) {
-                if (bmItem.bmGallery == gallery) {
+                if (bmItem.gallery == gallery) {
                     _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
                 }
             }
-            bmGalleries.Remove(bmItem.bmGallery);
+            bmGalleries.Remove(bmItem.gallery);
             _bookmarkItems.Remove(bmItem);
             SaveBookmarkInfo();
             FillBookmarkGrid();
