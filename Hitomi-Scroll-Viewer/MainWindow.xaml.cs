@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Hitomi_Scroll_Viewer {
@@ -98,17 +99,10 @@ namespace Hitomi_Scroll_Viewer {
             return bmGalleries.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE;
         }
 
-        public static async Task SaveGallery(string id, byte[][] imageBytes) {
-            string path = IMAGE_DIR + @"\" + id;
-            Directory.CreateDirectory(path);
-
-            List<Task> tasks = new();
-            for (int i = 0; i < imageBytes.Length; i++) {
-                if (imageBytes[i] != null) {
-                    tasks.Add(File.WriteAllBytesAsync(path + @"\" + i.ToString() + IMAGE_EXT, imageBytes[i]));
-                }
+        public static async Task SaveImage(string id, int idx, byte[] imageBytes, CancellationToken ct) {
+            if (imageBytes != null) {
+                await File.WriteAllBytesAsync(IMAGE_DIR + @"\" + id + @"\" + idx + IMAGE_EXT, imageBytes, ct);
             }
-            await Task.WhenAll(tasks);
         }
 
         public static void DeleteGallery(Gallery removingGallery) {
