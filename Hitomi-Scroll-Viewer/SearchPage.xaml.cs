@@ -73,8 +73,6 @@ namespace Hitomi_Scroll_Viewer {
 
         private static MainWindow _mw;
         private static ImageWatchingPage _iwp;
-        
-        // TODO ignore Global tag toggle button
 
         public SearchPage(MainWindow mainWindow) {
             InitializeComponent();
