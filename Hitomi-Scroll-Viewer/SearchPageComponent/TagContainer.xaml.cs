@@ -32,19 +32,12 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 ColumnDefinitions.Add(new ColumnDefinition());
             }
 
-            //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "0" Grid.Column = "0" Grid.ColumnSpan = "CATEGORIES.Length" >
-            //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "Include/Exclude" />
-            //</ Border >
-
             SetColumnSpan(HeaderBorder, CATEGORIES.Length);
 
             Header.Text = headerText;
             Header.Foreground = new SolidColorBrush(headerColor);
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                //< Border BorderBrush = "Black" BorderThickness = "1" Grid.Row = "1" Grid.Column = "i" >
-                //    < TextBlock HorizontalAlignment = "Center" VerticalAlignment = "Center" Text = "CATEGORIES[i]" />
-                //</ Border >
                 Border categoryHeaderBorder = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
@@ -60,7 +53,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 };
                 categoryHeaderBorder.Child = categoryHeader;
 
-                //< TextBox BorderBrush = "Black" BorderThickness = "1" Grid.Row = "2" Grid.Column = "i" AcceptsReturn = "True" TextWrapping = "Wrap" Height = "200" CornerRadius = "0" ></ TextBox >
                 _tagTextBoxes[i] = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
