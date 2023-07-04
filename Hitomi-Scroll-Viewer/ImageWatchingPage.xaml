@@ -20,6 +20,7 @@
                           Icon="Back"
                           Label="Go Back"
                           Click="HandleGoBackBtnClick"
+                          IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
@@ -27,6 +28,7 @@
                           Icon="ViewAll"
                           Label="Change View Mode"
                           Click="HandleViewModeBtnClick"
+                          IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="BookmarkBtn"
@@ -34,43 +36,54 @@
                           MinWidth="140"
                           IsEnabled="False"
                           Icon="Save"
+                          IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <Slider x:Name="ImageScaleSlider"
                         StepFrequency="0.01"
                         TickFrequency="0.01"
-                        Value="{x:Bind _imageScale, Mode=TwoWay}"
+                        Value="0.5"
                         Minimum="0.1"
                         Maximum="1.5"
                         MinWidth="240"
                         Header="Image Size"
                         FontSize="14"
-                        ValueChanged="ChangeImageSize"/>
+                        ValueChanged="ChangeImageSize"
+                        IsTabStop="False"
+                        />
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <Slider x:Name="ScrollSpeedSlider"
                         MinWidth="240"
                         FontSize="14"
-                        ValueChanged="SetScrollSpeed"/>
+                        ValueChanged="SetScrollSpeed"
+                        IsTabStop="False"
+                        />
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarToggleButton x:Name="AutoScrollBtn"
                                 MinWidth="240"
                                 IsChecked="{x:Bind _isAutoScrolling, Mode=TwoWay}"
-                                Click="HandleAutoScrollBtnClick"/>
+                                Click="HandleAutoScrollBtnClick"
+                                IsTabStop="False"
+                                />
             <AppBarToggleButton x:Name="LoopBtn"
                                 IsChecked="{x:Bind _isLooping, Mode=TwoWay}"
                                 Label="Toggle Loop"
                                 Icon="RepeatAll"
-                                MinWidth="90"/>
+                                MinWidth="90"
+                                IsTabStop="False"
+                                />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ReloadBtn"
                           Label="Reload Gallery"
                           Icon="Sync"
                           MinWidth="90"
-                          Click="HandleReloadBtnClick"/>
+                          Click="HandleReloadBtnClick"
+                          IsTabStop="False"
+                          />
         </CommandBar>
         <TextBlock x:Name="PageNumDisplay" Visibility="Collapsed"
                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 100 0 0"/>
