@@ -19,7 +19,7 @@ using static Hitomi_Scroll_Viewer.Tag;
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
         private static readonly string BASE_DOMAIN = "https://hitomi.la/search.html?";
-        private static readonly int[] GALLERY_ID_LENGTH_RANGE = new int[] { 6, 7 };
+        private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
         private static readonly string BM_INFO_FILE_PATH = ROOT_DIR + @"\BookmarkInfo.json";
@@ -406,7 +406,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private string ExtractGalleryId() {
-            string regex = @"\d{"+ GALLERY_ID_LENGTH_RANGE[0] + "," + GALLERY_ID_LENGTH_RANGE[1] + "}";
+            string regex = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             MatchCollection matches = Regex.Matches(GalleryIDTextBox.Text, regex);
             if (matches.Count == 0) {
                 return null;
