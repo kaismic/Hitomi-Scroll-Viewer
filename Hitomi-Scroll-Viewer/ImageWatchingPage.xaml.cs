@@ -219,6 +219,7 @@ namespace Hitomi_Scroll_Viewer {
                         _viewMode = ViewMode.Default;
                         GetPageFromScrollOffset();
                         InsertSingleImage();
+                        MainScrollViewer.ScrollToVerticalOffset(0);
                         break;
                 }
                 SetScrollSpeedSlider();
