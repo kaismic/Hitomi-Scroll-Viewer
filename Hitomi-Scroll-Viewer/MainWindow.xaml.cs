@@ -52,13 +52,13 @@ namespace Hitomi_Scroll_Viewer {
 
             // Handle window close
             Closed += (object _, WindowEventArgs _) => {
-                iwp.SetAutoScroll(false);
+                iwp.DisableControls();
+                ImageWatchingPage.WaitOperationCancel();
                 if (gallery != null) {
                     if (!IsBookmarked()) {
                         DeleteGallery(gallery);
                     }
                 }
-                ImageWatchingPage.WaitBookmarking();
             };
 
             RootFrame.Content = _appPages[_currPageNum];
