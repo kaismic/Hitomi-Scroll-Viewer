@@ -405,7 +405,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             _mw.SwitchPage();
-            await _iwp.LoadGalleryFromWeb(id);
+            await _iwp.LoadGalleryFromWeb(id, 0);
         }
 
         private string ExtractGalleryId() {
