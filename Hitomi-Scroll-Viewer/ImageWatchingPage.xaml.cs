@@ -41,11 +41,16 @@ namespace Hitomi_Scroll_Viewer {
         private static ViewMode _viewMode = ViewMode.Default;
 
         private readonly HttpClient _httpClient;
+        // TODO Slider to change _maxConcurrentRequest
+        // disable whilst loading or in action
+        // In README.md or Header: Not recommended to increase
+        private readonly int MAX_CONCURRENT_REQUEST = 4;
+        private int _currMaxCncrReq = 1;
 
         private static readonly string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
         private static readonly string GALLERY_INFO_EXCLUDE_STRING = "var galleryinfo = ";
         private static readonly string SERVER_TIME_ADDRESS = "https://ltn.hitomi.la/gg.js";
-        private static readonly string SERVER_TIME_EXCLUDE_STRING = "9999999999/'\r\n};";
+        private static readonly string SERVER_TIME_EXCLUDE_STRING = "0123456789/'\r\n};";
         private static readonly string REFERER = "https://hitomi.la/";
         private static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
         private static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true };
@@ -109,7 +114,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // set max connection per server for http client
             SocketsHttpHandler shh = new() {
-                MaxConnectionsPerServer = 1,
+                MaxConnectionsPerServer = MAX_CONCURRENT_REQUEST,
             };
             _httpClient = new(shh) {
                 DefaultRequestHeaders = {
@@ -122,7 +127,7 @@ namespace Hitomi_Scroll_Viewer {
         private void SetScrollSpeedSlider() {
             switch (_viewMode) {
                 case ViewMode.Default:
-                    // save prev value because it SetScrollSpeed is called when min max is set
+                    // save prev value because SetScrollSpeed is called when min max is set
                     double pageTurnDelay = _pageTurnDelay;
                     ScrollSpeedSlider.StepFrequency = PAGE_TURN_DELAY_FREQ;
                     ScrollSpeedSlider.TickFrequency = PAGE_TURN_DELAY_FREQ;
@@ -133,7 +138,7 @@ namespace Hitomi_Scroll_Viewer {
                     _pageTurnDelay = pageTurnDelay;
                     break;
                 case ViewMode.Scroll:
-                    // save prev value because it SetScrollSpeed is called when min max is set
+                    // save prev value because SetScrollSpeed is called when min max is set
                     double scrollSpeed = _scrollSpeed;
                     ScrollSpeedSlider.StepFrequency = SCROLL_SPEED_FREQ;
                     ScrollSpeedSlider.TickFrequency = SCROLL_SPEED_FREQ;
@@ -162,7 +167,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void HandleReloadBtnClick(object _0, RoutedEventArgs _1) {
-            await LoadGalleryFromWeb(gallery.id);
+            await LoadGalleryFromWeb(gallery.id, _currPage);
         }
 
         public void SetAutoScroll(bool newValue) {
@@ -203,18 +208,7 @@ namespace Hitomi_Scroll_Viewer {
                     case ViewMode.Default:
                         _viewMode = ViewMode.Scroll;
                         InsertImages();
-                        bool allLoaded = false;
-                        // wait for the images to be actually loaded into scrollview
-                        while (!allLoaded) {
-                            await Task.Delay(10);
-                            allLoaded = true;
-                            for (int i = 0; i < _images.Length; i++) {
-                                if (!_images[i].IsLoaded) {
-                                    allLoaded = false;
-                                    break;
-                                }
-                            }
-                        }
+                        await WaitImageLoad();
                         DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
                         break;
                     case ViewMode.Scroll:
@@ -229,6 +223,21 @@ namespace Hitomi_Scroll_Viewer {
             catch (OperationCanceledException) { }
             finally {
                 StopAction();
+            }
+        }
+
+        private static async Task WaitImageLoad() {
+            bool allLoaded = false;
+            // wait for the images to be actually loaded into scrollview
+            while (!allLoaded) {
+                await Task.Delay(10);
+                allLoaded = true;
+                for (int i = 0; i < _images.Length; i++) {
+                    if (!_images[i].IsLoaded) {
+                        allLoaded = false;
+                        break;
+                    }
+                }
             }
         }
 
@@ -579,18 +588,20 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async Task TryGetImageBytesFromWeb(string imgAddress, int idx) {
-            byte[] imageBytes;
             _ct.ThrowIfCancellationRequested();
             foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
-                imageBytes = await GetImageBytesFromWeb(subdomain + imgAddress);
+                byte[] imageBytes = await GetImageBytesFromWeb(subdomain + imgAddress);
                 if (imageBytes != null) {
                     await SaveImage(gallery.id, idx, imageBytes, _ct);
-                    LoadingProgressBar.Value++;
+                    break;
                 }
             }
+            DispatcherQueue.TryEnqueue(() => {
+                LoadingProgressBar.Value++;
+            });
         }
 
-        public async Task LoadGalleryFromWeb(string id) {
+        public async Task LoadGalleryFromWeb(string id, int pageNum) {
             if (!await StartLoading()) {
                 return;
             }
@@ -628,13 +639,27 @@ namespace Hitomi_Scroll_Viewer {
 
                 Directory.CreateDirectory(IMAGE_DIR + @"\" + id);
 
-                Task[] tasks = new Task[imgAddresses.Length];
+                // example:
+                // images length = 47, _currMaxCncrReq = 3
+                // 47 / 3 = 15 r 2
+                // 15+1 | 15+1 | 15
+                int quotient = imgAddresses.Length / _currMaxCncrReq;
+                int remainder = imgAddresses.Length % _currMaxCncrReq;
+                Task[] tasks = new Task[_currMaxCncrReq];
 
-                for (int i = 0; i < imgAddresses.Length; i++) {
-                    _ct.ThrowIfCancellationRequested();
-                    tasks[i] = TryGetImageBytesFromWeb(imgAddresses[i], i);
+                int startIdx = 0;
+                for (int i = 0; i < _currMaxCncrReq; i++) {
+                    int thisI = i;
+                    int thisStartIdx = startIdx;
+                    tasks[i] = Task.Run(async () => {
+                        for (int j = 0; j < quotient + (thisI < remainder ? 1 : 0); j++) {
+                            _ct.ThrowIfCancellationRequested();
+                            int idx = thisStartIdx + j;
+                            await TryGetImageBytesFromWeb(imgAddresses[idx], idx);
+                        }
+                    });
+                    startIdx += quotient + (i < remainder ? 1 : 0);
                 }
-
                 await Task.WhenAll(tasks);
             }
             catch (OperationCanceledException) {}
@@ -645,11 +670,16 @@ namespace Hitomi_Scroll_Viewer {
                 if (gallery != null) {
                     _images = new Image[gallery.files.Length];
                     string dir = IMAGE_DIR + @"\" + gallery.id + @"\";
+                    string missingIndicesText = "";
+                    bool atLeastOneMissing = false;
                     for (int i = 0; i < gallery.files.Length; i++) {
                         string path = dir + i + IMAGE_EXT;
                         BitmapImage source = null;
                         if (File.Exists(path)) {
                             source = new BitmapImage(new(path));
+                        } else {
+                            atLeastOneMissing = true;
+                            missingIndicesText += i + 1 + ", ";
                         }
                         _images[i] = new() {
                             Source = source,
@@ -657,15 +687,19 @@ namespace Hitomi_Scroll_Viewer {
                             Height = gallery.files[i].height * _imageScale
                         };
                     }
+                    _currPage = pageNum;
                     switch (_viewMode) {
                         case ViewMode.Default:
-                            _currPage = 0;
                             InsertSingleImage();
                             break;
                         case ViewMode.Scroll:
-                            MainScrollViewer.ScrollToVerticalOffset(0);
                             InsertImages();
+                            await WaitImageLoad();
+                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
                             break;
+                    }
+                    if (atLeastOneMissing) {
+                        _mw.AlertUser("The image at the following pages have failed to load. Try reducing max concurrent request if the problem persists.", missingIndicesText[..^2]);
                     }
                     if (_ct.IsCancellationRequested) {
                         FinishLoading(GalleryState.Loading);
