@@ -1,5 +1,4 @@
-# Hitomi Scroll Viewer
-
+# Hitomi Scroll Viewer (NSFW)
 ## Preview
 <div>
     <img src="images/preview_0.png" style="width: 100%;">
