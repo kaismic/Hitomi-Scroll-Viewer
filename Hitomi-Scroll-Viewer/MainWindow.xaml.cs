@@ -75,11 +75,17 @@ namespace Hitomi_Scroll_Viewer {
 
         private readonly ContentDialog _dialog = new() {
             CloseButtonText = "Ok",
+            Title = new TextBlock() {
+                TextWrapping = TextWrapping.WrapWholeWords
+            },
+            Content = new TextBlock() {
+                TextWrapping = TextWrapping.WrapWholeWords
+            }
         };
 
         public async void AlertUser(string title, string text) {
-            _dialog.Title = title;
-            _dialog.Content = text;
+            ((TextBlock)_dialog.Title).Text = title;
+            ((TextBlock)_dialog.Content).Text = text;
             _dialog.XamlRoot = Content.XamlRoot;
             await _dialog.ShowAsync();
         }
