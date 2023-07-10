@@ -363,3 +363,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Hitomi-Scroll-Viewer/Hitomi-Scroll-Viewer.csproj
