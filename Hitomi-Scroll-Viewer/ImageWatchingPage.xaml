@@ -64,7 +64,7 @@
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarToggleButton x:Name="AutoScrollBtn"
-                                MinWidth="240"
+                                MinWidth="90"
                                 IsChecked="{x:Bind _isAutoScrolling, Mode=TwoWay}"
                                 Click="HandleAutoScrollBtnClick"
                                 IsTabStop="False"
@@ -84,6 +84,12 @@
                           Click="HandleReloadBtnClick"
                           IsTabStop="False"
                           />
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarElementContainer>
+                <ComboBox x:Name="MaxCncrRequestSelector"
+                          Header="Max concurrent requests"
+                          MaxWidth="120"/>
+            </AppBarElementContainer>
         </CommandBar>
         <TextBlock x:Name="PageNumDisplay" Visibility="Collapsed"
                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 100 0 0"/>

@@ -12,7 +12,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Foundation;
 using static Hitomi_Scroll_Viewer.MainWindow;
 
 namespace Hitomi_Scroll_Viewer {
@@ -85,32 +84,24 @@ namespace Hitomi_Scroll_Viewer {
             _mw = mainWindow;
 
             // Set ImageContainer top margin based on top commandbar height
-            void handleSizeChange(object cb, SizeChangedEventArgs _1) {
-                ImageContainer.Margin = new Thickness(0, ((CommandBar)cb).ActualHeight, 0, 0);
-            }
-
-            TopCommandBar.SizeChanged += handleSizeChange;
+            TopCommandBar.SizeChanged += (_0, _1) => {
+                ImageContainer.Margin = new Thickness(0, TopCommandBar.ActualHeight, 0, 0);
+            };
 
             // handle mouse movement on commandbar
-            void handlePointerEnter(object cb, PointerRoutedEventArgs _1) {
-                ((CommandBar)cb).IsOpen = true;
+            TopCommandBar.PointerEntered += (_0, _1) => {
+                TopCommandBar.IsOpen = true;
                 PageNumDisplay.Visibility = Visibility.Visible;
-            }
-            TopCommandBar.PointerEntered += handlePointerEnter;
+            };
 
-            void handlePointerMove(object cb, PointerRoutedEventArgs args) {
-                CommandBar commandBar = (CommandBar)cb;
-                Point pos = args.GetCurrentPoint(MainGrid).Position;
-                double center = MainGrid.ActualWidth / 2;
-                double cbHalfWidth = commandBar.ActualWidth / 2;
-                // commandBar.ActualHeight is the height at its ClosedDisplayMode
-                // * 3 is the height of the commandbar when it is open and ClosedDisplayMode="Minimal"
-                if (pos.Y > commandBar.ActualHeight * 3 || pos.X < center - cbHalfWidth || pos.X > center + cbHalfWidth) {
-                    commandBar.IsOpen = false;
-                    PageNumDisplay.Visibility = Visibility.Collapsed;
-                }
+            // Max concurrent request selector
+            for (int i = 1; i <= MAX_CONCURRENT_REQUEST; i++) {
+                MaxCncrRequestSelector.Items.Add(i);
             }
-            TopCommandBar.PointerMoved += handlePointerMove;
+            MaxCncrRequestSelector.SelectedIndex = 0;
+            MaxCncrRequestSelector.SelectionChanged += (_0, _1) => {
+                _currMaxCncrReq = (int)MaxCncrRequestSelector.SelectedItem;
+            };
 
             // set max connection per server for http client
             SocketsHttpHandler shh = new() {
@@ -403,6 +394,7 @@ namespace Hitomi_Scroll_Viewer {
             ImageScaleSlider.IsEnabled = false;
             AutoScrollBtn.IsEnabled = false;
             ReloadBtn.IsEnabled = false;
+            MaxCncrRequestSelector.IsEnabled = false;
         }
 
         private void StopAction() {
@@ -410,6 +402,7 @@ namespace Hitomi_Scroll_Viewer {
             ImageScaleSlider.IsEnabled = true;
             AutoScrollBtn.IsEnabled = true;
             ReloadBtn.IsEnabled = true;
+            MaxCncrRequestSelector.IsEnabled = true;
             _isInAction = false;
         }
 
