@@ -40,9 +40,6 @@ namespace Hitomi_Scroll_Viewer {
         private static ViewMode _viewMode = ViewMode.Default;
 
         private readonly HttpClient _httpClient;
-        // TODO Slider to change _maxConcurrentRequest
-        // disable whilst loading or in action
-        // In README.md or Header: Not recommended to increase
         private readonly int MAX_CONCURRENT_REQUEST = 4;
         private int _currMaxCncrReq = 1;
 
