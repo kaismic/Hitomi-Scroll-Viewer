@@ -91,6 +91,10 @@ namespace Hitomi_Scroll_Viewer {
                 PageNumDisplay.Visibility = Visibility.Visible;
             };
 
+            TopCommandBar.Closed += (_0, _1) => {
+                PageNumDisplay.Visibility = Visibility.Collapsed;
+            };
+
             // Max concurrent request selector
             for (int i = 1; i <= MAX_CONCURRENT_REQUEST; i++) {
                 MaxCncrRequestSelector.Items.Add(i);
