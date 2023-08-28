@@ -53,7 +53,7 @@ namespace Hitomi_Scroll_Viewer {
             // Handle window close
             Closed += (object _, WindowEventArgs _) => {
                 iwp.DisableControls();
-                ImageWatchingPage.WaitOperationCancel();
+                ImageWatchingPage.WaitActionFinish();
                 if (gallery != null) {
                     if (!IsBookmarked()) {
                         DeleteGallery(gallery);

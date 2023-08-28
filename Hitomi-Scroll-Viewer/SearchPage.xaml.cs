@@ -400,7 +400,7 @@ namespace Hitomi_Scroll_Viewer {
             for (int i = 0; i < bmGalleries.Count; i++) {
                 if (bmGalleries[i].id == id) {
                     _mw.SwitchPage();
-                    await _iwp.LoadGalleryFromLocalDir(bmGalleries[i]);
+                    _iwp.LoadGalleryFromLocalDir(bmGalleries[i]);
                     return;
                 }
             }
@@ -417,7 +417,7 @@ namespace Hitomi_Scroll_Viewer {
             return matches[^1].Value;
         }
 
-        public async void HandleBookmarkClick(object sender, RoutedEventArgs _1) {
+        public void HandleBookmarkClick(object sender, RoutedEventArgs _1) {
             BookmarkItem bmItem = (BookmarkItem)((HyperlinkButton)sender).Parent;
 
             // if gallery is already loaded
@@ -428,7 +428,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             _mw.SwitchPage();
-            await _iwp.LoadGalleryFromLocalDir(bmItem.gallery);
+            _iwp.LoadGalleryFromLocalDir(bmItem.gallery);
         }
 
         /**

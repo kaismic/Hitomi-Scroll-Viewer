@@ -63,10 +63,10 @@ namespace Hitomi_Scroll_Viewer {
             Empty
         }
 
-        private static GalleryState _galleryState = GalleryState.Empty;
-        private static bool _isInAction = false;
+        private static readonly ManualResetEventSlim _bookmarkSignal = new(true);
+        private static readonly ManualResetEventSlim _actionSignal = new(true);
 
-        private static int _loadRequestCounter = 0;
+        private static int _actionRequestCounter = 0;
 
         // galleries for testing
         // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
@@ -158,6 +158,13 @@ namespace Hitomi_Scroll_Viewer {
             SetAutoScroll(_isAutoScrolling);
         }
 
+        // TODO
+        // only reload the missing images by checking which files are missing and passing those image indices
+        // horizontal and vertical image scrolling in any direction
+        // revert back TopCommandBar behaviour to mouse over visible
+        // FIX first loading gallery from web not loading bug
+        // FIX focus problem on image watching page
+
         private async void HandleReloadBtnClick(object _0, RoutedEventArgs _1) {
             await LoadGalleryFromWeb(gallery.id, _currPage);
         }
@@ -191,7 +198,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void HandleViewModeBtnClick(object _0, RoutedEventArgs _1) {
-            if (!await RequestActionPermit()) {
+            if (!RequestActionPermit()) {
                 return;
             }
             DisableControls();
@@ -284,14 +291,14 @@ namespace Hitomi_Scroll_Viewer {
             if (e.Key == Windows.System.VirtualKey.L) {
                 LoopBtn.IsChecked = !LoopBtn.IsChecked;
             }
-            if (gallery != null && !_isInAction) {
-                _isInAction = true;
+            if (gallery != null && _actionSignal.IsSet) {
+                _actionSignal.Reset();
                 if (_viewMode == ViewMode.Default) {
-                    if (e.Key is Windows.System.VirtualKey.Right or Windows.System.VirtualKey.RightButton) {
+                    if (e.Key == Windows.System.VirtualKey.Right) {
                         IncrementPage(1);
                         InsertSingleImage();
                     }
-                    else if (e.Key is Windows.System.VirtualKey.Left or Windows.System.VirtualKey.LeftButton) {
+                    else if (e.Key == Windows.System.VirtualKey.Left) {
                         IncrementPage(-1);
                         InsertSingleImage();
                     }
@@ -299,7 +306,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (e.Key == Windows.System.VirtualKey.Space) {
                     SetAutoScroll(!_isAutoScrolling);
                 }
-                _isInAction = false;
+                _actionSignal.Set();
             }
         }
 
@@ -404,41 +411,44 @@ namespace Hitomi_Scroll_Viewer {
             AutoScrollBtn.IsEnabled = true;
             ReloadBtn.IsEnabled = true;
             MaxCncrRequestSelector.IsEnabled = true;
-            _isInAction = false;
+            _actionSignal.Set();
         }
 
         /**
          * <returns><c>true</c> if the load request is permitted, otherwise <c>false</c></returns>
          */
-        private static async Task<bool> RequestActionPermit() {
-            if (_isInAction) {
-                int rank = Interlocked.Increment(ref _loadRequestCounter);
-                if (rank == 1) {
-                    // first load request so send cancel request
-                    _cts.Cancel();
-                }
-                while (_isInAction) {
-                    await Task.Delay(10);
-                    // this request is not the latest request anymore
-                    if (_loadRequestCounter != rank) {
-                        return false;
-                    }
-                }
-                // loading finished
-                // this request is the latest request
-                _isInAction = true;
-                _loadRequestCounter = 0;
-                _cts.Dispose();
-                _cts = new();
-                _ct = _cts.Token;
+        private static bool RequestActionPermit() {
+            if (_actionSignal.IsSet) {
+                _actionSignal.Reset();
                 return true;
             }
-            _isInAction = true;
+            int rank = Interlocked.Increment(ref _actionRequestCounter);
+            if (rank == 1) {
+                // first load request so send cancel request
+                _cts.Cancel();
+            }
+            // send signal to any earlier waiting thread
+            _actionSignal.Set();
+            // block _actionSignal
+            _actionSignal.Reset();
+            // wait for the action signal
+            _actionSignal.Wait();
+            if (rank != _actionRequestCounter) {
+                // this signal is not the latest request
+                return false;
+            }
+            // this request is the latest request
+            // block _actionSignal
+            _actionSignal.Reset();
+            _actionRequestCounter = 0;
+            _cts.Dispose();
+            _cts = new();
+            _ct = _cts.Token;
             return true;
         }
 
-        private async Task<bool> StartLoading() {
-            if (!await RequestActionPermit()) {
+        private bool StartLoading() {
+            if (!RequestActionPermit()) {
                 return false;
             }
 
@@ -461,8 +471,8 @@ namespace Hitomi_Scroll_Viewer {
             StopAction();
         }
 
-        public async Task LoadGalleryFromLocalDir(Gallery newGallery) {
-            if (!await StartLoading()) {
+        public void LoadGalleryFromLocalDir(Gallery newGallery) {
+            if (!StartLoading()) {
                 return;
             }
             gallery = newGallery;
@@ -596,7 +606,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public async Task LoadGalleryFromWeb(string id, int pageNum) {
-            if (!await StartLoading()) {
+            if (!StartLoading()) {
                 return;
             }
             try {
@@ -605,7 +615,7 @@ namespace Hitomi_Scroll_Viewer {
                 string galleryInfo = await GetGalleryInfo(id);
 
                 if (galleryInfo == null) {
-                    _isInAction = false;
+                    StopAction();
                     return;
                 }
                 gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
@@ -712,7 +722,6 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void ChangeBookmarkBtnState(GalleryState state) {
-            _galleryState = state;
             if (state == GalleryState.Loaded) {
                 BookmarkBtn.IsEnabled = true;
             }
@@ -721,9 +730,11 @@ namespace Hitomi_Scroll_Viewer {
             }
             switch (state) {
                 case GalleryState.Bookmarked:
+                    _bookmarkSignal.Set();
                     BookmarkBtn.Label = "Bookmarked";
                     break;
                 case GalleryState.Bookmarking:
+                    _bookmarkSignal.Reset();
                     BookmarkBtn.Label = "Bookmarking...";
                     break;
                 case GalleryState.BookmarkFull:
@@ -741,17 +752,11 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public static async void WaitOperationCancel() {
-            while (_galleryState == GalleryState.Bookmarking) {
-                await Task.Delay(10);
-            }
-            if (_galleryState == GalleryState.Loading) {
-                _loadRequestCounter = int.MaxValue;
-                _cts.Cancel();
-                while (_isInAction) {
-                    await Task.Delay(10);
-                }
-            }
+        public static void WaitActionFinish() {
+            RequestActionPermit();
+            _actionSignal.Dispose();
+            _bookmarkSignal.Wait();
+            _bookmarkSignal.Dispose();
         }
     }
 }
