@@ -23,6 +23,6 @@ In image watching page:
 - Press 'L' key to enable/disable loop
 - Press spacebar to start/stop auto page turning/auto scrolling
 - Default mode:
-    - Use left/right keys/mouse buttons to switch between images
+    - Use left/right keys to switch between images
 
 It is not recommended increasing the maximum concurrent request above 1 when the gallery contains approximately more than 20 images because hitomi.la throws 503 error on rapid request above its API rate limit
