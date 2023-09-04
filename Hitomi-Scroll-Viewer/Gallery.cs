@@ -1,11 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Hitomi_Scroll_Viewer {
+    public class IntToStringConverter : System.Text.Json.Serialization.JsonConverter<string> {
+        public override string Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options) {
+            if (reader.TokenType == JsonTokenType.Number)
+                return reader.GetInt32().ToString();
+
+            return reader.GetString();
+        }
+
+        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) {
+            writer.WriteStringValue(value.ToString());
+        }
+    }
+
     public class Gallery {
         public string type;
         public string language_localname;
         public string videofilename;
         public string language;
+        [System.Text.Json.Serialization.JsonConverter(typeof(IntToStringConverter))]
         public string id;
         public ImageInfo[] files;
         public int[] related;
@@ -42,6 +58,7 @@ namespace Hitomi_Scroll_Viewer {
         public int width;
         public int haswebp;
         public int hasavif;
+        public int hasjxl;
         public string hash;
 
         public ImageInfo() {}
