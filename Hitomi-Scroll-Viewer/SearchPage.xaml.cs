@@ -372,12 +372,12 @@ namespace Hitomi_Scroll_Viewer {
 
         private void HandleKeyDown(object _0, KeyRoutedEventArgs e) {
             if (e.Key == Windows.System.VirtualKey.Enter) {
-                CheckGalleryFromId();
+                CheckAndLoad();
             }
         }
 
         private void HandleLoadImageBtnClick(object _0, RoutedEventArgs _1) {
-            CheckGalleryFromId();
+            CheckAndLoad();
         }
 
         public void EnableControls(bool enable) {
@@ -392,7 +392,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private async void CheckGalleryFromId() {
+        private async void CheckAndLoad() {
             string id = ExtractGalleryId();
             if (string.IsNullOrEmpty(id)) {
                 _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
@@ -402,7 +402,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // if gallery is already loaded
             if (_mw.gallery != null) {
-                if (id == _mw.gallery.id) {
+                if (id == _mw.gallery.id && _mw.galleryState != GalleryState.Empty) {
                     _mw.SwitchPage();
                     return;
                 }

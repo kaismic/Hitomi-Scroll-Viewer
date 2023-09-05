@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
@@ -28,6 +29,8 @@ namespace Hitomi_Scroll_Viewer {
         public CancellationTokenSource cts;
         public readonly object actionLock = new();
         public bool isInAction = false;
+
+        public GalleryState galleryState = GalleryState.Empty;
 
         public MainWindow() {
             InitializeComponent();
@@ -110,8 +113,9 @@ namespace Hitomi_Scroll_Viewer {
             if (Directory.Exists(path)) Directory.Delete(path, true);
         }
 
-        public void StartAction(bool start) {
+        public void StartStopAction(bool start) {
             lock (actionLock) {
+                _iwp.LoadingControlBtn.IsEnabled = true;
                 if (start) {
                     isInAction = true;
                     _iwp.LoadingControlBtn.Label = "Cancel Loading";

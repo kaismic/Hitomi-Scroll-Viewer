@@ -60,8 +60,6 @@ namespace Hitomi_Scroll_Viewer {
             Empty
         }
 
-        private GalleryState _galleryState = GalleryState.Empty;
-
         private static readonly ManualResetEventSlim _pageTurnSignal = new(true);
         private readonly ManualResetEventSlim bookmarkSignal = new(true);
 
@@ -190,7 +188,6 @@ namespace Hitomi_Scroll_Viewer {
          */
 
         private async void HandleLoadingControlBtnClick(object _0, RoutedEventArgs _1) {
-            // TODO calculate missing indexes
             bool isInAction;
             lock (_mw.actionLock) {
                 isInAction = _mw.isInAction;
@@ -204,18 +201,16 @@ namespace Hitomi_Scroll_Viewer {
                     await Task.Delay(10);
                 }
                 _mw.cts.Dispose();
-                LoadingControlBtn.IsEnabled = true;
             } else {
                 // reload gallery
                 if (_mw.gallery != null) {
                     ReloadGallery();
                 }
             }
-            
         }
         
         private async void ReloadGallery() {
-
+            // TODO calculate missing indexes
         }
 
         public void StartStopAutoScroll(bool start) {
@@ -247,7 +242,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void HandleViewModeBtnClick(object _0, RoutedEventArgs _1) {
-            _mw.StartAction(true);
+            _mw.StartStopAction(true);
             switch (_viewMode) {
                 case ViewMode.Default:
                     _viewMode = ViewMode.Scroll;
@@ -263,7 +258,7 @@ namespace Hitomi_Scroll_Viewer {
                     break;
             }
             SetScrollSpeedSlider();
-            _mw.StartAction(false);
+            _mw.StartStopAction(false);
         }
 
         private static async Task WaitImageLoad() {
@@ -439,7 +434,7 @@ namespace Hitomi_Scroll_Viewer {
             if (!enable) {
                 StartStopAutoScroll(false);
             }
-            if (_galleryState != GalleryState.Empty) {
+            if (_mw.galleryState != GalleryState.Empty) {
                 ViewModeBtn.IsEnabled = enable;
                 ImageScaleSlider.IsEnabled = enable;
                 AutoScrollBtn.IsEnabled = enable;
@@ -448,7 +443,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void StartLoading() {
-            _mw.StartAction(true);
+            _mw.StartStopAction(true);
             LoadingProgressBar.Value = 0;
             LoadingProgressBar.Visibility = Visibility.Visible;
             // check if we have a gallery already loaded
@@ -463,7 +458,7 @@ namespace Hitomi_Scroll_Viewer {
         private void FinishLoading(GalleryState state) {
             LoadingProgressBar.Visibility = Visibility.Collapsed;
             ChangeBookmarkBtnState(state);
-            _mw.StartAction(false);
+            _mw.StartStopAction(false);
         }
 
         public void LoadGalleryFromLocalDir(Gallery gallery) {
@@ -675,13 +670,9 @@ namespace Hitomi_Scroll_Viewer {
 
             Debug.WriteLine("load gallery 1111");
 
-            Task all = Task.WhenAll(tasks);
-
-            Debug.WriteLine("load gallery 2222");
-
             await Task.WhenAll(tasks);
 
-            Debug.WriteLine("load gallery 3333");
+            Debug.WriteLine("load gallery 2222");
             if (ct.IsCancellationRequested) {
                 FinishLoading(GalleryState.Empty);
                 return;
@@ -741,7 +732,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void ChangeBookmarkBtnState(GalleryState state) {
-            _galleryState = state;
+            _mw.galleryState = state;
             if (state == GalleryState.Loaded) {
                 BookmarkBtn.IsEnabled = true;
             }
