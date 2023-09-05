@@ -87,6 +87,7 @@
                           Icon="Sync"
                           MinWidth="90"
                           Click="HandleLoadingControlBtnClick"
+                          IsEnabled="False"
                           IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
