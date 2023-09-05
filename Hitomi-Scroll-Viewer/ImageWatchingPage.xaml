@@ -81,12 +81,12 @@
                                 IsTabStop="False"
                                 />
             <AppBarSeparator MinWidth="30"/>
-            <AppBarButton x:Name="ReloadBtn"
+            <AppBarButton x:Name="LoadingControlBtn"
+                          x:FieldModifier="public"
                           Label="Reload Gallery"
                           Icon="Sync"
                           MinWidth="90"
-                          Click="HandleReloadBtnClick"
-                          IsEnabled="False"
+                          Click="HandleLoadingControlBtnClick"
                           IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>

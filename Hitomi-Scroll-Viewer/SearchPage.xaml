@@ -33,7 +33,7 @@
                 <StackPanel x:Name="LinkInputGrid" Grid.Column="1"
                             Orientation="Vertical" Spacing="20">
                     <TextBox x:Name="GalleryIDTextBox"
-                             KeyDown="HandleGalleryIDSubmitKeyDown"
+                             KeyDown="HandleKeyDown"
                              TextWrapping="Wrap"
                              MinHeight="80"
                              PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://hitomi.la/..."
