@@ -124,7 +124,7 @@ namespace Hitomi_Scroll_Viewer {
                 _sp.EnableControls(!start);
                 _iwp.EnableControls(!start);
                 if (!start) {
-                    _iwp.LoadingControlBtn.Label = "Reload Gallery";
+                    _iwp.LoadingControlBtn.Label = "Reload Gallery " + gallery.id;
                     _iwp.LoadingControlBtn.Icon = new SymbolIcon(Symbol.Sync);
                     isInAction = false;
                 }
@@ -137,7 +137,6 @@ namespace Hitomi_Scroll_Viewer {
             while (isInAction) {
                 await Task.Delay(10);
             }
-            cts.Dispose();
         }
     }
 }
