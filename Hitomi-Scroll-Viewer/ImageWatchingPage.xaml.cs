@@ -123,7 +123,7 @@ namespace Hitomi_Scroll_Viewer {
         private void SetScrollSpeedSlider() {
             switch (_viewMode) {
                 case ViewMode.Default:
-                    // save prev value because SetScrollSpeed is called when min max is set
+                    // save pageTurnDelay value because ScrollSpeedSlider.Value resets when min max is set
                     double pageTurnDelay = _pageTurnDelay;
                     ScrollSpeedSlider.StepFrequency = PAGE_TURN_DELAY_FREQ;
                     ScrollSpeedSlider.TickFrequency = PAGE_TURN_DELAY_FREQ;
@@ -134,7 +134,7 @@ namespace Hitomi_Scroll_Viewer {
                     _pageTurnDelay = pageTurnDelay;
                     break;
                 case ViewMode.Scroll:
-                    // save prev value because SetScrollSpeed is called when min max is set
+                    // save scrollSpeed value because ScrollSpeedSlider.Value resets when min max is set
                     double scrollSpeed = _scrollSpeed;
                     ScrollSpeedSlider.StepFrequency = SCROLL_SPEED_FREQ;
                     ScrollSpeedSlider.TickFrequency = SCROLL_SPEED_FREQ;
@@ -162,30 +162,6 @@ namespace Hitomi_Scroll_Viewer {
             StartStopAutoScroll(!_isAutoScrolling);
         }
 
-        // TODO
-        // only reload the missing images by checking which files are missing and passing those image indexes
-        // horizontal and vertical image scrolling in any direction
-        /**
-         * 1. user loads image
-         * 2. disable:
-         * - Load Images: button and enter input @
-         * - all bookmark load button @
-         * - change view mode button @
-         * - bookmark button @
-         * - image size slider @
-         * - auto scroll: button and spacebar input @
-         * - reload button @
-         * - max concurrent button @
-         * 3. disable left/right keys
-         * 4. create Image[] and add to scrollview
-         * 5. enable left/right keys
-         * 6. change reload text and icon to cancel loading: Click to cancel gallery loading
-         * when cancel button pressed:
-         * disable cancel button and change text to "cancelling gallery loading..."
-         * 7. after cancellation is done enable all back and change cancel button text to reload text
-         * 
-         */
-
         private async void HandleLoadingControlBtnClick(object _0, RoutedEventArgs _1) {
             bool isInAction;
             lock (_mw.actionLock) {
@@ -206,9 +182,14 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
         }
-        
+
+        // TODO
+        // only reload the missing images by checking which files are missing and passing those image indexes
+        // horizontal and vertical image scrolling in any 4 direction
+
         private async void ReloadGallery() {
-            // TODO calculate missing indexes
+            // TODO show dialog saying "reload only the missing images or reload the whole gallery?"
+            // TODO calculate missing indexes if reload only the missing images
         }
 
         private CancellationTokenSource _autoScrollCts = new();
@@ -457,15 +438,8 @@ namespace Hitomi_Scroll_Viewer {
 
         private void StartLoading() {
             _mw.StartStopAction(true);
-            LoadingProgressBar.Value = 0;
             LoadingProgressBar.Visibility = Visibility.Visible;
-            // check if we have a gallery already loaded
-            if (_mw.gallery != null) {
-                // if the loaded gallery is not bookmarked delete it from local directory
-                if (!_mw.IsBookmarked()) {
-                    DeleteGallery(_mw.gallery);
-                }
-            }
+            LoadingProgressBar.Value = 0;
         }
 
         private void FinishLoading(GalleryState state) {
@@ -729,11 +703,7 @@ namespace Hitomi_Scroll_Viewer {
 
             if (_mw.IsBookmarkFull()) {
                 FinishLoading(GalleryState.BookmarkFull);
-            }
-            else if (_mw.IsBookmarked()) {
-                FinishLoading(GalleryState.Bookmarked);
-            }
-            else {
+            } else {
                 FinishLoading(GalleryState.Loaded);
             }
         }
