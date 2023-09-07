@@ -64,7 +64,7 @@ namespace Hitomi_Scroll_Viewer {
             Closed += (object _, WindowEventArgs _) => {
                 HandleClose();
                 if (gallery != null) {
-                    if (!IsBookmarked()) {
+                    if (GetGalleryFromBookmark(gallery.id) == null) {
                         DeleteGallery(gallery);
                     }
                 }
@@ -95,13 +95,16 @@ namespace Hitomi_Scroll_Viewer {
             await _dialog.ShowAsync();
         }
 
-        public bool IsBookmarked() {
+        /**
+         * <returns>The <c>Gallery</c> if the gallery with the given id is bookmarked, otherwise <c>null</c>.</returns>
+         */
+        public Gallery GetGalleryFromBookmark(string id) {
             for (int i = 0; i < bmGalleries.Count; i++) {
-                if (bmGalleries[i].id == gallery.id) {
-                    return true;
+                if (bmGalleries[i].id == id) {
+                    return bmGalleries[i];
                 }
             }
-            return false;
+            return null;
         }
 
         public bool IsBookmarkFull() {
