@@ -193,11 +193,11 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private CancellationTokenSource _autoScrollCts = new();
-        public void StartStopAutoScroll(bool start) {
-            _isAutoScrolling = start;
-            AutoScrollBtn.IsChecked = start;
+        public void StartStopAutoScroll(bool starting) {
+            _isAutoScrolling = starting;
+            AutoScrollBtn.IsChecked = starting;
             stopwatch.Reset();
-            if (start) {
+            if (starting) {
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Pause);
                 AutoScrollBtn.Label = "Stop Auto Page Turning / Scrolling";
                 CancellationTokenSource cts = new();
