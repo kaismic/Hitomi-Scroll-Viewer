@@ -400,23 +400,27 @@ namespace Hitomi_Scroll_Viewer {
             }
             GalleryIDTextBox.Text = "";
 
-            // if gallery is already loaded
-            if (_mw.gallery != null) {
-                if (id == _mw.gallery.id && _mw.galleryState != GalleryState.Empty) {
-                    _mw.SwitchPage();
-                    return;
-                }
-            }
-
-            // if gallery is already bookmarked
-            for (int i = 0; i < _mw.bmGalleries.Count; i++) {
-                if (_mw.bmGalleries[i].id == id) {
-                    _mw.SwitchPage();
-                    _iwp.LoadGalleryFromLocalDir(_mw.bmGalleries[i]);
-                    return;
-                }
-            }
+            // id is valid so switch page
             _mw.SwitchPage();
+
+            // if there is an already loaded gallery, handle it
+            if (_mw.gallery != null) {
+                // if the already loaded gallery is the same gallery and it is already loaded, just return
+                if (id == _mw.gallery.id && _mw.galleryState != GalleryState.Empty) {
+                    return;
+                }
+
+                Gallery bmGallery = _mw.GetGalleryFromBookmark(id);            
+                // if previous gallery is not bookmarked, delete it from directory
+                if (bmGallery == null) {
+                    DeleteGallery(_mw.gallery);
+                }
+                // if it is already bookmarked, load it from local directory
+                else {
+                    _iwp.LoadGalleryFromLocalDir(bmGallery);
+                    return;
+                }
+            }
             await _iwp.LoadGalleryFromWeb(id, 0);
         }
 
@@ -431,15 +435,21 @@ namespace Hitomi_Scroll_Viewer {
 
         public void HandleBookmarkClick(object sender, RoutedEventArgs _1) {
             BookmarkItem bmItem = (BookmarkItem)((HyperlinkButton)sender).Parent;
+            _mw.SwitchPage();
 
-            // if gallery is already loaded
+            // if there is an already loaded gallery, handle it
             if (_mw.gallery != null) {
+                // if the already loaded gallery is the same gallery and it is already loaded, just return
                 if (bmItem.gallery == _mw.gallery) {
                     _mw.AlertUser("Gallery is already loaded", "");
                     return;
                 }
+                Gallery bmGallery = _mw.GetGalleryFromBookmark(_mw.gallery.id);
+                // delete previous gallery if not bookmarked
+                if (bmGallery == null) {
+                    DeleteGallery(_mw.gallery);
+                }
             }
-            _mw.SwitchPage();
             _iwp.LoadGalleryFromLocalDir(bmItem.gallery);
         }
 
