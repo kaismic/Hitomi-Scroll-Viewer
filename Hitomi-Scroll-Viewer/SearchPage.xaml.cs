@@ -456,38 +456,28 @@ namespace Hitomi_Scroll_Viewer {
         /**
          * <summary>Call this method before and after bookmarking.</summary>
         */
-        private void HandleBookmarking(bool isFinished) {
-            if (isFinished) {
-                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarked);
-            } else {
+        private void StartStopBookmarking(bool starting) {
+            EnableControls(!starting);
+            if (starting) {
                 _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarking);
-            }
-            GalleryIDTextBox.IsEnabled = isFinished;
-            LoadImageBtn.IsEnabled = isFinished;
-
-            // enable/disable bookmark page buttons
-            foreach (Button btn in BookmarkPageBtnsPanel.Children.Cast<Button>()) {
-                btn.IsEnabled = isFinished;
-            }
-
-            // enable/disable bookmark item hyperlink buttons
-            foreach (BookmarkItem bmItem in BookmarkPanel.Children.Cast<BookmarkItem>()) {
-                bmItem.EnableButton(isFinished);
+            } else {
+                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarked);
             }
         }
+
         public static void SaveBookmarkInfo() {
             File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(_mw.bmGalleries, _serializerOptions));
         }
 
         public void AddBookmark(object _0, RoutedEventArgs _1) {
-            HandleBookmarking(false);
+            StartStopBookmarking(true);
 
             _mw.bmGalleries.Add(_mw.gallery);
             _bookmarkItems.Add(new BookmarkItem(_mw.gallery, this));
             SaveBookmarkInfo();
             FillBookmarkGrid();
 
-            HandleBookmarking(true);
+            StartStopBookmarking(false);
         }
 
         public void RemoveBookmark(object sender, RoutedEventArgs _1) {
