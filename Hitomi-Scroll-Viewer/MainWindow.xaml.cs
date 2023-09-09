@@ -12,8 +12,9 @@ using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
-        public static readonly string ROOT_DIR = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\HSV";
-        public static readonly string IMAGE_DIR = ROOT_DIR + @"\images";
+        public static readonly char DIR_SEP = Path.DirectorySeparatorChar;
+        public static readonly string ROOT_DIR = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + DIR_SEP + "HSV";
+        public static readonly string IMAGE_DIR = ROOT_DIR + DIR_SEP + "images";
         public static readonly string IMAGE_EXT = ".webp";
 
         private readonly SearchPage _sp;
@@ -116,7 +117,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void DeleteGallery(Gallery removingGallery) {
-            string path = IMAGE_DIR + @"\" + removingGallery.id;
+            string path = IMAGE_DIR + DIR_SEP + removingGallery.id;
             if (Directory.Exists(path)) Directory.Delete(path, true);
         }
 
