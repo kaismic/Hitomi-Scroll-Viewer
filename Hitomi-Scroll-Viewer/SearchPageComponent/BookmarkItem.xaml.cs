@@ -15,7 +15,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public readonly Gallery gallery;
         private readonly Image[] _images;
         private readonly HyperlinkButton _hb;
-        private readonly bool _imageNotFound = false;
         public BookmarkItem(Gallery newGallery, SearchPage sp) {
             InitializeComponent();
 
@@ -46,27 +45,22 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             Children.Add(imageContainer);
 
             // add thumbnail images
-            if (Directory.Exists(IMAGE_DIR + @"\" + gallery.id)) {
-                _images = new Image[THUMBNAIL_IMG_NUM];
-                for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                    imageContainer.ColumnDefinitions.Add(
-                        new ColumnDefinition() {
-                            Width = new GridLength(2, GridUnitType.Star)
-                        }
-                    );
-                    int imgIdx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
-                        _images[i] = new() {
-                            Source = new BitmapImage(new(IMAGE_DIR + @"\" + gallery.id + @"\" + imgIdx + IMAGE_EXT)),
-                            Width = THUMBNAIL_IMG_WIDTH,
-                            Height = THUMBNAIL_IMG_WIDTH * gallery.files[i].height / gallery.files[i].width,
-                            HorizontalAlignment = HorizontalAlignment.Center
-                        };
-                    Grid.SetColumn(_images[i], i);
-                    imageContainer.Children.Add(_images[i]);
-                }
-            } else {
-                _imageNotFound = true;
-                _hb.IsEnabled = false;
+            _images = new Image[THUMBNAIL_IMG_NUM];
+            for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
+                imageContainer.ColumnDefinitions.Add(
+                    new ColumnDefinition() {
+                        Width = new GridLength(2, GridUnitType.Star)
+                    }
+                );
+                int imgIdx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
+                    _images[i] = new() {
+                        Source = new BitmapImage(new(IMAGE_DIR + @"\" + gallery.id + @"\" + imgIdx + IMAGE_EXT)),
+                        Width = THUMBNAIL_IMG_WIDTH,
+                        Height = THUMBNAIL_IMG_WIDTH * gallery.files[i].height / gallery.files[i].width,
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    };
+                Grid.SetColumn(_images[i], i);
+                imageContainer.Children.Add(_images[i]);
             }
 
             // add another ColumnDefinition for remove button
@@ -88,9 +82,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         public void EnableButton(bool enable) {
-            if (_imageNotFound) {
-                return;
-            }
             _hb.IsEnabled = enable;
         }
     }
