@@ -421,7 +421,7 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
-            await _iwp.LoadGalleryFromWeb(id, 0);
+            await _iwp.LoadGalleryFromWeb(id);
         }
 
         private string ExtractGalleryId() {
