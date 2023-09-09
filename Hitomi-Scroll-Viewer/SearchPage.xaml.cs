@@ -21,8 +21,8 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
-        private static readonly string BM_INFO_FILE_PATH = ROOT_DIR + @"\BookmarkInfo.json";
-        private static readonly string TAGS_FILE_PATH = ROOT_DIR + @"\Tags.json";
+        private static readonly string BM_INFO_FILE_PATH = ROOT_DIR + DIR_SEP + "BookmarkInfo.json";
+        private static readonly string TAGS_FILE_PATH = ROOT_DIR + DIR_SEP + "Tags.json";
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 
@@ -33,7 +33,7 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
         public static readonly int MAX_BOOKMARK_PAGE = 5;
 
-        private static readonly List<BookmarkItem> _bookmarkItems = new();
+        public static readonly List<BookmarkItem> bmItems = new();
         private static int _currBookmarkPage = 0;
 
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
@@ -106,7 +106,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // fill bookmarks
             for (int i = 0; i < _mw.bmGalleries.Count; i++) {
-                _bookmarkItems.Add(new(_mw.bmGalleries[i], this));
+                bmItems.Add(new(_mw.bmGalleries[i], this));
             }
             FillBookmarkGrid();
         }
@@ -382,8 +382,8 @@ namespace Hitomi_Scroll_Viewer {
 
         public void EnableControls(bool enable) {
             LoadImageBtn.IsEnabled = enable;
-            for (int i = 0; i < _bookmarkItems.Count; i++) {
-                _bookmarkItems[i].EnableButton(enable);
+            for (int i = 0; i < bmItems.Count; i++) {
+                bmItems[i].EnableButton(enable);
             }
             if (enable) {
                 GalleryIDTextBox.KeyDown += HandleKeyDown;
@@ -433,14 +433,13 @@ namespace Hitomi_Scroll_Viewer {
             return matches[^1].Value;
         }
 
-        public void HandleBookmarkClick(object sender, RoutedEventArgs _1) {
-            BookmarkItem bmItem = (BookmarkItem)((HyperlinkButton)sender).Parent;
+        public static void LoadBookmark(Gallery gallery) {
             _mw.SwitchPage();
 
             // if there is an already loaded gallery, handle it
             if (_mw.gallery != null) {
                 // if the already loaded gallery is the same gallery and it is already loaded, just return
-                if (bmItem.gallery == _mw.gallery) {
+                if (gallery == _mw.gallery) {
                     _mw.AlertUser("Gallery is already loaded", "");
                     return;
                 }
@@ -450,7 +449,7 @@ namespace Hitomi_Scroll_Viewer {
                     DeleteGallery(_mw.gallery);
                 }
             }
-            _iwp.LoadGalleryFromLocalDir(bmItem.gallery);
+            _iwp.LoadGalleryFromLocalDir(gallery);
         }
 
         /**
@@ -473,7 +472,7 @@ namespace Hitomi_Scroll_Viewer {
             StartStopBookmarking(true);
 
             _mw.bmGalleries.Add(_mw.gallery);
-            _bookmarkItems.Add(new BookmarkItem(_mw.gallery, this));
+            bmItems.Add(new BookmarkItem(_mw.gallery, this));
             SaveBookmarkInfo();
             FillBookmarkGrid();
 
@@ -481,7 +480,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void RemoveBookmark(object sender, RoutedEventArgs _1) {
-            BookmarkItem bmItem = (BookmarkItem)((Grid)((Button)sender).Parent).Parent;
+            BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
 
             // if the removing gallery is the current viewing gallery
             if (_mw.gallery != null) {
@@ -490,7 +489,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             _mw.bmGalleries.Remove(bmItem.gallery);
-            _bookmarkItems.Remove(bmItem);
+            bmItems.Remove(bmItem);
             SaveBookmarkInfo();
             FillBookmarkGrid();
         }
@@ -502,7 +501,7 @@ namespace Hitomi_Scroll_Viewer {
 
             for (int i = startingIdx; i < endingIdx; i++) {
                 if (i < _mw.bmGalleries.Count) {
-                    BookmarkPanel.Children.Add(_bookmarkItems[i]);
+                    BookmarkPanel.Children.Add(bmItems[i]);
                 }
             }
         }
