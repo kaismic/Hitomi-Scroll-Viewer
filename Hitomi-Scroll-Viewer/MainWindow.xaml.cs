@@ -61,8 +61,12 @@ namespace Hitomi_Scroll_Viewer {
             };
 
             // Handle window close
-            Closed += (object _, WindowEventArgs _) => {
-                HandleClose();
+            Closed += async (object _, WindowEventArgs _) => {
+                _iwp.WaitBookmarking();
+                lock (actionLock) if (isInAction) cts.Cancel();
+                while (isInAction) {
+                    await Task.Delay(10);
+                }
                 if (gallery != null) {
                     if (GetGalleryFromBookmark(gallery.id) == null) {
                         DeleteGallery(gallery);
@@ -131,14 +135,6 @@ namespace Hitomi_Scroll_Viewer {
                     _iwp.LoadingControlBtn.Icon = new SymbolIcon(Symbol.Sync);
                     isInAction = false;
                 }
-            }
-        }
-
-        private async void HandleClose() {
-            _iwp.WaitBookmarking();
-            lock (actionLock) if (isInAction) cts.Cancel();
-            while (isInAction) {
-                await Task.Delay(10);
             }
         }
     }
