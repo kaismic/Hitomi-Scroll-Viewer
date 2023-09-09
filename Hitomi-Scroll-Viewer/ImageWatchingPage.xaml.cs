@@ -186,7 +186,6 @@ namespace Hitomi_Scroll_Viewer {
 
         // TODO
         // horizontal and vertical image scrolling in any 4 direction
-        // 2347
 
         private async void ReloadGallery() {
             ContentDialog dialog = new() {
@@ -302,6 +301,7 @@ namespace Hitomi_Scroll_Viewer {
 
             await Task.WhenAll(tasks);
 
+            Image[] images = new Image[_mw.gallery.files.Length];
             string missingIndexesText = "";
             for (int i = 0; i < missingCount; i++) {
                 int idx = missingIndexes[i];
@@ -313,12 +313,27 @@ namespace Hitomi_Scroll_Viewer {
                 if (!File.Exists(path)) {
                     missingIndexesText += idx + ", ";
                 }
-                _images[idx] = new() {
+                images[i] = new() {
                     Source = new BitmapImage(new(path)),
-                    Width = _mw.gallery.files[idx].width * _imageScale,
-                    Height = _mw.gallery.files[idx].height * _imageScale
+                    Width = _mw.gallery.files[i].width * _imageScale,
+                    Height = _mw.gallery.files[i].height * _imageScale
                 };
             }
+
+            // disable left/right key input
+            _pageTurnSignal.Reset();
+            _images = images;
+            switch (_viewMode) {
+                case ViewMode.Default:
+                    InsertSingleImage();
+                    break;
+                case ViewMode.Scroll:
+                    InsertImages();
+                    await WaitImageLoad();
+                    DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
+                    break;
+            }
+            _pageTurnSignal.Set();
 
             if (missingIndexesText != "") {
                 _mw.AlertUser("The image at the following pages have failed to load. Try reducing max concurrent request if the problem persists.", missingIndexesText[..^2]);
@@ -733,7 +748,7 @@ namespace Hitomi_Scroll_Viewer {
             });
         }
 
-        public async Task LoadGalleryFromWeb(string id, int pageNum) {
+        public async Task LoadGalleryFromWeb(string id) {
             StartLoading();
 
             // create new cts
@@ -807,8 +822,8 @@ namespace Hitomi_Scroll_Viewer {
 
             await Task.WhenAll(tasks);
 
-            Image[] images = new Image[_mw.gallery.files.Length];
             string imageDir = IMAGE_DIR + DIR_SEP + _mw.gallery.id + DIR_SEP;
+            Image[] images = new Image[_mw.gallery.files.Length];
             string missingIndexesText = "";
             for (int i = 0; i < _mw.gallery.files.Length; i++) {
                 if (ct.IsCancellationRequested) {
@@ -816,15 +831,11 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
                 string path = imageDir + i + IMAGE_EXT;
-                BitmapImage source = null;
-                if (File.Exists(path)) {
-                    source = new BitmapImage(new(path));
-                }
-                else {
+                if (!File.Exists(path)) {
                     missingIndexesText += i + ", ";
                 }
                 images[i] = new() {
-                    Source = source,
+                    Source = new BitmapImage(new(path)),
                     Width = _mw.gallery.files[i].width * _imageScale,
                     Height = _mw.gallery.files[i].height * _imageScale
                 };
@@ -833,7 +844,7 @@ namespace Hitomi_Scroll_Viewer {
             // disable left/right key input
             _pageTurnSignal.Reset();
             _images = images;
-            _currPage = pageNum;
+            _currPage = 0;
             switch (_viewMode) {
                 case ViewMode.Default:
                     InsertSingleImage();
