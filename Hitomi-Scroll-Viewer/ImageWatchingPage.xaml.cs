@@ -220,7 +220,6 @@ namespace Hitomi_Scroll_Viewer {
             _mw.cts = localCts;
 
             string imageDir = IMAGE_DIR + DIR_SEP + _mw.gallery.id + DIR_SEP;
-            Debug.WriteLine($"image directory = {imageDir}");
 
             Directory.CreateDirectory(imageDir);
 
@@ -238,7 +237,6 @@ namespace Hitomi_Scroll_Viewer {
                     if (!File.Exists(path)) {
                         missingIndexes[missingCount] = i;
                         missingCount++;
-                        Debug.WriteLine($"missing index: {i}");
                     }
                 }
                 if (missingCount == 0) {
@@ -247,7 +245,6 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
-            Debug.WriteLine($"missing count = {missingCount}");
 
             if (ct.IsCancellationRequested) {
                 FinishLoading(_mw.galleryState);
