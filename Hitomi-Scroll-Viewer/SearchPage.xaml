@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <ScrollViewer x:Name="MainScrollViewer">
+    <ScrollViewer>
         <StackPanel Orientation="Vertical">
             <Grid x:Name="TagContainerGrid"/>
             <Grid Margin="0 10 0 0" ColumnSpacing="20">
@@ -15,23 +15,24 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel x:Name="HyperlinkGrid"
+                <StackPanel x:Name="AddressControlPanel"
                             Grid.Column="0"
                             Orientation="Vertical"
                             Spacing="20">
-                    <Button Click="GenerateHyperlink"
+                    <Button x:Name="GenerateHyperlinkBtn"
+                            Click="GenerateHyperlink"
                             MinHeight="80"
                             FontSize="18"
                             BorderBrush="DeepPink"
                             HorizontalAlignment="Center"
                             Content="Generate and Copy Link"
                             />
-                    <StackPanel x:Name="HyperlinkPanel"
-                                Orientation="Vertical"
-                    />
+                    <ScrollViewer VerticalScrollBarVisibility="Visible">
+                        <StackPanel x:Name="HyperlinkPanel"
+                                    Orientation="Vertical"/>
+                    </ScrollViewer>
                 </StackPanel>
-                <StackPanel x:Name="LinkInputGrid" Grid.Column="1"
-                            Orientation="Vertical" Spacing="20">
+                <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="20">
                     <TextBox x:Name="GalleryIDTextBox"
                              KeyDown="HandleKeyDown"
                              TextWrapping="Wrap"

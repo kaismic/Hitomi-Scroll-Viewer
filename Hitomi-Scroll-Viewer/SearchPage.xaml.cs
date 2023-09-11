@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -146,7 +147,7 @@ namespace Hitomi_Scroll_Viewer {
                     CloseButtonText = "Cancel",
                 };
             }
-            void setXamlRoot(object s, RoutedEventArgs e) {
+            void setXamlRoot(object _0, RoutedEventArgs _1) {
                 for (int i = 0; i < Enum.GetNames<TagListAction>().Length; i++) {
                     _confirmDialogs[i].XamlRoot = XamlRoot;
                 }
@@ -172,6 +173,14 @@ namespace Hitomi_Scroll_Viewer {
                 pageNumBtn.Click += ChangeBookmarkPage;
                 BookmarkPageBtnsPanel.Children.Add(pageNumBtn);
             }
+
+            // set hyperlink panel max height
+            void setHyperlinkPanelHeight(object _0, SizeChangedEventArgs _1) {
+                ((ScrollViewer)(HyperlinkPanel.Parent)).MaxHeight = TagControlGrid.ActualHeight - GenerateHyperlinkBtn.ActualHeight - AddressControlPanel.Spacing;
+                AddressControlPanel.MaxHeight = TagControlGrid.ActualHeight;
+                TagControlGrid.SizeChanged -= setHyperlinkPanelHeight;
+            };
+            TagControlGrid.SizeChanged += setHyperlinkPanelHeight;
         }
 
         public static void SaveTagInfo() {
