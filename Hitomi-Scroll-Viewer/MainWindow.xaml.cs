@@ -123,17 +123,22 @@ namespace Hitomi_Scroll_Viewer {
 
         public void StartStopAction(bool start) {
             lock (actionLock) {
-                _iwp.LoadingControlBtn.IsEnabled = true;
                 if (start) {
                     isInAction = true;
                     _iwp.LoadingControlBtn.Label = "Cancel Loading";
                     _iwp.LoadingControlBtn.Icon = new SymbolIcon(Symbol.Cancel);
+                    _iwp.LoadingControlBtn.IsEnabled = true;
                 }
                 _sp.EnableControls(!start);
                 _iwp.EnableControls(!start);
                 if (!start) {
-                    _iwp.LoadingControlBtn.Label = "Reload Gallery " + gallery.id;
-                    _iwp.LoadingControlBtn.Icon = new SymbolIcon(Symbol.Sync);
+                    if (gallery != null && _iwp.images != null) {
+                        if (gallery.files.Length == _iwp.images.Length) {
+                            _iwp.LoadingControlBtn.Label = "Reload Gallery " + gallery.id;
+                            _iwp.LoadingControlBtn.Icon = new SymbolIcon(Symbol.Sync);
+                            _iwp.LoadingControlBtn.IsEnabled = true;
+                        }
+                    }
                     isInAction = false;
                 }
             }
