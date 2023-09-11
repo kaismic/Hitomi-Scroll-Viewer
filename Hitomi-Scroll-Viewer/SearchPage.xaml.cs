@@ -403,23 +403,18 @@ namespace Hitomi_Scroll_Viewer {
             // id is valid so switch page
             _mw.SwitchPage();
 
-            // if there is an already loaded gallery, handle it
+            // if the already loaded gallery is the same gallery, just return
             if (_mw.gallery != null) {
-                // if the already loaded gallery is the same gallery and it is already loaded, just return
-                if (id == _mw.gallery.id && _mw.galleryState != GalleryState.Empty) {
+                if (id == _mw.gallery.id) {
+                    _mw.AlertUser("Gallery is already loaded", "");
                     return;
                 }
-
-                Gallery bmGallery = _mw.GetGalleryFromBookmark(id);            
-                // if previous gallery is not bookmarked, delete it from directory
-                if (bmGallery == null) {
-                    DeleteGallery(_mw.gallery);
-                }
-                // if it is already bookmarked, load it from local directory
-                else {
-                    _iwp.LoadGalleryFromLocalDir(bmGallery);
-                    return;
-                }
+            }
+            // if it is already bookmarked, load it from local directory
+            Gallery bmGallery = _mw.GetGalleryFromBookmark(id);
+            if (bmGallery != null) {
+                _iwp.LoadGalleryFromLocalDir(bmGallery);
+                return;
             }
             await _iwp.LoadGalleryFromWeb(id);
         }
@@ -436,17 +431,11 @@ namespace Hitomi_Scroll_Viewer {
         public static void LoadBookmark(Gallery gallery) {
             _mw.SwitchPage();
 
-            // if there is an already loaded gallery, handle it
+            // if the already loaded gallery is the same gallery, just return
             if (_mw.gallery != null) {
-                // if the already loaded gallery is the same gallery and it is already loaded, just return
-                if (gallery == _mw.gallery) {
+                if (gallery.id == _mw.gallery.id) {
                     _mw.AlertUser("Gallery is already loaded", "");
                     return;
-                }
-                Gallery bmGallery = _mw.GetGalleryFromBookmark(_mw.gallery.id);
-                // delete previous gallery if not bookmarked
-                if (bmGallery == null) {
-                    DeleteGallery(_mw.gallery);
                 }
             }
             _iwp.LoadGalleryFromLocalDir(gallery);
@@ -482,11 +471,15 @@ namespace Hitomi_Scroll_Viewer {
         public void RemoveBookmark(object sender, RoutedEventArgs _1) {
             BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
 
-            // if the removing gallery is the current viewing gallery
+            // delete bookmarked gallery if the removing gallery is not the current gallery
             if (_mw.gallery != null) {
                 if (bmItem.gallery == _mw.gallery) {
                     _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
+                } else {
+                    DeleteGallery(bmItem.gallery);
                 }
+            } else {
+                DeleteGallery(bmItem.gallery);
             }
             _mw.bmGalleries.Remove(bmItem.gallery);
             bmItems.Remove(bmItem);

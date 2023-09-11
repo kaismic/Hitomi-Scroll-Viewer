@@ -33,7 +33,7 @@ namespace Hitomi_Scroll_Viewer {
         private double _imageScale = 0.5;
 
         private static int _currPage = 0;
-        private static Image[] _images;
+        public Image[] images;
 
         private enum ViewMode {
             Default,
@@ -163,19 +163,10 @@ namespace Hitomi_Scroll_Viewer {
             StartStopAutoScroll(!_isAutoScrolling);
         }
 
-        private async void HandleLoadingControlBtnClick(object _0, RoutedEventArgs _1) {
-            bool isInAction;
-            lock (_mw.actionLock) {
-                isInAction = _mw.isInAction;
-                if (isInAction) {
-                    LoadingControlBtn.IsEnabled = false;
-                    _mw.cts.Cancel();
-                }
-            }
-            if (isInAction) {
-                while (_mw.isInAction) {
-                    await Task.Delay(10);
-                }
+        private void HandleLoadingControlBtnClick(object _0, RoutedEventArgs _1) {
+            if (_mw.isInAction) {
+                LoadingControlBtn.IsEnabled = false;
+                _mw.cts.Cancel();
             } else {
                 // reload gallery
                 if (_mw.gallery != null) {
@@ -290,7 +281,7 @@ namespace Hitomi_Scroll_Viewer {
                             return;
                         }
                         int idx = thisStartIdx + j;
-                        await TryGetImageBytesFromWeb(imgAddresses[idx], missingIndexes[idx], ct);
+                        await TryGetImageBytesFromWeb(_mw.gallery.id, imgAddresses[idx], missingIndexes[idx], ct);
                     }
                 });
                 startIdx += thisJMax;
@@ -307,15 +298,10 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 string path = imageDir + idx + IMAGE_EXT;
                 if (File.Exists(path)) {
-                    _images[idx].Source = new BitmapImage(new(path));
+                    images[idx].Source = new BitmapImage(new(path));
                 } else {
                     missingIndexesText += idx + ", ";
                 }
-                //BitmapImage newImg = new() {
-                //    CreateOptions = BitmapCreateOptions.IgnoreImageCache,
-                //    UriSource = new(path)
-                //};
-                //_images[idx].Source = newImg;
             }
 
             // disable left/right key input
@@ -334,6 +320,8 @@ namespace Hitomi_Scroll_Viewer {
 
             if (missingIndexesText != "") {
                 _mw.AlertUser("The image at the following pages have failed to load. Try reducing max concurrent request if the problem persists.", missingIndexesText[..^2]);
+            } else {
+                _mw.AlertUser($"Reloading {_mw.gallery.id} has finished successfully", "");
             }
 
             bool isBookmarked = false;
@@ -378,13 +366,13 @@ namespace Hitomi_Scroll_Viewer {
         private void InsertSingleImage() {
             PageNumDisplay.Text = $"Page {_currPage} of {_mw.gallery.files.Length - 1}";
             ImageContainer.Children.Clear();
-            ImageContainer.Children.Add(_images[_currPage]);
+            ImageContainer.Children.Add(images[_currPage]);
         }
 
         private void InsertImages() {
             ImageContainer.Children.Clear();
-            for (int i = 0; i < _images.Length; i++) {
-                ImageContainer.Children.Add(_images[i]);
+            for (int i = 0; i < images.Length; i++) {
+                ImageContainer.Children.Add(images[i]);
             }
         }
 
@@ -408,14 +396,14 @@ namespace Hitomi_Scroll_Viewer {
             _mw.StartStopAction(false);
         }
 
-        private static async Task WaitImageLoad() {
+        private async Task WaitImageLoad() {
             bool allLoaded = false;
             // wait for the images to be actually loaded into scrollview
             while (!allLoaded) {
                 await Task.Delay(10);
                 allLoaded = true;
-                for (int i = 0; i < _images.Length; i++) {
-                    if (!_images[i].IsLoaded) {
+                for (int i = 0; i < images.Length; i++) {
+                    if (!images[i].IsLoaded) {
                         allLoaded = false;
                         break;
                     }
@@ -432,8 +420,8 @@ namespace Hitomi_Scroll_Viewer {
             }
             // half of the window height is the reference height for page calculation
             double pageHalfOffset = currOffset + _mw.appWindow.ClientSize.Height / 2;
-            for (int i = 0; i < _images.Length; i++) {
-                imageHeightSum += _images[i].ActualHeight;
+            for (int i = 0; i < images.Length; i++) {
+                imageHeightSum += images[i].ActualHeight;
                 if (imageHeightSum >= pageHalfOffset) {
                     _currPage = i;
                     return;
@@ -444,11 +432,11 @@ namespace Hitomi_Scroll_Viewer {
         private double GetScrollOffsetFromPage() {
             if (_currPage == 0) return 0;
             double offset = ImageContainer.Margin.Top;
-            for (int i = 0; i < _images.Length; i++) {
+            for (int i = 0; i < images.Length; i++) {
                 if (i >= _currPage) {
                     return offset;
                 }
-                offset += _images[i].ActualHeight;
+                offset += images[i].ActualHeight;
             }
             return offset;
         }
@@ -561,9 +549,9 @@ namespace Hitomi_Scroll_Viewer {
                 if (_viewMode == ViewMode.Scroll) {
                     GetPageFromScrollOffset();
                 }
-                for (int i = 0; i < _images.Length; i++) {
-                    _images[i].Width = _mw.gallery.files[i].width * _imageScale;
-                    _images[i].Height = _mw.gallery.files[i].height * _imageScale;
+                for (int i = 0; i < images.Length; i++) {
+                    images[i].Width = _mw.gallery.files[i].width * _imageScale;
+                    images[i].Height = _mw.gallery.files[i].height * _imageScale;
                 }
                 if (_viewMode == ViewMode.Scroll) {
                     // wait for the actual image heights to be updated
@@ -572,10 +560,10 @@ namespace Hitomi_Scroll_Viewer {
                     int startIdx = 0;
                     while (!heightAllSet) {
                         heightAllSet = true;
-                        for (int i = startIdx; i < _images.Length; i++) {
+                        for (int i = startIdx; i < images.Length; i++) {
                             // if actual height is not within the expected height range 
-                            if (_images[i].ActualHeight < _images[i].Height - PIXEL_MARGIN
-                                || _images[i].ActualHeight > _images[i].Height + PIXEL_MARGIN) {
+                            if (images[i].ActualHeight < images[i].Height - PIXEL_MARGIN
+                                || images[i].ActualHeight > images[i].Height + PIXEL_MARGIN) {
                                 startIdx = i;
                                 heightAllSet = false;
                                 await Task.Delay(10);
@@ -618,18 +606,24 @@ namespace Hitomi_Scroll_Viewer {
 
         public void LoadGalleryFromLocalDir(Gallery gallery) {
             StartLoading();
+            // delete previous gallery if not bookmarked
+            if (_mw.gallery != null) {
+                if (_mw.GetGalleryFromBookmark(_mw.gallery.id) == null) {
+                    DeleteGallery(_mw.gallery);
+                }
+            }
             _mw.gallery = gallery;
-            _images = new Image[gallery.files.Length];
+            images = new Image[gallery.files.Length];
             LoadingProgressBar.Maximum = gallery.files.Length;
             string dir = IMAGE_DIR + DIR_SEP + gallery.id + DIR_SEP;
-            for (int i = 0; i < _images.Length; i++) {
+            for (int i = 0; i < images.Length; i++) {
                 string path = dir + i + IMAGE_EXT;
-                _images[i] = new() {
+                images[i] = new() {
                     Width = gallery.files[i].width * _imageScale,
                     Height = gallery.files[i].height * _imageScale
                 };
                 if (File.Exists(path)) {
-                    _images[i].Source = new BitmapImage(new(path));
+                    images[i].Source = new BitmapImage(new(path));
                 }
                 LoadingProgressBar.Value++;
             }
@@ -732,7 +726,7 @@ namespace Hitomi_Scroll_Viewer {
             return await response.Content.ReadAsByteArrayAsync(ct);
         }
 
-        private async Task TryGetImageBytesFromWeb(string imgAddress, int idx, CancellationToken ct) {
+        private async Task TryGetImageBytesFromWeb(string id, string imgAddress, int idx, CancellationToken ct) {
             foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
                 if (ct.IsCancellationRequested) {
                     return;
@@ -740,7 +734,7 @@ namespace Hitomi_Scroll_Viewer {
                 byte[] imageBytes = await GetImageBytesFromWeb(subdomain + imgAddress, ct);
                 if (imageBytes != null) {
                     try {
-                        await File.WriteAllBytesAsync(IMAGE_DIR + DIR_SEP + _mw.gallery.id + DIR_SEP + idx + IMAGE_EXT, imageBytes, ct);
+                        await File.WriteAllBytesAsync(IMAGE_DIR + DIR_SEP + id + DIR_SEP + idx + IMAGE_EXT, imageBytes, ct);
                     } catch (IOException) {
                         return;
                     }
@@ -771,19 +765,20 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
+            Gallery newGallery; 
             try {
-                _mw.gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
+                newGallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
             } catch (JsonException e) {
                 _mw.AlertUser("Error while reading gallery json file", e.Message);
                 FinishLoading(GalleryState.Empty);
                 return;
             }
 
-            LoadingProgressBar.Maximum = _mw.gallery.files.Length;
+            LoadingProgressBar.Maximum = newGallery.files.Length;
 
-            string[] imgHashArr = new string[_mw.gallery.files.Length];
-            for (int i = 0; i < _mw.gallery.files.Length; i++) {
-                imgHashArr[i] = _mw.gallery.files[i].hash;
+            string[] imgHashArr = new string[newGallery.files.Length];
+            for (int i = 0; i < newGallery.files.Length; i++) {
+                imgHashArr[i] = newGallery.files[i].hash;
             }
 
             string serverTime = await GetServerTime(ct);
@@ -818,7 +813,7 @@ namespace Hitomi_Scroll_Viewer {
                             return;
                         }
                         int idx = thisStartIdx + j;
-                        await TryGetImageBytesFromWeb(imgAddresses[idx], idx, ct);
+                        await TryGetImageBytesFromWeb(newGallery.id, imgAddresses[idx], idx, ct);
                     }
                 });
                 startIdx += thisJMax;
@@ -826,21 +821,26 @@ namespace Hitomi_Scroll_Viewer {
 
             await Task.WhenAll(tasks);
 
-            string imageDir = IMAGE_DIR + DIR_SEP + _mw.gallery.id + DIR_SEP;
-            Image[] images = new Image[_mw.gallery.files.Length];
+            if (ct.IsCancellationRequested) {
+                FinishLoading(GalleryState.Empty);
+                return;
+            }
+
+            string imageDir = IMAGE_DIR + DIR_SEP + newGallery.id + DIR_SEP;
+            Image[] newImages = new Image[newGallery.files.Length];
             string missingIndexesText = "";
-            for (int i = 0; i < _mw.gallery.files.Length; i++) {
+            for (int i = 0; i < newGallery.files.Length; i++) {
                 if (ct.IsCancellationRequested) {
                     FinishLoading(GalleryState.Empty);
                     return;
                 }
                 string path = imageDir + i + IMAGE_EXT;
-                images[i] = new() {
-                    Width = _mw.gallery.files[i].width * _imageScale,
-                    Height = _mw.gallery.files[i].height * _imageScale
+                newImages[i] = new() {
+                    Width = newGallery.files[i].width * _imageScale,
+                    Height = newGallery.files[i].height * _imageScale
                 };
                 if (File.Exists(path)) {
-                    images[i].Source = new BitmapImage(new(path));
+                    newImages[i].Source = new BitmapImage(new(path));
                 } else {
                     missingIndexesText += i + ", ";
                 }
@@ -848,7 +848,14 @@ namespace Hitomi_Scroll_Viewer {
 
             // disable left/right key input
             _pageMutex.WaitOne();
-            _images = images;
+            // delete previous gallery if not bookmarked
+            if (_mw.gallery != null) {
+                if (_mw.GetGalleryFromBookmark(_mw.gallery.id) == null) {
+                    DeleteGallery(_mw.gallery);
+                }
+            }
+            _mw.gallery = newGallery;
+            images = newImages;
             _currPage = 0;
             switch (_viewMode) {
                 case ViewMode.Default:
@@ -864,6 +871,8 @@ namespace Hitomi_Scroll_Viewer {
 
             if (missingIndexesText != "") {
                 _mw.AlertUser("The image at the following pages have failed to load. Try reducing max concurrent request if the problem persists.", missingIndexesText[..^2]);
+            } else {
+                _mw.AlertUser($"Gallery {newGallery.id} has loaded successfully", "");
             }
 
             if (_mw.IsBookmarkFull()) {
