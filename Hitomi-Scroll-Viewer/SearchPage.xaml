@@ -39,10 +39,19 @@
                              MinHeight="80"
                              PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://hitomi.la/..."
                              />
-                    <Button x:Name="LoadImageBtn" Click="HandleLoadImageBtnClick"
-                            HorizontalAlignment="Center">
-                        <TextBlock Text="Load Images" TextWrapping="WrapWholeWords"/>
-                    </Button>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" HorizontalAlignment="Center">
+                            <TextBlock Text="Bookmark Gallery" TextWrapping="WrapWholeWords"/>
+                        </Button>
+                        <Button x:Name="LoadGalleryBtn" Click="HandleLoadGalleryBtnClick"
+                                Grid.Column="1" HorizontalAlignment="Center">
+                            <TextBlock Text="Load Gallery" TextWrapping="WrapWholeWords"/>
+                        </Button>
+                    </Grid>
                 </StackPanel>
                 <Grid x:Name="TagControlGrid" Grid.Column="2"
                       ColumnSpacing="20">
