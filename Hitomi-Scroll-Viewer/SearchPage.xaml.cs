@@ -385,12 +385,12 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private void HandleLoadImageBtnClick(object _0, RoutedEventArgs _1) {
+        private void HandleLoadGalleryBtnClick(object _0, RoutedEventArgs _1) {
             CheckAndLoad();
         }
 
         public void EnableControls(bool enable) {
-            LoadImageBtn.IsEnabled = enable;
+            LoadGalleryBtn.IsEnabled = enable;
             for (int i = 0; i < bmItems.Count; i++) {
                 bmItems[i].EnableButton(enable);
             }
