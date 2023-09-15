@@ -21,8 +21,6 @@ namespace Hitomi_Scroll_Viewer {
         private readonly Page[] _appPages;
         private static int _currPageNum = 0;
 
-        public AppWindow appWindow;
-
         public Gallery gallery;
         public List<Gallery> bmGalleries;
 
@@ -51,13 +49,9 @@ namespace Hitomi_Scroll_Viewer {
                 SwitchPage();
             };
 
-            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            appWindow = AppWindow.GetFromWindowId(windowId);
-
             // Maximise window on load
             RootFrame.Loaded += (_0, _1) => {
-                ((OverlappedPresenter)appWindow.Presenter).Maximize();
+                ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             };
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
                 if (_currPageNum == 1) _iwp.HandleKeyDown(_, e);
