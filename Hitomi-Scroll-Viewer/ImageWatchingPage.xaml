@@ -7,12 +7,13 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid x:Name="MainGrid" KeyDown="HandleKeyDown">
+    <Grid x:Name="MainGrid">
         <ScrollViewer x:Name="MainScrollViewer"
                       IsTabStop="True"
                       ViewChanging="HandleScrollViewChange"
-                      ZoomMode="Enabled">
-            <StackPanel x:Name="ImageContainer" Orientation="Vertical" HorizontalAlignment="Center"/>
+                      ZoomMode="Enabled"
+                      >
+            <StackPanel x:Name="ImageContainer" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </ScrollViewer>
         <CommandBar x:Name="TopCommandBar"
                     ClosedDisplayMode="Minimal"
@@ -55,7 +56,6 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarToggleButton x:Name="AutoScrollBtn"
                                 MinWidth="90"
-                                IsChecked="{x:Bind _isAutoScrolling, Mode=TwoWay}"
                                 Click="HandleAutoScrollBtnClick"
                                 IsEnabled="False"
                                 IsTabStop="False"
@@ -80,14 +80,21 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="MaxCncrRequestSelector"
-                          Header="Max concurrent requests"
+                          Header="Max Concurrent Requests"
                           MaxWidth="120"/>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="ScrollDirectionSelector"
-                          Header="Set scroll direction"
-                          MaxWidth="120"/>
+                          SelectionChanged="ChangeScrollDirection"
+                          Header="Set Scroll Direction"
+                          Width="200"
+                          SelectedIndex="0"
+                          IsEnabled="False">
+                    <ComboBoxItem>Top to Bottom</ComboBoxItem>
+                    <ComboBoxItem>Left to Right</ComboBoxItem>
+                    <ComboBoxItem>Right to Left</ComboBoxItem>
+                </ComboBox>
             </AppBarElementContainer>
         </CommandBar>
         <Border x:Name="PageNumDisplay"
