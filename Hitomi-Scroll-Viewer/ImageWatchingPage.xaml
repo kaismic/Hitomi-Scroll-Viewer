@@ -8,14 +8,17 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid x:Name="MainGrid" KeyDown="HandleKeyDown">
-        <ScrollViewer x:Name="MainScrollViewer" IsTabStop="True" ViewChanging="HandleScrollViewChange">
-            <StackPanel x:Name="ImageContainer" Orientation="Vertical"/>
+        <ScrollViewer x:Name="MainScrollViewer"
+                      IsTabStop="True"
+                      ViewChanging="HandleScrollViewChange"
+                      ZoomMode="Enabled">
+            <StackPanel x:Name="ImageContainer" Orientation="Vertical" HorizontalAlignment="Center"/>
         </ScrollViewer>
         <CommandBar x:Name="TopCommandBar"
                     ClosedDisplayMode="Minimal"
                     OverflowButtonVisibility="Collapsed"
                     HorizontalAlignment="Center"
-                    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                    Background="{ThemeResource AppBarBackgroundThemeBrush}">
             <AppBarButton MinWidth="50"
                           Icon="Back"
                           Label="Go Back"
@@ -39,22 +42,6 @@
                           IsEnabled="False"
                           IsTabStop="False"
                           />
-            <AppBarSeparator MinWidth="30"/>
-            <AppBarElementContainer>
-                <Slider x:Name="ImageScaleSlider"
-                        StepFrequency="0.01"
-                        TickFrequency="0.01"
-                        Value="0.5"
-                        Minimum="0.1"
-                        Maximum="1.5"
-                        MinWidth="240"
-                        Header="Image Size"
-                        FontSize="14"
-                        ValueChanged="ChangeImageSize"
-                        IsEnabled="False"
-                        IsTabStop="False"
-                        />
-            </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <Slider x:Name="ScrollSpeedSlider"
@@ -96,9 +83,22 @@
                           Header="Max concurrent requests"
                           MaxWidth="120"/>
             </AppBarElementContainer>
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarElementContainer>
+                <ComboBox x:Name="ScrollDirectionSelector"
+                          Header="Set scroll direction"
+                          MaxWidth="120"/>
+            </AppBarElementContainer>
         </CommandBar>
-        <TextBlock x:Name="PageNumDisplay" Visibility="Collapsed"
-                   HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 100 0 0"/>
+        <Border x:Name="PageNumDisplay"
+                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+                Visibility="Collapsed"
+                HorizontalAlignment="Center" VerticalAlignment="Top"
+                Margin="0 128 0 0"
+                Padding="8 8"
+                CornerRadius="16">
+            <TextBlock x:Name="PageNumText" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
         <ProgressBar x:Name="LoadingProgressBar"
                      VerticalAlignment="Top" Minimum="0" Maximum="100" Value="0"
                      Visibility="Collapsed"/>

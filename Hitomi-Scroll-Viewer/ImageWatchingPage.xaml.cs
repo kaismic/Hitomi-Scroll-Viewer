@@ -12,7 +12,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Foundation;
 using static Hitomi_Scroll_Viewer.MainWindow;
 using static Hitomi_Scroll_Viewer.SearchPage;
 
@@ -30,7 +29,6 @@ namespace Hitomi_Scroll_Viewer {
         private static double _pageTurnDelay = 5; // in seconds
         private bool _isAutoScrolling = false;
         private bool _isLooping = true;
-        private double _imageScale = 0.5;
 
         private static int _currPage = 0;
         public Image[] images;
@@ -75,31 +73,18 @@ namespace Hitomi_Scroll_Viewer {
 
             SetScrollSpeedSlider();
 
-            // Set ImageContainer top margin based on top commandbar height
-            TopCommandBar.SizeChanged += (_0, _1) => {
-                ImageContainer.Margin = new Thickness(0, TopCommandBar.ActualHeight, 0, 0);
-            };
-
             // handle mouse movement on commandbar
-            void handlePointerEnter(object _0, PointerRoutedEventArgs _1) {
+            TopCommandBar.PointerEntered += (_0, _1) => {
                 TopCommandBar.IsOpen = true;
+                TopCommandBar.Background.Opacity = 1;
                 PageNumDisplay.Visibility = Visibility.Visible;
-            }
-            TopCommandBar.PointerEntered += handlePointerEnter;
-
-            void handlePointerMove(object cb, PointerRoutedEventArgs args) {
-                CommandBar commandBar = (CommandBar)cb;
-                Point pos = args.GetCurrentPoint(MainGrid).Position;
-                double center = MainGrid.ActualWidth / 2;
-                double cbHalfWidth = commandBar.ActualWidth / 2;
-                // commandBar.ActualHeight is the height at its ClosedDisplayMode
-                // * 3 is the height of the commandbar when it is open and ClosedDisplayMode="Minimal"
-                if (pos.Y > commandBar.ActualHeight * 3 || pos.X < center - cbHalfWidth || pos.X > center + cbHalfWidth) {
-                    commandBar.IsOpen = false;
-                    PageNumDisplay.Visibility = Visibility.Collapsed;
-                }
-            }
-            TopCommandBar.PointerMoved += handlePointerMove;
+            };
+            TopCommandBar.Closing += (_0, _1) => {
+                TopCommandBar.Background.Opacity = 0;
+                PageNumDisplay.Visibility = Visibility.Collapsed;
+            };
+            TopCommandBar.PointerCaptureLost += (_0, _1) => { TopCommandBar.IsOpen = false; };
+            TopCommandBar.PointerCanceled += (_0, _1) => { TopCommandBar.IsOpen = false; };
 
             // Max concurrent request selector
             for (int i = 1; i <= MAX_CONCURRENT_REQUEST; i++) {
@@ -151,7 +136,7 @@ namespace Hitomi_Scroll_Viewer {
         private void HandleScrollViewChange(object _0, ScrollViewerViewChangingEventArgs _1) {
             if (_viewMode == ViewMode.Scroll) {
                 GetPageFromScrollOffset();
-                PageNumDisplay.Text = $"Page {_currPage} of {_mw.gallery.files.Length - 1}";
+                PageNumText.Text = $"Page {_currPage} of {_mw.gallery.files.Length - 1}";
             }
         }
 
@@ -168,7 +153,6 @@ namespace Hitomi_Scroll_Viewer {
                 LoadingControlBtn.IsEnabled = false;
                 _mw.cts.Cancel();
             } else {
-                // reload gallery
                 if (_mw.gallery != null) {
                     ReloadGallery();
                 }
@@ -177,6 +161,13 @@ namespace Hitomi_Scroll_Viewer {
 
         // TODO
         // horizontal and vertical image scrolling in any 4 direction
+        // HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Visible"
+        // animation when space or loop btn pressed show the corresponding icon animation which fades out
+
+        // add functionality to just download and save to bookmark but don't load
+        private async void DownloadAndBookmark() {
+
+        }
 
         private async void ReloadGallery() {
             ContentDialog dialog = new() {
@@ -210,9 +201,9 @@ namespace Hitomi_Scroll_Viewer {
             CancellationToken ct = localCts.Token;
             _mw.cts = localCts;
 
-            string imageDir = IMAGE_DIR + DIR_SEP + _mw.gallery.id + DIR_SEP;
+            string galleryDir = Path.Combine(IMAGE_DIR, _mw.gallery.id);
 
-            Directory.CreateDirectory(imageDir);
+            Directory.CreateDirectory(galleryDir);
 
             int[] missingIndexes = new int[_mw.gallery.files.Length];
             int missingCount = 0;
@@ -224,7 +215,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
             } else {
                 for (int i = 0; i < missingIndexes.Length; i++) {
-                    string path = imageDir + i + IMAGE_EXT;
+                    string path = Path.Combine(galleryDir, i.ToString()) + IMAGE_EXT;
                     if (!File.Exists(path)) {
                         missingIndexes[missingCount] = i;
                         missingCount++;
@@ -296,7 +287,7 @@ namespace Hitomi_Scroll_Viewer {
                     FinishLoading(_mw.galleryState);
                     return;
                 }
-                string path = imageDir + idx + IMAGE_EXT;
+                string path = Path.Combine(galleryDir, idx.ToString()) + IMAGE_EXT;
                 if (File.Exists(path)) {
                     images[idx].Source = new BitmapImage(new(path));
                 } else {
@@ -364,7 +355,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void InsertSingleImage() {
-            PageNumDisplay.Text = $"Page {_currPage} of {_mw.gallery.files.Length - 1}";
+            PageNumText.Text = $"Page {_currPage} of {_mw.gallery.files.Length - 1}";
             ImageContainer.Children.Clear();
             ImageContainer.Children.Add(images[_currPage]);
         }
@@ -413,15 +404,15 @@ namespace Hitomi_Scroll_Viewer {
 
         private void GetPageFromScrollOffset() {
             double currOffset = MainScrollViewer.VerticalOffset;
-            double imageHeightSum = ImageContainer.Margin.Top;
-            if (currOffset < imageHeightSum) {
+            if (currOffset == 0) {
                 _currPage = 0;
                 return;
             }
+            double imageHeightSum = 0;
             // half of the window height is the reference height for page calculation
             double pageHalfOffset = currOffset + _mw.appWindow.ClientSize.Height / 2;
             for (int i = 0; i < images.Length; i++) {
-                imageHeightSum += images[i].ActualHeight;
+                imageHeightSum += images[i].ActualHeight * MainScrollViewer.ZoomFactor;
                 if (imageHeightSum >= pageHalfOffset) {
                     _currPage = i;
                     return;
@@ -431,12 +422,12 @@ namespace Hitomi_Scroll_Viewer {
 
         private double GetScrollOffsetFromPage() {
             if (_currPage == 0) return 0;
-            double offset = ImageContainer.Margin.Top;
+            double offset = 0;
             for (int i = 0; i < images.Length; i++) {
                 if (i >= _currPage) {
                     return offset;
                 }
-                offset += images[i].ActualHeight;
+                offset += images[i].ActualHeight * MainScrollViewer.ZoomFactor;
             }
             return offset;
         }
@@ -536,55 +527,12 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        /**
-         * <summary>
-         * Change image size and re-position vertical offset to the page that the user was already at.
-         * </summary>
-         */
-        private async void ChangeImageSize(object sender, RangeBaseValueChangedEventArgs _1) {
-            ((Slider)sender).IsEnabled = false;
-            Slider slider = (Slider)sender;
-            _imageScale = slider.Value;
-            if (ImageContainer != null && _mw.gallery != null) {
-                if (_viewMode == ViewMode.Scroll) {
-                    GetPageFromScrollOffset();
-                }
-                for (int i = 0; i < images.Length; i++) {
-                    images[i].Width = _mw.gallery.files[i].width * _imageScale;
-                    images[i].Height = _mw.gallery.files[i].height * _imageScale;
-                }
-                if (_viewMode == ViewMode.Scroll) {
-                    // wait for the actual image heights to be updated
-                    double PIXEL_MARGIN = 1;
-                    bool heightAllSet = false;
-                    int startIdx = 0;
-                    while (!heightAllSet) {
-                        heightAllSet = true;
-                        for (int i = startIdx; i < images.Length; i++) {
-                            // if actual height is not within the expected height range 
-                            if (images[i].ActualHeight < images[i].Height - PIXEL_MARGIN
-                                || images[i].ActualHeight > images[i].Height + PIXEL_MARGIN) {
-                                startIdx = i;
-                                heightAllSet = false;
-                                await Task.Delay(10);
-                                break;
-                            }
-                        }
-                    }
-                    // set vertical offset according to the new image scale
-                    MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage());
-                }
-            }
-            slider.IsEnabled = true;
-        }
-
         public void EnableControls(bool enable) {
             if (!enable) {
                 StartStopAutoScroll(false);
             }
             if (_mw.galleryState != GalleryState.Empty) {
                 ViewModeBtn.IsEnabled = enable;
-                ImageScaleSlider.IsEnabled = enable;
                 ScrollSpeedSlider.IsEnabled = enable;
                 AutoScrollBtn.IsEnabled = enable;
             }
@@ -615,13 +563,10 @@ namespace Hitomi_Scroll_Viewer {
             _mw.gallery = gallery;
             images = new Image[gallery.files.Length];
             LoadingProgressBar.Maximum = gallery.files.Length;
-            string dir = IMAGE_DIR + DIR_SEP + gallery.id + DIR_SEP;
+            string galleryDir = Path.Combine(IMAGE_DIR, gallery.id);
             for (int i = 0; i < images.Length; i++) {
-                string path = dir + i + IMAGE_EXT;
-                images[i] = new() {
-                    Width = gallery.files[i].width * _imageScale,
-                    Height = gallery.files[i].height * _imageScale
-                };
+                string path = Path.Combine(galleryDir, i.ToString()) + IMAGE_EXT;
+                images[i] = new();
                 if (File.Exists(path)) {
                     images[i].Source = new BitmapImage(new(path));
                 }
@@ -734,13 +679,13 @@ namespace Hitomi_Scroll_Viewer {
                 byte[] imageBytes = await GetImageBytesFromWeb(subdomain + imgAddress, ct);
                 if (imageBytes != null) {
                     try {
-                        await File.WriteAllBytesAsync(IMAGE_DIR + DIR_SEP + id + DIR_SEP + idx + IMAGE_EXT, imageBytes, ct);
+                        await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, id, idx.ToString()) + IMAGE_EXT, imageBytes, ct);
                     } catch (IOException) {
                         return;
                     }
                     break;
                 }
-            }
+            }   
             DispatcherQueue.TryEnqueue(() => {
                 LoadingProgressBar.Value++;
             });
@@ -794,7 +739,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            Directory.CreateDirectory(IMAGE_DIR + DIR_SEP + id);
+            Directory.CreateDirectory(Path.Combine(IMAGE_DIR, id));
             // example:
             // images length = 47, _currMaxCncrReq = 3
             // 47 / 3 = 15 r 2
@@ -826,7 +771,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            string imageDir = IMAGE_DIR + DIR_SEP + newGallery.id + DIR_SEP;
+            string imageDir = Path.Combine(IMAGE_DIR, newGallery.id);
             Image[] newImages = new Image[newGallery.files.Length];
             string missingIndexesText = "";
             for (int i = 0; i < newGallery.files.Length; i++) {
@@ -834,11 +779,8 @@ namespace Hitomi_Scroll_Viewer {
                     FinishLoading(GalleryState.Empty);
                     return;
                 }
-                string path = imageDir + i + IMAGE_EXT;
-                newImages[i] = new() {
-                    Width = newGallery.files[i].width * _imageScale,
-                    Height = newGallery.files[i].height * _imageScale
-                };
+                string path = Path.Combine(imageDir, i.ToString()) + IMAGE_EXT;
+                newImages[i] = new();
                 if (File.Exists(path)) {
                     newImages[i].Source = new BitmapImage(new(path));
                 } else {
