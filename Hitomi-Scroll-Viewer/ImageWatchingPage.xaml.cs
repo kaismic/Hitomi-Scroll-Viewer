@@ -163,7 +163,8 @@ namespace Hitomi_Scroll_Viewer {
         // horizontal and vertical image scrolling in any 4 direction
         // HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Visible"
         // animation when space or loop btn pressed show the corresponding icon animation which fades out
-
+        
+        // delete gallery when cancelled while downloading
         // add functionality to just download and save to bookmark but don't load
         private async void DownloadAndBookmark() {
 
@@ -680,6 +681,8 @@ namespace Hitomi_Scroll_Viewer {
                 if (imageBytes != null) {
                     try {
                         await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, id, idx.ToString()) + IMAGE_EXT, imageBytes, ct);
+                    } catch (DirectoryNotFoundException) {
+                        return;
                     } catch (IOException) {
                         return;
                     }
@@ -767,6 +770,7 @@ namespace Hitomi_Scroll_Viewer {
             await Task.WhenAll(tasks);
 
             if (ct.IsCancellationRequested) {
+                DeleteGallery(newGallery);
                 FinishLoading(GalleryState.Empty);
                 return;
             }
