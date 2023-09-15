@@ -22,6 +22,7 @@ Built using C# .NET 6, WinUI 3
 In image watching page:
 - Press spacebar to start/stop auto page turning/auto scrolling
 - Press 'L' key to enable/disable loop when auto page turning/auto scrolling
+- Press 'V' key to change view mode (Default/Scroll)
 - Hold 'Ctrl' key and use mouse wheel to zoom in/out
 - In Default mode:
     - Use left/right keys to switch between images
