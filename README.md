@@ -1,5 +1,5 @@
 # Hitomi Scroll Viewer
-A viewer for viewing gallery images from [hitomi.la (NSFW)](https://hitomi.la) with features such as auto scrolling / auto page turning
+A viewer for [hitomi.la (NSFW)](https://hitomi.la) with features such as auto scrolling, searching by tags and downloading.
 
 Built using C# .NET 6, WinUI 3
 
@@ -13,16 +13,18 @@ Built using C# .NET 6, WinUI 3
 ## Features
 - Searching galleries by custom tags
 - Auto scrolling / auto page turning
-- Bookmark galleries
-- Image size control
+- Download/Bookmark galleries
+- Image zooming in/out
 
 ## Controls
 - Doubleclick to switch between pages
 
 In image watching page:
-- Press 'L' key to enable/disable loop
 - Press spacebar to start/stop auto page turning/auto scrolling
-- Default mode:
+- Press 'L' key to enable/disable loop when auto page turning/auto scrolling
+- Hold 'Ctrl' key and use mouse wheel to zoom in/out
+- In Default mode:
     - Use left/right keys to switch between images
 
-It is not recommended increasing the maximum concurrent request above 1 when the gallery contains approximately more than 20 images because hitomi.la throws 503 error on rapid request above its API rate limit
+## Notes
+It is not recommended to increase the maximum concurrent request above 1 when the gallery contains more than 20 images because hitomi.la throws 503 error on rapid request above its API rate limit
