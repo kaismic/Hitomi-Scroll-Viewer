@@ -56,8 +56,11 @@ namespace Hitomi_Scroll_Viewer {
             appWindow = AppWindow.GetFromWindowId(windowId);
 
             // Maximise window on load
-            RootFrame.Loaded += (object _, RoutedEventArgs _) => {
+            RootFrame.Loaded += (_0, _1) => {
                 ((OverlappedPresenter)appWindow.Presenter).Maximize();
+            };
+            RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
+                if (_currPageNum == 1) _iwp.HandleKeyDown(_, e);
             };
 
             // Handle window close
