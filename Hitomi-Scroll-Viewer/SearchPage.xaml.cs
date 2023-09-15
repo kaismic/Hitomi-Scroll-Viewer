@@ -6,9 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel.DataTransfer;
@@ -22,8 +20,8 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
         private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
-        private static readonly string BM_INFO_FILE_PATH = ROOT_DIR + DIR_SEP + "BookmarkInfo.json";
-        private static readonly string TAGS_FILE_PATH = ROOT_DIR + DIR_SEP + "Tags.json";
+        private static readonly string BM_INFO_FILE_PATH = Path.Combine(ROOT_DIR, "BookmarkInfo.json");
+        private static readonly string TAGS_FILE_PATH = Path.Combine(ROOT_DIR, "Tags.json");
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 

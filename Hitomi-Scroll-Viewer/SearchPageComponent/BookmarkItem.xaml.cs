@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.IO;
 using Windows.UI.Text;
@@ -67,7 +66,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     Height = THUMBNAIL_IMG_WIDTH * gallery.files[imgIdx].height / gallery.files[imgIdx].width,
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
-                string path = IMAGE_DIR + DIR_SEP + gallery.id + DIR_SEP + imgIdx + IMAGE_EXT;
+                string path = Path.Combine(IMAGE_DIR, gallery.id, imgIdx.ToString()) + IMAGE_EXT;
                 if (File.Exists(path)) {
                     _images[i].Source = new BitmapImage(new(path));
                 }
@@ -95,7 +94,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public void ReloadImages() {
             for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
                 int imgIdx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
-                string path = IMAGE_DIR + DIR_SEP + gallery.id + DIR_SEP + imgIdx + IMAGE_EXT;
+                string path = Path.Combine(IMAGE_DIR, gallery.id, imgIdx.ToString()) + IMAGE_EXT;
                 if (File.Exists(path)) {
                     _images[i].Source = new BitmapImage(new(path));
                 }
