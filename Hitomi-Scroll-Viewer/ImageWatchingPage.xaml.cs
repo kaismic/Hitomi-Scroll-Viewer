@@ -669,7 +669,7 @@ namespace Hitomi_Scroll_Viewer {
             _mw.StartStopAction(false);
         }
 
-        public void LoadGalleryFromLocalDir(Gallery gallery) {
+        public async void LoadGalleryFromLocalDir(Gallery gallery) {
             StartLoading();
             // delete previous gallery if not bookmarked
             if (_mw.gallery != null) {
@@ -689,13 +689,22 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 LoadingProgressBar.Value++;
             }
+            _currPage = 0;
             switch (_viewMode) {
                 case ViewMode.Default:
-                    _currPage = 0;
                     InsertSingleImage();
                     break;
                 case ViewMode.Scroll:
                     InsertImages();
+                    await WaitImageLoad();
+                    switch (_scrollDirection) {
+                        case ScrollDirection.TopToBottom:
+                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
+                            break;
+                        case ScrollDirection.LeftToRight or ScrollDirection.RightToLeft:
+                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
+                            break;
+                    }
                     break;
             }
             FinishLoading(GalleryState.Bookmarked);
@@ -926,7 +935,14 @@ namespace Hitomi_Scroll_Viewer {
                 case ViewMode.Scroll:
                     InsertImages();
                     await WaitImageLoad();
-                    DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
+                    switch (_scrollDirection) {
+                        case ScrollDirection.TopToBottom:
+                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
+                            break;
+                        case ScrollDirection.LeftToRight or ScrollDirection.RightToLeft:
+                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
+                            break;
+                    }
                     break;
             }
             _pageMutex.ReleaseMutex();
