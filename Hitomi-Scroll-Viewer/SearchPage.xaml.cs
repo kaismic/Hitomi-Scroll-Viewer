@@ -42,8 +42,8 @@ namespace Hitomi_Scroll_Viewer {
             RequestedOperation = DataPackageOperation.Copy
         };
 
-        private readonly List<int> maxCncrDownloadNums = new() { 1, 2, 3, 4 };
-        private int maxCncrDownloadNum = 1;
+        private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4 };
+        private int _downloadThreadNum = 1;
 
         private static readonly ConcurrentBag<string> _downloadingGalleries = new();
 
@@ -119,6 +119,10 @@ namespace Hitomi_Scroll_Viewer {
                 bmItems.Add(new(_mw.bmGalleries[i], this));
             }
             FillBookmarkGrid();
+
+            // TODO delete after testing
+            DownloadPanel.Children.Add(new DownloadingItem("2561144"));
+            DownloadPanel.Children.Add(new DownloadingItem("2472850"));
         }
 
         public void Init(ImageWatchingPage iwp) {

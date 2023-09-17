@@ -34,10 +34,10 @@
                     </ScrollViewer>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="20">
-                    <Grid>
+                    <Grid ColumnSpacing="10" RowSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition/>
@@ -48,27 +48,26 @@
                                  Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
                                  KeyDown="HandleKeyDown"
                                  TextWrapping="Wrap"
-                                 Height="80"
                                  PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://hitomi.la/..."
                                  />
-                        <Button Grid.Row="0" Grid.Column="1">
+                        <Button Grid.Row="0" Grid.Column="1"
+                                HorizontalAlignment="Center">
                             <TextBlock Text="Bookmark Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
                         <Button x:Name="LoadGalleryBtn"
                                 Grid.Row="1" Grid.Column="1"
+                                HorizontalAlignment="Center"
                                 Click="HandleLoadGalleryBtnClick">
                             <TextBlock Text="Load Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
-                        <ComboBox x:Name="MaxCncrDownloadNumSelector"
-                                  Grid.Row="2" Grid.Column="1"
-                                  Header="Max Concurrent Loading"
-                                  ItemsSource="{x:Bind _maxCncrDownloadNums}"
-                                  SelectedItem="{x:Bind _maxCncrDownloadNum, Mode=TwoWay}"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1"
+                                  HorizontalAlignment="Center"
+                                  Header="Threads Per Download"
+                                  ItemsSource="{x:Bind _downloadThreadNums}"
+                                  SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
                     </Grid>
                     <ScrollViewer>
-                        <StackPanel>
-
-                        </StackPanel>
+                        <StackPanel x:Name="DownloadPanel" Orientation="Vertical" Spacing="10"/>
                     </ScrollViewer>
                 </StackPanel>
                 <Grid x:Name="TagControlGrid" Grid.Column="2"
