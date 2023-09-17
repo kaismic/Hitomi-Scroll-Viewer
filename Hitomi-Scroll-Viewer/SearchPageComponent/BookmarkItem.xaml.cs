@@ -7,8 +7,8 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.IO;
 using Windows.UI.Text;
-using static Hitomi_Scroll_Viewer.MainWindow;
 using static Hitomi_Scroll_Viewer.SearchPage;
+using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
@@ -56,17 +56,18 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             // add thumbnail images
             _images = new Image[THUMBNAIL_IMG_NUM];
+            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
             for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
                 _imageContainer.ColumnDefinitions.Add(new());
-                int imgIdx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
+                int idx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
                 _images[i] = new() {
                     Width = THUMBNAIL_IMG_WIDTH,
-                    Height = THUMBNAIL_IMG_WIDTH * gallery.files[imgIdx].height / gallery.files[imgIdx].width,
+                    Height = THUMBNAIL_IMG_WIDTH * gallery.files[idx].height / gallery.files[idx].width,
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
-                string path = Path.Combine(IMAGE_DIR, gallery.id, imgIdx.ToString()) + IMAGE_EXT;
-                if (File.Exists(path)) {
-                    _images[i].Source = new BitmapImage(new(path));
+                string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
+                if (file.Length > 0) {
+                    _images[i].Source = new BitmapImage(new(file[0]));
                 }
                 SetColumn(_images[i], i);
                 _imageContainer.Children.Add(_images[i]);
@@ -92,11 +93,12 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         public void ReloadImages() {
+            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
             for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                int imgIdx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
-                string path = Path.Combine(IMAGE_DIR, gallery.id, imgIdx.ToString()) + IMAGE_EXT;
-                if (File.Exists(path)) {
-                    _images[i].Source = new BitmapImage(new(path));
+                int idx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
+                string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
+                if (file.Length > 0) {
+                    _images[i].Source = new BitmapImage(new(file[0]));
                 }
             }
         }
