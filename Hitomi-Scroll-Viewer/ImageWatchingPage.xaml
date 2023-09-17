@@ -79,9 +79,10 @@
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
-                <ComboBox x:Name="MaxCncrRequestSelector"
-                          Header="Max Concurrent Requests"
-                          MaxWidth="120"/>
+                <ComboBox x:Name="MaxCncrLoadNumSelector"
+                          Header="Max Concurrent Loading"
+                          ItemsSource="{x:Bind _maxCncrLoadNums}"
+                          SelectedItem="{x:Bind _maxCncrLoadNum, Mode=TwoWay}"/>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>

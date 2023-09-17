@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -13,15 +14,15 @@ using Windows.ApplicationModel.DataTransfer;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 using static Hitomi_Scroll_Viewer.MainWindow;
 using static Hitomi_Scroll_Viewer.Tag;
+using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
-        private static readonly string BASE_DOMAIN = "https://hitomi.la/search.html?";
-        private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
-        private static readonly JsonSerializerOptions _serializerOptions = new() { IncludeFields = true, WriteIndented = true };
-
         private static readonly string BM_INFO_FILE_PATH = Path.Combine(ROOT_DIR, "BookmarkInfo.json");
         private static readonly string TAGS_FILE_PATH = Path.Combine(ROOT_DIR, "Tags.json");
+
+        private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
+        private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private static readonly string GLOBAL_TAG_NAME = "Global";
 
@@ -40,6 +41,11 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly DataPackage _myDataPackage = new() {
             RequestedOperation = DataPackageOperation.Copy
         };
+
+        private readonly List<int> maxCncrDownloadNums = new() { 1, 2, 3, 4 };
+        private int maxCncrDownloadNum = 1;
+
+        private static readonly ConcurrentBag<string> _downloadingGalleries = new();
 
         private string _currTagName;
 
@@ -78,14 +84,18 @@ namespace Hitomi_Scroll_Viewer {
 
             if (File.Exists(TAGS_FILE_PATH)) {
                 // read tag info from file
-                Tags = (Dictionary<string, Tag>)JsonSerializer.Deserialize(File.ReadAllText(TAGS_FILE_PATH), typeof(Dictionary<string, Tag>), _serializerOptions);
+                Tags = (Dictionary<string, Tag>)JsonSerializer.Deserialize(
+                    File.ReadAllText(TAGS_FILE_PATH),
+                    typeof(Dictionary<string, Tag>),
+                    serializerOptions
+                    );
             } else {
                 //  if tag file doesn't exist, initialise _tags with Global tag list
                 Tags = new() {
                     { GLOBAL_TAG_NAME, new() }
                 };
                 Tags[GLOBAL_TAG_NAME].includeTags["tag"] = new string[] { "non-h_imageset" };
-                File.WriteAllText(TAGS_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
+                File.WriteAllText(TAGS_FILE_PATH, JsonSerializer.Serialize(Tags, serializerOptions));
             }
 
             foreach (KeyValuePair<string, Tag> item in Tags) {
@@ -95,12 +105,13 @@ namespace Hitomi_Scroll_Viewer {
 
             // create bookmarked galleries' info file if it doesn't exist
             if (!File.Exists(BM_INFO_FILE_PATH)) {
-                File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(new List<Gallery>(), _serializerOptions));
+                File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(new List<Gallery>(), serializerOptions));
             }
             // read bookmarked galleries' info from file
             _mw.bmGalleries = (List<Gallery>)JsonSerializer.Deserialize(
                 File.ReadAllText(BM_INFO_FILE_PATH),
-                typeof(List<Gallery>),_serializerOptions
+                typeof(List<Gallery>),
+                serializerOptions
                 );
 
             // fill bookmarks
@@ -182,7 +193,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void SaveTagInfo() {
-            File.WriteAllText(TAGS_FILE_PATH, JsonSerializer.Serialize(Tags, _serializerOptions));
+            File.WriteAllText(TAGS_FILE_PATH, JsonSerializer.Serialize(Tags, serializerOptions));
         }
 
         private async void CreateTag(object _0, RoutedEventArgs _1) {
@@ -306,7 +317,7 @@ namespace Hitomi_Scroll_Viewer {
                 param += _tagContainers[0].GetTagParameters(i);
                 param += _tagContainers[1].GetTagParameters(i);
             }
-            return BASE_DOMAIN + param;
+            return SEARCH_ADDRESS + param;
         }
 
         private static string GetHyperlinkDisplayText() {
@@ -461,7 +472,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void SaveBookmarkInfo() {
-            File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(_mw.bmGalleries, _serializerOptions));
+            File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(_mw.bmGalleries, serializerOptions));
         }
 
         public void AddBookmark(object _0, RoutedEventArgs _1) {

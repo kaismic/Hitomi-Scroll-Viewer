@@ -5,17 +5,12 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using static Hitomi_Scroll_Viewer.ImageWatchingPage;
+using System.Net.Http;
+using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
-        public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HSV");
-        public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
-        public static readonly string IMAGE_EXT = ".webp";
-
-        private readonly SearchPage _sp;
+        public readonly SearchPage sp;
         private readonly ImageWatchingPage _iwp;
         private readonly Page[] _appPages;
         private static int _currPageNum = 0;
@@ -23,11 +18,7 @@ namespace Hitomi_Scroll_Viewer {
         public Gallery gallery;
         public List<Gallery> bmGalleries;
 
-        public CancellationTokenSource cts;
-        public readonly object actionLock = new();
-        public bool isInAction = false;
-
-        public GalleryState galleryState = GalleryState.Empty;
+        public readonly HttpClient httpClient;
 
         public MainWindow() {
             InitializeComponent();
@@ -36,20 +27,26 @@ namespace Hitomi_Scroll_Viewer {
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
 
-            _sp = new(this);
-            _iwp = new(this);
-            _appPages = new Page[] { _sp, _iwp };
+            httpClient = new() {
+                DefaultRequestHeaders = {
+                    {"referer", REFERER }
+                }
+            };
 
-            _sp.Init(_iwp);
+            sp = new(this);
+            _iwp = new(this);
+            _appPages = new Page[] { sp, _iwp };
+
+            sp.Init(_iwp);
 
             // Switch page on double click
-            RootFrame.DoubleTapped += (object _, DoubleTappedRoutedEventArgs _) => {
+            RootFrame.DoubleTapped += (_, _) => {
                 _iwp.StartStopAutoScroll(false);
                 SwitchPage();
             };
 
             // Maximise window on load
-            RootFrame.Loaded += (_0, _1) => {
+            RootFrame.Loaded += (_, _) => {
                 ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             };
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
@@ -57,17 +54,8 @@ namespace Hitomi_Scroll_Viewer {
             };
 
             // Handle window close
-            Closed += async (object _, WindowEventArgs _) => {
-                _iwp.WaitBookmarking();
-                lock (actionLock) if (isInAction) cts.Cancel();
-                while (isInAction) {
-                    await Task.Delay(10);
-                }
-                if (gallery != null) {
-                    if (GetGalleryFromBookmark(gallery.id) == null) {
-                        DeleteGallery(gallery);
-                    }
-                }
+            Closed += (_, _) => {
+                _iwp.HandleWindowClose();
             };
 
             RootFrame.Content = _appPages[_currPageNum];
@@ -114,29 +102,6 @@ namespace Hitomi_Scroll_Viewer {
         public static void DeleteGallery(Gallery removingGallery) {
             string path = Path.Combine(IMAGE_DIR, removingGallery.id);
             if (Directory.Exists(path)) Directory.Delete(path, true);
-        }
-
-        public void StartStopAction(bool start) {
-            lock (actionLock) {
-                if (start) {
-                    isInAction = true;
-                    _iwp.LoadingControlBtn.Label = "Cancel Loading";
-                    _iwp.LoadingControlBtn.Icon = new SymbolIcon(Symbol.Cancel);
-                    _iwp.LoadingControlBtn.IsEnabled = true;
-                }
-                _sp.EnableControls(!start);
-                _iwp.EnableControls(!start);
-                if (!start) {
-                    if (gallery != null && _iwp.images != null) {
-                        if (gallery.files.Length == _iwp.images.Length) {
-                            _iwp.LoadingControlBtn.Label = "Reload Gallery " + gallery.id;
-                            _iwp.LoadingControlBtn.Icon = new SymbolIcon(Symbol.Sync);
-                            _iwp.LoadingControlBtn.IsEnabled = true;
-                        }
-                    }
-                    isInAction = false;
-                }
-            }
         }
     }
 }

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:Hitomi_Scroll_Viewer.SearchPageComponent"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer>
@@ -33,25 +34,42 @@
                     </ScrollViewer>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="20">
-                    <TextBox x:Name="GalleryIDTextBox"
-                             KeyDown="HandleKeyDown"
-                             TextWrapping="Wrap"
-                             MinHeight="80"
-                             PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://hitomi.la/..."
-                             />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" HorizontalAlignment="Center">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <TextBox x:Name="GalleryIDTextBox"
+                                 Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
+                                 KeyDown="HandleKeyDown"
+                                 TextWrapping="Wrap"
+                                 Height="80"
+                                 PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://hitomi.la/..."
+                                 />
+                        <Button Grid.Row="0" Grid.Column="1">
                             <TextBlock Text="Bookmark Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
-                        <Button x:Name="LoadGalleryBtn" Click="HandleLoadGalleryBtnClick"
-                                Grid.Column="1" HorizontalAlignment="Center">
+                        <Button x:Name="LoadGalleryBtn"
+                                Grid.Row="1" Grid.Column="1"
+                                Click="HandleLoadGalleryBtnClick">
                             <TextBlock Text="Load Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
+                        <ComboBox x:Name="MaxCncrDownloadNumSelector"
+                                  Grid.Row="2" Grid.Column="1"
+                                  Header="Max Concurrent Loading"
+                                  ItemsSource="{x:Bind _maxCncrDownloadNums}"
+                                  SelectedItem="{x:Bind _maxCncrDownloadNum, Mode=TwoWay}"/>
                     </Grid>
+                    <ScrollViewer>
+                        <StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
                 </StackPanel>
                 <Grid x:Name="TagControlGrid" Grid.Column="2"
                       ColumnSpacing="20">
