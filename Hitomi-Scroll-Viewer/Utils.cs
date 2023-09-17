@@ -1,6 +1,6 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Controls;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -27,7 +27,7 @@ namespace Hitomi_Scroll_Viewer
 
         public static readonly int MAX_CONCURRENT_REQUEST = 4;
 
-        // TODO max download/load task num
+        // TODO
         // downloading items
         // image format for loop
         // remove bookmark limit (bookmarkfull)
@@ -55,7 +55,6 @@ namespace Hitomi_Scroll_Viewer
             string responseString = await response.Content.ReadAsStringAsync(ct);
             return responseString[GALLERY_INFO_EXCLUDE_STRING.Length..];
         }
-
 
         /**
          * <exception cref="HttpRequestException"></exception>
@@ -134,7 +133,7 @@ namespace Hitomi_Scroll_Viewer
                 byte[] imageBytes = await GetImageBytesFromWeb(httpClient, subdomain + imgAddress, ct);
                 if (imageBytes != null) {
                     try {
-                        await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, id, idx.ToString()) + imgFormat, imageBytes, ct);
+                        await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, id, idx.ToString()) + '.' + imgFormat, imageBytes, ct);
                     }
                     catch (DirectoryNotFoundException) {
                         break;
@@ -145,10 +144,11 @@ namespace Hitomi_Scroll_Viewer
                     break;
                 }
             }
-            // TODO prob will have to do DispatcheQueue but worth a try
-            lock (progressBar) {
-                progressBar.Value++;
-            }
+            progressBar.DispatcherQueue.TryEnqueue(() => {
+                lock (progressBar) {
+                    progressBar.Value++;
+                }
+            });
         }
 
         public static Task[] DownloadImages(
