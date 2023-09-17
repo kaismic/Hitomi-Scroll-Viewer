@@ -1,18 +1,8 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using Windows.UI;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class DownloadingItem : Grid {
@@ -20,10 +10,17 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public DownloadingItem(string id) {
             InitializeComponent();
 
-            ColumnDefinitions.Add(new() { Width = new GridLength(7, GridUnitType.Star) });
+            BorderThickness = new(1);
+            Background = new SolidColorBrush(new() {
+                R = 0, G = 0, B = 235, A = 1
+            });
+            CornerRadius = new(10);
+            Padding = new(10);
+            ColumnDefinitions.Add(new() { Width = new GridLength(3, GridUnitType.Star) });
             ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
             RowDefinitions.Add(new());
             RowDefinitions.Add(new());
+            ColumnSpacing = 10;
 
             TextBlock desc = new() {
                 Text = id
