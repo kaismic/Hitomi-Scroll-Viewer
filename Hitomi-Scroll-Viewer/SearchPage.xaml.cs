@@ -123,6 +123,13 @@ namespace Hitomi_Scroll_Viewer {
             // TODO delete after testing
             DownloadPanel.Children.Add(new DownloadingItem("2561144"));
             DownloadPanel.Children.Add(new DownloadingItem("2472850"));
+            DownloadPanel.Children.Add(new DownloadingItem("1232132"));
+            DownloadPanel.Children.Add(new DownloadingItem("2192752"));
+            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
+            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
+            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
+            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
+            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
         }
 
         public void Init(ImageWatchingPage iwp) {
