@@ -209,21 +209,13 @@ namespace Hitomi_Scroll_Viewer {
 
             Directory.CreateDirectory(imageDir);
 
-            int[] missingIndexes = new int[_mw.gallery.files.Length];
-            int missingCount = 0;
+            int[] missingIndexes;
 
             if (reloadAll) {
-                missingCount = _mw.gallery.files.Length;
-                missingIndexes = Enumerable.Range(0, missingIndexes.Length).ToArray();
+                missingIndexes = Enumerable.Range(0, _mw.gallery.files.Length).ToArray();
             } else {
-                for (int i = 0; i < missingIndexes.Length; i++) {
-                    string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
-                    if (file.Length == 0) {
-                        missingIndexes[missingCount] = i;
-                        missingCount++;
-                    }
-                }
-                if (missingCount == 0) {
+                missingIndexes = GetMissingIndexes(_mw.gallery);
+                if (missingIndexes.Length == 0) {
                     _mw.AlertUser("There are no missing images", "");
                     FinishLoading(_galleryState);
                     return;
@@ -247,32 +239,19 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            string[] imgHashArr = new string[missingCount];
-            string[] imgFormats = new string[missingCount];
-            for (int i = 0; i < missingCount; i++) {
-                int idx = missingIndexes[i];
-                ImageInfo imageInfo = _mw.gallery.files[idx];
-                imgHashArr[i] = imageInfo.hash;
-                if (imageInfo.haswebp == 1) {
-                    imgFormats[i] = "webp";
-                }
-                else if (imageInfo.hasavif == 1) {
-                    imgFormats[i] = "avif";
-                }
-                else if (imageInfo.hasjxl == 1) {
-                    imgFormats[i] = "jxl";
-                }
+            ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Length];
+            for (int i = 0; i < missingIndexes.Length; i++) {
+                imageInfos[i] = _mw.gallery.files[missingIndexes[i]];
             }
-
-            string[] imgAddresses;
-            imgAddresses = GetImageAddresses(imgHashArr, imgFormats, serverTime);
+            string[] imgFormats = GetImageFormats(imageInfos);
+            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, serverTime);
 
             if (ct.IsCancellationRequested) {
                 FinishLoading(_galleryState);
                 return;
             }
 
-            LoadingProgressBar.Maximum = missingCount;
+            LoadingProgressBar.Maximum = missingIndexes.Length;
 
             Task[] tasks = DownloadImages(
                 _mw.httpClient,
@@ -287,23 +266,21 @@ namespace Hitomi_Scroll_Viewer {
 
             await Task.WhenAll(tasks);
 
-            string missingIndexesText = "";
-            for (int i = 0; i < missingCount; i++) {
-                int idx = missingIndexes[i];
+            int[] stillMissingIndexes = GetMissingIndexes(_mw.gallery);
+            int[] loadedIndexes = missingIndexes.Except(stillMissingIndexes).ToArray();
+
+            for (int i = 0; i < loadedIndexes.Length; i++) {
                 if (ct.IsCancellationRequested) {
                     FinishLoading(_galleryState);
                     return;
                 }
+                int idx = loadedIndexes[i];
                 string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
-                if (file.Length > 0) {
-                    _images[idx].Source = new BitmapImage(new(file[0]));
-                } else {
-                    missingIndexesText += idx + ", ";
-                }
+                _images[idx].Source = new BitmapImage(new(file[0]));
             }
 
-            if (missingIndexesText != "") {
-                _mw.AlertUser("The image at the following pages have failed to load. Try reducing max concurrent request if the problem persists.", missingIndexesText[..^2]);
+            if (stillMissingIndexes.Length > 0) {
+                _mw.AlertUser("The following pages have failed to load. Try reducing thread number if the problem persists.", string.Join(", ", stillMissingIndexes));
             } else {
                 _mw.AlertUser($"Reloading {_mw.gallery.id} has finished successfully", "");
             }
@@ -731,23 +708,8 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            string[] imgHashArr = new string[newGallery.files.Length];
-            string[] imgFormats = new string[newGallery.files.Length];
-            for (int i = 0; i < newGallery.files.Length; i++) {
-                ImageInfo imageInfo = newGallery.files[i];
-                imgHashArr[i] = imageInfo.hash;
-                if (imageInfo.haswebp == 1) {
-                    imgFormats[i] = "webp";
-                }
-                else if (imageInfo.hasavif == 1) {
-                    imgFormats[i] = "avif";
-                }
-                else if (imageInfo.hasjxl == 1) {
-                    imgFormats[i] = "jxl";
-                }
-            }
-
-            string[] imgAddresses = GetImageAddresses(imgHashArr, imgFormats, serverTime);
+            string[] imgFormats = GetImageFormats(newGallery.files);
+            string[] imgAddresses = GetImageAddresses(newGallery.files, imgFormats, serverTime);
 
             if (ct.IsCancellationRequested) {
                 FinishLoading(GalleryState.Empty);
@@ -775,21 +737,20 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
+            int[] missingIndexes = GetMissingIndexes(newGallery);
+            int[] loadedIndexes = Enumerable.Range(0, newGallery.files.Length).Except(missingIndexes).ToArray();
+
             string imageDir = Path.Combine(IMAGE_DIR, newGallery.id);
+
             Image[] newImages = new Image[newGallery.files.Length];
-            string missingIndexesText = "";
-            for (int i = 0; i < newGallery.files.Length; i++) {
-                if (ct.IsCancellationRequested) {
-                    FinishLoading(GalleryState.Empty);
-                    return;
-                }
-                string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
-                newImages[i] = new();
-                if (file.Length > 0) {
-                    newImages[i].Source = new BitmapImage(new(file[0]));
-                } else {
-                    missingIndexesText += i + ", ";
-                }
+            for (int i = 0; i < newImages.Length; i++) {
+                newImages[i] = new Image();
+            }
+
+            for (int i = 0; i < loadedIndexes.Length; i++) {
+                int idx = loadedIndexes[i];
+                string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
+                newImages[idx].Source = new BitmapImage(new(file[0]));
             }
 
             // disable left/right key input
@@ -827,8 +788,8 @@ namespace Hitomi_Scroll_Viewer {
             }
             _pageMutex.ReleaseMutex();
 
-            if (missingIndexesText != "") {
-                _mw.AlertUser("The image at the following pages have failed to load. Try reducing max concurrent request if the problem persists.", missingIndexesText[..^2]);
+            if (missingIndexes.Length > 0) {
+                _mw.AlertUser("The following pages have failed to load. Try reducing thread number if the problem persists.", string.Join(", ", missingIndexes));
             } else {
                 _mw.AlertUser($"Gallery {newGallery.id} has loaded successfully", "");
             }

@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -80,13 +79,28 @@ namespace Hitomi_Scroll_Viewer
             return responseString.Substring(responseString.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
         }
 
-        public static string[] GetImageAddresses(string[] imgHashArr, string[] imgFormats, string serverTime) {
-            string[] result = new string[imgHashArr.Length];
-            for (int i = 0; i < imgHashArr.Length; i++) {
-                string hash = imgHashArr[i];
-                string format = imgFormats[i];
+        public static string[] GetImageFormats(ImageInfo[] imageInfos) {
+            string[] imgFormats = new string[imageInfos.Length];
+            for (int i = 0; i < imgFormats.Length; i++) {
+                if (imageInfos[i].haswebp == 1) {
+                    imgFormats[i] = "webp";
+                }
+                else if (imageInfos[i].hasavif == 1) {
+                    imgFormats[i] = "avif";
+                }
+                else if (imageInfos[i].hasjxl == 1) {
+                    imgFormats[i] = "jxl";
+                }
+            }
+            return imgFormats;
+        }
+
+        public static string[] GetImageAddresses(ImageInfo[] imageInfos, string[] imgFormats, string serverTime) {
+            string[] result = new string[imageInfos.Length];
+            for (int i = 0; i < imageInfos.Length; i++) {
+                string hash = imageInfos[i].hash;
                 string oneTwoCharInt = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
-                result[i] = $"{IMAGE_BASE_DOMAIN}/{format}/{serverTime}/{oneTwoCharInt}/{hash}.{format}";
+                result[i] = $"{IMAGE_BASE_DOMAIN}/{imgFormats[i]}/{serverTime}/{oneTwoCharInt}/{hash}.{imgFormats[i]}";
             }
             return result;
         }
@@ -134,6 +148,11 @@ namespace Hitomi_Scroll_Viewer
                 if (imageBytes != null) {
                     try {
                         await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, id, idx.ToString()) + '.' + imgFormat, imageBytes, ct);
+                        progressBar.DispatcherQueue.TryEnqueue(() => {
+                            lock (progressBar) {
+                                progressBar.Value++;
+                            }
+                        });
                     }
                     catch (DirectoryNotFoundException) {
                         break;
@@ -144,11 +163,6 @@ namespace Hitomi_Scroll_Viewer
                     break;
                 }
             }
-            progressBar.DispatcherQueue.TryEnqueue(() => {
-                lock (progressBar) {
-                    progressBar.Value++;
-                }
-            });
         }
 
         public static Task[] DownloadImages(
@@ -192,6 +206,20 @@ namespace Hitomi_Scroll_Viewer
                 startIdx += thisJMax;
             }
             return tasks;
+        }
+
+        public static int[] GetMissingIndexes(Gallery gallery) {
+            int[] missingIndexes = new int[gallery.files.Length];
+            int missingCount = 0;
+            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
+            for (int i = 0; i < missingIndexes.Length; i++) {
+                string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
+                if (file.Length == 0) {
+                    missingIndexes[missingCount] = i;
+                    missingCount++;
+                }
+            }
+            return missingIndexes[..missingCount];
         }
     }
 }
