@@ -7,7 +7,7 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid x:Name="MainGrid" KeyDown="HandleKeyDown">
+    <Grid x:Name="MainGrid">
         <ScrollViewer x:Name="MainScrollViewer"
                       ViewChanging="HandleScrollViewChange"
                       ZoomMode="Enabled"
@@ -25,7 +25,6 @@
                           Icon="Back"
                           Label="Go Back"
                           Click="HandleGoBackBtnClick"
-                          IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
@@ -34,7 +33,6 @@
                           Label="Change View Mode"
                           Click="HandleViewModeBtnClick"
                           IsEnabled="False"
-                          IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="BookmarkBtn"
@@ -42,7 +40,6 @@
                           MinWidth="140"
                           Icon="Save"
                           IsEnabled="False"
-                          IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
@@ -51,7 +48,6 @@
                         FontSize="14"
                         ValueChanged="SetScrollSpeed"
                         IsEnabled="False"
-                        IsTabStop="False"
                         />
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
@@ -59,14 +55,12 @@
                                 MinWidth="90"
                                 Click="HandleAutoScrollBtnClick"
                                 IsEnabled="False"
-                                IsTabStop="False"
                                 />
             <AppBarToggleButton x:Name="LoopBtn"
                                 IsChecked="{x:Bind _isLooping, Mode=TwoWay}"
                                 Label="Toggle Loop"
                                 Icon="RepeatAll"
                                 MinWidth="90"
-                                IsTabStop="False"
                                 />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="LoadingControlBtn"
@@ -76,7 +70,6 @@
                           MinWidth="90"
                           Click="HandleLoadingControlBtnClick"
                           IsEnabled="False"
-                          IsTabStop="False"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
@@ -109,7 +102,7 @@
             <TextBlock x:Name="PageNumText" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <ProgressBar x:Name="LoadingProgressBar"
-                     VerticalAlignment="Top" Minimum="0" Maximum="100" Value="0"
+                     VerticalAlignment="Top" Background="Transparent"
                      Visibility="Collapsed"/>
     </Grid>
 </Page>

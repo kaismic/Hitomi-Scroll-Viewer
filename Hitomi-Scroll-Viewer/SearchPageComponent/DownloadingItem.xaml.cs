@@ -1,8 +1,8 @@
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System.Threading;
-using Windows.UI;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class DownloadingItem : Grid {
@@ -11,9 +11,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             InitializeComponent();
 
             BorderThickness = new(1);
-            Background = new SolidColorBrush(new() {
-                R = 0, G = 0, B = 235, A = 1
-            });
+            Background = new SolidColorBrush(Colors.LightBlue);
             CornerRadius = new(10);
             Padding = new(10);
             ColumnDefinitions.Add(new() { Width = new GridLength(3, GridUnitType.Star) });
@@ -29,7 +27,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             SetColumn(desc, 0);
             Children.Add(desc);
 
-            ProgressBar progressBar = new();
+            ProgressBar progressBar = new() {
+                Background = new SolidColorBrush(Colors.Transparent)
+            };
             SetRow(progressBar, 1);
             SetColumn(progressBar, 0);
             Children.Add(progressBar);
