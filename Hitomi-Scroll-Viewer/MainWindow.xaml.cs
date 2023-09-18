@@ -55,6 +55,10 @@ namespace Hitomi_Scroll_Viewer {
                 _iwp.HandleWindowClose();
             };
 
+            RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
+                if (_currPageNum == 1) _iwp.HandleKeyDown(_, e);
+            };
+
             RootFrame.Content = _appPages[_currPageNum];
         }
 

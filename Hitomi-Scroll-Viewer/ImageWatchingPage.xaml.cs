@@ -490,7 +490,7 @@ namespace Hitomi_Scroll_Viewer {
             _pageMutex.ReleaseMutex();
         }
 
-        private void HandleKeyDown(object _, KeyRoutedEventArgs e) {
+        public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
             switch (e.Key) {
                 case VirtualKey.L:
                     LoopBtn.IsChecked = !LoopBtn.IsChecked;
