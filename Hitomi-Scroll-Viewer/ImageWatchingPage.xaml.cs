@@ -401,7 +401,7 @@ namespace Hitomi_Scroll_Viewer {
                 await Task.Delay(10);
                 allLoaded = true;
                 for (int i = 0; i < _images.Length; i++) {
-                    if (!_images[i].IsLoaded) {
+                    if (_images[i].ActualWidth == 0) {
                         allLoaded = false;
                         break;
                     }
@@ -679,6 +679,10 @@ namespace Hitomi_Scroll_Viewer {
                             DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(0));
                             break;
                         case ScrollDirection.RightToLeft:
+                            Debug.WriteLine($"MainScrollViewer.ScrollableWidth = {MainScrollViewer.ScrollableWidth}");
+                            Debug.WriteLine($"MainScrollViewer.ExtentWidth = {MainScrollViewer.ExtentWidth}");
+                            Debug.WriteLine($"MainScrollViewer.ActualWidth = {MainScrollViewer.ActualWidth}");
+                            Debug.WriteLine($"MainScrollViewer.ViewportWidth = {MainScrollViewer.ViewportWidth}");
                             DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.ScrollableWidth));
                             break;
                     }
