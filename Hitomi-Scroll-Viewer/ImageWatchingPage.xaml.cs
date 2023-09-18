@@ -158,7 +158,7 @@ namespace Hitomi_Scroll_Viewer {
                     MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
                     MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
                     MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
-                    DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
+                    MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
                     break;
                 case ScrollDirection.LeftToRight or ScrollDirection.RightToLeft:
                     ImageContainer.Orientation = Orientation.Horizontal;
@@ -166,7 +166,7 @@ namespace Hitomi_Scroll_Viewer {
                     MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
                     MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
                     MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
-                    DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
+                    MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
                     break;
             }
         }
@@ -337,7 +337,7 @@ namespace Hitomi_Scroll_Viewer {
                 AutoScrollBtn.Label = "Stop Auto Page Turning / Scrolling";
                 CancellationTokenSource cts = new();
                 _autoScrollCts = cts;
-                Task.Run(() => ScrollAutomatically(cts.Token));
+                Task.Run(() => ScrollAutomatically(cts.Token), cts.Token);
             }
             else {
                 _autoScrollCts.Cancel();
@@ -490,19 +490,21 @@ namespace Hitomi_Scroll_Viewer {
             _pageMutex.ReleaseMutex();
         }
 
-        public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
+        private void HandleKeyDown(object _, KeyRoutedEventArgs e) {
             switch (e.Key) {
                 case VirtualKey.L:
                     LoopBtn.IsChecked = !LoopBtn.IsChecked;
                     break;
                 case VirtualKey.Space:
-                    if (AutoScrollBtn.IsEnabled) StartStopAutoScroll(!_isAutoScrolling);
+                    if (!_isInAction && _galleryState != GalleryState.Empty) {
+                        StartStopAutoScroll(!_isAutoScrolling);
+                    }
                     break;
                 case VirtualKey.V:
-                    if (ViewModeBtn.IsEnabled) HandleViewModeBtnClick(null, null);
+                    if (!_isInAction && _galleryState != GalleryState.Empty) HandleViewModeBtnClick(null, null);
                     break;
                 case VirtualKey.Right or VirtualKey.Left:
-                    if (!_isInAction && _mw.gallery != null && _viewMode == ViewMode.Default) {
+                    if (!_isInAction && _galleryState != GalleryState.Empty && _viewMode == ViewMode.Default) {
                         _pageMutex.WaitOne();
                         switch (e.Key) {
                             case VirtualKey.Right:
@@ -553,7 +555,7 @@ namespace Hitomi_Scroll_Viewer {
                         } catch (TaskCanceledException) {
                             return;
                         }
-                        DispatcherQueue.TryEnqueue(() => {
+                        MainScrollViewer.DispatcherQueue.TryEnqueue(() => {
                             bool isEndOfPage = _scrollDirection switch {
                                 ScrollDirection.TopToBottom => MainScrollViewer.VerticalOffset == MainScrollViewer.ScrollableHeight,
                                 ScrollDirection.LeftToRight => MainScrollViewer.HorizontalOffset == MainScrollViewer.ScrollableWidth,
@@ -673,20 +675,17 @@ namespace Hitomi_Scroll_Viewer {
                     await WaitImageLoad();
                     switch (_scrollDirection) {
                         case ScrollDirection.TopToBottom:
-                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(0));
+                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(0));
                             break;
                         case ScrollDirection.LeftToRight:
-                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(0));
+                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(0));
                             break;
                         case ScrollDirection.RightToLeft:
-                            Debug.WriteLine($"MainScrollViewer.ScrollableWidth = {MainScrollViewer.ScrollableWidth}");
-                            Debug.WriteLine($"MainScrollViewer.ExtentWidth = {MainScrollViewer.ExtentWidth}");
-                            Debug.WriteLine($"MainScrollViewer.ActualWidth = {MainScrollViewer.ActualWidth}");
-                            Debug.WriteLine($"MainScrollViewer.ViewportWidth = {MainScrollViewer.ViewportWidth}");
-                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.ScrollableWidth));
+                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.ScrollableWidth));
                             break;
                     }
                     _currPage = 0;
+                    SetPageText();
                     break;
             }
             FinishLoading(GalleryState.Bookmarked);
@@ -823,6 +822,7 @@ namespace Hitomi_Scroll_Viewer {
                             break;
                     }
                     _currPage = 0;
+                    SetPageText();
                     break;
             }
             _pageMutex.ReleaseMutex();
