@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="using:Hitomi_Scroll_Viewer.SearchPageComponent"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer>
@@ -66,7 +65,7 @@
                                   ItemsSource="{x:Bind _downloadThreadNums}"
                                   SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
                     </Grid>
-                    <ScrollViewer>
+                    <ScrollViewer MaxHeight="300">
                         <StackPanel x:Name="DownloadPanel" Orientation="Vertical" Spacing="10"/>
                     </ScrollViewer>
                 </StackPanel>
