@@ -74,7 +74,7 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="DownloadThreadNumSelector"
-                          Header="Threads"
+                          Header="Download Threads"
                           ItemsSource="{x:Bind _downloadThreadNums}"
                           SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
             </AppBarElementContainer>

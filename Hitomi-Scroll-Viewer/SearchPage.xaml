@@ -62,7 +62,7 @@
                         </Button>
                         <ComboBox Grid.Row="2" Grid.Column="1"
                                   HorizontalAlignment="Center"
-                                  Header="Threads Per Download"
+                                  Header="Download Threads"
                                   ItemsSource="{x:Bind _downloadThreadNums}"
                                   SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
                     </Grid>
