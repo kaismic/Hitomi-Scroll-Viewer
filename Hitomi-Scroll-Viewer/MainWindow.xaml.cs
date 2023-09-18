@@ -49,9 +49,9 @@ namespace Hitomi_Scroll_Viewer {
             RootFrame.Loaded += (_, _) => {
                 ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             };
-            RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
-                if (_currPageNum == 1) _iwp.HandleKeyDown(_, e);
-            };
+            //RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
+            //    if (_currPageNum == 1) _iwp.HandleKeyDown(_, e);
+            //};
 
             // Handle window close
             Closed += (_, _) => {

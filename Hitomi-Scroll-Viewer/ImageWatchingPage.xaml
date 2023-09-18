@@ -7,13 +7,14 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid" KeyDown="HandleKeyDown">
         <ScrollViewer x:Name="MainScrollViewer"
-                      IsTabStop="True"
                       ViewChanging="HandleScrollViewChange"
                       ZoomMode="Enabled"
+                      IsTabStop="True"
                       >
-            <StackPanel x:Name="ImageContainer" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <StackPanel x:Name="ImageContainer"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </ScrollViewer>
         <CommandBar x:Name="TopCommandBar"
                     ClosedDisplayMode="Minimal"
