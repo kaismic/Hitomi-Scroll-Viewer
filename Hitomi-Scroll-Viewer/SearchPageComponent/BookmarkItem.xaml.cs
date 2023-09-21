@@ -66,10 +66,12 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     Height = THUMBNAIL_IMG_WIDTH * gallery.files[idx].height / gallery.files[idx].width,
                     HorizontalAlignment = HorizontalAlignment.Center
                 };
-                string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
-                if (file.Length > 0) {
-                    _images[i].Source = new BitmapImage(new(file[0]));
-                }
+                try {
+                    string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
+                    if (file.Length > 0) {
+                        _images[i].Source = new BitmapImage(new(file[0]));
+                    }
+                } catch (DirectoryNotFoundException) {}
                 SetColumn(_images[i], i);
                 _imageContainer.Children.Add(_images[i]);
             }
