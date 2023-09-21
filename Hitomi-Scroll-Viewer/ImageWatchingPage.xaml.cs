@@ -13,7 +13,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.System;
-using static Hitomi_Scroll_Viewer.MainWindow;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
@@ -41,7 +40,6 @@ namespace Hitomi_Scroll_Viewer {
         public enum GalleryState {
             Bookmarked,
             Bookmarking,
-            BookmarkFull,
             Loaded,
             Empty
         }
@@ -87,6 +85,12 @@ namespace Hitomi_Scroll_Viewer {
             };
             TopCommandBar.PointerCaptureLost += (_, _) => { TopCommandBar.IsOpen = false; };
             TopCommandBar.PointerCanceled += (_, _) => { TopCommandBar.IsOpen = false; };
+
+            BookmarkBtn.Click += (_, _) => {
+                ChangeBookmarkBtnState(GalleryState.Bookmarking);
+                _mw.sp.AddBookmark(_mw.gallery);
+                ChangeBookmarkBtnState(GalleryState.Bookmarked);
+            };
         }
 
         private void SetScrollSpeedSlider() {
@@ -203,20 +207,20 @@ namespace Hitomi_Scroll_Viewer {
             _cts = new();
             CancellationToken ct = _cts.Token;
 
-            string imageDir = Path.Combine(IMAGE_DIR, _mw.gallery.id);
-
-            Directory.CreateDirectory(imageDir);
-
             int[] missingIndexes;
 
             if (reloadAll) {
                 missingIndexes = Enumerable.Range(0, _mw.gallery.files.Length).ToArray();
             } else {
-                missingIndexes = GetMissingIndexes(_mw.gallery);
-                if (missingIndexes.Length == 0) {
-                    _mw.AlertUser("There are no missing images", "");
-                    FinishLoading(_galleryState);
-                    return;
+                try {
+                    missingIndexes = GetMissingIndexes(_mw.gallery);
+                    if (missingIndexes.Length == 0) {
+                        _mw.AlertUser("There are no missing images", "");
+                        FinishLoading(_galleryState);
+                        return;
+                    }
+                } catch (DirectoryNotFoundException) {
+                    missingIndexes = Enumerable.Range(0, _mw.gallery.files.Length).ToArray();
                 }
             }
 
@@ -228,11 +232,9 @@ namespace Hitomi_Scroll_Viewer {
             string serverTime = null;
             try {
                 serverTime = await GetServerTime(_mw.httpClient, ct);
-            }
-            catch (HttpRequestException e) {
+            } catch (HttpRequestException e) {
                 _mw.AlertUser("An error has occurred while getting server time. Please try again.", e.Message);
-            }
-            if (serverTime == null) {
+            } catch (TaskCanceledException) {
                 FinishLoading(_galleryState);
                 return;
             }
@@ -262,11 +264,16 @@ namespace Hitomi_Scroll_Viewer {
                 ct
             );
 
-            await Task.WhenAll(tasks);
+            try {
+                await Task.WhenAll(tasks);
+            } catch (TaskCanceledException) {
+                FinishLoading(_galleryState);
+                return;
+            }
 
             int[] stillMissingIndexes = GetMissingIndexes(_mw.gallery);
             int[] loadedIndexes = missingIndexes.Except(stillMissingIndexes).ToArray();
-
+            string imageDir = Path.Combine(IMAGE_DIR, _mw.gallery.id);
             for (int i = 0; i < loadedIndexes.Length; i++) {
                 if (ct.IsCancellationRequested) {
                     FinishLoading(_galleryState);
@@ -291,13 +298,10 @@ namespace Hitomi_Scroll_Viewer {
                     break;
                 }
             }
-            if (_mw.IsBookmarkFull()) {
-                FinishLoading(GalleryState.BookmarkFull);
-            }
-            else if (isBookmarked) {
+
+            if (isBookmarked) {
                 FinishLoading(GalleryState.Bookmarked);
-            }
-            else {
+            } else {
                 FinishLoading(GalleryState.Loaded);
             }
         }
@@ -583,7 +587,7 @@ namespace Hitomi_Scroll_Viewer {
                     LoadingControlBtn.Icon = new SymbolIcon(Symbol.Cancel);
                     LoadingControlBtn.IsEnabled = true;
                 }
-                _mw.sp.EnableControls(!start);
+                _mw.sp.EnableLoading(!start);
                 EnableControls(!start);
                 if (!start) {
                     if (_galleryState != GalleryState.Empty) {
@@ -673,12 +677,16 @@ namespace Hitomi_Scroll_Viewer {
             _cts = new();
             CancellationToken ct = _cts.Token;
 
-            string galleryInfo = await GetGalleryInfo(_mw.httpClient, id, ct);
-            if (galleryInfo == null) {
+            string galleryInfo = null;
+            try {
+                galleryInfo = await GetGalleryInfo(_mw.httpClient, id, ct);
+            } catch (HttpRequestException e) {
+                _mw.AlertUser("An error has occured while getting gallery info", e.Message);
+            } catch (TaskCanceledException) {
                 FinishLoading(GalleryState.Empty);
                 return;
             }
-            
+
             if (ct.IsCancellationRequested) {
                 FinishLoading(GalleryState.Empty);
                 return;
@@ -688,7 +696,7 @@ namespace Hitomi_Scroll_Viewer {
             try {
                 newGallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
             } catch (JsonException e) {
-                _mw.AlertUser("Error while reading gallery json file", e.Message);
+                _mw.AlertUser("An error has occured while reading gallery json file", e.Message);
                 FinishLoading(GalleryState.Empty);
                 return;
             }
@@ -699,8 +707,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             catch (HttpRequestException e) {
                 _mw.AlertUser("An error has occurred while getting server time. Please try again.", e.Message);
-            }
-            if (serverTime == null) {
+            } catch (TaskCanceledException) {
                 FinishLoading(GalleryState.Empty);
                 return;
             }
@@ -726,9 +733,9 @@ namespace Hitomi_Scroll_Viewer {
                 ct
             );
 
-            await Task.WhenAll(tasks);
-
-            if (ct.IsCancellationRequested) {
+            try {
+                await Task.WhenAll(tasks);
+            } catch (TaskCanceledException) {
                 DeleteGallery(newGallery);
                 FinishLoading(GalleryState.Empty);
                 return;
@@ -790,12 +797,7 @@ namespace Hitomi_Scroll_Viewer {
             } else {
                 _mw.AlertUser($"Gallery {newGallery.id} has loaded successfully", "");
             }
-
-            if (_mw.IsBookmarkFull()) {
-                FinishLoading(GalleryState.BookmarkFull);
-            } else {
-                FinishLoading(GalleryState.Loaded);
-            }
+            FinishLoading(GalleryState.Loaded);
         }
 
         public void ChangeBookmarkBtnState(GalleryState state) {
@@ -813,9 +815,6 @@ namespace Hitomi_Scroll_Viewer {
                 case GalleryState.Bookmarking:
                     BookmarkBtn.Label = "Bookmarking...";
                     break;
-                case GalleryState.BookmarkFull:
-                    BookmarkBtn.Label = "Bookmark is full";
-                    break;
                 case GalleryState.Loaded:
                     BookmarkBtn.Label = "Bookmark this gallery";
                     break;
@@ -826,10 +825,6 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public bool IsBusy() {
-            if (_galleryState == GalleryState.Bookmarking) {
-                _mw.AlertUser("A gallery is being bookmarked", "Please wait for the bookmarking to finish before exiting.");
-                return true;
-            }
             lock (_actionLock) if (_isInAction) {
                     _mw.AlertUser("A gallery is being loaded", "Please cancel the loading or wait for the loading to finish before exiting.");
                     return true;

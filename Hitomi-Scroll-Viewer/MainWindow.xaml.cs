@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
@@ -17,8 +18,13 @@ namespace Hitomi_Scroll_Viewer {
 
         public Gallery gallery;
         public List<Gallery> bmGalleries;
+        public readonly Mutex bmMutex = new();
 
-        public readonly HttpClient httpClient;
+        public readonly HttpClient httpClient = new() {
+            DefaultRequestHeaders = {
+                {"referer", REFERER }
+            }
+        };
 
         public MainWindow() {
             InitializeComponent();
@@ -27,17 +33,10 @@ namespace Hitomi_Scroll_Viewer {
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
 
-            httpClient = new() {
-                DefaultRequestHeaders = {
-                    {"referer", REFERER }
-                }
-            };
-
             sp = new(this);
             _iwp = new(this);
+            SearchPage.Init(_iwp);
             _appPages = new Page[] { sp, _iwp };
-
-            sp.Init(_iwp);
 
             // Switch page on double click
             RootFrame.DoubleTapped += (_, _) => {
@@ -52,6 +51,10 @@ namespace Hitomi_Scroll_Viewer {
 
             // Handle window closing
             AppWindow.Closing += (AppWindow _, AppWindowClosingEventArgs e) => {
+                if (sp.IsBusy()) {
+                    e.Cancel = true;
+                    return;
+                }
                 if (_iwp.IsBusy()) {
                     e.Cancel = true;
                     return;
@@ -102,10 +105,6 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             return null;
-        }
-
-        public bool IsBookmarkFull() {
-            return bmGalleries.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE;
         }
     }
 }

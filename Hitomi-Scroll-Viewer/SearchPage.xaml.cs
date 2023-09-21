@@ -2,7 +2,6 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Concurrent;
@@ -12,7 +11,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel.DataTransfer;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
-using static Hitomi_Scroll_Viewer.MainWindow;
 using static Hitomi_Scroll_Viewer.Tag;
 using static Hitomi_Scroll_Viewer.Utils;
 
@@ -43,9 +41,9 @@ namespace Hitomi_Scroll_Viewer {
         };
 
         private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4 };
-        private int _downloadThreadNum = 1;
+        public int DownloadThreadNum = 1;
 
-        private static readonly ConcurrentBag<string> _downloadingGalleries = new();
+        public readonly ConcurrentDictionary<string, byte> DownloadingGalleries = new();
 
         private string _currTagName;
 
@@ -119,22 +117,10 @@ namespace Hitomi_Scroll_Viewer {
                 bmItems.Add(new(_mw.bmGalleries[i], this));
             }
             FillBookmarkGrid();
-
-            // TODO delete after testing
-            DownloadPanel.Children.Add(new DownloadingItem("2561144"));
-            DownloadPanel.Children.Add(new DownloadingItem("2472850"));
-            DownloadPanel.Children.Add(new DownloadingItem("1232132"));
-            DownloadPanel.Children.Add(new DownloadingItem("2192752"));
-            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
-            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
-            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
-            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
-            DownloadPanel.Children.Add(new DownloadingItem("0981234"));
         }
 
-        public void Init(ImageWatchingPage iwp) {
+        public static void Init(ImageWatchingPage iwp) {
             _iwp = iwp;
-            _iwp.BookmarkBtn.Click += AddBookmark;
         }
 
         private void InitLayout() {
@@ -203,7 +189,7 @@ namespace Hitomi_Scroll_Viewer {
             TagControlGrid.SizeChanged += setHyperlinkPanelHeight;
         }
 
-        public static void SaveTagInfo() {
+        public static void WriteTag() {
             File.WriteAllText(TAGS_FILE_PATH, JsonSerializer.Serialize(Tags, serializerOptions));
         }
 
@@ -226,7 +212,7 @@ namespace Hitomi_Scroll_Viewer {
             Tags.Add(newTagName, GetCurrTag());
             TagListComboBox.Items.Add(newTagName);
             TagListComboBox.SelectedItem = newTagName;
-            SaveTagInfo();
+            WriteTag();
             _mw.AlertUser($"'{newTagName}' has been created", "");
         }
 
@@ -252,7 +238,7 @@ namespace Hitomi_Scroll_Viewer {
             Tags.Remove(oldTagName);
             TagListComboBox.SelectedItem = newTagName;
             TagListComboBox.Items.Remove(oldTagName);
-            SaveTagInfo();
+            WriteTag();
             _mw.AlertUser($"'{oldTagName}' has been renamed to '{newTagName}'", "");
         }
 
@@ -264,7 +250,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             Tags[_currTagName] = GetCurrTag();
-            SaveTagInfo();
+            WriteTag();
             _mw.AlertUser($"'{_currTagName}' has been saved", "");
         }
 
@@ -278,7 +264,7 @@ namespace Hitomi_Scroll_Viewer {
             Tags.Remove(oldTagName);
             TagListComboBox.Items.Remove(oldTagName);
             TagListComboBox.SelectedIndex = 0;
-            SaveTagInfo();
+            WriteTag();
             _mw.AlertUser($"'{oldTagName}' has been removed", "");
         }
 
@@ -399,29 +385,45 @@ namespace Hitomi_Scroll_Viewer {
             HyperlinkPanel.Children.Remove((Grid)((Button)sender).Parent);
         }
 
-        private void HandleKeyDown(object _0, KeyRoutedEventArgs e) {
-            if (e.Key == Windows.System.VirtualKey.Enter) {
-                CheckAndLoad();
+        private void HandleDownloadBtnClick(object _0, RoutedEventArgs _1) {
+            string id = ExtractGalleryId();
+            if (string.IsNullOrEmpty(id)) {
+                _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
+                return;
             }
+            GalleryIDTextBox.Text = "";
+
+            // if the already loaded gallery is the same gallery, just return
+            if (_mw.gallery != null) {
+                if (id == _mw.gallery.id) {
+                    _mw.AlertUser("The gallery is already loaded", "");
+                    return;
+                }
+            }
+            // if it is already downloading, just return
+            if (DownloadingGalleries.TryGetValue(id, out _)) {
+                _mw.AlertUser("The gallery is already being downloaded", "");
+                return;
+            }
+            // if it is already bookmarked, load it from local directory
+            Gallery bmGallery = _mw.GetGalleryFromBookmark(id);
+            if (bmGallery != null) {
+                _mw.AlertUser("The gallery is already bookmarked", "");
+                return;
+            }
+            // 0 is dummy value
+            DownloadingGalleries.TryAdd(id, 0);
+            DownloadPanel.Children.Add(new DownloadingItem(id, _mw.httpClient, this));
         }
 
-        private void HandleLoadGalleryBtnClick(object _0, RoutedEventArgs _1) {
-            CheckAndLoad();
-        }
-
-        public void EnableControls(bool enable) {
+        public void EnableLoading(bool enable) {
             LoadGalleryBtn.IsEnabled = enable;
             for (int i = 0; i < bmItems.Count; i++) {
-                bmItems[i].EnableButton(enable);
-            }
-            if (enable) {
-                GalleryIDTextBox.KeyDown += HandleKeyDown;
-            } else {
-                GalleryIDTextBox.KeyDown -= HandleKeyDown;
+                bmItems[i].EnableHyperlinkButton(enable);
             }
         }
 
-        private async void CheckAndLoad() {
+        private async void HandleLoadGalleryBtnClick(object _0, RoutedEventArgs _1) {
             string id = ExtractGalleryId();
             if (string.IsNullOrEmpty(id)) {
                 _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
@@ -435,7 +437,7 @@ namespace Hitomi_Scroll_Viewer {
             // if the already loaded gallery is the same gallery, just return
             if (_mw.gallery != null) {
                 if (id == _mw.gallery.id) {
-                    _mw.AlertUser("Gallery is already loaded", "");
+                    _mw.AlertUser("The gallery is already loaded", "");
                     return;
                 }
             }
@@ -463,7 +465,7 @@ namespace Hitomi_Scroll_Viewer {
             // if the already loaded gallery is the same gallery, just return
             if (_mw.gallery != null) {
                 if (gallery.id == _mw.gallery.id) {
-                    _mw.AlertUser("Gallery is already loaded", "");
+                    _mw.AlertUser("The gallery is already loaded", "");
                     return;
                 }
             }
@@ -471,33 +473,37 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         /**
-         * <summary>Call this method before and after bookmarking.</summary>
+         * <summary>Call this method before and after doing bookmark action/</summary>
         */
-        private void StartStopBookmarking(bool starting) {
-            EnableControls(!starting);
+        public static void DoBookmarkAction(bool starting) {
             if (starting) {
-                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarking);
+                _mw.bmMutex.WaitOne();
             } else {
-                _iwp.ChangeBookmarkBtnState(GalleryState.Bookmarked);
+                _mw.bmMutex.ReleaseMutex();
+            }
+            for (int i = 0; i < bmItems.Count; i++) {
+                bmItems[i].EnableHyperlinkButton(!starting);
             }
         }
 
-        public static void SaveBookmarkInfo() {
+        public static void WriteBookmark() {
             File.WriteAllText(BM_INFO_FILE_PATH, JsonSerializer.Serialize(_mw.bmGalleries, serializerOptions));
         }
 
-        public void AddBookmark(object _0, RoutedEventArgs _1) {
-            StartStopBookmarking(true);
+        public void AddBookmark(Gallery gallery) {
+            DoBookmarkAction(true);
 
-            _mw.bmGalleries.Add(_mw.gallery);
-            bmItems.Add(new BookmarkItem(_mw.gallery, this));
-            SaveBookmarkInfo();
+            _mw.bmGalleries.Add(gallery);
+            bmItems.Add(new BookmarkItem(gallery, this));
+            WriteBookmark();
             FillBookmarkGrid();
 
-            StartStopBookmarking(false);
+            DoBookmarkAction(false);
         }
 
         public void RemoveBookmark(object sender, RoutedEventArgs _1) {
+            DoBookmarkAction(true);
+
             BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
 
             // delete bookmarked gallery if the removing gallery is not the current gallery
@@ -512,8 +518,10 @@ namespace Hitomi_Scroll_Viewer {
             }
             _mw.bmGalleries.Remove(bmItem.gallery);
             bmItems.Remove(bmItem);
-            SaveBookmarkInfo();
+            WriteBookmark();
             FillBookmarkGrid();
+
+            DoBookmarkAction(false);
         }
 
         private void FillBookmarkGrid() {
@@ -535,6 +543,14 @@ namespace Hitomi_Scroll_Viewer {
             }
             _currBookmarkPage = btnIdx;
             FillBookmarkGrid();
+        }
+
+        public bool IsBusy() {
+            if (!DownloadingGalleries.IsEmpty) {
+                _mw.AlertUser("Galleries are downloading", "Please cancel the downloading or wait for the downloading to finish before exiting.");
+                return true;
+            }
+            return false;
         }
     }
 }

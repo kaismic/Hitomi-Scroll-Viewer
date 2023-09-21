@@ -45,13 +45,13 @@
                         </Grid.RowDefinitions>
                         <TextBox x:Name="GalleryIDTextBox"
                                  Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
-                                 KeyDown="HandleKeyDown"
                                  TextWrapping="Wrap"
                                  PlaceholderText="Enter a Gallery ID or an URL Here. e.g. 2058075 or https://hitomi.la/..."
                                  />
                         <Button Grid.Row="0" Grid.Column="1"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="Bookmark Gallery" TextWrapping="WrapWholeWords"/>
+                                HorizontalAlignment="Center"
+                                Click="HandleDownloadBtnClick">
+                            <TextBlock Text="Download Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
                         <Button x:Name="LoadGalleryBtn"
                                 Grid.Row="1" Grid.Column="1"
@@ -63,7 +63,7 @@
                                   HorizontalAlignment="Center"
                                   Header="Download Threads"
                                   ItemsSource="{x:Bind _downloadThreadNums}"
-                                  SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
+                                  SelectedItem="{x:Bind DownloadThreadNum, Mode=TwoWay}"/>
                     </Grid>
                     <ScrollViewer MaxHeight="300">
                         <StackPanel x:Name="DownloadPanel" Orientation="Vertical" Spacing="10"/>
