@@ -24,8 +24,6 @@ namespace Hitomi_Scroll_Viewer
         public static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
-        public static readonly int MAX_CONCURRENT_REQUEST = 4;
-
         // TODO
         // downloading items
         // remove bookmark limit (bookmarkfull)
@@ -39,6 +37,7 @@ namespace Hitomi_Scroll_Viewer
 
         /**
          * <exception cref="HttpRequestException"></exception>
+         * <exception cref="TaskCanceledException"></exception>
         */
         public static async Task<string> GetGalleryInfo(HttpClient httpClient, string id, CancellationToken ct) {
             string address = GALLERY_INFO_DOMAIN + id + ".js";
@@ -47,22 +46,15 @@ namespace Hitomi_Scroll_Viewer
                 RequestUri = new Uri(address)
             };
             HttpResponseMessage response;
-            try {
-                response = await httpClient.SendAsync(galleryInfoRequest, ct);
-                response.EnsureSuccessStatusCode();
-            }
-            catch (HttpRequestException e) {
-                throw e;
-            }
-            catch (TaskCanceledException) when (ct.IsCancellationRequested) {
-                return null;
-            }
+            response = await httpClient.SendAsync(galleryInfoRequest, ct);
+            response.EnsureSuccessStatusCode();
             string responseString = await response.Content.ReadAsStringAsync(ct);
             return responseString[GALLERY_INFO_EXCLUDE_STRING.Length..];
         }
 
         /**
          * <exception cref="HttpRequestException"></exception>
+         * <exception cref="TaskCanceledException"></exception>
         */
         public static async Task<string> GetServerTime(HttpClient httpClient, CancellationToken ct) {
             HttpRequestMessage serverTimeRequest = new() {
@@ -70,16 +62,8 @@ namespace Hitomi_Scroll_Viewer
                 RequestUri = new Uri(SERVER_TIME_ADDRESS)
             };
             HttpResponseMessage response;
-            try {
-                response = await httpClient.SendAsync(serverTimeRequest, ct);
-                response.EnsureSuccessStatusCode();
-            }
-            catch (HttpRequestException e) {
-                throw e;
-            }
-            catch (TaskCanceledException) when (ct.IsCancellationRequested) {
-                return null;
-            }
+            response = await httpClient.SendAsync(serverTimeRequest, ct);
+            response.EnsureSuccessStatusCode();
             string responseString = await response.Content.ReadAsStringAsync(ct);
             // get numbers between ' and /'
             return responseString.Substring(responseString.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
@@ -113,6 +97,7 @@ namespace Hitomi_Scroll_Viewer
 
         /**
          * <returns>The image <c>byte[]</c> if the given address is valid, otherwise <c>null</c>.</returns>
+         * <exception cref="TaskCanceledException"></exception>
          */
         public static async Task<byte[]> GetImageBytesFromWeb(HttpClient httpClient, string address, CancellationToken ct) {
             HttpRequestMessage request = new() {
@@ -131,12 +116,15 @@ namespace Hitomi_Scroll_Viewer
                 }
                 return null;
             }
-            catch (TaskCanceledException) when (ct.IsCancellationRequested) {
-                return null;
+            catch (TaskCanceledException e) {
+                throw e;
             }
             return await response.Content.ReadAsByteArrayAsync(ct);
         }
 
+        /**
+         * <exception cref="TaskCanceledException"></exception>
+         */
         public static async Task TryGetImageBytesFromWeb(
             HttpClient httpClient,
             string id,
@@ -150,7 +138,12 @@ namespace Hitomi_Scroll_Viewer
                 if (ct.IsCancellationRequested) {
                     break;
                 }
-                byte[] imageBytes = await GetImageBytesFromWeb(httpClient, subdomain + imgAddress, ct);
+                byte[] imageBytes;
+                try {
+                    imageBytes = await GetImageBytesFromWeb(httpClient, subdomain + imgAddress, ct);
+                } catch (TaskCanceledException e) {
+                    throw e;
+                }
                 if (imageBytes != null) {
                     try {
                         await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, id, idx.ToString()) + '.' + imgFormat, imageBytes, ct);
@@ -171,6 +164,9 @@ namespace Hitomi_Scroll_Viewer
             }
         }
 
+        /**
+         * <exception cref="TaskCanceledException"></exception>
+        */
         public static Task[] DownloadImages(
             HttpClient httpClient,
             string id,
@@ -214,10 +210,14 @@ namespace Hitomi_Scroll_Viewer
             return tasks;
         }
 
+        /**
+         * <returns>The image indexes <c>int[]</c> if the image directory exists.</returns>
+         * <exception cref="DirectoryNotFoundException"></exception>
+         */
         public static int[] GetMissingIndexes(Gallery gallery) {
+            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
             int[] missingIndexes = new int[gallery.files.Length];
             int missingCount = 0;
-            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
             for (int i = 0; i < missingIndexes.Length; i++) {
                 string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
                 if (file.Length == 0) {
