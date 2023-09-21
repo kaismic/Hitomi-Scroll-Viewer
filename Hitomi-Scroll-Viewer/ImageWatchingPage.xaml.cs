@@ -63,7 +63,6 @@ namespace Hitomi_Scroll_Viewer {
         private bool _isInAction = false;
 
         private static readonly Mutex _pageMutex = new();
-        private readonly ManualResetEventSlim bookmarkSignal = new(true);
 
         // galleries for testing
         // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
@@ -201,9 +200,8 @@ namespace Hitomi_Scroll_Viewer {
             StartLoading();
 
             // create new cts
-            CancellationTokenSource localCts = new();
-            CancellationToken ct = localCts.Token;
-            _cts = localCts;
+            _cts = new();
+            CancellationToken ct = _cts.Token;
 
             string imageDir = Path.Combine(IMAGE_DIR, _mw.gallery.id);
 
@@ -672,9 +670,8 @@ namespace Hitomi_Scroll_Viewer {
             StartLoading();
 
             // create new cts
-            CancellationTokenSource localCts = new();
-            CancellationToken ct = localCts.Token;
-            _cts = localCts;
+            _cts = new();
+            CancellationToken ct = _cts.Token;
 
             string galleryInfo = await GetGalleryInfo(_mw.httpClient, id, ct);
             if (galleryInfo == null) {
@@ -811,11 +808,9 @@ namespace Hitomi_Scroll_Viewer {
             }
             switch (state) {
                 case GalleryState.Bookmarked:
-                    bookmarkSignal.Set();
                     BookmarkBtn.Label = "Bookmarked";
                     break;
                 case GalleryState.Bookmarking:
-                    bookmarkSignal.Reset();
                     BookmarkBtn.Label = "Bookmarking...";
                     break;
                 case GalleryState.BookmarkFull:
@@ -830,18 +825,16 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public async void HandleWindowClose() {
-            bookmarkSignal.Wait();
-            bookmarkSignal.Dispose();
-            lock (_actionLock) if (_isInAction) _cts.Cancel();
-            while (_isInAction) {
-                await Task.Delay(10);
+        public bool IsBusy() {
+            if (_galleryState == GalleryState.Bookmarking) {
+                _mw.AlertUser("A gallery is being bookmarked", "Please wait for the bookmarking to finish before exiting.");
+                return true;
             }
-            if (_mw.gallery != null) {
-                if (_mw.GetGalleryFromBookmark(_mw.gallery.id) == null) {
-                    DeleteGallery(_mw.gallery);
-                }
+            lock (_actionLock) if (_isInAction) {
+                    _mw.AlertUser("A gallery is being loaded", "Please cancel the loading or wait for the loading to finish before exiting.");
+                    return true;
             }
+            return false;
         }
     }
 }

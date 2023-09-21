@@ -50,9 +50,17 @@ namespace Hitomi_Scroll_Viewer {
                 ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             };
 
-            // Handle window close
-            Closed += (_, _) => {
-                _iwp.HandleWindowClose();
+            // Handle window closing
+            AppWindow.Closing += (AppWindow _, AppWindowClosingEventArgs e) => {
+                if (_iwp.IsBusy()) {
+                    e.Cancel = true;
+                    return;
+                }
+                if (gallery != null) {
+                    if (GetGalleryFromBookmark(gallery.id) == null) {
+                        DeleteGallery(gallery);
+                    }
+                }
             };
 
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
