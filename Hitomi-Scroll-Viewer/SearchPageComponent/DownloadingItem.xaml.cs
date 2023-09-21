@@ -67,7 +67,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             SetColumn(_progressBar, 0);
             Children.Add(_progressBar);
 
-            _statusText = new();
+            _statusText = new() {
+                TextWrapping = TextWrapping.Wrap
+            };
             SetRow(_statusText, 2);
             SetColumn(_statusText, 0);
             Children.Add(_statusText);
