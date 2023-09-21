@@ -24,12 +24,6 @@ namespace Hitomi_Scroll_Viewer
         public static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
-        // TODO
-        // downloading items
-        // remove bookmark limit (bookmarkfull)
-        // handle window closing if something downloading or bookmarking ask the user to wait or cancel downloading
-        // when everything is clear then close window
-
         public static void DeleteGallery(Gallery removingGallery) {
             string path = Path.Combine(IMAGE_DIR, removingGallery.id);
             if (Directory.Exists(path)) Directory.Delete(path, true);
