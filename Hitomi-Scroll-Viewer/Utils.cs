@@ -28,8 +28,14 @@ namespace Hitomi_Scroll_Viewer
 
         // TODO
         // downloading items
-        // image format for loop
         // remove bookmark limit (bookmarkfull)
+        // handle window closing if something downloading or bookmarking ask the user to wait or cancel downloading
+        // when everything is clear then close window
+
+        public static void DeleteGallery(Gallery removingGallery) {
+            string path = Path.Combine(IMAGE_DIR, removingGallery.id);
+            if (Directory.Exists(path)) Directory.Delete(path, true);
+        }
 
         /**
          * <exception cref="HttpRequestException"></exception>

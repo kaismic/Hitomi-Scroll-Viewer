@@ -107,10 +107,5 @@ namespace Hitomi_Scroll_Viewer {
         public bool IsBookmarkFull() {
             return bmGalleries.Count == SearchPage.MAX_BOOKMARK_PAGE * SearchPage.MAX_BOOKMARK_PER_PAGE;
         }
-
-        public static void DeleteGallery(Gallery removingGallery) {
-            string path = Path.Combine(IMAGE_DIR, removingGallery.id);
-            if (Directory.Exists(path)) Directory.Delete(path, true);
-        }
     }
 }
