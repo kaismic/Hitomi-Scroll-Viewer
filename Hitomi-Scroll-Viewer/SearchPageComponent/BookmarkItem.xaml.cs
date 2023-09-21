@@ -16,6 +16,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly Grid _imageContainer;
         private readonly Image[] _images;
         private readonly HyperlinkButton _hb;
+        private readonly Button _removeBtn;
         public BookmarkItem(Gallery newGallery, SearchPage sp) {
             InitializeComponent();
 
@@ -74,18 +75,18 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
 
             // add remove button
-            Button removeBtn = new() {
+            _removeBtn = new() {
                 Content = new TextBlock() {
                     Text = "Remove",
                     TextWrapping = TextWrapping.WrapWholeWords,
                 },
                 FontSize = 18,
             };
-            SetRow(removeBtn, 0);
-            SetRowSpan(removeBtn, 2);
-            SetColumn(removeBtn, 1);
-            Children.Add(removeBtn);
-            removeBtn.Click += sp.RemoveBookmark;
+            SetRow(_removeBtn, 0);
+            SetRowSpan(_removeBtn, 2);
+            SetColumn(_removeBtn, 1);
+            Children.Add(_removeBtn);
+            _removeBtn.Click += sp.RemoveBookmark;
         }
 
         private void HandleBookmarkClick(object _0, RoutedEventArgs _1) {
@@ -103,8 +104,12 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
         }
 
-        public void EnableButton(bool enable) {
+        public void EnableHyperlinkButton(bool enable) {
             _hb.IsEnabled = enable;
+        }
+
+        public void EnableRemoveButton(bool enable) {
+            _removeBtn.IsEnabled = enable;
         }
     }
 }
