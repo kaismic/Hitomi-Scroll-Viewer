@@ -175,6 +175,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         // TODO animation when space or loop btn pressed show the corresponding icon animation which fades out
+        // TODO create/delete more bookmark grids if more are added/deleted and probably use combobox
 
         private async void ReloadGallery() {
             ContentDialog dialog = new() {
@@ -637,11 +638,13 @@ namespace Hitomi_Scroll_Viewer {
             LoadingProgressBar.Maximum = gallery.files.Length;
             string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
             for (int i = 0; i < _images.Length; i++) {
-                string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
                 _images[i] = new();
-                if (file.Length > 0) {
-                    _images[i].Source = new BitmapImage(new(file[0]));
-                }
+                try {
+                    string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
+                    if (file.Length > 0) {
+                        _images[i].Source = new BitmapImage(new(file[0]));
+                    }
+                } catch (DirectoryNotFoundException) { }
                 LoadingProgressBar.Value++;
             }
             switch (_viewMode) {
