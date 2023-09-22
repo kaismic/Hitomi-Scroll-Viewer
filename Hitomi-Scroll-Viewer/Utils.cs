@@ -13,7 +13,6 @@ namespace Hitomi_Scroll_Viewer
     public class Utils {
         public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HSV");
         public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
-        public static readonly string[] IMAGE_FORMATS = ["webp", "avif", "jxl"];
 
         public static readonly string REFERER = "https://hitomi.la/";
         public static readonly string IMAGE_BASE_DOMAIN = "hitomi.la";
