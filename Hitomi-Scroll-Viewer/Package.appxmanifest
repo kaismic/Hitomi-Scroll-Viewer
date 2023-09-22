@@ -9,7 +9,7 @@
   <Identity
     Name="485fef7b-1979-4626-8d32-6657e65ac158"
     Publisher="CN=isac0"
-    Version="1.0.1.0" />
+    Version="1.0.3.0" />
 
   <Properties>
     <DisplayName>Hitomi-Scroll-Viewer</DisplayName>
