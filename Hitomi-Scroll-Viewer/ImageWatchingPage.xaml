@@ -9,6 +9,10 @@
 
     <Grid x:Name="MainGrid">
         <ScrollViewer x:Name="MainScrollViewer"
+                      HorizontalScrollBarVisibility="Visible"
+                      VerticalScrollBarVisibility="Visible"
+                      HorizontalScrollMode="Enabled"
+                      VerticalScrollMode="Enabled"
                       ViewChanging="HandleScrollViewChange"
                       ZoomMode="Enabled"
                       IsTabStop="True"
@@ -102,7 +106,8 @@
             <TextBlock x:Name="PageNumText" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <ProgressBar x:Name="LoadingProgressBar"
-                     VerticalAlignment="Top" Background="Transparent"
+                     VerticalAlignment="Bottom" Background="Transparent"
+                     Margin="0 0 0 4"
                      Visibility="Collapsed"/>
     </Grid>
 </Page>
