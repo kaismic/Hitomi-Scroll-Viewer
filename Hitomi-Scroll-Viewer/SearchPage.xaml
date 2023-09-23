@@ -93,11 +93,9 @@
                                 Orientation="Vertical" Spacing="20" Margin="0 0 20 0"/>
                 </Grid>
             </Grid>
-            <TextBlock FontSize="36" Text="Bookmarks"/>
-            <StackPanel x:Name="BookmarkPageBtnsPanel"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Center"
-                        Spacing="20"/>
+            <ComboBox x:Name="BookmarkPageSelector"
+                      HorizontalAlignment="Center"
+                      FontSize="16"/>
             <StackPanel x:Name="BookmarkPanel" Orientation="Vertical"/>
         </StackPanel>
     </ScrollViewer>

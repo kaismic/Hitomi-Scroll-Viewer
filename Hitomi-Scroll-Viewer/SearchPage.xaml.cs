@@ -29,7 +29,6 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly double THUMBNAIL_IMG_WIDTH = 350;
         public static readonly int THUMBNAIL_IMG_NUM = 3;
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
-        public static readonly int MAX_BOOKMARK_PAGE = 5;
 
         public static readonly List<BookmarkItem> bmItems = new();
         private static int _currBookmarkPage = 0;
@@ -112,6 +111,16 @@ namespace Hitomi_Scroll_Viewer {
                 serializerOptions
                 );
 
+            int initalPageNum = _mw.bmGalleries.Count / MAX_BOOKMARK_PER_PAGE + (_mw.bmGalleries.Count % MAX_BOOKMARK_PER_PAGE > 0 ? 1 : 0);
+            for (int i = 0; i < initalPageNum; i++) {
+                BookmarkPageSelector.Items.Add(i);
+            }
+            BookmarkPageSelector.SelectedIndex = 0;
+            BookmarkPageSelector.SelectionChanged += (_, _) => {
+                _currBookmarkPage = (int)BookmarkPageSelector.SelectedValue;
+                FillBookmarkGrid();
+            };
+
             // fill bookmarks
             for (int i = 0; i < _mw.bmGalleries.Count; i++) {
                 bmItems.Add(new(_mw.bmGalleries[i], this));
@@ -166,19 +175,6 @@ namespace Hitomi_Scroll_Viewer {
             _controlButtons[(int)TagListAction.Save].Click += SaveTag;
             _controlButtons[(int)TagListAction.Remove].Click += RemoveTag;
             _controlButtons[(int)TagListAction.Clear].Click += ClearTagTextbox;
-
-            // BookmarkPageBtns
-            for (int i = 0; i < MAX_BOOKMARK_PAGE; i++) {
-                Button pageNumBtn = new() {
-                    Content = new TextBlock() {
-                        Text = (i + 1).ToString(),
-                        FontSize = 24,
-                        Margin = new Thickness(6, 0, 6, 0)
-                    },
-                };
-                pageNumBtn.Click += ChangeBookmarkPage;
-                BookmarkPageBtnsPanel.Children.Add(pageNumBtn);
-            }
 
             // set hyperlink panel max height
             void setHyperlinkPanelHeight(object _0, SizeChangedEventArgs _1) {
@@ -491,6 +487,7 @@ namespace Hitomi_Scroll_Viewer {
         public void AddBookmark(Gallery gallery) {
             DoBookmarkAction(true);
 
+            // TODO add page to BookmarkPageSelector if new page is needed
             _mw.bmGalleries.Add(gallery);
             bmItems.Add(new BookmarkItem(gallery, this));
             WriteBookmark();
@@ -501,6 +498,8 @@ namespace Hitomi_Scroll_Viewer {
 
         public void RemoveBookmark(object sender, RoutedEventArgs _1) {
             DoBookmarkAction(true);
+
+            // TODO remove page from BookmarkPageSelector if excess page
 
             BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
 
@@ -532,15 +531,6 @@ namespace Hitomi_Scroll_Viewer {
                     BookmarkPanel.Children.Add(bmItems[i]);
                 }
             }
-        }
-
-        private void ChangeBookmarkPage(object sender, RoutedEventArgs e) {
-            int btnIdx = BookmarkPageBtnsPanel.Children.IndexOf((Button)sender);
-            if (_currBookmarkPage == btnIdx) {
-                return;
-            }
-            _currBookmarkPage = btnIdx;
-            FillBookmarkGrid();
         }
 
         public bool IsBusy() {
