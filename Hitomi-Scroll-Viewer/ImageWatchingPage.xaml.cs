@@ -34,7 +34,7 @@ namespace Hitomi_Scroll_Viewer {
         private static int _currPage = 0;
         private Image[] _images;
 
-        private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4 };
+        private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
         private int _downloadThreadNum = 1;
 
         public enum GalleryState {
@@ -157,17 +157,13 @@ namespace Hitomi_Scroll_Viewer {
             switch (_scrollDirection) {
                 case ScrollDirection.TopToBottom:
                     ImageContainer.Orientation = Orientation.Vertical;
-                    MainScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
                     MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
-                    MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
                     MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
                     MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
                     break;
                 case ScrollDirection.LeftToRight or ScrollDirection.RightToLeft:
                     ImageContainer.Orientation = Orientation.Horizontal;
-                    MainScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
                     MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
-                    MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
                     MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
                     MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
                     break;
@@ -363,6 +359,8 @@ namespace Hitomi_Scroll_Viewer {
                     break;
                 case ViewMode.Scroll:
                     _viewMode = ViewMode.Default;
+                    MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
+                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
                     ScrollDirectionSelector.IsEnabled = false;
                     _currPage = GetPageFromScrollOffset();
                     InsertSingleImage();
@@ -610,7 +608,6 @@ namespace Hitomi_Scroll_Viewer {
                 ScrollSpeedSlider.IsEnabled = enable;
                 AutoScrollBtn.IsEnabled = enable;
             }
-            DownloadThreadNumSelector.IsEnabled = enable;
         }
 
         private void StartLoading() {
