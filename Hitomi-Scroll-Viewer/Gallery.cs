@@ -17,18 +17,17 @@ namespace Hitomi_Scroll_Viewer {
     }
 
     public class Gallery {
-        public string type;
-        public string language_localname;
-        public string videofilename;
-        public string language;
         [System.Text.Json.Serialization.JsonConverter(typeof(IntToStringConverter))]
         public string id;
-        public ImageInfo[] files;
-        public int[] related;
         public string title;
         public string japanese_title;
-        public Dictionary<string, string>[] groups;
+        public string type;
+        public string language;
         public string language_url;
+        public string language_localname;
+        public int[] related;
+        public string videofilename;
+        public Dictionary<string, string>[] groups;
         public int[] scene_indexes;
         public Dictionary<string, string>[] artists;
         public Dictionary<string, string>[] languages;
@@ -37,6 +36,7 @@ namespace Hitomi_Scroll_Viewer {
         public string date;
         public Dictionary<string, string>[] parodys;
         public Dictionary<string, object>[] tags;
+        public ImageInfo[] files;
 
         public Gallery() {}
 
