@@ -44,9 +44,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             Background = new SolidColorBrush(Colors.LightBlue);
             CornerRadius = new(10);
             Padding = new(10);
-            ColumnDefinitions.Add(new() { Width = new GridLength(3, GridUnitType.Star) });
             ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
-            ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
+            ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Auto) });
+            ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Auto) });
             RowDefinitions.Add(new());
             RowDefinitions.Add(new());
             RowDefinitions.Add(new());
@@ -177,7 +177,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             try {
                 missingIndexes = GetMissingIndexes(_gallery);
                 if (missingIndexes.Length == 0) {
-                    FinishDownloading();
+                    EnableButtons(false);
+                    _sp.AddBookmark(_gallery);
+                    RemoveSelf();
                     return;
                 }
             } catch (DirectoryNotFoundException) {
@@ -222,7 +224,16 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             
             if (allTask.IsCompletedSuccessfully) {
-                FinishDownloading();
+                _sp.AddBookmark(_gallery);
+                missingIndexes = GetMissingIndexes(_gallery);
+                if (missingIndexes.Length > 0) {
+                    _downloadingState = DownloadingState.Failed;
+                    _statusText.Text = "Failed to download images: " + string.Join(", ", missingIndexes);
+                    SetDownloadControlBtnState();
+                } else {
+                    EnableButtons(false);
+                    RemoveSelf();
+                }
             } else {
                 _downloadingState = DownloadingState.Failed;
                 _statusText.Text = "An unknown error has occurred. Please try again";
@@ -251,12 +262,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private void RemoveSelf() {
             ((StackPanel)Parent).Children.Remove(this);
             _sp.DownloadingGalleries.TryRemove(_id, out _);
-        }
-
-        private void FinishDownloading() {
-            EnableButtons(false);
-            _sp.AddBookmark(_gallery);
-            RemoveSelf();
         }
     }
 }
