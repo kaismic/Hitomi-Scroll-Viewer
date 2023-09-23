@@ -26,12 +26,11 @@ namespace Hitomi_Scroll_Viewer {
 
         public static Dictionary<string, Tag> Tags { get; set; }
 
-        public static readonly double THUMBNAIL_IMG_WIDTH = 350;
+        public static readonly double THUMBNAIL_IMG_MAXHEIGHT = 256;
         public static readonly int THUMBNAIL_IMG_NUM = 3;
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
 
         public static readonly List<BookmarkItem> bmItems = new();
-        private static int _currBookmarkPage = 0;
 
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
 
@@ -39,7 +38,7 @@ namespace Hitomi_Scroll_Viewer {
             RequestedOperation = DataPackageOperation.Copy
         };
 
-        private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4 };
+        private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
         public int DownloadThreadNum = 1;
 
         public readonly ConcurrentDictionary<string, byte> DownloadingGalleries = new();
@@ -111,13 +110,14 @@ namespace Hitomi_Scroll_Viewer {
                 serializerOptions
                 );
 
-            int initalPageNum = _mw.bmGalleries.Count / MAX_BOOKMARK_PER_PAGE + (_mw.bmGalleries.Count % MAX_BOOKMARK_PER_PAGE > 0 ? 1 : 0);
-            for (int i = 0; i < initalPageNum; i++) {
+            int pages = _mw.bmGalleries.Count / MAX_BOOKMARK_PER_PAGE + (_mw.bmGalleries.Count % MAX_BOOKMARK_PER_PAGE > 0 ? 1 : 0);
+            for (int i = 0; i < pages; i++) {
                 BookmarkPageSelector.Items.Add(i);
             }
-            BookmarkPageSelector.SelectedIndex = 0;
+            if (pages > 0) {
+                BookmarkPageSelector.SelectedIndex = 0;
+            }
             BookmarkPageSelector.SelectionChanged += (_, _) => {
-                _currBookmarkPage = (int)BookmarkPageSelector.SelectedValue;
                 FillBookmarkGrid();
             };
 
@@ -380,34 +380,35 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void HandleDownloadBtnClick(object _0, RoutedEventArgs _1) {
-            string id = ExtractGalleryId();
-            if (string.IsNullOrEmpty(id)) {
-                _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
+            MatchCollection ids = ExtractGalleryIds();
+            if (ids.Count == 0) {
+                _mw.AlertUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
                 return;
             }
             GalleryIDTextBox.Text = "";
 
-            // if the already loaded gallery is the same gallery, just return
-            if (_mw.gallery != null) {
-                if (id == _mw.gallery.id) {
-                    _mw.AlertUser("The gallery is already loaded", "");
-                    return;
+            for (int i = 0; i < ids.Count; i++) {
+                // skip if:
+                // it is already downloading OR
+                if (DownloadingGalleries.TryGetValue(ids[i].Value, out _)) {
+                    continue;
                 }
+                // it is already bookmarked.
+                Gallery bmGallery = _mw.GetGalleryFromBookmark(ids[i].Value);
+                if (bmGallery != null) {
+                    continue;
+                }
+                // if the already loaded gallery is the same gallery just bookmark it
+                if (_mw.gallery != null) {
+                    if (ids[i].Value == _mw.gallery.id) {
+                        AddBookmark(_mw.gallery);
+                        continue;
+                    }
+                }
+                // Download
+                DownloadingGalleries.TryAdd(ids[i].Value, 0);
+                DownloadPanel.Children.Add(new DownloadingItem(ids[i].Value, _mw.httpClient, this));
             }
-            // if it is already downloading, just return
-            if (DownloadingGalleries.TryGetValue(id, out _)) {
-                _mw.AlertUser("The gallery is already being downloaded", "");
-                return;
-            }
-            // if it is already bookmarked, load it from local directory
-            Gallery bmGallery = _mw.GetGalleryFromBookmark(id);
-            if (bmGallery != null) {
-                _mw.AlertUser("The gallery is already bookmarked", "");
-                return;
-            }
-            // 0 is dummy value
-            DownloadingGalleries.TryAdd(id, 0);
-            DownloadPanel.Children.Add(new DownloadingItem(id, _mw.httpClient, this));
         }
 
         public void EnableLoading(bool enable) {
@@ -418,7 +419,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void HandleLoadGalleryBtnClick(object _0, RoutedEventArgs _1) {
-            string id = ExtractGalleryId();
+            string id = ExtractGalleryIds()[^1].Value;
             if (string.IsNullOrEmpty(id)) {
                 _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
                 return;
@@ -444,13 +445,10 @@ namespace Hitomi_Scroll_Viewer {
             await _iwp.LoadGalleryFromWeb(id);
         }
 
-        private string ExtractGalleryId() {
+        private MatchCollection ExtractGalleryIds() {
             string regex = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             MatchCollection matches = Regex.Matches(GalleryIDTextBox.Text, regex);
-            if (matches.Count == 0) {
-                return null;
-            }
-            return matches[^1].Value;
+            return matches;
         }
 
         public static void LoadBookmark(Gallery gallery) {
@@ -487,19 +485,30 @@ namespace Hitomi_Scroll_Viewer {
         public void AddBookmark(Gallery gallery) {
             DoBookmarkAction(true);
 
-            // TODO add page to BookmarkPageSelector if new page is needed
-            _mw.bmGalleries.Add(gallery);
-            bmItems.Add(new BookmarkItem(gallery, this));
-            WriteBookmark();
-            FillBookmarkGrid();
+            // if it does not already exist in the bookmark
+            if (!_mw.bmGalleries.Contains(gallery)) {
+                _mw.bmGalleries.Add(gallery);
+                bmItems.Add(new BookmarkItem(gallery, this));
+
+                // new page is needed
+                if (_mw.bmGalleries.Count % MAX_BOOKMARK_PER_PAGE == 1) {
+                    BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
+                }
+
+                WriteBookmark();
+                // if this is the first bookmark
+                if (bmItems.Count == 1) {
+                    BookmarkPageSelector.SelectedIndex = 0;
+                } else {
+                    FillBookmarkGrid();
+                }
+            }
 
             DoBookmarkAction(false);
         }
 
         public void RemoveBookmark(object sender, RoutedEventArgs _1) {
             DoBookmarkAction(true);
-
-            // TODO remove page from BookmarkPageSelector if excess page
 
             BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
 
@@ -516,17 +525,33 @@ namespace Hitomi_Scroll_Viewer {
             _mw.bmGalleries.Remove(bmItem.gallery);
             bmItems.Remove(bmItem);
             WriteBookmark();
-            FillBookmarkGrid();
+
+            bool pageChanged = false;
+            // a page needs to be removed
+            if (_mw.bmGalleries.Count % MAX_BOOKMARK_PER_PAGE == 0) {
+                // if current page is the last page
+                if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
+                    pageChanged = true;
+                    BookmarkPageSelector.SelectedIndex -= BookmarkPageSelector.SelectedIndex;
+                }
+                BookmarkPageSelector.Items.Remove(BookmarkPageSelector.Items.Count - 1);
+            }
+
+            // don't call FillBookmarkGrid again if page was changed because of BookmarkPageSelector.SelectionChanged
+            if (!pageChanged) {
+                FillBookmarkGrid();
+            }
 
             DoBookmarkAction(false);
         }
 
         private void FillBookmarkGrid() {
             BookmarkPanel.Children.Clear();
-            int startingIdx = _currBookmarkPage * MAX_BOOKMARK_PER_PAGE;
-            int endingIdx = (_currBookmarkPage + 1) * MAX_BOOKMARK_PER_PAGE;
-
-            for (int i = startingIdx; i < endingIdx; i++) {
+            int page = BookmarkPageSelector.SelectedIndex;
+            if (page < 0) {
+                return;
+            }
+            for (int i = page * MAX_BOOKMARK_PER_PAGE; i < (page + 1) * MAX_BOOKMARK_PER_PAGE; i++) {
                 if (i < _mw.bmGalleries.Count) {
                     BookmarkPanel.Children.Add(bmItems[i]);
                 }
