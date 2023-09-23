@@ -374,15 +374,13 @@ namespace Hitomi_Scroll_Viewer {
                 },
                 FontSize = 12,
             };
-            removeBtn.Click += RemoveHyperlink;
+            removeBtn.Click += (object sender, RoutedEventArgs _) => {
+                HyperlinkPanel.Children.Remove((Grid)((Button)sender).Parent);
+            };
             Grid.SetColumn(removeBtn, 1);
             gridItem.Children.Add(removeBtn);
             
             HyperlinkPanel.Children.Add(gridItem);
-        }
-
-        private void RemoveHyperlink(object sender, RoutedEventArgs _1) {
-            HyperlinkPanel.Children.Remove((Grid)((Button)sender).Parent);
         }
 
         private void HandleDownloadBtnClick(object _0, RoutedEventArgs _1) {
