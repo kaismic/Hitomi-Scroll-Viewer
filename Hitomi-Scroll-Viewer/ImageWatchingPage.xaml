@@ -7,7 +7,7 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid x:Name="MainGrid">
+    <Grid>
         <ScrollViewer x:Name="MainScrollViewer"
                       HorizontalScrollBarVisibility="Visible"
                       VerticalScrollBarVisibility="Visible"
@@ -61,6 +61,7 @@
                                 IsEnabled="False"
                                 />
             <AppBarToggleButton x:Name="LoopBtn"
+                                Click="HandleLoopBtnClick"
                                 IsChecked="{x:Bind _isLooping, Mode=TwoWay}"
                                 Label="Toggle Loop"
                                 Icon="RepeatAll"
@@ -97,17 +98,34 @@
             </AppBarElementContainer>
         </CommandBar>
         <Border x:Name="PageNumDisplay"
-                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+                Background="{ThemeResource AppBarBackgroundThemeBrush}"
                 Visibility="Collapsed"
                 HorizontalAlignment="Center" VerticalAlignment="Top"
-                Margin="0 128 0 0"
+                Margin="0, 128, 0, 0"
                 Padding="8 8"
                 CornerRadius="16">
             <TextBlock x:Name="PageNumText" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <ProgressBar x:Name="LoadingProgressBar"
                      VerticalAlignment="Bottom" Background="Transparent"
-                     Margin="0 0 0 4"
+                     Margin="0, 0, 0, 4"
                      Visibility="Collapsed"/>
+        <Viewbox x:Name="ActionIndicator"
+                 Width="300"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Opacity="0">
+            <Viewbox.Resources>
+                <Storyboard x:Name="FadeOutStoryboard">
+                    <DoubleAnimation Storyboard.TargetName="ActionIndicator"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="1" To="0"
+                                     Duration="0:0:1">
+                    </DoubleAnimation>
+                </Storyboard>
+            </Viewbox.Resources>
+            <SymbolIcon x:Name="ActionIndicatorSymbol"
+                        Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
+        </Viewbox>
     </Grid>
 </Page>

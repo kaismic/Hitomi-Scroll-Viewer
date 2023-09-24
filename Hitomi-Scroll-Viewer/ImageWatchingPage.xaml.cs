@@ -120,10 +120,23 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
+        private void ShowActionIndicator(Symbol symbol) {
+            ActionIndicatorSymbol.Symbol = symbol;
+            FadeOutStoryboard.Begin();
+        }
+
         private void HandleScrollViewChange(object _0, ScrollViewerViewChangingEventArgs _1) {
             if (_viewMode == ViewMode.Scroll) {
                 _currPage = GetPageFromScrollOffset();
                 SetPageText();
+            }
+        }
+
+        private void HandleLoopBtnClick(object _0, RoutedEventArgs _1) {
+            if ((bool)LoopBtn.IsChecked) {
+                ShowActionIndicator(Symbol.RepeatAll);
+            } else {
+                ShowActionIndicator(Symbol.DisableUpdates);
             }
         }
 
@@ -169,9 +182,6 @@ namespace Hitomi_Scroll_Viewer {
                     break;
             }
         }
-
-        // TODO animation when space or loop btn pressed show the corresponding icon animation which fades out
-        // TODO create/delete more bookmark grids if more are added/deleted and probably use combobox
 
         private async void ReloadGallery() {
             ContentDialog dialog = new() {
@@ -309,6 +319,7 @@ namespace Hitomi_Scroll_Viewer {
             AutoScrollBtn.IsChecked = starting;
             stopwatch.Reset();
             if (starting) {
+                ShowActionIndicator(Symbol.Play);
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Pause);
                 AutoScrollBtn.Label = "Stop Auto Page Turning / Scrolling";
                 CancellationTokenSource cts = new();
@@ -316,6 +327,7 @@ namespace Hitomi_Scroll_Viewer {
                 Task.Run(() => ScrollAutomatically(cts.Token), cts.Token);
             }
             else {
+                ShowActionIndicator(Symbol.Pause);
                 _autoScrollCts.Cancel();
                 _autoScrollCts = new();
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Play);
@@ -471,7 +483,13 @@ namespace Hitomi_Scroll_Viewer {
         public void HandleKeyDown(object _, KeyRoutedEventArgs e) {
             switch (e.Key) {
                 case VirtualKey.L:
-                    LoopBtn.IsChecked = !LoopBtn.IsChecked;
+                    if ((bool)LoopBtn.IsChecked) {
+                        LoopBtn.IsChecked = false;
+                        ShowActionIndicator(Symbol.DisableUpdates);
+                    } else {
+                        LoopBtn.IsChecked = true;
+                        ShowActionIndicator(Symbol.RepeatAll);
+                    }
                     break;
                 case VirtualKey.Space:
                     if (!_isInAction && _galleryState != GalleryState.Empty) {
