@@ -40,7 +40,6 @@ namespace Hitomi_Scroll_Viewer {
 
             // Switch page on double click
             RootFrame.DoubleTapped += (_, _) => {
-                _iwp.StartStopAutoScroll(false);
                 SwitchPage();
             };
 
@@ -74,6 +73,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void SwitchPage() {
+            if (_currPageNum == 1) _iwp.StartStopAutoScroll(false);
             _currPageNum = (_currPageNum + 1) % _appPages.Length;
             RootFrame.Content = _appPages[_currPageNum];
         }
