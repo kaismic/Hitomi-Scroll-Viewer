@@ -134,8 +134,8 @@ namespace Hitomi_Scroll_Viewer {
 
         private void InitLayout() {
             // tag containers
-            _tagContainers[0] = new(this, false, "Include", Colors.Green);
-            _tagContainers[1] = new(this, true, "Exclude", Colors.Red);
+            _tagContainers[0] = new(this, false);
+            _tagContainers[1] = new(this, true);
             for (int i = 0; i < _tagContainers.Length; i++) {
                 TagContainerGrid.ColumnDefinitions.Add(new ColumnDefinition());
                 Grid.SetColumn(_tagContainers[i], i);

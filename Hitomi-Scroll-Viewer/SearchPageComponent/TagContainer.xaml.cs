@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Windows.UI;
 using static Hitomi_Scroll_Viewer.Tag;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
@@ -22,20 +21,27 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly bool _isExclude;
         private readonly StringSplitOptions _splitOption = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
         private readonly SearchPage _sp;
-        public TagContainer(SearchPage sp, bool isExclude, string headerText, Color headerColor) {
+        public TagContainer(SearchPage sp, bool isExclude) {
             InitializeComponent();
 
             _sp = sp;
             _isExclude = isExclude;
 
+            for (int i = 0; i < 3; i++) {
+                RowDefinitions.Add(new RowDefinition());
+            }
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 ColumnDefinitions.Add(new ColumnDefinition());
             }
-
             SetColumnSpan(HeaderBorder, CATEGORIES.Length);
 
-            Header.Text = headerText;
-            Header.Foreground = new SolidColorBrush(headerColor);
+            if (isExclude) {
+                Header.Text = "Exclude";
+                Header.Foreground = new SolidColorBrush(Colors.Red);
+            } else {
+                Header.Text = "Include";
+                Header.Foreground = new SolidColorBrush(Colors.Green);
+            }
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 Border categoryHeaderBorder = new() {
@@ -66,11 +72,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 SetColumn(_tagTextBoxes[i], i);
                 Children.Add(_tagTextBoxes[i]);
             }
-            
-            // add 3 row definitions
-            for (int i = 0; i < 3; i++) {
-                RowDefinitions.Add(new RowDefinition());
-            }
         }
 
         public void Clear() {
@@ -80,38 +81,26 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         public string GetTagParameters(int idx) {
-            string result = "";
             string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
             string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
-            foreach (string tag in curTags.Union(globalTags)) {
-                if (_isExclude) {
-                    result += '-';
-                }
-                result += CATEGORIES[idx] + ':' + tag.Replace(' ', '_') + ' ';
+            if (_isExclude) {
+                return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_')));
             }
-            return result;
+            return string.Join(' ', curTags.Union(globalTags).Select(tag => CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_')));
         }
 
         public string GetTagStrings(int idx) {
-            string result = "";
             string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
             string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
-            foreach (string tag in curTags.Union(globalTags)) {
-                if (_isExclude) {
-                    result += '-';
-                }
-                result += tag.Replace(' ', '_') + ' ';
+            if (_isExclude) {
+                return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + tag.Trim().Replace(' ', '_')));
             }
-            return result;
+            return string.Join(' ', curTags.Union(globalTags).Select(tag => tag.Trim().Replace(' ', '_')));
         }
 
         public void InsertTags(Dictionary<string, string[]> tagList) {
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                string text = "";
-                foreach (string tag in tagList[CATEGORIES[i]]) {
-                    text += tag + Environment.NewLine;
-                }
-                _tagTextBoxes[i].Text = text;
+                _tagTextBoxes[i].Text = string.Join(Environment.NewLine, tagList[CATEGORIES[i]]);
             }
         }
 
@@ -119,9 +108,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             Dictionary<string, string[]> tagList = new();
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 string[] tags = _tagTextBoxes[i].Text.Split(newlineSep, _splitOption);
-                for (int j = 0; j < tags.Length; j++) {
-                    tags[j] = tags[j].Replace(' ', '_');
-                }
+                tags = tags.Select(tag => tag.Trim().Replace(' ', '_')).ToArray();
+                Array.Sort(tags);
                 tagList.Add(CATEGORIES[i], tags);
             }
             return tagList;
