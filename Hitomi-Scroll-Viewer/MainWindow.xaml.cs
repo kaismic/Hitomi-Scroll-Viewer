@@ -73,7 +73,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void SwitchPage() {
-            if (_currPageNum == 1) _iwp.StartStopAutoScroll(false);
+            if (_currPageNum == 1 && _iwp.IsAutoScrolling) _iwp.StartStopAutoScroll(false);
             _currPageNum = (_currPageNum + 1) % _appPages.Length;
             RootFrame.Content = _appPages[_currPageNum];
         }

@@ -28,7 +28,7 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly double PAGE_TURN_DELAY_FREQ = 0.5;
         private static double _scrollSpeed = 0.05;
         private static double _pageTurnDelay = 5; // in seconds
-        private bool _isAutoScrolling = false;
+        public bool IsAutoScrolling { private set; get; } = false;
         private bool _isLooping = true;
 
         private static int _currPage = 0;
@@ -315,21 +315,19 @@ namespace Hitomi_Scroll_Viewer {
 
         private CancellationTokenSource _autoScrollCts = new();
         public void StartStopAutoScroll(bool starting) {
-            _isAutoScrolling = starting;
+            IsAutoScrolling = starting;
             AutoScrollBtn.IsChecked = starting;
             stopwatch.Reset();
             if (starting) {
                 ShowActionIndicator(Symbol.Play);
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Pause);
                 AutoScrollBtn.Label = "Stop Auto Page Turning / Scrolling";
-                CancellationTokenSource cts = new();
-                _autoScrollCts = cts;
-                Task.Run(() => ScrollAutomatically(cts.Token), cts.Token);
+                _autoScrollCts = new();
+                Task.Run(() => ScrollAutomatically(_autoScrollCts.Token), _autoScrollCts.Token);
             }
             else {
                 ShowActionIndicator(Symbol.Pause);
                 _autoScrollCts.Cancel();
-                _autoScrollCts = new();
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Play);
                 AutoScrollBtn.Label = "Start Auto Page Turning / Scrolling";
             }
@@ -493,7 +491,7 @@ namespace Hitomi_Scroll_Viewer {
                     break;
                 case VirtualKey.Space:
                     if (!_isInAction && _galleryState != GalleryState.Empty) {
-                        StartStopAutoScroll(!_isAutoScrolling);
+                        StartStopAutoScroll(!IsAutoScrolling);
                     }
                     break;
                 case VirtualKey.V:
@@ -524,7 +522,7 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly Stopwatch stopwatch = new();
 
         private async void ScrollAutomatically(CancellationToken ct) {
-            while (_isAutoScrolling) {
+            while (IsAutoScrolling) {
                 switch (_viewMode) {
                     case ViewMode.Default:
                         if (_currPage + 1 == _mw.gallery.files.Length && !_isLooping) {
@@ -536,7 +534,7 @@ namespace Hitomi_Scroll_Viewer {
                         } catch (TaskCanceledException) {
                             return;
                         }
-                        if (_isAutoScrolling) {
+                        if (IsAutoScrolling) {
                             if (_currPage + 1 == _mw.gallery.files.Length && !_isLooping) {
                                 DispatcherQueue.TryEnqueue(() => StartStopAutoScroll(false));
                                 return;
@@ -603,10 +601,15 @@ namespace Hitomi_Scroll_Viewer {
                     LoadingControlBtn.Label = "Cancel Loading";
                     LoadingControlBtn.Icon = new SymbolIcon(Symbol.Cancel);
                     LoadingControlBtn.IsEnabled = true;
+                    if (IsAutoScrolling) StartStopAutoScroll(false);
                 }
                 _mw.sp.EnableLoading(!start);
-                EnableControls(!start);
                 if (!start) {
+                    if (_galleryState != GalleryState.Empty) {
+                        ViewModeBtn.IsEnabled = true;
+                        ScrollSpeedSlider.IsEnabled = true;
+                        AutoScrollBtn.IsEnabled = true;
+                    }
                     if (_galleryState != GalleryState.Empty) {
                         LoadingControlBtn.Label = "Reload Gallery " + _mw.gallery.id;
                         LoadingControlBtn.Icon = new SymbolIcon(Symbol.Sync);
@@ -614,17 +617,6 @@ namespace Hitomi_Scroll_Viewer {
                     }
                     _isInAction = false;
                 }
-            }
-        }
-
-        public void EnableControls(bool enable) {
-            if (!enable) {
-                StartStopAutoScroll(false);
-            }
-            if (_galleryState != GalleryState.Empty) {
-                ViewModeBtn.IsEnabled = enable;
-                ScrollSpeedSlider.IsEnabled = enable;
-                AutoScrollBtn.IsEnabled = enable;
             }
         }
 
