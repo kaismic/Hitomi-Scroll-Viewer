@@ -84,18 +84,18 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
             string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
             if (_isExclude) {
-                return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_')));
+                return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_') + ' '));
             }
-            return string.Join(' ', curTags.Union(globalTags).Select(tag => CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_')));
+            return string.Join(' ', curTags.Union(globalTags).Select(tag => CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_') + ' '));
         }
 
         public string GetTagStrings(int idx) {
             string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
             string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
             if (_isExclude) {
-                return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + tag.Trim().Replace(' ', '_')));
+                return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + tag.Trim().Replace(' ', '_') + ' '));
             }
-            return string.Join(' ', curTags.Union(globalTags).Select(tag => tag.Trim().Replace(' ', '_')));
+            return string.Join(' ', curTags.Union(globalTags).Select(tag => tag.Trim().Replace(' ', '_') + ' '));
         }
 
         public void InsertTags(Dictionary<string, string[]> tagList) {
