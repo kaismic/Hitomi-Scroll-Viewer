@@ -22,7 +22,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private static readonly string SCROLL_SPEED_TEXT = "Auto Scroll Speed";
         private static readonly string PAGE_TURN_DELAY_TEXT = "Auto Page Turn Delay";
-        private static readonly (double, double) SCROLL_SPEED_RANGE = (0.001, 0.5);
+        private static readonly (double, double) SCROLL_SPEED_RANGE = (0.001, 1);
         private static readonly (double, double) PAGE_TURN_DELAY_RANGE = (1, 10);
         private static readonly double SCROLL_SPEED_FREQ = 0.001;
         private static readonly double PAGE_TURN_DELAY_FREQ = 0.5;
@@ -44,12 +44,12 @@ namespace Hitomi_Scroll_Viewer {
             Empty
         }
         private static GalleryState _galleryState = GalleryState.Empty;
-        private enum ViewMode {
+        public enum ViewMode {
             Default,
             Scroll
         }
         private static ViewMode _viewMode = ViewMode.Default;
-        private enum ScrollDirection {
+        public enum ScrollDirection {
             TopToBottom,
             LeftToRight,
             RightToLeft
@@ -71,7 +71,40 @@ namespace Hitomi_Scroll_Viewer {
 
             InitializeComponent();
 
+            if (File.Exists(SETTINGS_PATH)) {
+                Settings settings = (Settings)JsonSerializer.Deserialize(
+                    File.ReadAllText(SETTINGS_PATH),
+                    typeof(Settings),
+                    serializerOptions
+                );
+                _viewMode = settings.viewMode;
+                _scrollDirection = settings.scrollDirection;
+                _scrollSpeed = settings.scrollSpeed;
+                _pageTurnDelay = settings.pageTurnDelay;
+                _isLooping = settings.isLooping;
+            } else {
+                _viewMode = ViewMode.Default;
+                _scrollDirection = ScrollDirection.TopToBottom;
+                _scrollSpeed = 0.05;
+                _pageTurnDelay = 5;
+                _isLooping = true;
+            }
+            switch (_viewMode) {
+                case ViewMode.Default:
+                    ViewModeBtn.Label = "Change to Scroll mode";
+                    ScrollDirectionSelector.IsEnabled = false;
+                    MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
+                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
+                    break;
+                case ViewMode.Scroll:
+                    ViewModeBtn.Label = "Change to Default mode";
+                    ScrollDirectionSelector.IsEnabled = true;
+                    break;
+            }
             SetScrollSpeedSlider();
+            ScrollDirectionSelector.SelectedIndex = (int)_scrollDirection;
+            SetScrollSpeedSlider();
+            LoopBtn.IsChecked = _isLooping;
 
             // handle mouse movement on commandbar
             TopCommandBar.PointerEntered += (_, _) => {
@@ -160,13 +193,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void ChangeScrollDirection(object _0, SelectionChangedEventArgs _1) {
-            if (_images == null) return;
             _scrollDirection = (ScrollDirection)ScrollDirectionSelector.SelectedIndex;
-            int prevPage = _currPage;
-            InsertImages();
-            await WaitImageLoad();
-            _currPage = prevPage;
-            SetPageText();
             switch (_scrollDirection) {
                 case ScrollDirection.TopToBottom:
                     ImageContainer.Orientation = Orientation.Vertical;
@@ -181,6 +208,12 @@ namespace Hitomi_Scroll_Viewer {
                     MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
                     break;
             }
+            if (_images == null) return;
+            int prevPage = _currPage;
+            InsertImages();
+            await WaitImageLoad();
+            _currPage = prevPage;
+            SetPageText();
         }
 
         private async void ReloadGallery() {
@@ -364,14 +397,16 @@ namespace Hitomi_Scroll_Viewer {
             switch (_viewMode) {
                 case ViewMode.Default:
                     _viewMode = ViewMode.Scroll;
+                    ViewModeBtn.Label = "Change to Default mode";
                     ScrollDirectionSelector.IsEnabled = true;
                     ChangeScrollDirection(null, null);
                     break;
                 case ViewMode.Scroll:
                     _viewMode = ViewMode.Default;
+                    ViewModeBtn.Label = "Change to Scroll mode";
+                    ScrollDirectionSelector.IsEnabled = false;
                     MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
                     MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
-                    ScrollDirectionSelector.IsEnabled = false;
                     _currPage = GetPageFromScrollOffset();
                     InsertSingleImage();
                     MainScrollViewer.ScrollToVerticalOffset(0);
@@ -840,6 +875,10 @@ namespace Hitomi_Scroll_Viewer {
                     return true;
             }
             return false;
+        }
+
+        public Settings GetSettings() {
+            return new(_viewMode, _scrollDirection, _scrollSpeed, _pageTurnDelay, _isLooping);
         }
     }
 }

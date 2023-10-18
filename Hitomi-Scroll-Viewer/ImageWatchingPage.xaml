@@ -34,7 +34,6 @@
             <AppBarButton x:Name="ViewModeBtn"
                           MinWidth="120"
                           Icon="ViewAll"
-                          Label="Change View Mode"
                           Click="HandleViewModeBtnClick"
                           IsEnabled="False"
                           />
@@ -91,7 +90,6 @@
                           SelectionChanged="ChangeScrollDirection"
                           Header="Set Scroll Direction"
                           Width="200"
-                          SelectedIndex="0"
                           IsEnabled="False">
                     <ComboBoxItem>Top to Bottom</ComboBoxItem>
                     <ComboBoxItem>Left to Right</ComboBoxItem>

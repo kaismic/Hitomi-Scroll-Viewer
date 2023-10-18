@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using static Hitomi_Scroll_Viewer.Utils;
 
@@ -63,6 +64,7 @@ namespace Hitomi_Scroll_Viewer {
                         DeleteGallery(gallery);
                     }
                 }
+                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(_iwp.GetSettings(), serializerOptions));
             };
 
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {

@@ -7,12 +7,14 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 
 namespace Hitomi_Scroll_Viewer
 {
     public class Utils {
         public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HSV");
         public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
+        public static readonly string SETTINGS_PATH = Path.Combine(ROOT_DIR, "settings.json");
 
         public static readonly string REFERER = "https://hitomi.la/";
         public static readonly string IMAGE_BASE_DOMAIN = "hitomi.la";
@@ -22,6 +24,24 @@ namespace Hitomi_Scroll_Viewer
         public static readonly string SERVER_TIME_EXCLUDE_STRING = "0123456789/'\r\n};";
         public static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
+
+        public struct Settings {
+            public ViewMode viewMode;
+            public ScrollDirection scrollDirection;
+            public double scrollSpeed;
+            public double pageTurnDelay;
+            public bool isLooping;
+
+            public Settings() { }
+            
+            public Settings(ViewMode viewMode, ScrollDirection scrollDirection, double scrollSpeed, double pageTurnDelay, bool isLooping) {
+                this.viewMode = viewMode;
+                this.scrollDirection = scrollDirection;
+                this.scrollSpeed = scrollSpeed;
+                this.pageTurnDelay = pageTurnDelay;
+                this.isLooping = isLooping;
+            }
+        }
 
         public static void DeleteGallery(Gallery removingGallery) {
             string path = Path.Combine(IMAGE_DIR, removingGallery.id);
