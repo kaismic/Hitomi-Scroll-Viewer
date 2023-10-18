@@ -52,7 +52,7 @@ namespace Hitomi_Scroll_Viewer {
         }
     }
 
-    public class ImageInfo {
+    public struct ImageInfo {
         public string name;
         public int height;
         public int width;
