@@ -59,6 +59,8 @@
                                 MinWidth="90"
                                 Click="HandleAutoScrollBtnClick"
                                 IsEnabled="False"
+                                Icon="Play"
+                                Label="Start Auto Page Turning / Scrolling"
                                 />
             <AppBarToggleButton x:Name="LoopBtn"
                                 Click="HandleLoopBtnClick"
