@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -23,6 +24,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly SearchPage _sp;
         private readonly HttpClient _httpClient;
         private CancellationTokenSource _cts;
+        private StackPanel _parent;
 
         private Gallery _gallery;
         private readonly string _id;
@@ -32,11 +34,12 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly Button _downloadControlBtn;
         private readonly Button _cancelBtn;
 
-        public DownloadingItem(string id, HttpClient httpClient, SearchPage sp) {
+        public DownloadingItem(string id, HttpClient httpClient, SearchPage sp, StackPanel parent) {
             _id = id;
             _httpClient = httpClient;
             _sp = sp;
             _cts = new();
+            _parent = parent;
 
             InitializeComponent();
 
@@ -260,7 +263,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            ((StackPanel)Parent).Children.Remove(this);
+            _parent.Children.Remove(this);
             _sp.DownloadingGalleries.TryRemove(_id, out _);
         }
     }

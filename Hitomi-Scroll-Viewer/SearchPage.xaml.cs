@@ -407,7 +407,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 // Download
                 DownloadingGalleries.TryAdd(ids[i].Value, 0);
-                DownloadPanel.Children.Add(new DownloadingItem(ids[i].Value, _mw.httpClient, this));
+                DownloadPanel.Children.Add(new DownloadingItem(ids[i].Value, _mw.httpClient, this, DownloadPanel));
             }
         }
 
