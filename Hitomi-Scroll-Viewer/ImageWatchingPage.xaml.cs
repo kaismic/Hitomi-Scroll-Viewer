@@ -34,7 +34,7 @@ namespace Hitomi_Scroll_Viewer {
         private static int _currPage = 0;
         private Image[] _images;
 
-        private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+        private readonly int[] _downloadThreadNums = [1, 2, 3, 4, 5, 6, 7, 8];
         private int _downloadThreadNum = 1;
 
         public enum GalleryState {
@@ -421,7 +421,7 @@ namespace Hitomi_Scroll_Viewer {
             bool allLoaded = false;
             // wait for the images to be actually loaded into scrollview
             while (!allLoaded) {
-                await Task.Delay(10);
+                await Task.Delay(500);
                 allLoaded = true;
                 for (int i = 0; i < _images.Length; i++) {
                     if (_images[i].ActualWidth == 0) {
