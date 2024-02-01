@@ -419,7 +419,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         /**
-         * Inserts images based on current page number
+         * <summary>Inserts images based on current page number</summary>
          */
         private async void UpdateImages() {
             if (_images == null) return;
