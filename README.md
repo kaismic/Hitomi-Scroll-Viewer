@@ -1,5 +1,5 @@
 # Hitomi Scroll Viewer
-A viewer for [hitomi.la (NSFW)](https://hitomi.la) with features such as auto scrolling, searching by tags and downloading.
+A viewer for [hitomi.la (18+)](https://hitomi.la) with features such as auto scrolling, searching by tags and downloading.
 
 Built using C# .NET 6, WinUI 3
 
