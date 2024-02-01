@@ -9,10 +9,6 @@
 
     <Grid>
         <ScrollViewer x:Name="MainScrollViewer"
-                      HorizontalScrollBarVisibility="Visible"
-                      VerticalScrollBarVisibility="Visible"
-                      HorizontalScrollMode="Enabled"
-                      VerticalScrollMode="Enabled"
                       ViewChanging="HandleScrollViewChange"
                       ZoomMode="Enabled"
                       IsTabStop="True"
@@ -81,19 +77,30 @@
             <AppBarElementContainer>
                 <ComboBox x:Name="DownloadThreadNumSelector"
                           Header="Download Threads"
+                          ToolTipService.ToolTip="Set number of threads for image download"
                           ItemsSource="{x:Bind _downloadThreadNums}"
                           SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
-                <ComboBox x:Name="ScrollDirectionSelector"
-                          SelectionChanged="ChangeScrollDirection"
-                          Header="Set Scroll Direction"
-                          Width="200"
-                          IsEnabled="False">
+                <ComboBox x:Name="ViewDirectionSelector"
+                          SelectionChanged="HandleViewDirectionChange"
+                          Header="Set View Direction">
                     <ComboBoxItem>Top to Bottom</ComboBoxItem>
                     <ComboBoxItem>Left to Right</ComboBoxItem>
                     <ComboBoxItem>Right to Left</ComboBoxItem>
+                </ComboBox>
+            </AppBarElementContainer>
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarElementContainer>
+                <ComboBox x:Name="NumOfPagesSelector"
+                          SelectionChanged="HandleNumOfPagesChange"
+                          Header="Number of Pages"
+                          ToolTipService.ToolTip="Set number of pages to display in Default Mode">
+                    <ComboBoxItem>1</ComboBoxItem>
+                    <ComboBoxItem>2</ComboBoxItem>
+                    <ComboBoxItem>3</ComboBoxItem>
+                    <ComboBoxItem>4</ComboBoxItem>
                 </ComboBox>
             </AppBarElementContainer>
         </CommandBar>

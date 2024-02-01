@@ -49,12 +49,13 @@ namespace Hitomi_Scroll_Viewer {
             Scroll
         }
         private static ViewMode _viewMode = ViewMode.Default;
-        public enum ScrollDirection {
+        public enum ViewDirection {
             TopToBottom,
             LeftToRight,
             RightToLeft
         }
-        private static ScrollDirection _scrollDirection;
+        private static ViewDirection _viewDirection;
+        private static int _numOfPages;
 
         private CancellationTokenSource _cts;
         private readonly object _actionLock = new();
@@ -78,32 +79,44 @@ namespace Hitomi_Scroll_Viewer {
                     serializerOptions
                 );
                 _viewMode = settings.viewMode;
-                _scrollDirection = settings.scrollDirection;
+                _viewDirection = settings.viewDirection;
                 _scrollSpeed = settings.scrollSpeed;
+                _numOfPages = settings.numOfPages;
                 _pageTurnDelay = settings.pageTurnDelay;
                 _isLooping = settings.isLooping;
             } else {
                 _viewMode = ViewMode.Default;
-                _scrollDirection = ScrollDirection.TopToBottom;
+                _viewDirection = ViewDirection.RightToLeft;
                 _scrollSpeed = 0.05;
+                _numOfPages = 1;
                 _pageTurnDelay = 5;
                 _isLooping = true;
             }
             switch (_viewMode) {
                 case ViewMode.Default:
                     ViewModeBtn.Label = "Change to Scroll mode";
-                    ScrollDirectionSelector.IsEnabled = false;
-                    MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
-                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
+                    NumOfPagesSelector.IsEnabled = true;
+                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
+                    MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
                     break;
                 case ViewMode.Scroll:
                     ViewModeBtn.Label = "Change to Default mode";
-                    ScrollDirectionSelector.IsEnabled = true;
+                    NumOfPagesSelector.IsEnabled = false;
+                    switch (_viewDirection) {
+                        case ViewDirection.TopToBottom:
+                            MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
+                            MainScrollViewer.VerticalScrollMode = ScrollMode.Auto;
+                            break;
+                        case ViewDirection.LeftToRight or ViewDirection.RightToLeft:
+                            MainScrollViewer.HorizontalScrollMode = ScrollMode.Auto;
+                            MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
+                            break;
+                    }
                     break;
             }
             SetScrollSpeedSlider();
-            ScrollDirectionSelector.SelectedIndex = (int)_scrollDirection;
-            SetScrollSpeedSlider();
+            ViewDirectionSelector.SelectedIndex = (int)_viewDirection;
+            NumOfPagesSelector.SelectedIndex = (_numOfPages - 1);
             LoopBtn.IsChecked = _isLooping;
 
             // handle mouse movement on commandbar
@@ -192,28 +205,30 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private async void ChangeScrollDirection(object _0, SelectionChangedEventArgs _1) {
-            _scrollDirection = (ScrollDirection)ScrollDirectionSelector.SelectedIndex;
-            switch (_scrollDirection) {
-                case ScrollDirection.TopToBottom:
+        private void HandleViewDirectionChange(object _0, SelectionChangedEventArgs _1) {
+            _viewDirection = (ViewDirection)ViewDirectionSelector.SelectedIndex;
+            UpdateImages();
+            switch (_viewDirection) {
+                case ViewDirection.TopToBottom:
                     ImageContainer.Orientation = Orientation.Vertical;
-                    MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
                     MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
-                    MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
+                    MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                    MainScrollViewer.VerticalScrollMode = ScrollMode.Auto;
+                    MainScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
                     break;
-                case ScrollDirection.LeftToRight or ScrollDirection.RightToLeft:
+                case ViewDirection.LeftToRight or ViewDirection.RightToLeft:
                     ImageContainer.Orientation = Orientation.Horizontal;
+                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Auto;
+                    MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
                     MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
-                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
-                    MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
+                    MainScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
                     break;
             }
-            if (_images == null) return;
-            int prevPage = _currPage;
-            InsertImages();
-            await WaitImageLoad();
-            _currPage = prevPage;
-            SetPageText();
+        }
+
+        private void HandleNumOfPagesChange(object _0, SelectionChangedEventArgs _1) {
+            _numOfPages = NumOfPagesSelector.SelectedIndex + 1;
+            UpdateImages();
         }
 
         private async void ReloadGallery() {
@@ -370,26 +385,64 @@ namespace Hitomi_Scroll_Viewer {
             PageNumText.Text = $"Page {_currPage} of {_mw.gallery.files.Length - 1}";
         }
 
-        private void InsertSingleImage() {
-            SetPageText();
+        private void InsertImages() {
+            _currPage = (_currPage / _numOfPages) * _numOfPages;
             ImageContainer.Children.Clear();
-            ImageContainer.Children.Add(_images[_currPage]);
+            switch (_viewDirection) {
+                case ViewDirection.TopToBottom or ViewDirection.LeftToRight:
+                    for (int i = _currPage; i < Math.Min(_images.Length, _currPage + _numOfPages); i++) {
+                        ImageContainer.Children.Add(_images[i]);
+                    }
+                    break;
+                case ViewDirection.RightToLeft:
+                    for (int i = Math.Min(_images.Length - 1, _currPage + _numOfPages - 1); i >= _currPage; i--) {
+                        ImageContainer.Children.Add(_images[i]);
+                    }
+                    break;
+            }
         }
 
-        private void InsertImages() {
+        private void InsertAllImages() {
             ImageContainer.Children.Clear();
-            switch (_scrollDirection) {
-                case ScrollDirection.TopToBottom or ScrollDirection.LeftToRight:
+            switch (_viewDirection) {
+                case ViewDirection.TopToBottom or ViewDirection.LeftToRight:
                     for (int i = 0; i < _images.Length; i++) {
                         ImageContainer.Children.Add(_images[i]);
                     }
                     break;
-                case ScrollDirection.RightToLeft:
+                case ViewDirection.RightToLeft:
                     for (int i = _images.Length - 1; i >= 0; i--) {
                         ImageContainer.Children.Add(_images[i]);
                     }
                     break;
             }
+        }
+
+        /**
+         * Inserts images based on current page number
+         */
+        private async void UpdateImages() {
+            if (_images == null) return;
+            switch (_viewMode) {
+                case ViewMode.Default:
+                    InsertImages();
+                    break;
+                case ViewMode.Scroll:
+                    int prevPage = _currPage;
+                    InsertAllImages();
+                    await WaitImageLoad();
+                    _currPage = prevPage;
+                    switch (_viewDirection) {
+                        case ViewDirection.TopToBottom:
+                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(GetScrollOffsetFromPage()));
+                            break;
+                        case ViewDirection.LeftToRight or ViewDirection.RightToLeft:
+                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(GetScrollOffsetFromPage()));
+                            break;
+                    }
+                    break;
+            }
+            SetPageText();
         }
 
         private void HandleViewModeBtnClick(object _0, RoutedEventArgs _1) {
@@ -398,21 +451,32 @@ namespace Hitomi_Scroll_Viewer {
                 case ViewMode.Default:
                     _viewMode = ViewMode.Scroll;
                     ViewModeBtn.Label = "Change to Default mode";
-                    ScrollDirectionSelector.IsEnabled = true;
-                    ChangeScrollDirection(null, null);
+                    NumOfPagesSelector.IsEnabled = false;
+                    switch (_viewDirection) {
+                        case ViewDirection.TopToBottom:
+                            MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
+                            MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                            MainScrollViewer.VerticalScrollMode = ScrollMode.Auto;
+                            MainScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+
+                            break;
+                        case ViewDirection.LeftToRight or ViewDirection.RightToLeft:
+                            MainScrollViewer.HorizontalScrollMode = ScrollMode.Auto;
+                            MainScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
+                            MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
+                            MainScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                            break;
+                    }
                     break;
                 case ViewMode.Scroll:
                     _viewMode = ViewMode.Default;
                     ViewModeBtn.Label = "Change to Scroll mode";
-                    ScrollDirectionSelector.IsEnabled = false;
-                    MainScrollViewer.VerticalScrollMode = ScrollMode.Enabled;
-                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Enabled;
-                    _currPage = GetPageFromScrollOffset();
-                    InsertSingleImage();
-                    MainScrollViewer.ScrollToVerticalOffset(0);
-                    MainScrollViewer.ScrollToHorizontalOffset(0);
+                    NumOfPagesSelector.IsEnabled = true;
+                    MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
+                    MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
                     break;
             }
+            UpdateImages();
             SetScrollSpeedSlider();
             StartStopAction(false);
         }
@@ -434,15 +498,15 @@ namespace Hitomi_Scroll_Viewer {
 
         private int GetPageFromScrollOffset() {
             // half of the window height is the reference height for page calculation
-            double pageHalfOffset = _scrollDirection switch {
-                ScrollDirection.TopToBottom => MainScrollViewer.VerticalOffset + _mw.Bounds.Height / 2,
-                ScrollDirection.LeftToRight => MainScrollViewer.HorizontalOffset + _mw.Bounds.Width / 2,
-                ScrollDirection.RightToLeft => MainScrollViewer.ExtentWidth - (MainScrollViewer.HorizontalOffset + _mw.Bounds.Width / 2),
-                _ => throw new ArgumentOutOfRangeException("_scrollDirection should be in range 0-2", "_scrollDirection")
+            double pageHalfOffset = _viewDirection switch {
+                ViewDirection.TopToBottom => MainScrollViewer.VerticalOffset + _mw.Bounds.Height / 2,
+                ViewDirection.LeftToRight => MainScrollViewer.HorizontalOffset + _mw.Bounds.Width / 2,
+                ViewDirection.RightToLeft => MainScrollViewer.ExtentWidth - (MainScrollViewer.HorizontalOffset + _mw.Bounds.Width / 2),
+                _ => throw new NotImplementedException("Unhandled ViewDirection Mode")
             };
             double imageSizeSum = 0;
-            switch (_scrollDirection) {
-                case ScrollDirection.TopToBottom:
+            switch (_viewDirection) {
+                case ViewDirection.TopToBottom:
                     for (int i = 0; i < _images.Length; i++) {
                         imageSizeSum += _images[i].ActualHeight * MainScrollViewer.ZoomFactor;
                         if (imageSizeSum >= pageHalfOffset) {
@@ -450,7 +514,7 @@ namespace Hitomi_Scroll_Viewer {
                         }
                     }
                     break;
-                case ScrollDirection.LeftToRight or ScrollDirection.RightToLeft:
+                case ViewDirection.LeftToRight or ViewDirection.RightToLeft:
                     for (int i = 0; i < _images.Length; i++) {
                         imageSizeSum += _images[i].ActualWidth * MainScrollViewer.ZoomFactor;
                         if (imageSizeSum >= pageHalfOffset) {
@@ -464,34 +528,34 @@ namespace Hitomi_Scroll_Viewer {
 
         private double GetScrollOffsetFromPage() {
             if (_currPage == 0) {
-                return _scrollDirection switch {
-                    ScrollDirection.TopToBottom or ScrollDirection.LeftToRight => 0,
-                    ScrollDirection.RightToLeft => MainScrollViewer.ScrollableWidth,
-                    _ => throw new ArgumentOutOfRangeException("_scrollDirection should be in range 0-2", "_scrollDirection")
+                return _viewDirection switch {
+                    ViewDirection.TopToBottom or ViewDirection.LeftToRight => 0,
+                    ViewDirection.RightToLeft => MainScrollViewer.ScrollableWidth,
+                    _ => throw new NotImplementedException("Unhandled ViewDirection Mode")
                 };
             }
             double offset;
-            switch (_scrollDirection) {
-                case ScrollDirection.TopToBottom:
+            switch (_viewDirection) {
+                case ViewDirection.TopToBottom:
                     offset = 0;
                     for (int i = 0; i < _currPage; i++) {
                         offset += _images[i].ActualHeight * MainScrollViewer.ZoomFactor;
                     }
                     break;
-                case ScrollDirection.LeftToRight:
+                case ViewDirection.LeftToRight:
                     offset = 0;
                     for (int i = 0; i < _currPage; i++) {
                         offset += _images[i].ActualWidth * MainScrollViewer.ZoomFactor;
                     }
                     break;
-                case ScrollDirection.RightToLeft:
+                case ViewDirection.RightToLeft:
                     offset = MainScrollViewer.ScrollableWidth;
                     for (int i = _currPage - 1; i >= 0; i--) {
                         offset -= _images[i].ActualWidth * MainScrollViewer.ZoomFactor;
                     }
                     break;
                 default:
-                    throw new ArgumentException("_scrollDirection should be in range 0-2", "_scrollDirection");
+                    throw new NotImplementedException("Unhandled ViewDirection Mode");
             }
             return offset;
         }
@@ -507,7 +571,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private static void IncrementPage(int num) {
+        private static void UpdatePageNum(int num) {
             _pageMutex.WaitOne();
             _currPage = (_currPage + num + _mw.gallery.files.Length) % _mw.gallery.files.Length;
             _pageMutex.ReleaseMutex();
@@ -537,14 +601,13 @@ namespace Hitomi_Scroll_Viewer {
                         _pageMutex.WaitOne();
                         switch (e.Key) {
                             case VirtualKey.Right:
-                                IncrementPage(1);
-                                InsertSingleImage();
+                                UpdatePageNum(_numOfPages);
                                 break;
                             case VirtualKey.Left:
-                                IncrementPage(-1);
-                                InsertSingleImage();
+                                UpdatePageNum(-_numOfPages);
                                 break;
                         }
+                        UpdateImages();
                         _pageMutex.ReleaseMutex();
                     }
                     break;
@@ -574,8 +637,8 @@ namespace Hitomi_Scroll_Viewer {
                                 DispatcherQueue.TryEnqueue(() => StartStopAutoScroll(false));
                                 return;
                             }
-                            IncrementPage(1);
-                            DispatcherQueue.TryEnqueue(InsertSingleImage);
+                            UpdatePageNum(_numOfPages);
+                            DispatcherQueue.TryEnqueue(UpdateImages);
                         }
                         break;
                     case ViewMode.Scroll:
@@ -585,22 +648,22 @@ namespace Hitomi_Scroll_Viewer {
                             return;
                         }
                         MainScrollViewer.DispatcherQueue.TryEnqueue(() => {
-                            bool isEndOfPage = _scrollDirection switch {
-                                ScrollDirection.TopToBottom => MainScrollViewer.VerticalOffset == MainScrollViewer.ScrollableHeight,
-                                ScrollDirection.LeftToRight => MainScrollViewer.HorizontalOffset == MainScrollViewer.ScrollableWidth,
-                                ScrollDirection.RightToLeft => MainScrollViewer.HorizontalOffset == 0,
-                                _ => throw new ArgumentOutOfRangeException("_scrollDirection should be in range 0-2", "_scrollDirection")
+                            bool isEndOfPage = _viewDirection switch {
+                                ViewDirection.TopToBottom => MainScrollViewer.VerticalOffset == MainScrollViewer.ScrollableHeight,
+                                ViewDirection.LeftToRight => MainScrollViewer.HorizontalOffset == MainScrollViewer.ScrollableWidth,
+                                ViewDirection.RightToLeft => MainScrollViewer.HorizontalOffset == 0,
+                                _ => throw new NotImplementedException("Unhandled ViewDirection Mode")
                             };
                             if (isEndOfPage) {
                                 if (_isLooping) {
-                                    switch (_scrollDirection) {
-                                        case ScrollDirection.TopToBottom:
+                                    switch (_viewDirection) {
+                                        case ViewDirection.TopToBottom:
                                             MainScrollViewer.ScrollToVerticalOffset(0);
                                             break;
-                                        case ScrollDirection.LeftToRight:
+                                        case ViewDirection.LeftToRight:
                                             MainScrollViewer.ScrollToHorizontalOffset(0);
                                             break;
-                                        case ScrollDirection.RightToLeft:
+                                        case ViewDirection.RightToLeft:
                                             MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.ScrollableWidth);
                                             break;
                                     }
@@ -611,14 +674,14 @@ namespace Hitomi_Scroll_Viewer {
                             }
                             else {
                                 stopwatch.Stop();
-                                switch (_scrollDirection) {
-                                    case ScrollDirection.TopToBottom:
+                                switch (_viewDirection) {
+                                    case ViewDirection.TopToBottom:
                                         MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
                                         break;
-                                    case ScrollDirection.LeftToRight:
+                                    case ViewDirection.LeftToRight:
                                         MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.HorizontalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
                                         break;
-                                    case ScrollDirection.RightToLeft:
+                                    case ViewDirection.RightToLeft:
                                         MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.HorizontalOffset - _scrollSpeed * stopwatch.ElapsedMilliseconds);
                                         break;
                                 }
@@ -667,7 +730,7 @@ namespace Hitomi_Scroll_Viewer {
             StartStopAction(false);
         }
 
-        public async void LoadGalleryFromLocalDir(Gallery gallery) {
+        public void LoadGalleryFromLocalDir(Gallery gallery) {
             StartLoading();
             // delete previous gallery if not bookmarked
             if (_mw.gallery != null) {
@@ -689,29 +752,8 @@ namespace Hitomi_Scroll_Viewer {
                 } catch (DirectoryNotFoundException) { }
                 LoadingProgressBar.Value++;
             }
-            switch (_viewMode) {
-                case ViewMode.Default:
-                    _currPage = 0;
-                    InsertSingleImage();
-                    break;
-                case ViewMode.Scroll:
-                    InsertImages();
-                    await WaitImageLoad();
-                    switch (_scrollDirection) {
-                        case ScrollDirection.TopToBottom:
-                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(0));
-                            break;
-                        case ScrollDirection.LeftToRight:
-                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(0));
-                            break;
-                        case ScrollDirection.RightToLeft:
-                            MainScrollViewer.DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.ScrollableWidth));
-                            break;
-                    }
-                    _currPage = 0;
-                    SetPageText();
-                    break;
-            }
+            _currPage = 0;
+            UpdateImages();
             FinishLoading(GalleryState.Bookmarked);
         }
 
@@ -812,29 +854,8 @@ namespace Hitomi_Scroll_Viewer {
             }
             _mw.gallery = newGallery;
             _images = newImages;
-            switch (_viewMode) {
-                case ViewMode.Default:
-                    _currPage = 0;
-                    InsertSingleImage();
-                    break;
-                case ViewMode.Scroll:
-                    InsertImages();
-                    await WaitImageLoad();
-                    switch (_scrollDirection) {
-                        case ScrollDirection.TopToBottom:
-                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToVerticalOffset(0));
-                            break;
-                        case ScrollDirection.LeftToRight:
-                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(0));
-                            break;
-                        case ScrollDirection.RightToLeft:
-                            DispatcherQueue.TryEnqueue(() => MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.ScrollableWidth));
-                            break;
-                    }
-                    _currPage = 0;
-                    SetPageText();
-                    break;
-            }
+            _currPage = 0;
+            UpdateImages();
             _pageMutex.ReleaseMutex();
 
             if (missingIndexes.Length > 0) {
@@ -878,7 +899,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public Settings GetSettings() {
-            return new(_viewMode, _scrollDirection, _scrollSpeed, _pageTurnDelay, _isLooping);
+            return new(_viewMode, _viewDirection, _scrollSpeed, _numOfPages, _pageTurnDelay, _isLooping);
         }
     }
 }
