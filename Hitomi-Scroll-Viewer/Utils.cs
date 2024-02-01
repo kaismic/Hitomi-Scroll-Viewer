@@ -22,22 +22,31 @@ namespace Hitomi_Scroll_Viewer
         public static readonly string GALLERY_INFO_EXCLUDE_STRING = "var galleryinfo = ";
         public static readonly string SERVER_TIME_ADDRESS = "https://ltn.hitomi.la/gg.js";
         public static readonly string SERVER_TIME_EXCLUDE_STRING = "0123456789/'\r\n};";
-        public static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = { "https://aa.", "https://ba." };
+        public static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = [ "https://aa.", "https://ba." ];
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
         public struct Settings {
             public ViewMode viewMode;
-            public ScrollDirection scrollDirection;
+            public ViewDirection viewDirection;
             public double scrollSpeed;
+            public int numOfPages;
             public double pageTurnDelay;
             public bool isLooping;
 
             public Settings() { }
             
-            public Settings(ViewMode viewMode, ScrollDirection scrollDirection, double scrollSpeed, double pageTurnDelay, bool isLooping) {
+            public Settings(
+                ViewMode viewMode,
+                ViewDirection viewDirection,
+                double scrollSpeed,
+                int numOfPages,
+                double pageTurnDelay,
+                bool isLooping
+            ) {
                 this.viewMode = viewMode;
-                this.scrollDirection = scrollDirection;
+                this.viewDirection = viewDirection;
                 this.scrollSpeed = scrollSpeed;
+                this.numOfPages = numOfPages;
                 this.pageTurnDelay = pageTurnDelay;
                 this.isLooping = isLooping;
             }
