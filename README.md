@@ -13,9 +13,10 @@ Built using C# .NET 6, WinUI 3
 </div>
 
 ## Features
-- Searching galleries by custom tag filters
+- Search galleries with multiple tag filters
 - Auto scrolling / Auto page turning
-- Download / Bookmark galleries
+- Download galleries
+- Change view direction
 - Image zooming in/out
 
 ## Controls
