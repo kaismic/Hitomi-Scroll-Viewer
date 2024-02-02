@@ -129,8 +129,6 @@ namespace Hitomi_Scroll_Viewer {
                 TopCommandBar.Background.Opacity = 0;
                 PageNumDisplay.Visibility = Visibility.Collapsed;
             };
-            TopCommandBar.PointerCaptureLost += (_, _) => { TopCommandBar.IsOpen = false; };
-            TopCommandBar.PointerCanceled += (_, _) => { TopCommandBar.IsOpen = false; };
 
             BookmarkBtn.Click += (_, _) => {
                 ChangeBookmarkBtnState(GalleryState.Bookmarking);
