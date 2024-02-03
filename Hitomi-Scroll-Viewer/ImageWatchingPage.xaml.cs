@@ -343,20 +343,14 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.AlertUser($"Reloading {_mw.gallery.id} has finished successfully", "");
             }
 
-            bool isBookmarked = false;
             for (int i = 0; i < bmItems.Count; i++) {
                 if (bmItems[i].gallery.id == _mw.gallery.id) {
                     bmItems[i].ReloadImages();
-                    isBookmarked = true;
-                    break;
+                    FinishLoading(GalleryState.Bookmarked);
+                    return;
                 }
             }
-
-            if (isBookmarked) {
-                FinishLoading(GalleryState.Bookmarked);
-            } else {
-                FinishLoading(GalleryState.Loaded);
-            }
+            FinishLoading(GalleryState.Loaded);
         }
 
         private CancellationTokenSource _autoScrollCts = new();
