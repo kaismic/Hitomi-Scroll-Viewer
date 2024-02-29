@@ -756,11 +756,13 @@ namespace Hitomi_Scroll_Viewer {
             _cts = new();
             CancellationToken ct = _cts.Token;
 
-            string galleryInfo = null;
+            string galleryInfo;
             try {
                 galleryInfo = await GetGalleryInfo(_mw.httpClient, id, ct);
             } catch (HttpRequestException e) {
                 _mw.AlertUser("An error has occured while getting gallery info", e.Message);
+                FinishLoading(GalleryState.Empty);
+                return;
             } catch (TaskCanceledException) {
                 FinishLoading(GalleryState.Empty);
                 return;
