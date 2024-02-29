@@ -94,7 +94,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             _cancelBtn.Click += (_, _) => {
                 EnableButtons(false);
                 _cts.Cancel();
-                DeleteGallery(_gallery);
+                if (_gallery != null) {
+                    DeleteGallery(_gallery);
+                }
                 RemoveSelf();
             };
 
