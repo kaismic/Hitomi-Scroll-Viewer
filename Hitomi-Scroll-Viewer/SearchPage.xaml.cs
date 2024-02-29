@@ -90,7 +90,6 @@ namespace Hitomi_Scroll_Viewer {
                 Tags = new() {
                     { GLOBAL_TAG_NAME, new() }
                 };
-                Tags[GLOBAL_TAG_NAME].includeTags["tag"] = new string[] { "non-h_imageset" };
                 File.WriteAllText(TAGS_PATH, JsonSerializer.Serialize(Tags, serializerOptions));
             }
 
