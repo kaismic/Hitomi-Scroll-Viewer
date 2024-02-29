@@ -19,6 +19,12 @@ Built using C# .NET 6, WinUI 3
 - Change view direction
 - Image zooming in/out
 
+## How to install
+1. Unzip one of the x86, x64 or arm64 zip files
+2. Open Hitomi-Scroll-Viewer_x.x.x.x_x64.cer (or x86, arm64) -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted Root Certification Authorities-> Next -> Finish
+3. Open Hitomi-Scroll-Viewer_x.x.x.x_x64.msix
+4. Install .NET 6.0 Desktop Runtime if it also pops up
+
 ## Controls
 - Doubleclick to switch between pages
 
