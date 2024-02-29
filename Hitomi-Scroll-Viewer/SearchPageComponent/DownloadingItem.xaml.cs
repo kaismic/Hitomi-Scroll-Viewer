@@ -137,9 +137,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 string galleryInfo;
                 try {
                     galleryInfo = await GetGalleryInfo(_httpClient, _id, ct);
-                } catch (HttpRequestException) {
+                } catch (HttpRequestException e) {
                     _downloadingState = DownloadingState.Failed;
-                    _statusText.Text = "An error has occurred while getting gallery info";
+                    _statusText.Text = "An error has occurred while getting gallery info\n" + e.Message;
                     SetDownloadControlBtnState();
                     return;
                 } catch (TaskCanceledException) {
