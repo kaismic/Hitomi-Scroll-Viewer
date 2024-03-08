@@ -30,7 +30,7 @@ namespace Hitomi_Scroll_Viewer {
         public Dictionary<string, string>[] groups;
         public int[] scene_indexes;
         public Dictionary<string, string>[] artists;
-        public Dictionary<string, string>[] languages;
+        public Languages[] languages;
         public object video;
         public Dictionary<string, string>[] characters;
         public string date;
@@ -62,5 +62,14 @@ namespace Hitomi_Scroll_Viewer {
         public string hash;
 
         public ImageInfo() {}
+    }
+
+    public struct Languages {
+        public string url;
+        public string name;
+        [System.Text.Json.Serialization.JsonConverter(typeof(IntToStringConverter))]
+        public string galleryid;
+        public string language_localname;
+        public Languages() { }
     }
 }
