@@ -54,12 +54,6 @@
                                 Click="HandleDownloadBtnClick">
                             <TextBlock Text="Download Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
-                        <Button x:Name="LoadGalleryBtn"
-                                Grid.Row="1" Grid.Column="1"
-                                HorizontalAlignment="Center"
-                                Click="HandleLoadGalleryBtnClick">
-                            <TextBlock Text="Load Gallery" TextWrapping="WrapWholeWords"/>
-                        </Button>
                         <ComboBox Grid.Row="2" Grid.Column="1"
                                   HorizontalAlignment="Center"
                                   Header="Download Threads"

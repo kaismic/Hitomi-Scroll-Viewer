@@ -411,37 +411,9 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void EnableLoading(bool enable) {
-            LoadGalleryBtn.IsEnabled = enable;
             for (int i = 0; i < bmItems.Count; i++) {
                 bmItems[i].EnableHyperlinkButton(enable);
             }
-        }
-
-        private async void HandleLoadGalleryBtnClick(object _0, RoutedEventArgs _1) {
-            string id = ExtractGalleryIds()[^1].Value;
-            if (string.IsNullOrEmpty(id)) {
-                _mw.AlertUser("Invalid ID or URL", "Please enter a valid ID or URL");
-                return;
-            }
-            GalleryIDTextBox.Text = "";
-
-            // id is valid so switch page
-            _mw.SwitchPage();
-
-            // if the already loaded gallery is the same gallery, just return
-            if (_mw.gallery != null) {
-                if (id == _mw.gallery.id) {
-                    _mw.AlertUser("The gallery is already loaded", "");
-                    return;
-                }
-            }
-            // if it is already bookmarked, load it from local directory
-            Gallery bmGallery = _mw.GetGalleryFromBookmark(id);
-            if (bmGallery != null) {
-                _iwp.LoadGalleryFromLocalDir(bmGallery);
-                return;
-            }
-            await _iwp.LoadGalleryFromWeb(id);
         }
 
         private MatchCollection ExtractGalleryIds() {
