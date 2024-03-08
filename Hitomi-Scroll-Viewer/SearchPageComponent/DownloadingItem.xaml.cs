@@ -71,7 +71,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             Children.Add(_progressBar);
 
             _statusText = new() {
-                TextWrapping = TextWrapping.Wrap
+                TextWrapping = TextWrapping.WrapWholeWords
             };
             SetRow(_statusText, 2);
             SetColumn(_statusText, 0);
@@ -139,7 +139,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     galleryInfo = await GetGalleryInfo(_httpClient, _id, ct);
                 } catch (HttpRequestException e) {
                     _downloadingState = DownloadingState.Failed;
-                    _statusText.Text = "An error has occurred while getting gallery info\n" + e.Message;
+                    _statusText.Text = "An error has occurred while getting gallery info.\n" + e.Message;
                     SetDownloadControlBtnState();
                     return;
                 } catch (TaskCanceledException) {
@@ -154,9 +154,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
                     _progressBar.Maximum = _gallery.files.Length;
                 }
-                catch (JsonException) {
+                catch (JsonException e) {
                     _downloadingState = DownloadingState.Failed;
-                    _statusText.Text = "An error has occurred while reading gallery json";
+                    _statusText.Text = "An error has occurred while reading gallery json.\n" + e.Message;
                     SetDownloadControlBtnState();
                     return;
                 }
@@ -166,9 +166,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             string serverTime;
             try {
                 serverTime = await GetServerTime(_httpClient, ct);
-            } catch (HttpRequestException) {
+            } catch (HttpRequestException e) {
                 _downloadingState = DownloadingState.Failed;
-                _statusText.Text = "An error has occurred while getting the server time";
+                _statusText.Text = "An error has occurred while getting the server time.\n" + e.Message;
                 SetDownloadControlBtnState();
                 return;
             } catch (TaskCanceledException) {
