@@ -1,5 +1,5 @@
 # Hitomi Scroll Viewer
-A viewer for [hitomi.la (18+)](https://hitomi.la) with features such as auto scrolling, searching by tags and downloading.
+A viewer for hitomi.la (18+) with features such as auto scrolling, searching by tags and downloading.
 
 Built using C# .NET 6, WinUI 3
 
@@ -9,7 +9,6 @@ Built using C# .NET 6, WinUI 3
     <img src="images/preview_1.png" style="width: 100%;">
     <img src="images/preview_2.png" style="width: 100%;">
     <img src="images/preview_3.png" style="width: 100%;">
-    <img src="images/preview_4.png" style="width: 100%;">
 </div>
 
 ## Features
