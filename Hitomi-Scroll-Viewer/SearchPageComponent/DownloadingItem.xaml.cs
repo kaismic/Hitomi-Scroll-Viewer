@@ -78,7 +78,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             Children.Add(_statusText);
 
             _downloadControlBtn = new();
-            SetDownloadControlBtnState();
             SetRow(_downloadControlBtn, 0);
             SetColumn(_downloadControlBtn, 1);
             SetRowSpan(_downloadControlBtn, 3);
@@ -132,6 +131,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         private async void Download(CancellationToken ct) {
             _downloadingState = DownloadingState.Downloading;
+            SetDownloadControlBtnState();
             if (_gallery == null) {
                 _statusText.Text = "Getting gallery info...";
                 string galleryInfo;
@@ -236,7 +236,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 missingIndexes = GetMissingIndexes(_gallery);
                 if (missingIndexes.Length > 0) {
                     _downloadingState = DownloadingState.Failed;
-                    _statusText.Text = "Failed to download images: " + string.Join(", ", missingIndexes);
+                    _statusText.Text = $"Failed to download {missingIndexes.Length} images";
                     SetDownloadControlBtnState();
                 } else {
                     EnableButtons(false);
