@@ -138,8 +138,8 @@ namespace Hitomi_Scroll_Viewer
                 }
                 return null;
             }
-            catch (TaskCanceledException e) {
-                throw e;
+            catch (TaskCanceledException) {
+                throw;
             }
             return await response.Content.ReadAsByteArrayAsync(ct);
         }
@@ -163,8 +163,8 @@ namespace Hitomi_Scroll_Viewer
                 byte[] imageBytes;
                 try {
                     imageBytes = await GetImageBytesFromWeb(httpClient, subdomain + imgAddress, ct);
-                } catch (TaskCanceledException e) {
-                    throw e;
+                } catch (TaskCanceledException) {
+                    throw;
                 }
                 if (imageBytes != null) {
                     try {
