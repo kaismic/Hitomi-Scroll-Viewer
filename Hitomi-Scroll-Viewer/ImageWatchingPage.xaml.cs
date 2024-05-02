@@ -337,9 +337,9 @@ namespace Hitomi_Scroll_Viewer {
             }
 
             if (stillMissingIndexes.Length > 0) {
-                _mw.AlertUser("The following pages have failed to load. Try reducing thread number if the problem persists.", string.Join(", ", stillMissingIndexes));
+                _mw.AlertUser($"Failed to download {stillMissingIndexes.Length} images.", "Try reducing thread number if the problem persists.");
             } else {
-                _mw.AlertUser($"Reloading {_mw.gallery.id} has finished successfully", "");
+                _mw.AlertUser($"Reloading finished successfully", _mw.gallery.title);
             }
 
             for (int i = 0; i < bmItems.Count; i++) {
