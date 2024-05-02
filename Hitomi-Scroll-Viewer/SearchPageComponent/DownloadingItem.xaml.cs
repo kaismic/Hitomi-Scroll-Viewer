@@ -26,6 +26,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private Gallery _gallery;
         private readonly string _id;
 
+        private readonly int[] _downloadThreadNums = [1, 2, 3, 4, 5, 6, 7, 8];
+        private int _downloadThreadNum = 1;
+
         public DownloadingItem(string id, HttpClient httpClient, SearchPage sp, StackPanel parent) {
             _id = id;
             _httpClient = httpClient;
@@ -162,7 +165,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 imgAddresses,
                 imgFormats,
                 missingIndexes,
-                _sp.DownloadThreadNum,
+                _downloadThreadNum,
                 DownloadProgressBar,
                 ct
             );

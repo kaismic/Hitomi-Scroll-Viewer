@@ -30,10 +30,14 @@
                  Background="Gray"/>
     <TextBlock x:Name="DownloadStatus" Grid.Row="2" Grid.Column="0"
                TextWrapping="WrapWholeWords"/>
-    <Button x:Name="DownloadControlBtn" Grid.Row="0" Grid.Column="1" Grid.RowSpan="3"
+    <Button x:Name="DownloadControlBtn" Grid.Row="0" Grid.Column="1"
             Click="PauseOrResume"/>
-    <Button x:Name="CancelBtn" Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
+    <Button x:Name="CancelBtn" Grid.Row="0" Grid.Column="2"
             ToolTipService.ToolTip="Cancel Download">
         <SymbolIcon Symbol="Delete"></SymbolIcon>
     </Button>
+    <ComboBox Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
+        Header="Download Threads"
+        ItemsSource="{x:Bind _downloadThreadNums}"
+        SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
 </Grid>

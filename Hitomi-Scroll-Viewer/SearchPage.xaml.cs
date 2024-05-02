@@ -38,9 +38,6 @@ namespace Hitomi_Scroll_Viewer {
             RequestedOperation = DataPackageOperation.Copy
         };
 
-        private readonly int[] _downloadThreadNums = new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-        public int DownloadThreadNum = 1;
-
         public readonly ConcurrentDictionary<string, byte> DownloadingGalleries = new();
 
         private string _currTagName;

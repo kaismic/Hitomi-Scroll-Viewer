@@ -38,27 +38,17 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <TextBox x:Name="GalleryIDTextBox"
-                                 Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
+                        <TextBox x:Name="GalleryIDTextBox" Grid.Column="0"
+                                 MinHeight="150"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  PlaceholderText="Enter Gallery id(s) or an URL(s) Here. e.g. 2058075 or https://hitomi.la/..."
                                  />
-                        <Button Grid.Row="0" Grid.Column="1"
-                                HorizontalAlignment="Center"
+                        <Button Grid.Column="1"
+                                HorizontalAlignment="Center" VerticalAlignment="Stretch"
                                 Click="HandleDownloadBtnClick">
                             <TextBlock Text="Download Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
-                        <ComboBox Grid.Row="2" Grid.Column="1"
-                                  HorizontalAlignment="Center"
-                                  Header="Download Threads"
-                                  ItemsSource="{x:Bind _downloadThreadNums}"
-                                  SelectedItem="{x:Bind DownloadThreadNum, Mode=TwoWay}"/>
                     </Grid>
                     <ScrollViewer MaxHeight="300">
                         <StackPanel x:Name="DownloadPanel" Orientation="Vertical" Spacing="10"/>
