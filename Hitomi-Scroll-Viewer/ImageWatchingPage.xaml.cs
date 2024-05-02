@@ -231,7 +231,6 @@ namespace Hitomi_Scroll_Viewer {
 
         private async void ReloadGallery() {
             ContentDialog dialog = new() {
-                IsPrimaryButtonEnabled = true,
                 Title = "Reload only the missing images?",
                 PrimaryButtonText = "Yes",
                 SecondaryButtonText = "No, Reload all images",
@@ -775,7 +774,6 @@ namespace Hitomi_Scroll_Viewer {
 
         public bool IsBusy() {
             lock (_actionLock) if (_isInAction) {
-                    _mw.AlertUser("A gallery is being loaded", "Please cancel the loading or wait for the loading to finish before exiting.");
                     return true;
             }
             return false;

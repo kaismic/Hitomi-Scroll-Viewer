@@ -528,13 +528,5 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
         }
-
-        public bool IsBusy() {
-            if (!DownloadingGalleries.IsEmpty) {
-                _mw.AlertUser("Galleries are downloading", "Please cancel the downloading or wait for the downloading to finish before exiting.");
-                return true;
-            }
-            return false;
-        }
     }
 }

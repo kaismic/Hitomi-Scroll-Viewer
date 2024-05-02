@@ -4,10 +4,12 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
@@ -37,7 +39,7 @@ namespace Hitomi_Scroll_Viewer {
             sp = new(this);
             _iwp = new(this);
             SearchPage.Init(_iwp);
-            _appPages = new Page[] { sp, _iwp };
+            _appPages = [sp, _iwp];
 
             // Switch page on double click
             RootFrame.DoubleTapped += (_, _) => {
@@ -50,21 +52,31 @@ namespace Hitomi_Scroll_Viewer {
             };
 
             // Handle window closing
-            AppWindow.Closing += (AppWindow _, AppWindowClosingEventArgs e) => {
-                if (sp.IsBusy()) {
-                    e.Cancel = true;
-                    return;
+            AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
+                e.Cancel = true;
+                if (!sp.DownloadingGalleries.IsEmpty || _iwp.IsBusy()) {
+                    ContentDialog dialog = new() {
+                        Title = "App is busy downloading galleries. Exit anyway?",
+                        PrimaryButtonText = "Exit",
+                        CloseButtonText = "Cancel",
+                        XamlRoot = Content.XamlRoot
+                    };
+                    ContentDialogResult cdr = await dialog.ShowAsync();
+                    switch (cdr) {
+                        // cancel exit
+                        case ContentDialogResult.None: {
+                            return;
+                        }
+                    }
                 }
-                if (_iwp.IsBusy()) {
-                    e.Cancel = true;
-                    return;
-                }
+                // exit app
                 if (gallery != null) {
                     if (GetGalleryFromBookmark(gallery.id) == null) {
                         DeleteGallery(gallery);
                     }
                 }
                 File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(_iwp.GetSettings(), serializerOptions));
+                Close();
             };
 
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
