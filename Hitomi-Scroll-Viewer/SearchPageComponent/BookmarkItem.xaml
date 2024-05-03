@@ -6,6 +6,50 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    
+    Background="LightBlue"
+    CornerRadius="16"
+    Margin="8"
+    Padding="16 16"
+    ColumnSpacing="64"
     >
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+    <Grid Grid.Column="0">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="TitleTextBlock" Grid.Row="0" FontWeight="SemiBold"/>
+        <TextBlock x:Name="ArtistTextBlock" Grid.Row="1" Foreground="DarkRed"/>
+        <TextBlock x:Name="IdTextBlock" Grid.Row="2" Foreground="DarkGreen"/>
+        <Grid x:Name="ImageContainer" Grid.Row="3"/>
+    </Grid>
+    <Grid Grid.Column="1">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Button x:Name="RemoveBtn" Grid.Row="0"
+                VerticalAlignment="Top">
+            <SymbolIcon Symbol="Delete"/>
+        </Button>
+        <Grid Grid.Row="1" RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" VerticalAlignment="Bottom">
+                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;"/>
+            </Button>
+            <Button Grid.Row="1" VerticalAlignment="Top">
+                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;"/>
+            </Button>
+        </Grid>
+    </Grid>
+
 </Grid>
