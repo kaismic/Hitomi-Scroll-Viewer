@@ -39,6 +39,17 @@ namespace Hitomi_Scroll_Viewer {
         public ImageInfo[] files;
 
         public Gallery() {}
+
+        public string GetArtists() {
+            if (artists == null) {
+                return null;
+            }
+            string result = "";
+            for (int i = 0; i < artists.Length; i++) {
+                result += artists[i]["artist"] + ", ";
+            }
+            return result[..^", ".Length];
+        }
     }
 
     public struct ImageInfo {
