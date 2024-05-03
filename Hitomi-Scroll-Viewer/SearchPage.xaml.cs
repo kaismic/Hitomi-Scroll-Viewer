@@ -409,7 +409,7 @@ namespace Hitomi_Scroll_Viewer {
 
         public void EnableLoading(bool enable) {
             for (int i = 0; i < bmItems.Count; i++) {
-                bmItems[i].EnableHyperlinkButton(enable);
+                bmItems[i].EnableBookmark(enable);
             }
         }
 
@@ -442,7 +442,7 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.bmMutex.ReleaseMutex();
             }
             for (int i = 0; i < bmItems.Count; i++) {
-                bmItems[i].EnableHyperlinkButton(!starting);
+                bmItems[i].EnableBookmark(!starting);
             }
         }
 
