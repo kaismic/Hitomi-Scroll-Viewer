@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace Hitomi_Scroll_Viewer {
@@ -44,11 +45,11 @@ namespace Hitomi_Scroll_Viewer {
             if (artists == null) {
                 return null;
             }
-            string result = "";
-            for (int i = 0; i < artists.Length; i++) {
-                result += artists[i]["artist"] + ", ";
-            }
-            return result[..^", ".Length];
+            return string.Join(", ", artists.Select(
+                (dict) => {
+                    return dict["artist"];
+                }
+            ));
         }
     }
 
