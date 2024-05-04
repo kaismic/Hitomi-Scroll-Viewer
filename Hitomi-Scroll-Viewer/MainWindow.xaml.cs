@@ -86,7 +86,7 @@ namespace Hitomi_Scroll_Viewer {
             RootFrame.Content = _appPages[_currPageNum];
         }
 
-        private readonly ContentDialog _dialog = new() {
+        private readonly ContentDialog _notification = new() {
             CloseButtonText = "Ok",
             Title = new TextBlock() {
                 TextWrapping = TextWrapping.WrapWholeWords
@@ -97,10 +97,10 @@ namespace Hitomi_Scroll_Viewer {
         };
 
         public async void AlertUser(string title, string text) {
-            ((TextBlock)_dialog.Title).Text = title;
-            ((TextBlock)_dialog.Content).Text = text;
-            _dialog.XamlRoot = Content.XamlRoot;
-            await _dialog.ShowAsync();
+            ((TextBlock)_notification.Title).Text = title;
+            ((TextBlock)_notification.Content).Text = text;
+            _notification.XamlRoot = Content.XamlRoot;
+            await _notification.ShowAsync();
         }
     }
 }
