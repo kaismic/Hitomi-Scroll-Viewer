@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Hitomi_Scroll_Viewer.Tag;
+using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class TagContainer : Grid {
@@ -15,11 +16,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
          * https://github.com/microsoft/microsoft-ui-xaml/issues/1826
          * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
         */
-        public static readonly string[] newlineSep = new[] { Environment.NewLine, "\r" };
 
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly bool _isExclude;
-        private readonly StringSplitOptions _splitOption = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
         private readonly SearchPage _sp;
         public TagContainer(SearchPage sp, bool isExclude) {
             InitializeComponent();
@@ -81,7 +80,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         public string GetTagParameters(int idx) {
-            string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
+            string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
             if (_isExclude) {
                 return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_') + ' '));
@@ -90,7 +89,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         public string GetTagStrings(int idx) {
-            string[] curTags = _tagTextBoxes[idx].Text.Split(newlineSep, _splitOption);
+            string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             string[] globalTags = _sp.GetGlobalTag(CATEGORIES[idx], _isExclude);
             if (_isExclude) {
                 return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + tag.Trim().Replace(' ', '_') + ' '));
@@ -107,7 +106,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public Dictionary<string, string[]> GetTags() {
             Dictionary<string, string[]> tagList = new();
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                string[] tags = _tagTextBoxes[i].Text.Split(newlineSep, _splitOption);
+                string[] tags = _tagTextBoxes[i].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
                 tags = tags.Select(tag => tag.Trim().Replace(' ', '_')).ToArray();
                 Array.Sort(tags);
                 tagList.Add(CATEGORIES[i], tags);

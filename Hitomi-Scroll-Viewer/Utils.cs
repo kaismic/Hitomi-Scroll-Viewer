@@ -25,6 +25,9 @@ namespace Hitomi_Scroll_Viewer
         public static readonly string[] POSSIBLE_IMAGE_SUBDOMAINS = [ "https://aa.", "https://ba." ];
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
 
+        public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
+        public static readonly StringSplitOptions STR_SPLIT_OPTION = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+
         public struct Settings {
             public ViewMode viewMode;
             public ViewDirection viewDirection;
