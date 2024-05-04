@@ -692,7 +692,7 @@ namespace Hitomi_Scroll_Viewer {
                     LoadingControlBtn.IsEnabled = true;
                     if (IsAutoScrolling) StartStopAutoScroll(false);
                 }
-                _mw.sp.EnableLoading(!start);
+                EnableBookmarkLoading(!start);
                 if (!start) {
                     if (_galleryState != GalleryState.Empty) {
                         ViewModeBtn.IsEnabled = true;
