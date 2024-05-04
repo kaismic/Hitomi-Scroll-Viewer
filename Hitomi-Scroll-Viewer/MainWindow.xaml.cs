@@ -3,13 +3,9 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
@@ -20,8 +16,6 @@ namespace Hitomi_Scroll_Viewer {
         private static int _currPageNum = 0;
 
         public Gallery gallery;
-        public List<Gallery> bmGalleries;
-        public readonly Mutex bmMutex = new();
 
         public readonly HttpClient httpClient = new() {
             DefaultRequestHeaders = {
@@ -71,7 +65,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 // exit app
                 if (gallery != null) {
-                    if (GetGalleryFromBookmark(gallery.id) == null) {
+                    if (SearchPage.GetBookmarkItem(gallery.id) == null) {
                         DeleteGallery(gallery);
                     }
                 }
@@ -107,18 +101,6 @@ namespace Hitomi_Scroll_Viewer {
             ((TextBlock)_dialog.Content).Text = text;
             _dialog.XamlRoot = Content.XamlRoot;
             await _dialog.ShowAsync();
-        }
-
-        /**
-         * <returns>The <c>Gallery</c> if the gallery with the given id is bookmarked, otherwise <c>null</c>.</returns>
-         */
-        public Gallery GetGalleryFromBookmark(string id) {
-            for (int i = 0; i < bmGalleries.Count; i++) {
-                if (bmGalleries[i].id == id) {
-                    return bmGalleries[i];
-                }
-            }
-            return null;
         }
     }
 }

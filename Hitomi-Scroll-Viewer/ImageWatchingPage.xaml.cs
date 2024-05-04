@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Dispatching;
+﻿using Hitomi_Scroll_Viewer.SearchPageComponent;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -342,12 +343,11 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.AlertUser($"Reloading finished successfully", _mw.gallery.title);
             }
 
-            for (int i = 0; i < bmItems.Count; i++) {
-                if (bmItems[i].gallery.id == _mw.gallery.id) {
-                    bmItems[i].ReloadImages();
-                    FinishLoading(GalleryState.Bookmarked);
-                    return;
-                }
+            BookmarkItem bmItem = GetBookmarkItem(_mw.gallery.id);
+            if (bmItem != null) {
+                bmItem.ReloadImages();
+                FinishLoading(GalleryState.Bookmarked);
+                return;
             }
             FinishLoading(GalleryState.Loaded);
         }
@@ -725,7 +725,7 @@ namespace Hitomi_Scroll_Viewer {
             StartLoading();
             // delete previous gallery if not bookmarked
             if (_mw.gallery != null) {
-                if (_mw.GetGalleryFromBookmark(_mw.gallery.id) == null) {
+                if (GetBookmarkItem(_mw.gallery.id) == null) {
                     DeleteGallery(_mw.gallery);
                 }
             }
