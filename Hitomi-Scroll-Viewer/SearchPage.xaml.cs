@@ -383,47 +383,52 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void HandleDownloadBtnClick(object _0, RoutedEventArgs _1) {
-            MatchCollection ids = ExtractGalleryIds();
-            if (ids.Count == 0) {
+            string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
+            string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
+            if (urlOrIds.Length == 0) {
+                _mw.AlertUser("Please enter an ID(s) or an URL(s)", "");
+                return;
+            }
+            List<string> extractedIds = [];
+            foreach (string urlOrId in urlOrIds) {
+                MatchCollection matches = Regex.Matches(urlOrId, idPattern);
+                if (matches.Count > 0) {
+                    extractedIds.Add(matches.Last().Value);
+                }
+            }
+            if (extractedIds.Count == 0) {
                 _mw.AlertUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
                 return;
             }
             GalleryIDTextBox.Text = "";
-
-            for (int i = 0; i < ids.Count; i++) {
+            
+            foreach (string extractedId in extractedIds) {
                 // skip if:
                 // it is already downloading OR
-                if (DownloadingGalleries.TryGetValue(ids[i].Value, out _)) {
+                if (DownloadingGalleries.TryGetValue(extractedId, out _)) {
                     continue;
                 }
                 // it is already bookmarked.
-                Gallery bmGallery = GetBookmarkItem(ids[i].Value).gallery;
-                if (bmGallery != null) {
+                if (GetBookmarkItem(extractedId) != null) {
                     continue;
                 }
                 // if the already loaded gallery is the same gallery just bookmark it
                 if (_mw.gallery != null) {
-                    if (ids[i].Value == _mw.gallery.id) {
+                    if (extractedId == _mw.gallery.id) {
                         AddBookmark(_mw.gallery);
                         continue;
                     }
                 }
                 // Download
-                DownloadingGalleries.TryAdd(ids[i].Value, 0);
-                DownloadPanel.Children.Add(new DownloadingItem(ids[i].Value, _mw.httpClient, this, DownloadPanel));
+                DownloadingGalleries.TryAdd(extractedId, 0);
+                DownloadPanel.Children.Add(new DownloadingItem(extractedId, _mw.httpClient, this, DownloadPanel));
             }
         }
 
-        public void EnableLoading(bool enable) {
+        public static void EnableBookmarkLoading(bool enable) {
             for (int i = 0; i < bmItems.Count; i++) {
-                bmItems[i].EnableBookmark(enable);
+                bmItems[i].EnableBookmarkLoading(enable);
             }
-        }
-
-        private MatchCollection ExtractGalleryIds() {
-            string regex = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
-            MatchCollection matches = Regex.Matches(GalleryIDTextBox.Text, regex);
-            return matches;
         }
 
         public static void LoadBookmark(Gallery gallery) {
@@ -449,7 +454,7 @@ namespace Hitomi_Scroll_Viewer {
                 _bmMutex.ReleaseMutex();
             }
             for (int i = 0; i < bmItems.Count; i++) {
-                bmItems[i].EnableBookmark(!starting);
+                bmItems[i].EnableBookmarkLoading(!starting);
             }
         }
 
