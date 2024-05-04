@@ -43,10 +43,10 @@
                 <RowDefinition/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" VerticalAlignment="Bottom">
+            <Button x:Name="MoveUpBtn" Grid.Row="0" VerticalAlignment="Bottom">
                 <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;"/>
             </Button>
-            <Button Grid.Row="1" VerticalAlignment="Top">
+            <Button x:Name="MoveDownBtn" Grid.Row="1" VerticalAlignment="Top">
                 <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;"/>
             </Button>
         </Grid>

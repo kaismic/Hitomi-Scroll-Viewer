@@ -58,6 +58,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
 
             RemoveBtn.Click += (_, _) => { sp.RemoveBookmark(this); };
+            MoveUpBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Up); };
+            MoveDownBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Down); };            
         }
 
         private void HandleBookmarkClick(object _0, RoutedEventArgs _1) {

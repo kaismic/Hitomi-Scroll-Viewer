@@ -35,6 +35,10 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly List<BookmarkItem> bmItems = [];
         private static readonly Mutex _bmMutex = new();
 
+        public enum BookmarkSwapDirection {
+            Up, Down
+        }
+
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
 
         private static readonly DataPackage _myDataPackage = new() {
@@ -117,14 +121,14 @@ namespace Hitomi_Scroll_Viewer {
                 BookmarkPageSelector.SelectedIndex = 0;
             }
             BookmarkPageSelector.SelectionChanged += (_, _) => {
-                FillBookmarkGrid();
+                FillBookmark();
             };
 
             // fill bookmarks
             for (int i = 0; i < galleries.Count; i++) {
                 bmItems.Add(new(galleries[i], this));
             }
-            FillBookmarkGrid();
+            FillBookmark();
         }
 
         public static void Init(ImageWatchingPage iwp) {
@@ -470,7 +474,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (bmItems.Count == 1) {
                     BookmarkPageSelector.SelectedIndex = 0;
                 } else {
-                    FillBookmarkGrid();
+                    FillBookmark();
                 }
             }
 
@@ -480,13 +484,9 @@ namespace Hitomi_Scroll_Viewer {
         public void RemoveBookmark(BookmarkItem bmItem) {
             DoBookmarkAction(true);
 
-            // delete bookmarked gallery if the removing gallery is not the current gallery
-            if (_mw.gallery != null) {
-                if (bmItem.gallery == _mw.gallery) {
-                    _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
-                } else {
-                    DeleteGallery(bmItem.gallery);
-                }
+            // if a there is a loaded gallery and it is the gallery to be removed, call ChangeBookmarkBtnState, otherwise, just delete the gallery
+            if (_mw.gallery != null && bmItem.gallery == _mw.gallery) {
+                _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
             } else {
                 DeleteGallery(bmItem.gallery);
             }
@@ -504,19 +504,39 @@ namespace Hitomi_Scroll_Viewer {
                 BookmarkPageSelector.Items.Remove(BookmarkPageSelector.Items.Count - 1);
             }
 
-            // don't call FillBookmarkGrid again if page was changed because of BookmarkPageSelector.SelectionChanged
+            // don't call FillBookmarkGrid again if page was changed because BookmarkPageSelector.SelectionChanged event would have called FillBookmarkGrid already
             if (!pageChanged) {
-                FillBookmarkGrid();
+                FillBookmark();
             }
 
             DoBookmarkAction(false);
         }
 
-        private void SwapBookmarks(int idx1, int idx2) {
-
+        public void SwapBookmarks(BookmarkItem bmItem, BookmarkSwapDirection dir) {
+            DoBookmarkAction(true);
+            int idx = GetBookmarkIndex(bmItem.gallery.id);
+            switch (dir) {
+                case BookmarkSwapDirection.Up: {
+                    if (idx == 0) {
+                        return;
+                    }
+                    (bmItems[idx], bmItems[idx - 1]) = (bmItems[idx - 1], bmItems[idx]);
+                    break;
+                }
+                case BookmarkSwapDirection.Down: {
+                    if (idx == bmItems.Count - 1) {
+                        return;
+                    }
+                    (bmItems[idx], bmItems[idx + 1]) = (bmItems[idx + 1], bmItems[idx]);
+                    break;
+                }
+            }
+            WriteBookmark();
+            FillBookmark();
+            DoBookmarkAction(false);
         }
 
-        private void FillBookmarkGrid() {
+        private void FillBookmark() {
             BookmarkPanel.Children.Clear();
             int page = BookmarkPageSelector.SelectedIndex;
             if (page < 0) {
@@ -539,6 +559,18 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             return null;
+        }
+
+        /**
+         * <returns>The bookmark index of the bookmarked gallery. The given id must be from a bookmarked gallery.</returns>
+         */
+        public static int GetBookmarkIndex(string id) {
+            for (int i = 0; i < bmItems.Count; i++) {
+                if (bmItems[i].gallery.id == id) {
+                    return i;
+                }
+            }
+            throw new ArgumentException("Id must be from a bookmarked gallery.");
         }
 
         public static void ReloadBookmark(int idx) {
