@@ -57,7 +57,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 ImageContainer.Children.Add(_imageWrappers[i]);
             }
 
-            RemoveBtn.Click += sp.RemoveBookmark;
+            RemoveBtn.Click += (_, _) => { sp.RemoveBookmark(this); };
         }
 
         private void HandleBookmarkClick(object _0, RoutedEventArgs _1) {

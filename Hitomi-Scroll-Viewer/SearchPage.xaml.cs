@@ -30,7 +30,7 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly int THUMBNAIL_IMG_NUM = 3;
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
 
-        public static readonly List<BookmarkItem> bmItems = new();
+        public static readonly List<BookmarkItem> bmItems = [];
 
         private static readonly TagContainer[] _tagContainers = new TagContainer[2];
 
@@ -475,10 +475,8 @@ namespace Hitomi_Scroll_Viewer {
             DoBookmarkAction(false);
         }
 
-        public void RemoveBookmark(object sender, RoutedEventArgs _1) {
+        public void RemoveBookmark(BookmarkItem bmItem) {
             DoBookmarkAction(true);
-
-            BookmarkItem bmItem = (BookmarkItem)((Button)sender).Parent;
 
             // delete bookmarked gallery if the removing gallery is not the current gallery
             if (_mw.gallery != null) {
