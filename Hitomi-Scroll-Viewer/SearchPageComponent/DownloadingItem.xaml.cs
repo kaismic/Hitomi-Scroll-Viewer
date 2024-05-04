@@ -34,7 +34,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             _httpClient = httpClient;
             _sp = sp;
             _cts = new();
-            _parent = parent;
+            _parent = parent; // parent is needed for Remove() because this.Parent will be null when not looking at SearchPage
 
             InitializeComponent();
 
