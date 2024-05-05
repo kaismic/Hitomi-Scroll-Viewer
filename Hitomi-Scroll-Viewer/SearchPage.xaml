@@ -4,11 +4,19 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:Hitomi_Scroll_Viewer.SearchPageComponent"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer>
         <StackPanel Orientation="Vertical">
-            <Grid x:Name="TagContainerGrid"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <local:TagContainer x:Name="IncludeTagContainer" Grid.Column="0" IsInclude="True"></local:TagContainer>
+                <local:TagContainer x:Name="ExcludeTagContainer" Grid.Column="1" IsInclude="False"></local:TagContainer>
+            </Grid>
             <Grid Margin="0 10 0 0" ColumnSpacing="20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*"/>

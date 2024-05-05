@@ -39,8 +39,6 @@ namespace Hitomi_Scroll_Viewer {
             Up, Down
         }
 
-        private static readonly TagContainer[] _tagContainers = new TagContainer[2];
-
         private static readonly DataPackage _myDataPackage = new() {
             RequestedOperation = DataPackageOperation.Copy
         };
@@ -136,15 +134,6 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void InitLayout() {
-            // tag containers
-            _tagContainers[0] = new(this, false);
-            _tagContainers[1] = new(this, true);
-            for (int i = 0; i < _tagContainers.Length; i++) {
-                TagContainerGrid.ColumnDefinitions.Add(new ColumnDefinition());
-                Grid.SetColumn(_tagContainers[i], i);
-                TagContainerGrid.Children.Add(_tagContainers[i]);
-            }
-
             // Create Tag Control Buttons
             CornerRadius radius = new(8);
             for (int i = 0; i < Enum.GetNames<TagListAction>().Length; i++) {
@@ -273,8 +262,8 @@ namespace Hitomi_Scroll_Viewer {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            _tagContainers[0].Clear();
-            _tagContainers[1].Clear();
+            IncludeTagContainer.Clear();
+            ExcludeTagContainer.Clear();
         }
 
         private void LoadTagsInTextBox(object sender, SelectionChangedEventArgs _1) {
@@ -283,7 +272,7 @@ namespace Hitomi_Scroll_Viewer {
                 cb.SelectedIndex = 0;
             }
             _currTagName = (string)cb.SelectedItem;
-            // disable rename and remove button is global tag is selected
+            // disable rename and remove button if global tag is selected
             if (_currTagName == GLOBAL_TAG_NAME) {
                 _controlButtons[(int)TagListAction.Rename].IsEnabled = false;
                 _controlButtons[(int)TagListAction.Remove].IsEnabled = false;
@@ -293,55 +282,35 @@ namespace Hitomi_Scroll_Viewer {
                 _controlButtons[(int)TagListAction.Remove].IsEnabled = true;
             }
             Tag tag = Tags[_currTagName];
-            _tagContainers[0].InsertTags(tag.includeTags);
-            _tagContainers[1].InsertTags(tag.excludeTags);
+            IncludeTagContainer.InsertTags(tag.includeTags);
+            ExcludeTagContainer.InsertTags(tag.excludeTags);
         }
 
-        public string[] GetGlobalTag(string tagCategory, bool isExclude) {
+        public string[] GetGlobalTag(string tagCategory, bool isInclude) {
             if ((bool)IgnoreGlobalTagBtn.IsChecked) {
-                return Array.Empty<string>();
+                return [];
             }
-            if (isExclude) {
-                return Tags[GLOBAL_TAG_NAME].excludeTags[tagCategory];
+            if (isInclude) {
+                return Tags[GLOBAL_TAG_NAME].includeTags[tagCategory];
             }
-            return Tags[GLOBAL_TAG_NAME].includeTags[tagCategory];
+            return Tags[GLOBAL_TAG_NAME].excludeTags[tagCategory];
         }
 
-        private static string GetSearchAddress() {
-            string param = "";
-            for (int i = 0; i < CATEGORIES.Length; i++) {
-                param += _tagContainers[0].GetTagParameters(i);
-                param += _tagContainers[1].GetTagParameters(i);
-            }
-            return SEARCH_ADDRESS + param;
-        }
-
-        private static string GetHyperlinkDisplayText() {
-            string linkText = "";
-            string tagTexts;
-
-            for (int i = 0; i < CATEGORIES.Length; i++) {
-                tagTexts = "";
-                tagTexts += _tagContainers[0].GetTagStrings(i);
-                tagTexts += _tagContainers[1].GetTagStrings(i);
-
-                // if tag textbox is not empty
-                if (tagTexts.Length > 0) {
-                    linkText += char.ToUpper(CATEGORIES[i][0]) + CATEGORIES[i][1..] + ": " + tagTexts + Environment.NewLine;
-                }
-            }
-            return linkText;
-        }
-
-        private static Tag GetCurrTag() {
+        private Tag GetCurrTag() {
             return new Tag() {
-                includeTags = _tagContainers[0].GetTags(),
-                excludeTags = _tagContainers[1].GetTags()
+                includeTags = IncludeTagContainer.GetTags(),
+                excludeTags = ExcludeTagContainer.GetTags()
             };
         }
 
         private void GenerateHyperlink(object _0, RoutedEventArgs _1) {
-            string address = GetSearchAddress();
+            string address = SEARCH_ADDRESS + string.Join(
+                ' ',
+                CATEGORIES.Select((category, idx) => {
+                    return IncludeTagContainer.GetSearchParameters(idx, GetGlobalTag(category, true)) + ' ' +
+                    ExcludeTagContainer.GetSearchParameters(idx, GetGlobalTag(category, false));
+                }).Where(searchParam => !string.IsNullOrWhiteSpace(searchParam))
+            );
             // copy link to clipboard
             _myDataPackage.SetText(address);
             Clipboard.SetContent(_myDataPackage);
@@ -355,7 +324,19 @@ namespace Hitomi_Scroll_Viewer {
 
             HyperlinkButton hb = new() {
                 Content = new TextBlock() {
-                    Text = GetHyperlinkDisplayText(),
+                    Text = string.Join(
+                        Environment.NewLine,
+                        CATEGORIES.Select((category, idx) => {
+                            string displayTagTexts =
+                                IncludeTagContainer.GetTagStrings(idx, GetGlobalTag(category, true)) + ' ' +
+                                ExcludeTagContainer.GetTagStrings(idx, GetGlobalTag(category, false));
+                            if (!string.IsNullOrWhiteSpace(displayTagTexts)) {
+                                return char.ToUpper(category[0]) + category[1..] + ": " + displayTagTexts;
+                            } else {
+                                return "";
+                            }
+                        }).Where((displayTagTexts) => displayTagTexts != "")
+                    ),
                     TextWrapping = TextWrapping.WrapWholeWords,
                     FontSize = 10,
                 },
