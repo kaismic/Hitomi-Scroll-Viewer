@@ -10,6 +10,11 @@
     BorderBrush="Black"
     Margin="5"
     >
+    <Grid.RowDefinitions>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+    </Grid.RowDefinitions>
 
     <Border x:Name="HeaderBorder"
             Grid.Row="0" Grid.Column="0"
