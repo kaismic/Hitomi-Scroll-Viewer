@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -92,7 +93,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     _downloadingState = DownloadingState.Failed;
                     DownloadStatus.Text = "An error has occurred while getting gallery info.\n" + e.Message;
                     if (e.InnerException != null) {
-                        DownloadStatus.Text += "\n" + e.InnerException.Message;
+                        _ = File.AppendAllTextAsync(
+                            LOGS_PATH,
+                            '{' + Environment.NewLine + GetExceptionDetails(e) + Environment.NewLine + '}' + Environment.NewLine
+                        );
                     }
                     SetDownloadControlBtnState();
                     return;
