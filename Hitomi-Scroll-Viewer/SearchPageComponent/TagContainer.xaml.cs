@@ -92,7 +92,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_')));
         }
 
-        public string GetTagStrings(int idx, string[] globalTags) {
+        public string GetHyperlinkDisplayTexts(int idx, string[] globalTags) {
             string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (IsInclude) {
                 return string.Join(' ', curTags.Union(globalTags).Select(tag => tag.Trim().Replace(' ', '_')));

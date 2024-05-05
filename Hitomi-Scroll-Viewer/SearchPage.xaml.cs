@@ -328,8 +328,8 @@ namespace Hitomi_Scroll_Viewer {
                         Environment.NewLine,
                         CATEGORIES.Select((category, idx) => {
                             string displayTagTexts =
-                                IncludeTagContainer.GetTagStrings(idx, GetGlobalTag(category, true)) + ' ' +
-                                ExcludeTagContainer.GetTagStrings(idx, GetGlobalTag(category, false));
+                                IncludeTagContainer.GetHyperlinkDisplayTexts(idx, GetGlobalTag(category, true)) + ' ' +
+                                ExcludeTagContainer.GetHyperlinkDisplayTexts(idx, GetGlobalTag(category, false));
                             if (!string.IsNullOrWhiteSpace(displayTagTexts)) {
                                 return char.ToUpper(category[0]) + category[1..] + ": " + displayTagTexts;
                             } else {
