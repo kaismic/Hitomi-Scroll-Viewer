@@ -58,24 +58,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 ImageContainer.Children.Add(_imageWrappers[i]);
             }
 
-            RemoveBtn.Click += async (_, _) => {
-                ContentDialog confirmDialog = new() {
-                    Title = new TextBlock() {
-                        TextWrapping = TextWrapping.WrapWholeWords
-                    },
-                    PrimaryButtonText = "Yes",
-                    CloseButtonText = "Cancel",
-                    XamlRoot = sp.XamlRoot
-                };
-                var confirmDialogText = (TextBlock)confirmDialog.Title;
-                confirmDialogText.Inlines.Add(new Run() { Text = "Remove ", FontWeight = FontWeights.Normal });
-                confirmDialogText.Inlines.Add(new Run() { Text = gallery.title, FontWeight = FontWeights.SemiBold });
-                confirmDialogText.Inlines.Add(new Run() { Text = " from Bookmark?", FontWeight = FontWeights.Normal });
-                ContentDialogResult cdr = await confirmDialog.ShowAsync();
-                if (cdr == ContentDialogResult.Primary) {
-                    sp.RemoveBookmark(this);
-                }
-            };
+            RemoveBtn.Click += (_, _) => { sp.RemoveBookmark(this); };
             MoveUpBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Up); };
             MoveDownBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Down); };            
         }
