@@ -17,7 +17,11 @@ namespace Hitomi_Scroll_Viewer {
 
         public Gallery gallery;
 
-        public readonly HttpClient httpClient = new() {
+        public readonly HttpClient httpClient = new(
+            new SocketsHttpHandler() {
+                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(15)
+            }
+        ) {
             DefaultRequestHeaders = {
                 {"referer", REFERER }
             }
