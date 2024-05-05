@@ -21,7 +21,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly SearchPage _sp;
         private readonly HttpClient _httpClient;
         private CancellationTokenSource _cts;
-        private StackPanel _parent;
+        private readonly StackPanel _parent;
 
         private Gallery _gallery;
         private readonly string _id;
