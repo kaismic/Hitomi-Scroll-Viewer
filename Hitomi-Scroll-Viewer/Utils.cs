@@ -126,13 +126,9 @@ namespace Hitomi_Scroll_Viewer
          * <exception cref="TaskCanceledException"></exception>
          */
         public static async Task<byte[]> GetImageBytesFromWeb(HttpClient httpClient, string address, CancellationToken ct) {
-            HttpRequestMessage request = new() {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(address),
-            };
             HttpResponseMessage response;
             try {
-                response = await httpClient.SendAsync(request, ct);
+                response = await httpClient.GetAsync(address, ct);
                 response.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException e) {
