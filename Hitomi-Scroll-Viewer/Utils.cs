@@ -15,6 +15,7 @@ namespace Hitomi_Scroll_Viewer
         public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HSV");
         public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
         public static readonly string SETTINGS_PATH = Path.Combine(ROOT_DIR, "settings.json");
+        public static readonly string LOGS_PATH = Path.Combine(ROOT_DIR, "logs.txt");
 
         public static readonly string REFERER = "https://hitomi.la/";
         public static readonly string IMAGE_BASE_DOMAIN = "hitomi.la";
@@ -251,6 +252,21 @@ namespace Hitomi_Scroll_Viewer
                 }
             }
             return missingIndexes[..missingCount];
+        }
+
+        public static string GetExceptionDetails(Exception e) {
+            string output = "";
+            string stacktrace = e.StackTrace ?? "";
+            output += e.GetType().Name + Environment.NewLine;
+            output += e.Message + Environment.NewLine;
+            while (e.InnerException != null) {
+                e = e.InnerException;
+                output += e.GetType().Name + Environment.NewLine;
+                output += e.Message + Environment.NewLine;
+            }
+            output += stacktrace;
+
+            return output;
         }
     }
 }
