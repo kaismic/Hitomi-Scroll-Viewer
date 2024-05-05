@@ -3,6 +3,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
@@ -63,10 +64,6 @@ namespace Hitomi_Scroll_Viewer {
         private bool _isInAction = false;
 
         private static readonly Mutex _pageMutex = new();
-
-        // galleries for testing
-        // https://hitomi.la/doujinshi/kameki-%E6%97%A5%E6%9C%AC%E8%AA%9E-2561144.html#1
-        // https://hitomi.la/doujinshi/radiata-%E6%97%A5%E6%9C%AC%E8%AA%9E-2472850.html#1
 
         public ImageWatchingPage(MainWindow mw) {
             _mw = mw;
@@ -165,8 +162,21 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private void ShowActionIndicator(Symbol symbol) {
-            ActionIndicatorSymbol.Symbol = symbol;
+        private static readonly string GLYPH_CANCEL = "\xE711";
+
+        private void ShowActionIndicator(Symbol? symbol, string glyph) {
+            if (symbol == null) {
+                ActionIndicatorSymbolIcon.Opacity = 0;
+            } else {
+                ActionIndicatorSymbolIcon.Symbol = symbol.Value;
+                ActionIndicatorSymbolIcon.Opacity = 1;
+            }
+            if (glyph == null) {
+                ActionIndicatorFontIcon.Opacity = 0;
+            } else {
+                ActionIndicatorFontIcon.Glyph = glyph;
+                ActionIndicatorFontIcon.Opacity = 1;
+            }
             FadeOutStoryboard.Begin();
         }
 
@@ -179,9 +189,9 @@ namespace Hitomi_Scroll_Viewer {
 
         private void HandleLoopBtnClick(object _0, RoutedEventArgs _1) {
             if ((bool)LoopBtn.IsChecked) {
-                ShowActionIndicator(Symbol.RepeatAll);
+                ShowActionIndicator(Symbol.RepeatAll, null);
             } else {
-                ShowActionIndicator(Symbol.DisableUpdates);
+                ShowActionIndicator(Symbol.RepeatAll, GLYPH_CANCEL);
             }
         }
 
@@ -358,14 +368,14 @@ namespace Hitomi_Scroll_Viewer {
             AutoScrollBtn.IsChecked = starting;
             stopwatch.Reset();
             if (starting) {
-                ShowActionIndicator(Symbol.Play);
+                ShowActionIndicator(Symbol.Play, null);
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Pause);
                 AutoScrollBtn.Label = "Stop Auto Page Turning / Scrolling";
                 _autoScrollCts = new();
                 Task.Run(() => ScrollAutomatically(_autoScrollCts.Token), _autoScrollCts.Token);
             }
             else {
-                ShowActionIndicator(Symbol.Pause);
+                ShowActionIndicator(Symbol.Pause, null);
                 _autoScrollCts.Cancel();
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Play);
                 AutoScrollBtn.Label = "Start Auto Page Turning / Scrolling";
@@ -573,10 +583,10 @@ namespace Hitomi_Scroll_Viewer {
                 case VirtualKey.L:
                     if ((bool)LoopBtn.IsChecked) {
                         LoopBtn.IsChecked = false;
-                        ShowActionIndicator(Symbol.DisableUpdates);
+                        ShowActionIndicator(Symbol.RepeatAll, GLYPH_CANCEL);
                     } else {
                         LoopBtn.IsChecked = true;
-                        ShowActionIndicator(Symbol.RepeatAll);
+                        ShowActionIndicator(Symbol.RepeatAll, null);
                     }
                     break;
                 case VirtualKey.Space:

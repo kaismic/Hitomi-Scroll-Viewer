@@ -118,7 +118,7 @@
                      Margin="0, 0, 0, 4"
                      Visibility="Collapsed"/>
         <Viewbox x:Name="ActionIndicator"
-                 Width="300"
+                 Width="500"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
                  Opacity="0">
@@ -131,8 +131,13 @@
                     </DoubleAnimation>
                 </Storyboard>
             </Viewbox.Resources>
-            <SymbolIcon x:Name="ActionIndicatorSymbol"
-                        Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
+            <Grid>
+                <SymbolIcon x:Name="ActionIndicatorSymbolIcon"
+                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
+                <FontIcon x:Name="ActionIndicatorFontIcon" FontFamily="Segoe MDL2 Assets"
+                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                          FontSize="32"/>
+            </Grid>
         </Viewbox>
     </Grid>
 </Page>
