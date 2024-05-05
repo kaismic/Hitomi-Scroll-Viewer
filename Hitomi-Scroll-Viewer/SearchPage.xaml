@@ -7,7 +7,7 @@
     xmlns:local="using:Hitomi_Scroll_Viewer.SearchPageComponent"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <ScrollViewer>
+    <ScrollViewer Padding="24 0">
         <StackPanel Orientation="Vertical">
             <Grid>
                 <Grid.ColumnDefinitions>
