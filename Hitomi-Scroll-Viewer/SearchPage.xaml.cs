@@ -28,7 +28,7 @@ namespace Hitomi_Scroll_Viewer {
 
         public static Dictionary<string, Tag> Tags { get; set; }
 
-        public static readonly double THUMBNAIL_IMG_MAXHEIGHT = 256;
+        public static readonly double THUMBNAIL_IMG_HEIGHT = 256;
         public static readonly int THUMBNAIL_IMG_NUM = 3;
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
 
