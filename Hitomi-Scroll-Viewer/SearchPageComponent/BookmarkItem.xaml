@@ -27,7 +27,33 @@
         <TextBlock x:Name="TitleTextBlock" Grid.Row="0" FontWeight="SemiBold"/>
         <TextBlock x:Name="ArtistTextBlock" Grid.Row="1" Foreground="DarkRed"/>
         <TextBlock x:Name="IdTextBlock" Grid.Row="2" Foreground="DarkGreen"/>
-        <Grid x:Name="ImageContainer" Grid.Row="3"/>
+        <HyperlinkButton x:Name="ImageContainerWrapper" Grid.Row="3" HorizontalAlignment="Stretch">
+            <ListView x:Name="ImageContainer" IsSwipeEnabled="False" SelectionMode="None" IsItemClickEnabled="True">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListViewItem">
+                                    <ListViewItemPresenter ContentMargin="0"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="Image">
+                        <Image Height="{x:Bind Height}" Width="{x:Bind Width}" Margin="{x:Bind Margin}"
+                               Source="{x:Bind Source}"></Image>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsStackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>
+        </HyperlinkButton>
     </Grid>
     <Grid Grid.Column="1">
         <Grid.RowDefinitions>
@@ -51,5 +77,4 @@
             </Button>
         </Grid>
     </Grid>
-
 </Grid>

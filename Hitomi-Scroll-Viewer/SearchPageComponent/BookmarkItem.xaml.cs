@@ -1,23 +1,24 @@
-using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
-using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
+        private static readonly Thickness THUMBNAIL_IMG_MARGIN = new(8);
         public readonly Gallery gallery;
+        private readonly ObservableCollection<Image> ThumbnailImages = [];
+        private readonly string _imageDir;
 
-        private readonly HyperlinkButton[] _imageWrappers;
-        private readonly Image[] _images;
         public BookmarkItem(Gallery newGallery, SearchPage sp) {
             InitializeComponent();
+            Loaded += LoadedEventHandler;
 
             gallery = newGallery;
+            _imageDir = Path.Combine(IMAGE_DIR, gallery.id);
 
             TitleTextBlock.Text = gallery.title;
             string artistsText = gallery.GetArtists();
@@ -34,54 +35,51 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 textblock.IsTextSelectionEnabled = true;
             }
 
-            // add thumbnail images
-            _imageWrappers = new HyperlinkButton[THUMBNAIL_IMG_NUM];
-            _images = new Image[THUMBNAIL_IMG_NUM];
-            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
-            bool dirExists = Directory.Exists(imageDir);
-            for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                ImageContainer.ColumnDefinitions.Add(new());
-                int idx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
-                _imageWrappers[i] = new() {
-                    Content = _images[i] = new(),
-                    MaxHeight = THUMBNAIL_IMG_MAXHEIGHT,
-                    HorizontalAlignment = HorizontalAlignment.Stretch
-                };
-                _imageWrappers[i].Click += HandleBookmarkClick;
-                if (dirExists) {
-                    string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
-                    if (file.Length > 0) {
-                        _images[i].Source = new BitmapImage(new(file[0]));
-                    }
-                }
-                SetColumn(_imageWrappers[i], i);
-                ImageContainer.Children.Add(_imageWrappers[i]);
-            }
-
+            ImageContainerWrapper.Click += (_, _) => { LoadBookmark(gallery); };
+            ImageContainer.ItemClick += (_, _) => { LoadBookmark(gallery); };
             RemoveBtn.Click += (_, _) => { sp.RemoveBookmark(this); };
             MoveUpBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Up); };
             MoveDownBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Down); };            
         }
 
-        private void HandleBookmarkClick(object _0, RoutedEventArgs _1) {
-            LoadBookmark(gallery);
+        private void LoadedEventHandler (object sender, RoutedEventArgs e) {
+            Loaded -= LoadedEventHandler;
+            // add thumbnail images
+            // Determine the number of thumbnail images which fits into ImageContainerWrapper.ActualWidth
+            double widthSum = 0;
+            double containerWidth = ImageContainerWrapper.ActualWidth;
+            bool dirExists = Directory.Exists(_imageDir);
+            for (int i = 0; i < gallery.files.Length; i++) {
+                double width = gallery.files[i].width * THUMBNAIL_IMG_HEIGHT / gallery.files[i].height;
+                widthSum += width + THUMBNAIL_IMG_MARGIN.Left + THUMBNAIL_IMG_MARGIN.Right;
+                if (widthSum > containerWidth) {
+                    break;
+                }
+                ThumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT, Margin = THUMBNAIL_IMG_MARGIN });
+                if (dirExists) {
+                    string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
+                    if (files.Length > 0) {
+                        ThumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                    }
+                }
+            }
+            ImageContainer.ItemsSource = ThumbnailImages;
         }
 
         public void ReloadImages() {
-            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
-            for (int i = 0; i < THUMBNAIL_IMG_NUM; i++) {
-                int idx = i * gallery.files.Length / THUMBNAIL_IMG_NUM;
-                string[] file = Directory.GetFiles(imageDir, idx.ToString() + ".*");
-                if (file.Length > 0) {
-                    _images[i].Source = new BitmapImage(new(file[0]));
+            if (!Directory.Exists(_imageDir)) {
+                return;
+            }
+            for (int i = 0; i < ThumbnailImages.Count; i++) {
+                string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
+                if (files.Length > 0 && ThumbnailImages[i].Source == null) {
+                    ThumbnailImages[i].Source = new BitmapImage(new(files[0]));
                 }
             }
         }
 
         public void EnableBookmarkLoading(bool enable) {
-            foreach (HyperlinkButton imageWrapper in _imageWrappers) {
-                imageWrapper.IsEnabled = enable;
-            }
+            ImageContainerWrapper.IsEnabled = enable;
         }
     }
 }
