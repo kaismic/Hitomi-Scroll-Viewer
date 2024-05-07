@@ -43,8 +43,7 @@ namespace Hitomi_Scroll_Viewer {
             RequestedOperation = DataPackageOperation.Copy
         };
 
-        public readonly ConcurrentBag<string> DownloadingGalleries = new();
-        
+        public readonly ConcurrentDictionary<string, byte> DownloadingGalleries = new();
 
         private string _currTagName;
 
@@ -387,8 +386,7 @@ namespace Hitomi_Scroll_Viewer {
             foreach (string extractedId in extractedIds) {
                 // skip if:
                 // it is already downloading OR
-                
-                if (DownloadingGalleries.Contains(extractedId)) {
+                if (DownloadingGalleries.TryGetValue(extractedId, out _)) {
                     continue;
                 }
                 // it is already bookmarked.
@@ -403,8 +401,8 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 }
                 // Download
-                DownloadingGalleries.Add(extractedId);
-                DownloadPanel.Children.Add(new DownloadItem(extractedId, _mw.httpClient, this, DownloadPanel));
+                DownloadingGalleries.TryAdd(extractedId, 0);
+                DownloadPanel.Children.Add(new DownloadingItem(extractedId, _mw.httpClient, this, DownloadPanel));
             }
         }
 
