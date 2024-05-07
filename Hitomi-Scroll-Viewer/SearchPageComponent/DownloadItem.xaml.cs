@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
-    public sealed partial class DownloadingItem : Grid {
+    public sealed partial class DownloadItem : Grid {
         private static readonly string DOWNLOAD_PAUSED = "Download Paused";
         private enum DownloadingState {
             Downloading,
@@ -30,7 +30,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly int[] _downloadThreadNums = [1, 2, 3, 4, 5, 6, 7, 8];
         private int _downloadThreadNum = 1;
 
-        public DownloadingItem(string id, HttpClient httpClient, SearchPage sp, StackPanel parent) {
+        public DownloadItem(string id, HttpClient httpClient, SearchPage sp, StackPanel parent) {
             _id = id;
             _httpClient = httpClient;
             _sp = sp;
