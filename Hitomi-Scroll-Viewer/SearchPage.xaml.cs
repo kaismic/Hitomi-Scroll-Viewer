@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -42,6 +43,7 @@ namespace Hitomi_Scroll_Viewer {
             RequestedOperation = DataPackageOperation.Copy
         };
 
+        public readonly ObservableCollection<DownloadItem> downloadingItems = [];
         public readonly ConcurrentDictionary<string, byte> downloadingGalleries = new();
 
         private string _currTagName;
@@ -386,10 +388,12 @@ namespace Hitomi_Scroll_Viewer {
                 // skip if:
                 // it is already downloading OR
                 if (downloadingGalleries.TryGetValue(extractedId, out _)) {
+                    // TODO toast message "Gallery {extractedId} is already downloading"
                     continue;
                 }
                 // it is already bookmarked.
                 if (GetBookmarkItem(extractedId) != null) {
+                    // TODO toast message "Gallery {extractedId} is already bookmarked"
                     continue;
                 }
                 // if the already loaded gallery is the same gallery just bookmark it
@@ -401,7 +405,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 // Download
                 downloadingGalleries.TryAdd(extractedId, 0);
-                DownloadPanel.Children.Add(new DownloadItem(extractedId, _mw.httpClient, this, DownloadPanel));
+                downloadingItems.Add(new DownloadItem(extractedId, _mw.httpClient, this, downloadingItems));
             }
         }
 

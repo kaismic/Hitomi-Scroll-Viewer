@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -22,7 +23,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly SearchPage _sp;
         private readonly HttpClient _httpClient;
         private CancellationTokenSource _cts;
-        private readonly StackPanel _parent;
+        private readonly ObservableCollection<DownloadItem> _downloadingItems;
 
         private Gallery _gallery;
         private readonly string _id;
@@ -30,12 +31,12 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly int[] _downloadThreadNums = [1, 2, 3, 4, 5, 6, 7, 8];
         private int _downloadThreadNum = 1;
 
-        public DownloadItem(string id, HttpClient httpClient, SearchPage sp, StackPanel parent) {
+        public DownloadItem(string id, HttpClient httpClient, SearchPage sp, ObservableCollection<DownloadItem> downloadingItems) {
             _id = id;
             _httpClient = httpClient;
             _sp = sp;
             _cts = new();
-            _parent = parent; // parent is needed for Remove() because this.Parent will be null when not looking at SearchPage
+            _downloadingItems = downloadingItems;
 
             InitializeComponent();
 
@@ -95,7 +96,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     if (e.InnerException != null) {
                         _ = File.AppendAllTextAsync(
                             LOGS_PATH,
-                            '{' + Environment.NewLine + GetExceptionDetails(e) + Environment.NewLine + '}' + Environment.NewLine
+                            '{' + Environment.NewLine + GetExceptionDetails(e) + Environment.NewLine + '}' + Environment.NewLine,
+                            ct
                         );
                     }
                     SetDownloadControlBtnState();
@@ -217,8 +219,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            _parent.Children.Remove(this);
             _sp.downloadingGalleries.TryRemove(_id, out _);
+            _downloadingItems.Remove(this);
         }
     }
 }
