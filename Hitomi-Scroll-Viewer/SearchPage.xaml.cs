@@ -33,7 +33,7 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly int MAX_BOOKMARK_PER_PAGE = 3;
 
         private static readonly List<BookmarkItem> bmItems = [];
-        private static readonly Mutex _bmMutex = new();
+        private static readonly object _bmLock = new();
 
         public enum BookmarkSwapDirection {
             Up, Down
@@ -425,98 +425,83 @@ namespace Hitomi_Scroll_Viewer {
             _iwp.LoadGalleryFromLocalDir(gallery);
         }
 
-        /**
-         * <summary>Call this method before and after doing bookmark action/</summary>
-        */
-        public static void DoBookmarkAction(bool starting) {
-            _bmMutex.WaitOne();
-            for (int i = 0; i < bmItems.Count; i++) {
-                bmItems[i].EnableBookmarkLoading(!starting);
-            }
-            _bmMutex.ReleaseMutex();
-        }
-
         public static void WriteBookmark() {
             File.WriteAllText(BM_INFO_PATH, JsonSerializer.Serialize(bmItems.Select((bmItem) => { return bmItem.gallery; }), serializerOptions)); ;
         }
 
         public void AddBookmark(Gallery gallery) {
-            DoBookmarkAction(true);
+            lock (_bmLock) {
+                // if it does not already exist in the bookmark
+                if (GetBookmarkItem(gallery.id) == null) {
+                    bmItems.Add(new BookmarkItem(gallery, this));
 
-            // if it does not already exist in the bookmark
-            if (GetBookmarkItem(gallery.id) == null) {
-                bmItems.Add(new BookmarkItem(gallery, this));
+                    // new page is needed
+                    if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
+                        BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
+                    }
 
-                // new page is needed
-                if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
-                    BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
-                }
-
-                WriteBookmark();
-                // if this is the first bookmark
-                if (bmItems.Count == 1) {
-                    BookmarkPageSelector.SelectedIndex = 0;
-                } else {
-                    FillBookmark();
+                    WriteBookmark();
+                    // if this is the first bookmark
+                    if (bmItems.Count == 1) {
+                        BookmarkPageSelector.SelectedIndex = 0;
+                    } else {
+                        FillBookmark();
+                    }
                 }
             }
-
-            DoBookmarkAction(false);
         }
 
         public void RemoveBookmark(BookmarkItem bmItem) {
-            DoBookmarkAction(true);
-
-            // if a there is a loaded gallery and it is the gallery to be removed, call ChangeBookmarkBtnState, otherwise, just delete the gallery
-            if (_mw.gallery != null && bmItem.gallery == _mw.gallery) {
-                _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
-            } else {
-                DeleteGallery(bmItem.gallery);
-            }
-            bmItems.Remove(bmItem);
-            WriteBookmark();
-
-            bool pageChanged = false;
-            // a page needs to be removed
-            if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 0) {
-                // if current page is the last page
-                if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
-                    pageChanged = true;
-                    BookmarkPageSelector.SelectedIndex -= BookmarkPageSelector.SelectedIndex;
+            lock (_bmLock) {
+                // if a there is a loaded gallery and it is the gallery to be removed, call ChangeBookmarkBtnState, otherwise, just delete the gallery
+                if (_mw.gallery != null && bmItem.gallery == _mw.gallery) {
+                    _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
+                } else {
+                    DeleteGallery(bmItem.gallery);
                 }
-                BookmarkPageSelector.Items.Remove(BookmarkPageSelector.Items.Count - 1);
-            }
+                bmItems.Remove(bmItem);
+                WriteBookmark();
 
-            // don't call FillBookmarkGrid again if page was changed because BookmarkPageSelector.SelectionChanged event would have called FillBookmarkGrid already
-            if (!pageChanged) {
-                FillBookmark();
-            }
+                bool pageChanged = false;
+                // a page needs to be removed
+                if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 0) {
+                    // if current page is the last page
+                    if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
+                        pageChanged = true;
+                        BookmarkPageSelector.SelectedIndex -= BookmarkPageSelector.SelectedIndex;
+                    }
+                    BookmarkPageSelector.Items.Remove(BookmarkPageSelector.Items.Count - 1);
+                }
 
-            DoBookmarkAction(false);
+                // don't call FillBookmarkGrid again if page was changed because BookmarkPageSelector.SelectionChanged event would have called FillBookmarkGrid already
+                if (!pageChanged) {
+                    FillBookmark();
+                }
+            }
         }
 
         public void SwapBookmarks(BookmarkItem bmItem, BookmarkSwapDirection dir) {
-            DoBookmarkAction(true);
-            int idx = GetBookmarkIndex(bmItem.gallery.id);
-            switch (dir) {
-                case BookmarkSwapDirection.Up: {
-                    if (idx == 0) {
-                        return;
+            lock (_bmLock) {
+                int idx = GetBookmarkIndex(bmItem.gallery.id);
+                switch (dir) {
+                    case BookmarkSwapDirection.Up: {
+                        if (idx == 0) {
+                            return;
+                        }
+                        (bmItems[idx], bmItems[idx - 1]) = (bmItems[idx - 1], bmItems[idx]);
+                        break;
                     }
-                    (bmItems[idx], bmItems[idx - 1]) = (bmItems[idx - 1], bmItems[idx]);
-                    break;
-                }
-                case BookmarkSwapDirection.Down: {
-                    if (idx == bmItems.Count - 1) {
-                        return;
+                    case BookmarkSwapDirection.Down: {
+                        if (idx == bmItems.Count - 1) {
+                            return;
+                        }
+                        (bmItems[idx], bmItems[idx + 1]) = (bmItems[idx + 1], bmItems[idx]);
+                        break;
                     }
-                    (bmItems[idx], bmItems[idx + 1]) = (bmItems[idx + 1], bmItems[idx]);
-                    break;
                 }
+                WriteBookmark();
+                FillBookmark();
             }
-            WriteBookmark();
-            FillBookmark();
-            DoBookmarkAction(false);
         }
 
         private void FillBookmark() {
