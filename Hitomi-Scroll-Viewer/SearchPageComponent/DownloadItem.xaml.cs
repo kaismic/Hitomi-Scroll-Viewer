@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -26,7 +27,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly ObservableCollection<DownloadItem> _downloadingItems;
 
         private Gallery _gallery;
-        private readonly string _id;
+        private string _id;
+        private BookmarkItem _bmItem;
 
         private readonly int[] _downloadThreadNums = [1, 2, 3, 4, 5, 6, 7, 8];
         private int _downloadThreadNum = 1;
@@ -45,9 +47,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             CancelBtn.Click += (_, _) => {
                 EnableButtons(false);
                 _cts.Cancel();
-                if (_gallery != null) {
-                    DeleteGallery(_gallery);
-                }
                 RemoveSelf();
             };
 
@@ -121,6 +120,17 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 }
             }
 
+            // sometimes gallery id is different to the id in ltn.hitomi.la/galleries/{id}.js but points to the same gallery
+            if (_id != _gallery.id) {
+                _sp.downloadingGalleries.TryAdd(_gallery.id, 0);
+                _sp.downloadingGalleries.TryRemove(_id, out _);
+                _id = _gallery.id;
+            }
+
+            if (_bmItem == null) {
+                _bmItem = _sp.AddBookmark(_gallery, false);
+            }
+
             DownloadStatus.Text = "Getting server time...";
             string serverTime;
             try {
@@ -135,23 +145,23 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 return;
             }
 
-            int[] missingIndexes;
+            List<int> missingIndexes;
             try {
                 missingIndexes = GetMissingIndexes(_gallery);
-                if (missingIndexes.Length == 0) {
-                    EnableButtons(false);
-                    _sp.AddBookmark(_gallery);
-                    RemoveSelf();
+                // no missing indexes 
+                if (missingIndexes.Count == 0) {
+                    HandleDownloadSuccess();
                     return;
                 }
             } catch (DirectoryNotFoundException) {
-                missingIndexes = Enumerable.Range(0, _gallery.files.Length).ToArray();
+                // need to download all images
+                missingIndexes = Enumerable.Range(0, _gallery.files.Length).ToList();
             }
-            DownloadProgressBar.Value = _gallery.files.Length - missingIndexes.Length;
+            DownloadProgressBar.Value = _gallery.files.Length - missingIndexes.Count;
 
             DownloadStatus.Text = "Getting Image Addresses...";
-            ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Length];
-            for (int i = 0; i < missingIndexes.Length; i++) {
+            ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
+            for (int i = 0; i < missingIndexes.Count; i++) {
                 imageInfos[i] = _gallery.files[missingIndexes[i]];
             }
             string[] imgFormats = GetImageFormats(imageInfos);
@@ -167,7 +177,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             DownloadStatus.Text = "Downloading Images...";
             Task[] tasks = DownloadImages(
                 _httpClient,
-                _id,
+                _gallery.id,
                 imgAddresses,
                 imgFormats,
                 missingIndexes,
@@ -184,15 +194,14 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             
             if (allTask.IsCompletedSuccessfully) {
-                _sp.AddBookmark(_gallery);
+                _sp.AddBookmark(_gallery, true);
                 missingIndexes = GetMissingIndexes(_gallery);
-                if (missingIndexes.Length > 0) {
+                if (missingIndexes.Count > 0) {
                     _downloadingState = DownloadingState.Failed;
-                    DownloadStatus.Text = $"Failed to download {missingIndexes.Length} images";
+                    DownloadStatus.Text = $"Failed to download {missingIndexes.Count} images";
                     SetDownloadControlBtnState();
                 } else {
-                    EnableButtons(false);
-                    RemoveSelf();
+                    HandleDownloadSuccess();
                 }
             } else {
                 _downloadingState = DownloadingState.Failed;
@@ -219,8 +228,14 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            _sp.downloadingGalleries.TryRemove(_id, out _);
+            _sp.downloadingGalleries.TryRemove(_gallery.id, out _);
             _downloadingItems.Remove(this);
+        }
+
+        private void HandleDownloadSuccess() {
+            EnableButtons(false);
+            _bmItem.ReloadImages();
+            RemoveSelf();
         }
     }
 }

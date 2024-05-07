@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -9,8 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 
-namespace Hitomi_Scroll_Viewer
-{
+namespace Hitomi_Scroll_Viewer {
     public class Utils {
         public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HSV");
         public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
@@ -54,11 +54,6 @@ namespace Hitomi_Scroll_Viewer
                 this.pageTurnDelay = pageTurnDelay;
                 this.isLooping = isLooping;
             }
-        }
-
-        public static void DeleteGallery(Gallery removingGallery) {
-            string path = Path.Combine(IMAGE_DIR, removingGallery.id);
-            if (Directory.Exists(path)) Directory.Delete(path, true);
         }
 
         /**
@@ -194,7 +189,7 @@ namespace Hitomi_Scroll_Viewer
             string id,
             string[] imgAddresses,
             string[] imgFormats,
-            int[] indexes,
+            List<int> indexes,
             int concurrentTaskNum,
             ProgressBar progressBar,
             CancellationToken ct
@@ -233,21 +228,19 @@ namespace Hitomi_Scroll_Viewer
         }
 
         /**
-         * <returns>The image indexes <c>int[]</c> if the image directory exists.</returns>
+         * <returns>The image indexes if the image directory exists, otherwise, throws <c>DirectoryNotFoundException</c></returns>
          * <exception cref="DirectoryNotFoundException"></exception>
          */
-        public static int[] GetMissingIndexes(Gallery gallery) {
+        public static List<int> GetMissingIndexes(Gallery gallery) {
             string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
-            int[] missingIndexes = new int[gallery.files.Length];
-            int missingCount = 0;
-            for (int i = 0; i < missingIndexes.Length; i++) {
+            List<int> missingIndexes = [];
+            for (int i = 0; i < gallery.files.Length; i++) {
                 string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
                 if (file.Length == 0) {
-                    missingIndexes[missingCount] = i;
-                    missingCount++;
+                    missingIndexes.Add(i);
                 }
             }
-            return missingIndexes[..missingCount];
+            return missingIndexes;
         }
 
         public static string GetExceptionDetails(Exception e) {

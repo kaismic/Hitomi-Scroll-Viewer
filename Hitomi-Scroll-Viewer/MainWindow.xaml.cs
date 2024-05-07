@@ -6,15 +6,12 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
-        public readonly SearchPage sp;
+        private readonly SearchPage _sp;
         private readonly ImageWatchingPage _iwp;
-        private readonly Page[] _appPages;
-        private static int _currPageNum = 0;
 
         public Gallery gallery;
 
@@ -35,10 +32,9 @@ namespace Hitomi_Scroll_Viewer {
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
 
-            sp = new(this);
+            _sp = new(this);
             _iwp = new(this);
             SearchPage.Init(_iwp);
-            _appPages = [sp, _iwp];
 
             // Switch page on double click
             RootFrame.DoubleTapped += (_, _) => {
@@ -48,7 +44,7 @@ namespace Hitomi_Scroll_Viewer {
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
                 e.Cancel = true;
-                if (!sp.downloadingGalleries.IsEmpty || _iwp.IsBusy()) {
+                if (!_sp.downloadingGalleries.IsEmpty) {
                     ContentDialog dialog = new() {
                         Title = "App is busy downloading galleries. Exit anyway?",
                         PrimaryButtonText = "Exit",
@@ -63,27 +59,27 @@ namespace Hitomi_Scroll_Viewer {
                         }
                     }
                 }
-                // exit app
-                if (gallery != null) {
-                    if (SearchPage.GetBookmarkItem(gallery.id) == null) {
-                        DeleteGallery(gallery);
-                    }
-                }
+                // save settings and exit app
                 File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(_iwp.GetSettings(), serializerOptions));
                 Close();
             };
 
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
-                if (_currPageNum == 1) _iwp.HandleKeyDown(_, e);
+                if (RootFrame.Content is ImageWatchingPage) _iwp.HandleKeyDown(_, e);
             };
 
-            RootFrame.Content = _appPages[_currPageNum];
+            RootFrame.Content = _sp;
         }
 
         public void SwitchPage() {
-            if (_currPageNum == 1 && _iwp.IsAutoScrolling) _iwp.StartStopAutoScroll(false);
-            _currPageNum = (_currPageNum + 1) % _appPages.Length;
-            RootFrame.Content = _appPages[_currPageNum];
+            if (RootFrame.Content is ImageWatchingPage) {
+                if (_iwp.IsAutoScrolling) {
+                    _iwp.StartStopAutoScroll(false);
+                }
+                RootFrame.Content = _sp;
+            } else {
+                RootFrame.Content = _iwp;
+            }
         }
 
         private readonly ContentDialog _notification = new() {
@@ -96,7 +92,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         };
 
-        public async void AlertUser(string title, string text) {
+        public async void NotifyUser(string title, string text) {
             ((TextBlock)_notification.Title).Text = title;
             ((TextBlock)_notification.Content).Text = text;
             _notification.XamlRoot = Content.XamlRoot;

@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel.DataTransfer;
-using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 using static Hitomi_Scroll_Viewer.Tag;
 using static Hitomi_Scroll_Viewer.Utils;
 
@@ -120,14 +119,14 @@ namespace Hitomi_Scroll_Viewer {
                 BookmarkPageSelector.SelectedIndex = 0;
             }
             BookmarkPageSelector.SelectionChanged += (_, _) => {
-                FillBookmark();
+                UpdateBookmark();
             };
 
             // fill bookmarks
             for (int i = 0; i < galleries.Count; i++) {
-                bmItems.Add(new(galleries[i], this));
+                bmItems.Add(new(galleries[i], this, true));
             }
-            FillBookmark();
+            UpdateBookmark();
         }
 
         public static void Init(ImageWatchingPage iwp) {
@@ -185,11 +184,11 @@ namespace Hitomi_Scroll_Viewer {
         private async void CreateTag(object _0, RoutedEventArgs _1) {
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
-                _mw.AlertUser("No Tag Name", "Please enter a tag name");
+                _mw.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             if (Tags.ContainsKey(newTagName)) {
-                _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
+                _mw.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
             _confirmDialogs[(int)TagListAction.Create].Title = $"Create '{newTagName}'?";
@@ -202,18 +201,18 @@ namespace Hitomi_Scroll_Viewer {
             TagListComboBox.Items.Add(newTagName);
             TagListComboBox.SelectedItem = newTagName;
             WriteTag();
-            _mw.AlertUser($"'{newTagName}' has been created", "");
+            _mw.NotifyUser($"'{newTagName}' has been created", "");
         }
 
         private async void RenameTag(object _0, RoutedEventArgs _1) {
             string oldTagName = _currTagName;
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
-                _mw.AlertUser("No Tag Name", "Please enter a tag name");
+                _mw.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             if (Tags.ContainsKey(newTagName)) {
-                _mw.AlertUser("Duplicate Tag Name", "A tag list with the name already exists");
+                _mw.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
             _confirmDialogs[(int)TagListAction.Rename].Title = $"Rename '{oldTagName}' to '{newTagName}'?";
@@ -228,7 +227,7 @@ namespace Hitomi_Scroll_Viewer {
             TagListComboBox.SelectedItem = newTagName;
             TagListComboBox.Items.Remove(oldTagName);
             WriteTag();
-            _mw.AlertUser($"'{oldTagName}' has been renamed to '{newTagName}'", "");
+            _mw.NotifyUser($"'{oldTagName}' has been renamed to '{newTagName}'", "");
         }
 
         private async void SaveTag(object _0, RoutedEventArgs _1) {
@@ -240,7 +239,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             Tags[_currTagName] = GetCurrTag();
             WriteTag();
-            _mw.AlertUser($"'{_currTagName}' has been saved", "");
+            _mw.NotifyUser($"'{_currTagName}' has been saved", "");
         }
 
         private async void RemoveTag(object _0, RoutedEventArgs _1) {
@@ -254,7 +253,7 @@ namespace Hitomi_Scroll_Viewer {
             TagListComboBox.Items.Remove(oldTagName);
             TagListComboBox.SelectedIndex = 0;
             WriteTag();
-            _mw.AlertUser($"'{oldTagName}' has been removed", "");
+            _mw.NotifyUser($"'{oldTagName}' has been removed", "");
         }
 
         private async void ClearTagTextbox(object _0, RoutedEventArgs _1) {
@@ -368,7 +367,7 @@ namespace Hitomi_Scroll_Viewer {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (urlOrIds.Length == 0) {
-                _mw.AlertUser("Please enter an ID(s) or an URL(s)", "");
+                _mw.NotifyUser("Please enter an ID(s) or an URL(s)", "");
                 return;
             }
             List<string> extractedIds = [];
@@ -379,29 +378,16 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             if (extractedIds.Count == 0) {
-                _mw.AlertUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
+                _mw.NotifyUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
                 return;
             }
             GalleryIDTextBox.Text = "";
             
             foreach (string extractedId in extractedIds) {
-                // skip if:
-                // it is already downloading OR
+                // skip if it is already downloading
                 if (downloadingGalleries.TryGetValue(extractedId, out _)) {
-                    // TODO toast message "Gallery {extractedId} is already downloading"
+                    // TODO toast message "Gallery {extractedId} is currently being downloaded"
                     continue;
-                }
-                // it is already bookmarked.
-                if (GetBookmarkItem(extractedId) != null) {
-                    // TODO toast message "Gallery {extractedId} is already bookmarked"
-                    continue;
-                }
-                // if the already loaded gallery is the same gallery just bookmark it
-                if (_mw.gallery != null) {
-                    if (extractedId == _mw.gallery.id) {
-                        AddBookmark(_mw.gallery);
-                        continue;
-                    }
                 }
                 // Download
                 downloadingGalleries.TryAdd(extractedId, 0);
@@ -415,16 +401,21 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public static void LoadBookmark(Gallery gallery) {
+        public static void LoadBookmark(Gallery gallery, BookmarkItem itemToLoad) {
             _mw.SwitchPage();
 
             // if the already loaded gallery is the same gallery, just return
             if (_mw.gallery != null) {
                 if (gallery.id == _mw.gallery.id) {
-                    _mw.AlertUser("The gallery is already loaded", "");
+                    _mw.NotifyUser("The gallery is already loaded", "");
                     return;
                 }
             }
+            // enable and disable remove bookmark button from previous and currently loading bookmarks
+            if (_mw.gallery != null) {
+                GetBookmarkItem(_mw.gallery.id).EnableRemoveBtn(true);
+            }
+            itemToLoad.EnableRemoveBtn(false);
             _iwp.LoadGalleryFromLocalDir(gallery);
         }
 
@@ -432,36 +423,33 @@ namespace Hitomi_Scroll_Viewer {
             File.WriteAllText(BM_INFO_PATH, JsonSerializer.Serialize(bmItems.Select((bmItem) => { return bmItem.gallery; }), serializerOptions)); ;
         }
 
-        public void AddBookmark(Gallery gallery) {
+        public BookmarkItem AddBookmark(Gallery gallery, bool allImagesAvailable) {
             lock (_bmLock) {
-                // if it does not already exist in the bookmark
-                if (GetBookmarkItem(gallery.id) == null) {
-                    bmItems.Add(new BookmarkItem(gallery, this));
-
-                    // new page is needed
-                    if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
-                        BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
-                    }
-
-                    WriteBookmark();
-                    // if this is the first bookmark
-                    if (bmItems.Count == 1) {
-                        BookmarkPageSelector.SelectedIndex = 0;
-                    } else {
-                        FillBookmark();
-                    }
+                // return the BookmarkItem if it is already bookmarked
+                var bmItem = GetBookmarkItem(gallery.id);
+                if (bmItem != null) {
+                    return bmItem;
                 }
+                bmItem = new BookmarkItem(gallery, this, allImagesAvailable);
+                bmItems.Add(bmItem);
+                // new page is needed
+                if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
+                    BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
+                }
+                WriteBookmark();
+                if (bmItems.Count == 1) {
+                    BookmarkPageSelector.SelectedIndex = 0;
+                } else {
+                    UpdateBookmark();
+                }
+                return bmItem;
             }
         }
 
         public void RemoveBookmark(BookmarkItem bmItem) {
             lock (_bmLock) {
-                // if a there is a loaded gallery and it is the gallery to be removed, call ChangeBookmarkBtnState, otherwise, just delete the gallery
-                if (_mw.gallery != null && bmItem.gallery == _mw.gallery) {
-                    _iwp.ChangeBookmarkBtnState(GalleryState.Loaded);
-                } else {
-                    DeleteGallery(bmItem.gallery);
-                }
+                string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
+                if (Directory.Exists(path)) Directory.Delete(path, true);
                 bmItems.Remove(bmItem);
                 WriteBookmark();
 
@@ -471,14 +459,14 @@ namespace Hitomi_Scroll_Viewer {
                     // if current page is the last page
                     if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
                         pageChanged = true;
-                        BookmarkPageSelector.SelectedIndex -= BookmarkPageSelector.SelectedIndex;
+                        BookmarkPageSelector.SelectedIndex = 0;
                     }
                     BookmarkPageSelector.Items.Remove(BookmarkPageSelector.Items.Count - 1);
                 }
 
                 // don't call FillBookmarkGrid again if page was changed because BookmarkPageSelector.SelectionChanged event would have called FillBookmarkGrid already
                 if (!pageChanged) {
-                    FillBookmark();
+                    UpdateBookmark();
                 }
             }
         }
@@ -503,11 +491,11 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 }
                 WriteBookmark();
-                FillBookmark();
+                UpdateBookmark();
             }
         }
 
-        private void FillBookmark() {
+        private void UpdateBookmark() {
             BookmarkPanel.Children.Clear();
             int page = BookmarkPageSelector.SelectedIndex;
             if (page < 0) {

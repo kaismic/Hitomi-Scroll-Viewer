@@ -35,13 +35,6 @@
                           IsEnabled="False"
                           />
             <AppBarSeparator MinWidth="30"/>
-            <AppBarButton x:Name="BookmarkBtn"
-                          x:FieldModifier="public"
-                          MinWidth="140"
-                          Icon="Save"
-                          IsEnabled="False"
-                          />
-            <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <Slider x:Name="ScrollSpeedSlider"
                         MinWidth="240"
@@ -66,27 +59,10 @@
                                 MinWidth="90"
                                 />
             <AppBarSeparator MinWidth="30"/>
-            <AppBarButton x:Name="LoadingControlBtn"
-                          x:FieldModifier="public"
-                          Label="Reload Gallery"
-                          Icon="Sync"
-                          MinWidth="90"
-                          Click="HandleLoadingControlBtnClick"
-                          IsEnabled="False"
-                          />
-            <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
-                <ComboBox x:Name="DownloadThreadNumSelector"
-                          Header="Download Threads"
-                          ToolTipService.ToolTip="Set number of threads for image download"
-                          ItemsSource="{x:Bind _downloadThreadNums}"
-                          SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
-            </AppBarElementContainer>
-            <AppBarSeparator MinWidth="30"/>
-            <AppBarElementContainer>
-                <ComboBox x:Name="ViewDirectionSelector"
+                <ComboBox x:Name="ViewDirectionSelector" MinWidth="150"
                           SelectionChanged="HandleViewDirectionChange"
-                          Header="Set View Direction">
+                          Header="View Direction">
                     <ComboBoxItem>Top to Bottom</ComboBoxItem>
                     <ComboBoxItem>Left to Right</ComboBoxItem>
                     <ComboBoxItem>Right to Left</ComboBoxItem>

@@ -58,11 +58,6 @@
                             <TextBlock Text="Download Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
                     </Grid>
-                    <!--
-                    <ScrollViewer MaxHeight="300">
-                        <StackPanel x:Name="DownloadPanel" Orientation="Vertical" Spacing="10"/>
-                    </ScrollViewer>
-                    -->
                     <ListView x:Name="DownloadItemsContainer" ItemsSource="{x:Bind downloadingItems}"
                               MaxHeight="300"
                               SelectionMode="None" IsItemClickEnabled="False">

@@ -60,10 +60,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Button x:Name="RemoveBtn" Grid.Row="0"
-                VerticalAlignment="Top">
-            <SymbolIcon Symbol="Delete"/>
-        </Button>
+        <StackPanel Grid.Row="0" Spacing="16">
+            <Button x:Name="RemoveBtn">
+                <SymbolIcon Symbol="Delete"/>
+            </Button>
+            <Button x:Name="ReloadBtn" ToolTipService.ToolTip="Reload Missing Images">
+                <SymbolIcon Symbol="Refresh"/>
+            </Button>
+        </StackPanel>
         <Grid Grid.Row="1" RowSpacing="16">
             <Grid.RowDefinitions>
                 <RowDefinition/>
