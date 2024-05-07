@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Windows.ApplicationModel.DataTransfer;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 using static Hitomi_Scroll_Viewer.Tag;
@@ -43,7 +42,7 @@ namespace Hitomi_Scroll_Viewer {
             RequestedOperation = DataPackageOperation.Copy
         };
 
-        public readonly ConcurrentDictionary<string, byte> DownloadingGalleries = new();
+        public readonly ConcurrentDictionary<string, byte> downloadingGalleries = new();
 
         private string _currTagName;
 
@@ -386,7 +385,7 @@ namespace Hitomi_Scroll_Viewer {
             foreach (string extractedId in extractedIds) {
                 // skip if:
                 // it is already downloading OR
-                if (DownloadingGalleries.TryGetValue(extractedId, out _)) {
+                if (downloadingGalleries.TryGetValue(extractedId, out _)) {
                     continue;
                 }
                 // it is already bookmarked.
@@ -401,8 +400,8 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 }
                 // Download
-                DownloadingGalleries.TryAdd(extractedId, 0);
-                DownloadPanel.Children.Add(new DownloadingItem(extractedId, _mw.httpClient, this, DownloadPanel));
+                downloadingGalleries.TryAdd(extractedId, 0);
+                DownloadPanel.Children.Add(new DownloadItem(extractedId, _mw.httpClient, this, DownloadPanel));
             }
         }
 

@@ -48,7 +48,7 @@ namespace Hitomi_Scroll_Viewer {
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
                 e.Cancel = true;
-                if (!sp.DownloadingGalleries.IsEmpty || _iwp.IsBusy()) {
+                if (!sp.downloadingGalleries.IsEmpty || _iwp.IsBusy()) {
                     ContentDialog dialog = new() {
                         Title = "App is busy downloading galleries. Exit anyway?",
                         PrimaryButtonText = "Exit",

@@ -218,7 +218,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         private void RemoveSelf() {
             _parent.Children.Remove(this);
-            _sp.DownloadingGalleries.TryRemove(_id, out _);
+            _sp.downloadingGalleries.TryRemove(_id, out _);
         }
     }
 }
