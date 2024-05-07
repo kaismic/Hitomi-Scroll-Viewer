@@ -429,14 +429,11 @@ namespace Hitomi_Scroll_Viewer {
          * <summary>Call this method before and after doing bookmark action/</summary>
         */
         public static void DoBookmarkAction(bool starting) {
-            if (starting) {
-                _bmMutex.WaitOne();
-            } else {
-                _bmMutex.ReleaseMutex();
-            }
+            _bmMutex.WaitOne();
             for (int i = 0; i < bmItems.Count; i++) {
                 bmItems[i].EnableBookmarkLoading(!starting);
             }
+            _bmMutex.ReleaseMutex();
         }
 
         public static void WriteBookmark() {
@@ -559,7 +556,7 @@ namespace Hitomi_Scroll_Viewer {
             throw new ArgumentException("Id must be from a bookmarked gallery.");
         }
 
-        public static void ReloadBookmark(int idx) {
+        public static void ReloadBookmarkImages(int idx) {
             bmItems[idx].ReloadImages();
         }
     }
