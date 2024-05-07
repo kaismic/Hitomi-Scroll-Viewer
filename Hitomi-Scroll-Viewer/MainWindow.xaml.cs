@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
@@ -28,8 +29,8 @@ namespace Hitomi_Scroll_Viewer {
         };
 
         public MainWindow() {
+            ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             InitializeComponent();
-
             // create directories if they don't exist
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
@@ -42,11 +43,6 @@ namespace Hitomi_Scroll_Viewer {
             // Switch page on double click
             RootFrame.DoubleTapped += (_, _) => {
                 SwitchPage();
-            };
-
-            // Maximise window on load
-            RootFrame.Loaded += (_, _) => {
-                ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             };
 
             // Handle window closing
