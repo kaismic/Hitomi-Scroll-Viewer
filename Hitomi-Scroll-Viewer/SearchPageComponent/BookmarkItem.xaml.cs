@@ -10,7 +10,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
         private static readonly Thickness THUMBNAIL_IMG_MARGIN = new(8);
         public readonly Gallery gallery;
-        private readonly ObservableCollection<Image> ThumbnailImages = [];
+        private readonly ObservableCollection<Image> _thumbnailImages = [];
         private readonly string _imageDir;
 
         public BookmarkItem(Gallery newGallery, SearchPage sp) {
@@ -55,25 +55,25 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 if (widthSum > containerWidth) {
                     break;
                 }
-                ThumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT, Margin = THUMBNAIL_IMG_MARGIN });
+                _thumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT, Margin = THUMBNAIL_IMG_MARGIN });
                 if (dirExists) {
                     string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
                     if (files.Length > 0) {
-                        ThumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                        _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
                     }
                 }
             }
-            ImageContainer.ItemsSource = ThumbnailImages;
+            ImageContainer.ItemsSource = _thumbnailImages;
         }
 
         public void ReloadImages() {
             if (!Directory.Exists(_imageDir)) {
                 return;
             }
-            for (int i = 0; i < ThumbnailImages.Count; i++) {
+            for (int i = 0; i < _thumbnailImages.Count; i++) {
                 string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
-                if (files.Length > 0 && ThumbnailImages[i].Source == null) {
-                    ThumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                if (files.Length > 0 && _thumbnailImages[i].Source == null) {
+                    _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
                 }
             }
         }
