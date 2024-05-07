@@ -15,7 +15,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public BookmarkItem(Gallery newGallery, SearchPage sp) {
             InitializeComponent();
-            Loaded += LoadedEventHandler;
+            Loaded += InsertThumbnailImages;
 
             gallery = newGallery;
             _imageDir = Path.Combine(IMAGE_DIR, gallery.id);
@@ -42,8 +42,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             MoveDownBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Down); };            
         }
 
-        private void LoadedEventHandler (object sender, RoutedEventArgs e) {
-            Loaded -= LoadedEventHandler;
+        private void InsertThumbnailImages (object sender, RoutedEventArgs e) {
+            Loaded -= InsertThumbnailImages;
             // add thumbnail images
             // Determine the number of thumbnail images which fits into ImageContainerWrapper.ActualWidth
             double widthSum = 0;
