@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
@@ -15,6 +16,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public BookmarkItem(Gallery newGallery, SearchPage sp, bool allImagesAvailable) {
             InitializeComponent();
+            EnableBookmarkLoading(false);
+            EnableRemoveBtn(false);
+            EnableReloadBtn(false);
             void InitThumbnailImagesOnLoad(object _0, RoutedEventArgs _1) {
                 Loaded -= InitThumbnailImagesOnLoad;
                 CreateThumbnailImages();
@@ -60,7 +64,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 }
                 _thumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT, Margin = THUMBNAIL_IMG_MARGIN });
             }
-            ImageContainer.ItemsSource = _thumbnailImages;
         }
 
         public void ReloadImages() {
@@ -73,14 +76,23 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
                 }
             }
+            ImageContainer.ItemsSource = _thumbnailImages;
+            EnableBookmarkLoading(true);
+            EnableRemoveBtn(true);
+            EnableReloadBtn(true);
         }
 
         public void EnableBookmarkLoading(bool enable) {
+            ImageContainerWrapper.IsEnabled = enable;
             ImageContainer.IsItemClickEnabled = enable;
         }
 
         public void EnableRemoveBtn(bool enable) {
             RemoveBtn.IsEnabled = enable;
+        }
+
+        public void EnableReloadBtn(bool enable) {
+            ReloadBtn.IsEnabled = enable;
         }
     }
 }
