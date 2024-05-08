@@ -131,20 +131,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 _bmItem = _sp.AddBookmark(_gallery, false);
             }
 
-            DownloadStatus.Text = "Getting server time...";
-            string serverTime;
-            try {
-                serverTime = await GetServerTime(_httpClient, ct);
-            } catch (HttpRequestException e) {
-                _downloadingState = DownloadingState.Failed;
-                DownloadStatus.Text = "An error has occurred while getting the server time.\n" + e.Message;
-                SetDownloadControlBtnState();
-                return;
-            } catch (TaskCanceledException) {
-                HandleTaskCanceledException();
-                return;
-            }
-
+            DownloadStatus.Text = "Calculating number of images to download...";
             List<int> missingIndexes;
             try {
                 missingIndexes = GetMissingIndexes(_gallery);
@@ -158,6 +145,20 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 missingIndexes = Enumerable.Range(0, _gallery.files.Length).ToList();
             }
             DownloadProgressBar.Value = _gallery.files.Length - missingIndexes.Count;
+
+            DownloadStatus.Text = "Getting server time...";
+            string serverTime;
+            try {
+                serverTime = await GetServerTime(_httpClient, ct);
+            } catch (HttpRequestException e) {
+                _downloadingState = DownloadingState.Failed;
+                DownloadStatus.Text = "An error has occurred while getting the server time.\n" + e.Message;
+                SetDownloadControlBtnState();
+                return;
+            } catch (TaskCanceledException) {
+                HandleTaskCanceledException();
+                return;
+            }
 
             DownloadStatus.Text = "Getting Image Addresses...";
             ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
