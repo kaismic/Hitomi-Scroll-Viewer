@@ -42,11 +42,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             InitializeComponent();
 
-            Description.Text += id;
+            Description.Text = id;
 
             CancelBtn.Click += (_, _) => {
-                EnableButtons(false);
                 _cts.Cancel();
+                EnableButtons(false);
                 RemoveSelf();
             };
 
@@ -56,6 +56,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private void EnableButtons(bool enable) {
             DownloadControlBtn.IsEnabled = enable;
             CancelBtn.IsEnabled = enable;
+        }
+
+        private void RemoveSelf() {
+            _sp.downloadingGalleries.TryRemove(_gallery.id, out _);
+            _downloadingItems.Remove(this);
         }
 
         private void PauseOrResume(object _0, RoutedEventArgs _1) {
@@ -73,25 +78,48 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     break;
             }
         }
+        private void SetDownloadControlBtnState() {
+            switch (_downloadingState) {
+                case DownloadingState.Downloading:
+                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Pause);
+                    ToolTipService.SetToolTip(DownloadControlBtn, "Pause Download");
+                    break;
+                case DownloadingState.Paused:
+                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Play);
+                    ToolTipService.SetToolTip(DownloadControlBtn, "Resume Download");
+                    break;
+                case DownloadingState.Failed:
+                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Refresh);
+                    ToolTipService.SetToolTip(DownloadControlBtn, "Try Again");
+                    break;
+            }
+        }
 
-        private void HandleTaskCanceledException() {
-            _downloadingState = DownloadingState.Paused;
-            DownloadStatus.Text = DOWNLOAD_PAUSED;
+        private void SetStateAndText(DownloadingState state, string text) {
+            _downloadingState = state;
+            DownloadStatus.Text = text;
             SetDownloadControlBtnState();
+        }
+
+        private void SetStateAndTextToPaused() {
+            SetStateAndText(DownloadingState.Paused, DOWNLOAD_PAUSED);
             EnableButtons(true);
         }
 
+        private void HandleDownloadSuccess() {
+            _bmItem.ReloadImages();
+            EnableButtons(false);
+            RemoveSelf();
+        }
+
         private async void Download(CancellationToken ct) {
-            _downloadingState = DownloadingState.Downloading;
-            SetDownloadControlBtnState();
+            SetStateAndText(DownloadingState.Downloading, "");
             if (_gallery == null) {
                 DownloadStatus.Text = "Getting gallery info...";
                 string galleryInfo;
                 try {
                     galleryInfo = await GetGalleryInfo(_httpClient, _id, ct);
                 } catch (HttpRequestException e) {
-                    _downloadingState = DownloadingState.Failed;
-                    DownloadStatus.Text = "An error has occurred while getting gallery info.\n" + e.Message;
                     if (e.InnerException != null) {
                         _ = File.AppendAllTextAsync(
                             LOGS_PATH,
@@ -99,10 +127,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                             ct
                         );
                     }
-                    SetDownloadControlBtnState();
+                    SetStateAndText(DownloadingState.Failed, "An error has occurred while getting gallery info.\n" + e.Message);
                     return;
                 } catch (TaskCanceledException) {
-                    HandleTaskCanceledException();
+                    SetStateAndTextToPaused();
                     return;
                 }
 
@@ -113,9 +141,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     Description.Text += $" - {_gallery.title}"; // add title to description
                 }
                 catch (JsonException e) {
-                    _downloadingState = DownloadingState.Failed;
-                    DownloadStatus.Text = "An error has occurred while reading gallery json.\n" + e.Message;
-                    SetDownloadControlBtnState();
+                    SetStateAndText(DownloadingState.Failed, "An error has occurred while reading gallery json.\n" + e.Message);
                     return;
                 }
             }
@@ -151,12 +177,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             try {
                 serverTime = await GetServerTime(_httpClient, ct);
             } catch (HttpRequestException e) {
-                _downloadingState = DownloadingState.Failed;
-                DownloadStatus.Text = "An error has occurred while getting the server time.\n" + e.Message;
-                SetDownloadControlBtnState();
+                SetStateAndText(DownloadingState.Failed, "An error has occurred while getting the server time.\n" + e.Message);
                 return;
             } catch (TaskCanceledException) {
-                HandleTaskCanceledException();
+                SetStateAndTextToPaused();
                 return;
             }
 
@@ -167,13 +191,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             string[] imgFormats = GetImageFormats(imageInfos);
             string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, serverTime);
-
-            if (ct.IsCancellationRequested) {
-                _downloadingState = DownloadingState.Paused;
-                DownloadStatus.Text = DOWNLOAD_PAUSED;
-                SetDownloadControlBtnState();
-                return;
-            }
 
             DownloadStatus.Text = "Downloading Images...";
             Task[] tasks = DownloadImages(
@@ -190,7 +207,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             try {
                 await allTask;
             } catch (TaskCanceledException) {
-                HandleTaskCanceledException();
+                SetStateAndTextToPaused();
                 return;
             }
             
@@ -198,45 +215,13 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 _sp.AddBookmark(_gallery, true);
                 missingIndexes = GetMissingIndexes(_gallery);
                 if (missingIndexes.Count > 0) {
-                    _downloadingState = DownloadingState.Failed;
-                    DownloadStatus.Text = $"Failed to download {missingIndexes.Count} images";
-                    SetDownloadControlBtnState();
+                    SetStateAndText(DownloadingState.Failed, $"Failed to download {missingIndexes.Count} images");
                 } else {
                     HandleDownloadSuccess();
                 }
             } else {
-                _downloadingState = DownloadingState.Failed;
-                DownloadStatus.Text = "An unknown error has occurred. Please try again";
-                SetDownloadControlBtnState();
+                SetStateAndText(DownloadingState.Failed, "An unknown error has occurred. Please try again");
             }
-        }
-
-        private void SetDownloadControlBtnState() {
-            switch (_downloadingState) {
-                case DownloadingState.Downloading:
-                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Pause);
-                    ToolTipService.SetToolTip(DownloadControlBtn, "Pause Download");
-                    break;
-                case DownloadingState.Paused:
-                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Play);
-                    ToolTipService.SetToolTip(DownloadControlBtn, "Resume Download");
-                    break;
-                case DownloadingState.Failed:
-                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Refresh);
-                    ToolTipService.SetToolTip(DownloadControlBtn, "Try Again");
-                    break;
-            }
-        }
-
-        private void RemoveSelf() {
-            _sp.downloadingGalleries.TryRemove(_gallery.id, out _);
-            _downloadingItems.Remove(this);
-        }
-
-        private void HandleDownloadSuccess() {
-            EnableButtons(false);
-            _bmItem.ReloadImages();
-            RemoveSelf();
         }
     }
 }
