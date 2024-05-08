@@ -2,7 +2,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
@@ -18,7 +17,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             InitializeComponent();
             EnableBookmarkLoading(false);
             EnableRemoveBtn(false);
-            EnableReloadBtn(false);
+            ReloadBtn.IsEnabled = false;
             void InitThumbnailImagesOnLoad(object _0, RoutedEventArgs _1) {
                 Loaded -= InitThumbnailImagesOnLoad;
                 CreateThumbnailImages();
@@ -46,10 +45,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 textblock.IsTextSelectionEnabled = true;
             }
 
-            ImageContainer.ItemClick += (_, _) => { LoadBookmark(gallery, this); };
-            RemoveBtn.Click += (_, _) => { sp.RemoveBookmark(this); };
-            MoveUpBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Up); };
-            MoveDownBtn.Click += (_, _) => { sp.SwapBookmarks(this, BookmarkSwapDirection.Down); };            
+            ImageContainer.ItemClick += (_, _) => LoadBookmark(gallery, this);
+            RemoveBtn.Click += (_, _) => sp.RemoveBookmark(this);
+            MoveUpBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Up);
+            MoveDownBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Down);
+            ReloadBtn.Click += (_, _) => ReloadImages();
         }
 
         private void CreateThumbnailImages() {
@@ -76,10 +76,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
                 }
             }
+            ImageContainer.ItemsSource = null;
             ImageContainer.ItemsSource = _thumbnailImages;
             EnableBookmarkLoading(true);
             EnableRemoveBtn(true);
-            EnableReloadBtn(true);
+            ReloadBtn.IsEnabled = true;
         }
 
         public void EnableBookmarkLoading(bool enable) {
@@ -89,10 +90,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public void EnableRemoveBtn(bool enable) {
             RemoveBtn.IsEnabled = enable;
-        }
-
-        public void EnableReloadBtn(bool enable) {
-            ReloadBtn.IsEnabled = enable;
         }
     }
 }

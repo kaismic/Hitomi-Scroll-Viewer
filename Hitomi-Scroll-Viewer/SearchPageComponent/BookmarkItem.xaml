@@ -64,7 +64,7 @@
             <Button x:Name="RemoveBtn">
                 <SymbolIcon Symbol="Delete"/>
             </Button>
-            <Button x:Name="ReloadBtn" ToolTipService.ToolTip="Reload Missing Images">
+            <Button x:Name="ReloadBtn" ToolTipService.ToolTip="Reload Images">
                 <SymbolIcon Symbol="Refresh"/>
             </Button>
         </StackPanel>
