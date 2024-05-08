@@ -11,9 +11,9 @@ using static Hitomi_Scroll_Viewer.Utils;
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
         private readonly SearchPage _sp;
-        private readonly ImageWatchingPage _iwp;
+        public readonly ImageWatchingPage Iwp;
 
-        public Gallery gallery;
+        public Gallery CurrLoadedGallery { get; set; }
 
         public readonly HttpClient httpClient = new(
             new SocketsHttpHandler() {
@@ -33,13 +33,10 @@ namespace Hitomi_Scroll_Viewer {
             Directory.CreateDirectory(IMAGE_DIR);
 
             _sp = new(this);
-            _iwp = new(this);
-            SearchPage.Init(_iwp);
+            Iwp = new(this);
 
             // Switch page on double click
-            RootFrame.DoubleTapped += (_, _) => {
-                SwitchPage();
-            };
+            RootFrame.DoubleTapped += (_, _) => SwitchPage();
 
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
@@ -60,12 +57,12 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 }
                 // save settings and exit app
-                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(_iwp.GetSettings(), serializerOptions));
+                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(Iwp.GetSettings(), serializerOptions));
                 Close();
             };
 
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
-                if (RootFrame.Content is ImageWatchingPage) _iwp.HandleKeyDown(_, e);
+                if (RootFrame.Content is ImageWatchingPage) Iwp.HandleKeyDown(_, e);
             };
 
             RootFrame.Content = _sp;
@@ -73,12 +70,12 @@ namespace Hitomi_Scroll_Viewer {
 
         public void SwitchPage() {
             if (RootFrame.Content is ImageWatchingPage) {
-                if (_iwp.IsAutoScrolling) {
-                    _iwp.StartStopAutoScroll(false);
+                if (Iwp.IsAutoScrolling) {
+                    Iwp.StartStopAutoScroll(false);
                 }
                 RootFrame.Content = _sp;
             } else {
-                RootFrame.Content = _iwp;
+                RootFrame.Content = Iwp;
             }
         }
 

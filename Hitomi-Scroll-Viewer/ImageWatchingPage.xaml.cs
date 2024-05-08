@@ -228,7 +228,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void SetPageText() {
-            PageNumText.Text = $"Page {_currPage} of {_mw.gallery.files.Length - 1}";
+            PageNumText.Text = $"Page {_currPage} of {_mw.CurrLoadedGallery.files.Length - 1}";
         }
 
         private void InsertImages() {
@@ -429,7 +429,7 @@ namespace Hitomi_Scroll_Viewer {
         private void UpdatePageNum(int num) {
             lock (_pageLock) {
                 PageNavigator.SelectionChanged -= HandlePageSelectionChange;
-                _currPage = (_currPage + num + _mw.gallery.files.Length) % _mw.gallery.files.Length;
+                _currPage = (_currPage + num + _mw.CurrLoadedGallery.files.Length) % _mw.CurrLoadedGallery.files.Length;
                 PageNavigator.SelectedIndex = _currPage;
                 PageNavigator.SelectionChanged += HandlePageSelectionChange;
             }
@@ -481,7 +481,7 @@ namespace Hitomi_Scroll_Viewer {
             while (IsAutoScrolling) {
                 switch (_viewMode) {
                     case ViewMode.Default:
-                        if (_currPage + 1 == _mw.gallery.files.Length && !_isLooping) {
+                        if (_currPage + 1 == _mw.CurrLoadedGallery.files.Length && !_isLooping) {
                             DispatcherQueue.TryEnqueue(() => StartStopAutoScroll(false));
                             return;
                         }
@@ -491,7 +491,7 @@ namespace Hitomi_Scroll_Viewer {
                             return;
                         }
                         if (IsAutoScrolling) {
-                            if (_currPage + 1 == _mw.gallery.files.Length && !_isLooping) {
+                            if (_currPage + 1 == _mw.CurrLoadedGallery.files.Length && !_isLooping) {
                                 DispatcherQueue.TryEnqueue(() => StartStopAutoScroll(false));
                                 return;
                             }
@@ -569,7 +569,7 @@ namespace Hitomi_Scroll_Viewer {
             LoadingProgressBar.Value = 0;
             LoadingProgressBar.Visibility = Visibility.Visible;
             ImageContainer.Children.Clear();
-            _mw.gallery = gallery;
+            _mw.CurrLoadedGallery = gallery;
             _images = new Image[gallery.files.Length];
             LoadingProgressBar.Maximum = gallery.files.Length;
             string imageDir = Path.Combine(IMAGE_DIR, gallery.id);

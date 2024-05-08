@@ -73,7 +73,6 @@ namespace Hitomi_Scroll_Viewer {
         ];
 
         private static MainWindow _mw;
-        private static ImageWatchingPage _iwp;
 
         public SearchPage(MainWindow mainWindow) {
             InitializeComponent();
@@ -127,10 +126,6 @@ namespace Hitomi_Scroll_Viewer {
                 bmItems.Add(new(galleries[i], this, true));
             }
             UpdateBookmark();
-        }
-
-        public static void Init(ImageWatchingPage iwp) {
-            _iwp = iwp;
         }
 
         private void InitLayout() {
@@ -405,18 +400,18 @@ namespace Hitomi_Scroll_Viewer {
             _mw.SwitchPage();
 
             // if the already loaded gallery is the same gallery, just return
-            if (_mw.gallery != null) {
-                if (gallery.id == _mw.gallery.id) {
+            if (_mw.CurrLoadedGallery != null) {
+                if (gallery.id == _mw.CurrLoadedGallery.id) {
                     _mw.NotifyUser("The gallery is already loaded", "");
                     return;
                 }
             }
             // enable and disable remove bookmark button from previous and currently loading bookmarks
-            if (_mw.gallery != null) {
-                GetBookmarkItem(_mw.gallery.id).EnableRemoveBtn(true);
+            if (_mw.CurrLoadedGallery != null) {
+                GetBookmarkItem(_mw.CurrLoadedGallery.id).EnableRemoveBtn(true);
             }
             itemToLoad.EnableRemoveBtn(false);
-            _iwp.LoadGalleryFromLocalDir(gallery);
+            _mw.Iwp.LoadGalleryFromLocalDir(gallery);
         }
 
         public static void WriteBookmark() {
