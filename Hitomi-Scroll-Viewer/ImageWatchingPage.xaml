@@ -22,10 +22,10 @@
                     HorizontalAlignment="Center"
                     IsOpen="True"
                     Background="{ThemeResource AppBarBackgroundThemeBrush}">
-            <AppBarButton MinWidth="50"
+            <AppBarButton x:Name="GoBackBtn"
+                          MinWidth="50"
                           Icon="Back"
                           Label="Go Back"
-                          Click="HandleGoBackBtnClick"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
@@ -46,7 +46,6 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarToggleButton x:Name="AutoScrollBtn"
                                 MinWidth="90"
-                                Click="HandleAutoScrollBtnClick"
                                 IsEnabled="False"
                                 Icon="Play"
                                 Label="Start Auto Page Turning / Scrolling"
@@ -72,12 +71,21 @@
             <AppBarElementContainer>
                 <ComboBox x:Name="NumOfPagesSelector"
                           SelectionChanged="HandleNumOfPagesChange"
-                          Header="Number of Pages"
+                          Header="Page Display Number"
                           ToolTipService.ToolTip="Set number of pages to display in Default Mode">
                     <ComboBoxItem>1</ComboBoxItem>
                     <ComboBoxItem>2</ComboBoxItem>
                     <ComboBoxItem>3</ComboBoxItem>
                     <ComboBoxItem>4</ComboBoxItem>
+                </ComboBox>
+            </AppBarElementContainer>
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarElementContainer>
+                <ComboBox x:Name="PageNavigator"
+                          SelectionChanged="HandlePageSelectionChange"
+                          IsEnabled="False"
+                          Header="Go to page"
+                          MinWidth="90">
                 </ComboBox>
             </AppBarElementContainer>
         </CommandBar>

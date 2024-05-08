@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -113,6 +114,9 @@ namespace Hitomi_Scroll_Viewer {
                 TopCommandBar.Background.Opacity = 0;
                 PageNumDisplay.Visibility = Visibility.Collapsed;
             };
+
+            GoBackBtn.Click += (_, _) => _mw.SwitchPage();
+            AutoScrollBtn.Click += (_, _) => StartStopAutoScroll((bool)AutoScrollBtn.IsChecked);
         }
 
         private void SetScrollSpeedSlider() {
@@ -175,14 +179,6 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private void HandleGoBackBtnClick(object _0, RoutedEventArgs _1) {
-            _mw.SwitchPage();
-        }
-
-        private void HandleAutoScrollBtnClick(object _0, RoutedEventArgs _1) {
-            StartStopAutoScroll((bool)AutoScrollBtn.IsChecked);
-        }
-
         private void HandleViewDirectionChange(object _0, SelectionChangedEventArgs _1) {
             _viewDirection = (ViewDirection)ViewDirectionSelector.SelectedIndex;
             UpdateImages();
@@ -205,8 +201,10 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void HandleNumOfPagesChange(object _0, SelectionChangedEventArgs _1) {
+            StartStopAction(true);
             _numOfPages = NumOfPagesSelector.SelectedIndex + 1;
             UpdateImages();
+            StartStopAction(false);
         }
 
         private CancellationTokenSource _autoScrollCts = new();
@@ -300,6 +298,7 @@ namespace Hitomi_Scroll_Viewer {
                     _viewMode = ViewMode.Scroll;
                     ViewModeBtn.Label = "Change to Default mode";
                     NumOfPagesSelector.IsEnabled = false;
+                    PageNavigator.IsEnabled = false;
                     switch (_viewDirection) {
                         case ViewDirection.TopToBottom:
                             MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
@@ -320,12 +319,20 @@ namespace Hitomi_Scroll_Viewer {
                     _viewMode = ViewMode.Default;
                     ViewModeBtn.Label = "Change to Scroll mode";
                     NumOfPagesSelector.IsEnabled = true;
+                    PageNavigator.IsEnabled  = true;
                     MainScrollViewer.HorizontalScrollMode = ScrollMode.Disabled;
                     MainScrollViewer.VerticalScrollMode = ScrollMode.Disabled;
                     break;
             }
             UpdateImages();
             SetScrollSpeedSlider();
+            StartStopAction(false);
+        }
+
+        private void HandlePageSelectionChange(object _0, SelectionChangedEventArgs _1) {
+            StartStopAction(true);
+            _currPage = PageNavigator.SelectedIndex;
+            UpdateImages();
             StartStopAction(false);
         }
 
@@ -419,9 +426,12 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private static void UpdatePageNum(int num) {
+        private void UpdatePageNum(int num) {
             lock (_pageLock) {
+                PageNavigator.SelectionChanged -= HandlePageSelectionChange;
                 _currPage = (_currPage + num + _mw.gallery.files.Length) % _mw.gallery.files.Length;
+                PageNavigator.SelectedIndex = _currPage;
+                PageNavigator.SelectionChanged += HandlePageSelectionChange;
             }
         }
 
@@ -549,9 +559,6 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 EnableBookmarkLoading(!start);
                 if (!start) {
-                    ViewModeBtn.IsEnabled = true;
-                    ScrollSpeedSlider.IsEnabled = true;
-                    AutoScrollBtn.IsEnabled = true;
                     _isInAction = false;
                 }
             }
@@ -576,11 +583,25 @@ namespace Hitomi_Scroll_Viewer {
                 } catch (DirectoryNotFoundException) { }
                 LoadingProgressBar.Value++;
             }
-            _currPage = 0;
-            UpdateImages();
             LoadingProgressBar.Visibility = Visibility.Collapsed;
+            _currPage = 0;
+            SetPageNavigator(gallery.files.Length);
+            UpdateImages();
+            EnableControlButtonsOnLoad();
             _isLoaded = true;
             StartStopAction(false);
+        }
+
+        private void SetPageNavigator(int count) {
+            PageNavigator.Items.Clear();
+            PageNavigator.ItemsSource = Enumerable.Range(0, count).ToList();
+        }
+
+        private void EnableControlButtonsOnLoad() {
+            PageNavigator.IsEnabled = _viewMode == ViewMode.Default;
+            ViewModeBtn.IsEnabled = true;
+            ScrollSpeedSlider.IsEnabled = true;
+            AutoScrollBtn.IsEnabled = true;
         }
 
         public Settings GetSettings() {
