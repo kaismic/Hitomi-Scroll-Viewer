@@ -526,9 +526,5 @@ namespace Hitomi_Scroll_Viewer {
             }
             throw new ArgumentException("Id must be from a bookmarked gallery.");
         }
-
-        public static void ReloadBookmarkImages(int idx) {
-            bmItems[idx].ReloadImages();
-        }
     }
 }
