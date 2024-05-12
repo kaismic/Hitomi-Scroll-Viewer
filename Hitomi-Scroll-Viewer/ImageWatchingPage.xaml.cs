@@ -330,6 +330,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void HandlePageSelectionChange(object _0, SelectionChangedEventArgs _1) {
+            if (!pageChangedByUser) return;
             StartStopAction(true);
             _currPage = PageNavigator.SelectedIndex;
             UpdateImages();
@@ -426,12 +427,14 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
+        private bool pageChangedByUser = true;
+
         private void UpdatePageNum(int num) {
             lock (_pageLock) {
-                PageNavigator.SelectionChanged -= HandlePageSelectionChange;
+                pageChangedByUser = false;
                 _currPage = (_currPage + num + _mw.CurrLoadedGallery.files.Length) % _mw.CurrLoadedGallery.files.Length;
                 PageNavigator.SelectedIndex = _currPage;
-                PageNavigator.SelectionChanged += HandlePageSelectionChange;
+                pageChangedByUser = true;
             }
         }
 
@@ -495,7 +498,7 @@ namespace Hitomi_Scroll_Viewer {
                                 DispatcherQueue.TryEnqueue(() => StartStopAutoScroll(false));
                                 return;
                             }
-                            UpdatePageNum(_numOfPages);
+                            DispatcherQueue.TryEnqueue(() => { UpdatePageNum(_numOfPages); });
                             DispatcherQueue.TryEnqueue(UpdateImages);
                         }
                         break;
