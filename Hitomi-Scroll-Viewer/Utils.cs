@@ -246,12 +246,10 @@ namespace Hitomi_Scroll_Viewer {
         public static string GetExceptionDetails(Exception e) {
             string output = "";
             string stacktrace = e.StackTrace ?? "";
-            output += e.GetType().Name + Environment.NewLine;
-            output += e.Message + Environment.NewLine;
+            output += $"  {e.GetType().Name}: {e.Message}," + Environment.NewLine;
             while (e.InnerException != null) {
                 e = e.InnerException;
-                output += e.GetType().Name + Environment.NewLine;
-                output += e.Message + Environment.NewLine;
+                output += $"  {e.GetType().Name}: {e.Message}," + Environment.NewLine + ",";
             }
             output += stacktrace;
 
