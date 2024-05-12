@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Hitomi_Scroll_Viewer.SearchPageComponent;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
+using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public class Utils {
@@ -54,6 +56,15 @@ namespace Hitomi_Scroll_Viewer {
                 this.pageTurnDelay = pageTurnDelay;
                 this.isLooping = isLooping;
             }
+        }
+
+        public struct DownloadInfo {
+            public HttpClient httpClient;
+            public string id;
+            public int concurrentTaskNum;
+            public ProgressBar progressBar;
+            public BookmarkItem bmItem;
+            public CancellationToken ct;
         }
 
         /**
@@ -142,31 +153,24 @@ namespace Hitomi_Scroll_Viewer {
         /**
          * <exception cref="TaskCanceledException"></exception>
          */
-        public static async Task TryGetImageBytesFromWeb(
-            HttpClient httpClient,
-            string id,
-            string imgAddress,
-            string imgFormat,
-            int idx,
-            ProgressBar progressBar,
-            CancellationToken ct
-            ) {
+        public static async Task TryGetImageBytesFromWeb(DownloadInfo di, string imgAddress, string imgFormat, int idx) {
             foreach (string subdomain in POSSIBLE_IMAGE_SUBDOMAINS) {
-                if (ct.IsCancellationRequested) {
+                if (di.ct.IsCancellationRequested) {
                     break;
                 }
                 byte[] imageBytes;
                 try {
-                    imageBytes = await GetImageBytesFromWeb(httpClient, subdomain + imgAddress, ct);
+                    imageBytes = await GetImageBytesFromWeb(di.httpClient, subdomain + imgAddress, di.ct);
                 } catch (TaskCanceledException) {
                     throw;
                 }
                 if (imageBytes != null) {
                     try {
-                        await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, id, idx.ToString()) + '.' + imgFormat, imageBytes, ct);
-                        progressBar.DispatcherQueue.TryEnqueue(() => {
-                            lock (progressBar) {
-                                progressBar.Value++;
+                        await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, di.id, idx.ToString()) + '.' + imgFormat, imageBytes, di.ct);
+                        di.bmItem.DispatcherQueue.TryEnqueue(() => { di.bmItem.UpdateSingleImage(idx); });
+                        di.progressBar.DispatcherQueue.TryEnqueue(() => {
+                            lock (di.progressBar) {
+                                di.progressBar.Value++;
                             }
                         });
                     }
@@ -184,18 +188,8 @@ namespace Hitomi_Scroll_Viewer {
         /**
          * <exception cref="TaskCanceledException"></exception>
         */
-        public static Task[] DownloadImages(
-            HttpClient httpClient,
-            string id,
-            string[] imgAddresses,
-            string[] imgFormats,
-            List<int> indexes,
-            int concurrentTaskNum,
-            ProgressBar progressBar,
-            CancellationToken ct
-            ) {
-
-            Directory.CreateDirectory(Path.Combine(IMAGE_DIR, id));
+        public static Task[] DownloadImages(DownloadInfo di, string[] imgAddresses, string[] imgFormats, List<int> indexes) {
+            Directory.CreateDirectory(Path.Combine(IMAGE_DIR, di.id));
 
             /*
                 example:
@@ -208,20 +202,20 @@ namespace Hitomi_Scroll_Viewer {
                  4     10    17
                  5     11
             */
-            int quotient = imgAddresses.Length / concurrentTaskNum;
-            int remainder = imgAddresses.Length % concurrentTaskNum;
-            Task[] tasks = new Task[concurrentTaskNum];
+            int quotient = imgAddresses.Length / di.concurrentTaskNum;
+            int remainder = imgAddresses.Length % di.concurrentTaskNum;
+            Task[] tasks = new Task[di.concurrentTaskNum];
 
             int startIdx = 0;
-            for (int i = 0; i < concurrentTaskNum; i++) {
+            for (int i = 0; i < di.concurrentTaskNum; i++) {
                 int thisStartIdx = startIdx;
                 int thisJMax = quotient + (i < remainder ? 1 : 0);
                 tasks[i] = Task.Run(async () => {
                     for (int j = 0; j < thisJMax; j++) {
                         int idx = thisStartIdx + j;
-                        await TryGetImageBytesFromWeb(httpClient, id, imgAddresses[idx], imgFormats[idx], indexes[idx], progressBar, ct);
+                        await TryGetImageBytesFromWeb(di, imgAddresses[idx], imgFormats[idx], indexes[idx]);
                     }
-                }, ct);
+                }, di.ct);
                 startIdx += thisJMax;
             }
             return tasks;

@@ -107,7 +107,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void HandleDownloadSuccess() {
-            _bmItem.ReloadImages();
+            _bmItem.UpdateAllImages();
             EnableButtons(false);
             RemoveSelf();
         }
@@ -197,14 +197,17 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             DownloadStatus.Text = "Downloading Images...";
             Task[] tasks = DownloadImages(
-                _httpClient,
-                _gallery.id,
+                new DownloadInfo {
+                    httpClient = _httpClient,
+                    id = _gallery.id,
+                    concurrentTaskNum = _downloadThreadNum,
+                    progressBar = DownloadProgressBar,
+                    bmItem = _bmItem,
+                    ct = ct
+                },
                 imgAddresses,
                 imgFormats,
-                missingIndexes,
-                _downloadThreadNum,
-                DownloadProgressBar,
-                ct
+                missingIndexes
             );
             Task allTask = Task.WhenAll(tasks);
             try {
