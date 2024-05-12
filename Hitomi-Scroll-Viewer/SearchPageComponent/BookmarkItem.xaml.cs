@@ -22,7 +22,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 Loaded -= InitThumbnailImagesOnLoad;
                 CreateThumbnailImages();
                 if (allImagesAvailable) {
-                    ReloadImages();
+                    UpdateAllImages();
                 }
             }
             Loaded += InitThumbnailImagesOnLoad;
@@ -49,7 +49,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             RemoveBtn.Click += (_, _) => sp.RemoveBookmark(this);
             MoveUpBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Down);
-            ReloadBtn.Click += (_, _) => ReloadImages();
+            ReloadBtn.Click += (_, _) => UpdateAllImages();
         }
 
         private void CreateThumbnailImages() {
@@ -66,10 +66,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
         }
 
-        public void ReloadImages() {
-            if (!Directory.Exists(_imageDir)) {
-                return;
-            }
+        public void UpdateAllImages() {
             for (int i = 0; i < _thumbnailImages.Count; i++) {
                 string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
                 if (files.Length > 0 && _thumbnailImages[i].Source == null) {
@@ -81,6 +78,18 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             EnableBookmarkLoading(true);
             EnableRemoveBtn(true);
             ReloadBtn.IsEnabled = true;
+        }
+
+        public void UpdateSingleImage(int i) {
+            if (i >= _thumbnailImages.Count) {
+                return;
+            }
+            string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
+            if (files.Length > 0 && _thumbnailImages[i].Source == null) {
+                _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
+            }
+            ImageContainer.ItemsSource = null;
+            ImageContainer.ItemsSource = _thumbnailImages;
         }
 
         public void EnableBookmarkLoading(bool enable) {
