@@ -396,7 +396,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public static void LoadBookmark(Gallery gallery, BookmarkItem itemToLoad) {
+        public static void LoadBookmark(Gallery gallery) {
             _mw.SwitchPage();
 
             // if the already loaded gallery is the same gallery, just return
@@ -406,11 +406,6 @@ namespace Hitomi_Scroll_Viewer {
                     return;
                 }
             }
-            // enable and disable remove bookmark button from previous and currently loading bookmarks
-            if (_mw.CurrLoadedGallery != null) {
-                GetBookmarkItem(_mw.CurrLoadedGallery.id).EnableRemoveBtn(true);
-            }
-            itemToLoad.EnableRemoveBtn(false);
             _mw.Iwp.LoadGalleryFromLocalDir(gallery);
         }
 
