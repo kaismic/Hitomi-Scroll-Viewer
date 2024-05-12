@@ -588,16 +588,11 @@ namespace Hitomi_Scroll_Viewer {
             }
             LoadingProgressBar.Visibility = Visibility.Collapsed;
             _currPage = 0;
-            SetPageNavigator(gallery.files.Length);
+            PageNavigator.ItemsSource = Enumerable.Range(0, gallery.files.Length).ToList();
             UpdateImages();
             EnableControlButtonsOnLoad();
             _isLoaded = true;
             StartStopAction(false);
-        }
-
-        private void SetPageNavigator(int count) {
-            PageNavigator.Items.Clear();
-            PageNavigator.ItemsSource = Enumerable.Range(0, count).ToList();
         }
 
         private void EnableControlButtonsOnLoad() {
