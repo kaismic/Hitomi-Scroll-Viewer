@@ -59,7 +59,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            _sp.downloadingGalleries.TryRemove(_gallery.id, out _);
+            _sp.downloadingGalleries.TryRemove(_id, out _);
             _downloadingItems.Remove(this);
         }
 
@@ -123,7 +123,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     if (e.InnerException != null) {
                         _ = File.AppendAllTextAsync(
                             LOGS_PATH,
-                            '{' + Environment.NewLine + GetExceptionDetails(e) + Environment.NewLine + '}' + Environment.NewLine,
+                            '{' + Environment.NewLine +
+                            $"  {_id}," + Environment.NewLine +
+                            GetExceptionDetails(e) + Environment.NewLine +
+                            "}," + Environment.NewLine,
                             ct
                         );
                     }
