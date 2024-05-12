@@ -429,10 +429,11 @@ namespace Hitomi_Scroll_Viewer {
 
         private bool pageChangedByUser = true;
 
-        private void UpdatePageNum(int num) {
+        private void UpdatePageNum(int change) {
             lock (_pageLock) {
                 pageChangedByUser = false;
-                _currPage = (_currPage + num + _mw.CurrLoadedGallery.files.Length) % _mw.CurrLoadedGallery.files.Length;
+                _currPage = (_currPage + change + _mw.CurrLoadedGallery.files.Length) % _mw.CurrLoadedGallery.files.Length;
+                _currPage = (_currPage / _numOfPages) * _numOfPages;
                 PageNavigator.SelectedIndex = _currPage;
                 pageChangedByUser = true;
             }
@@ -568,6 +569,10 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void LoadGalleryFromLocalDir(Gallery gallery) {
+            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
+            if (!Directory.Exists(imageDir)) {
+                return;
+            }
             StartStopAction(true);
             LoadingProgressBar.Value = 0;
             LoadingProgressBar.Visibility = Visibility.Visible;
@@ -575,7 +580,6 @@ namespace Hitomi_Scroll_Viewer {
             _mw.CurrLoadedGallery = gallery;
             _images = new Image[gallery.files.Length];
             LoadingProgressBar.Maximum = gallery.files.Length;
-            string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
             for (int i = 0; i < _images.Length; i++) {
                 _images[i] = new();
                 try {
