@@ -36,8 +36,10 @@
             ToolTipService.ToolTip="Cancel Download">
         <SymbolIcon Symbol="Delete"></SymbolIcon>
     </Button>
-    <ComboBox Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
-        Header="Download Threads"
-        ItemsSource="{x:Bind _downloadThreadNums}"
-        SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"/>
+    <ComboBox x:Name="ThreadNumComboBox"
+              Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
+              Header="Download Threads"
+              ItemsSource="{x:Bind _downloadThreadNums}"
+              SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"
+              SelectionChanged="HandleThreadNumChange"/>
 </Grid>

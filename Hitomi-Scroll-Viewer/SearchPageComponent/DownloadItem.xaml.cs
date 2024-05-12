@@ -61,6 +61,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private void RemoveSelf() {
             _sp.downloadingGalleries.TryRemove(_id, out _);
             _downloadingItems.Remove(this);
+            _bmItem?.EnableRemoveBtn(true);
         }
 
         private void PauseOrResume(object _0, RoutedEventArgs _1) {
@@ -112,8 +113,15 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             RemoveSelf();
         }
 
+        private void HandleThreadNumChange(object _0, SelectionChangedEventArgs e) {
+            if (e.RemovedItems.Count == 0) {
+                return;
+            }
+        }
+
         private async void Download(CancellationToken ct) {
             SetStateAndText(DownloadingState.Downloading, "");
+            _bmItem?.EnableRemoveBtn(false);
             if (_gallery == null) {
                 DownloadStatus.Text = "Getting gallery info...";
                 string galleryInfo;
