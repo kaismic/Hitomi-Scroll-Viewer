@@ -15,9 +15,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public BookmarkItem(Gallery newGallery, SearchPage sp, bool allImagesAvailable) {
             InitializeComponent();
-            EnableBookmarkLoading(false);
             EnableRemoveBtn(false);
-            ReloadBtn.IsEnabled = false;
             void InitThumbnailImagesOnLoad(object _0, RoutedEventArgs _1) {
                 Loaded -= InitThumbnailImagesOnLoad;
                 CreateThumbnailImages();
@@ -45,11 +43,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 textblock.IsTextSelectionEnabled = true;
             }
 
-            ImageContainer.ItemClick += (_, _) => LoadBookmark(gallery, this);
+            ImageContainer.ItemClick += (_, _) => LoadBookmark(gallery);
             RemoveBtn.Click += (_, _) => sp.RemoveBookmark(this);
             MoveUpBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Down);
-            ReloadBtn.Click += (_, _) => UpdateAllImages();
         }
 
         private void CreateThumbnailImages() {
@@ -75,9 +72,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             ImageContainer.ItemsSource = null;
             ImageContainer.ItemsSource = _thumbnailImages;
-            EnableBookmarkLoading(true);
             EnableRemoveBtn(true);
-            ReloadBtn.IsEnabled = true;
         }
 
         public void UpdateSingleImage(int i) {
@@ -94,7 +89,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public void EnableBookmarkLoading(bool enable) {
             ImageContainerWrapper.IsEnabled = enable;
-            ImageContainer.IsItemClickEnabled = enable;
+            ImageContainer.IsEnabled = enable;
+            ImageContainer.Opacity = enable ? 1 : 0.25;
         }
 
         public void EnableRemoveBtn(bool enable) {
