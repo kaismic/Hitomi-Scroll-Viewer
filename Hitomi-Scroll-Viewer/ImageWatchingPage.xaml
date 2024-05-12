@@ -28,6 +28,12 @@
                           Label="Go Back"
                           />
             <AppBarSeparator MinWidth="30"/>
+            <AppBarButton x:Name="ReloadBtn"
+                          MinWidth="50"
+                          Icon="Refresh"
+                          Label="Reload Images"
+                          />
+            <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
                           MinWidth="120"
                           Icon="ViewAll"
