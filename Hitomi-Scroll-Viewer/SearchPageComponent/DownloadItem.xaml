@@ -39,7 +39,7 @@
     <ComboBox x:Name="ThreadNumComboBox"
               Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
               Header="Download Threads"
-              ItemsSource="{x:Bind _downloadThreadNums}"
-              SelectedItem="{x:Bind _downloadThreadNum, Mode=TwoWay}"
+              ItemsSource="{x:Bind _threadNums}"
+              SelectedItem="{x:Bind ThreadNum, Mode=TwoWay}"
               SelectionChanged="HandleThreadNumChange"/>
 </Grid>

@@ -30,8 +30,18 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private string _id;
         private BookmarkItem _bmItem;
 
-        private readonly int[] _downloadThreadNums = [1, 2, 3, 4, 5, 6, 7, 8];
-        private int _downloadThreadNum = 1;
+        private readonly int[] _threadNums = [1, 2, 3, 4, 5, 6, 7, 8];
+
+        public int ThreadNum {
+            get => (int)GetValue(ThreadNumProperty);
+            set => SetValue(ThreadNumProperty, value);
+        }
+        public static readonly DependencyProperty ThreadNumProperty = DependencyProperty.Register(
+            nameof(ThreadNum),
+            typeof(int),
+            typeof(DownloadItem),
+            new PropertyMetadata(1)
+        );
 
         public DownloadItem(string id, HttpClient httpClient, SearchPage sp, ObservableCollection<DownloadItem> downloadingItems) {
             _id = id;
@@ -56,6 +66,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private void EnableButtons(bool enable) {
             DownloadControlBtn.IsEnabled = enable;
             CancelBtn.IsEnabled = enable;
+            ThreadNumComboBox.IsEnabled = enable;
         }
 
         private void RemoveSelf() {
@@ -102,8 +113,14 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             SetDownloadControlBtnState();
         }
 
-        private void SetStateAndTextToPaused() {
+        private void HandleDownloadPaused() {
             SetStateAndText(DownloadingState.Paused, DOWNLOAD_PAUSED);
+            // download paused due to ThreadNum change so continue downloading
+            if (_threadNumChanged) {
+                _threadNumChanged = false;
+                _cts = new();
+                Download(_cts.Token);
+            }
             EnableButtons(true);
         }
 
@@ -113,9 +130,24 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             RemoveSelf();
         }
 
+        private bool _threadNumChanged = false;
+
         private void HandleThreadNumChange(object _0, SelectionChangedEventArgs e) {
             if (e.RemovedItems.Count == 0) {
+                // ignore initial default selection
                 return;
+            }
+            EnableButtons(false);
+            switch (_downloadingState) {
+                case DownloadingState.Downloading:
+                    // cancel downloading and continue download with the newly updated ThreadNum
+                    _threadNumChanged = true;
+                    _cts.Cancel();
+                    break;
+                case DownloadingState.Paused or DownloadingState.Failed:
+                    // do nothing
+                    EnableButtons(true);
+                    break;
             }
         }
 
@@ -141,7 +173,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     SetStateAndText(DownloadingState.Failed, "An error has occurred while getting gallery info.\n" + e.Message);
                     return;
                 } catch (TaskCanceledException) {
-                    SetStateAndTextToPaused();
+                    HandleDownloadPaused();
                     return;
                 }
 
@@ -191,7 +223,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 SetStateAndText(DownloadingState.Failed, "An error has occurred while getting the server time.\n" + e.Message);
                 return;
             } catch (TaskCanceledException) {
-                SetStateAndTextToPaused();
+                HandleDownloadPaused();
                 return;
             }
 
@@ -208,7 +240,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 new DownloadInfo {
                     httpClient = _httpClient,
                     id = _gallery.id,
-                    concurrentTaskNum = _downloadThreadNum,
+                    concurrentTaskNum = ThreadNum,
                     progressBar = DownloadProgressBar,
                     bmItem = _bmItem,
                     ct = ct
@@ -221,7 +253,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             try {
                 await allTask;
             } catch (TaskCanceledException) {
-                SetStateAndTextToPaused();
+                HandleDownloadPaused();
                 return;
             }
             
