@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
-using System.Collections.ObjectModel;
 using System.IO;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
@@ -10,17 +9,24 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
         private static readonly Thickness THUMBNAIL_IMG_MARGIN = new(8);
         public readonly Gallery gallery;
-        private readonly ObservableCollection<Image> _thumbnailImages = [];
+        private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
         private readonly string _imageDir;
 
         public BookmarkItem(Gallery newGallery, SearchPage sp, bool allImagesAvailable) {
             InitializeComponent();
-            EnableRemoveBtn(false);
             void InitThumbnailImagesOnLoad(object _0, RoutedEventArgs _1) {
                 Loaded -= InitThumbnailImagesOnLoad;
                 CreateThumbnailImages();
                 if (allImagesAvailable) {
-                    UpdateAllImages();
+                    for (int i = 0; i < _thumbnailImages.Count; i++) {
+                        string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
+                        if (files.Length > 0 && _thumbnailImages[i].Source == null) {
+                            _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                        }
+                    }
+                    _thumbnailImages.NotifyItemChange();
+                } else {
+                    EnableRemoveBtn(false);
                 }
             }
             Loaded += InitThumbnailImagesOnLoad;
@@ -50,7 +56,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void CreateThumbnailImages() {
-            // Determine the number of thumbnail images which fits into ImageContainerWrapper.ActualWidth
+            // Determine the number of thumbnail images which fit into ImageContainerWrapper.ActualWidth
             double widthSum = 0;
             double containerWidth = ImageContainerWrapper.ActualWidth;
             for (int i = 0; i < gallery.files.Length; i++) {
@@ -61,18 +67,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 }
                 _thumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT, Margin = THUMBNAIL_IMG_MARGIN });
             }
-        }
-
-        public void UpdateAllImages() {
-            for (int i = 0; i < _thumbnailImages.Count; i++) {
-                string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
-                if (files.Length > 0 && _thumbnailImages[i].Source == null) {
-                    _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
-                }
-            }
-            ImageContainer.ItemsSource = null;
             ImageContainer.ItemsSource = _thumbnailImages;
-            EnableRemoveBtn(true);
         }
 
         public void UpdateSingleImage(int i) {
@@ -82,9 +77,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
             if (files.Length > 0 && _thumbnailImages[i].Source == null) {
                 _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                _thumbnailImages.NotifyItemChange();
             }
-            ImageContainer.ItemsSource = null;
-            ImageContainer.ItemsSource = _thumbnailImages;
         }
 
         public void EnableBookmarkLoading(bool enable) {

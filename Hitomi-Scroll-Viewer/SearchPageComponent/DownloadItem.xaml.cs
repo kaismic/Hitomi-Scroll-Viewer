@@ -70,8 +70,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            _sp.downloadingGalleries.TryRemove(_id, out _);
             _downloadingItems.Remove(this);
+            _sp.downloadingGalleries.TryRemove(_id, out _);
             _bmItem?.EnableRemoveBtn(true);
         }
 
@@ -122,12 +122,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 Download(_cts.Token);
             }
             EnableButtons(true);
-        }
-
-        private void HandleDownloadSuccess() {
-            _bmItem.UpdateAllImages();
-            EnableButtons(false);
-            RemoveSelf();
         }
 
         private bool _threadNumChanged = false;
@@ -206,7 +200,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 missingIndexes = GetMissingIndexes(_gallery);
                 // no missing indexes 
                 if (missingIndexes.Count == 0) {
-                    HandleDownloadSuccess();
+                    RemoveSelf();
                     return;
                 }
             } catch (DirectoryNotFoundException) {
@@ -263,7 +257,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 if (missingIndexes.Count > 0) {
                     SetStateAndText(DownloadingState.Failed, $"Failed to download {missingIndexes.Count} images");
                 } else {
-                    HandleDownloadSuccess();
+                    RemoveSelf();
                 }
             } else {
                 SetStateAndText(DownloadingState.Failed, "An unknown error has occurred. Please try again");
