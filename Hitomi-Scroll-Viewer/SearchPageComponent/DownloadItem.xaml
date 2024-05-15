@@ -40,6 +40,6 @@
               Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
               Header="Download Threads"
               ItemsSource="{x:Bind _threadNums}"
-              SelectedItem="{x:Bind ThreadNum, Mode=TwoWay}"
+              SelectedIndex="0"
               SelectionChanged="HandleThreadNumChange"/>
 </Grid>

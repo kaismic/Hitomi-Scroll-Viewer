@@ -30,18 +30,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private string _id;
         private BookmarkItem _bmItem;
 
-        private readonly int[] _threadNums = [1, 2, 3, 4, 5, 6, 7, 8];
-
-        public int ThreadNum {
-            get => (int)GetValue(ThreadNumProperty);
-            set => SetValue(ThreadNumProperty, value);
-        }
-        public static readonly DependencyProperty ThreadNumProperty = DependencyProperty.Register(
-            nameof(ThreadNum),
-            typeof(int),
-            typeof(DownloadItem),
-            new PropertyMetadata(1)
-        );
+        private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
 
         public DownloadItem(string id, HttpClient httpClient, SearchPage sp, ObservableCollection<DownloadItem> downloadingItems) {
             _id = id;
@@ -234,7 +223,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 new DownloadInfo {
                     httpClient = _httpClient,
                     id = _gallery.id,
-                    concurrentTaskNum = ThreadNum,
+                    concurrentTaskNum = (int)ThreadNumComboBox.SelectedItem,
                     progressBar = DownloadProgressBar,
                     bmItem = _bmItem,
                     ct = ct
