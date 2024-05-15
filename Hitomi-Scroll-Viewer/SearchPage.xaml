@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="using:Hitomi_Scroll_Viewer.SearchPageComponent"
+    xmlns:hsv_spc="using:Hitomi_Scroll_Viewer.SearchPageComponent"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer Padding="24 0">
@@ -14,8 +14,8 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <local:TagContainer x:Name="IncludeTagContainer" Grid.Column="0" IsInclude="True"></local:TagContainer>
-                <local:TagContainer x:Name="ExcludeTagContainer" Grid.Column="1" IsInclude="False"></local:TagContainer>
+                <hsv_spc:TagContainer x:Name="IncludeTagContainer" Grid.Column="0" IsInclude="True"></hsv_spc:TagContainer>
+                <hsv_spc:TagContainer x:Name="ExcludeTagContainer" Grid.Column="1" IsInclude="False"></hsv_spc:TagContainer>
             </Grid>
             <Grid Margin="0 10 0 0" ColumnSpacing="20">
                 <Grid.ColumnDefinitions>
@@ -58,7 +58,7 @@
                             <TextBlock Text="Download Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
                     </Grid>
-                    <ListView x:Name="DownloadItemsContainer" ItemsSource="{x:Bind downloadingItems}"
+                    <ListView x:Name="DownloadItemsContainer" ItemsSource="{x:Bind _downloadingItems}"
                               MaxHeight="300"
                               SelectionMode="None" IsItemClickEnabled="False">
                         <ListView.ItemsPanel>
