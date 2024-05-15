@@ -13,27 +13,29 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
         private readonly string _imageDir;
 
-        public BookmarkItem(Gallery newGallery, SearchPage sp, bool allImagesAvailable) {
+        public BookmarkItem(Gallery newGallery, SearchPage sp, bool tryLoadingImages) {
             InitializeComponent();
+            gallery = newGallery;
+            _imageDir = Path.Combine(IMAGE_DIR, gallery.id);
+            Loaded += InitThumbnailImagesOnLoad;
             void InitThumbnailImagesOnLoad(object _0, RoutedEventArgs _1) {
                 Loaded -= InitThumbnailImagesOnLoad;
                 CreateThumbnailImages();
-                if (allImagesAvailable) {
-                    for (int i = 0; i < _thumbnailImages.Count; i++) {
-                        string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
-                        if (files.Length > 0 && _thumbnailImages[i].Source == null) {
-                            _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
-                        }
-                    }
-                    _thumbnailImages.NotifyItemChange();
-                } else {
+                if (!tryLoadingImages) {
                     EnableRemoveBtn(false);
+                    return;
                 }
+                if (!Directory.Exists(_imageDir)) {
+                    return;
+                }
+                for (int i = 0; i < _thumbnailImages.Count; i++) {
+                    string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
+                    if (files.Length > 0) {
+                        _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                    }
+                }
+                _thumbnailImages.NotifyItemChange();
             }
-            Loaded += InitThumbnailImagesOnLoad;
-
-            gallery = newGallery;
-            _imageDir = Path.Combine(IMAGE_DIR, gallery.id);
 
             TitleTextBlock.Text = gallery.title;
             string artistsText = gallery.GetArtists();
