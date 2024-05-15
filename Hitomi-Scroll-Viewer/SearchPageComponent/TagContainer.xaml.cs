@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Hitomi_Scroll_Viewer.Tag;
+using static Hitomi_Scroll_Viewer.SearchTag;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
