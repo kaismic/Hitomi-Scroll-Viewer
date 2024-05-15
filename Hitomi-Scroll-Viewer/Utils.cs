@@ -249,5 +249,9 @@ namespace Hitomi_Scroll_Viewer {
 
             return output;
         }
+
+        public static void WriteObjectToJson(string path, object obj) {
+            File.WriteAllText(path, JsonSerializer.Serialize(obj, serializerOptions));
+        }
     }
 }
