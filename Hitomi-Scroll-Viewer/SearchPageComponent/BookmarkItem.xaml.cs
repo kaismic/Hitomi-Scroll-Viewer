@@ -7,6 +7,7 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
+        private static readonly double THUMBNAIL_IMG_HEIGHT = 256;
         private static readonly Thickness THUMBNAIL_IMG_MARGIN = new(8);
         public readonly Gallery gallery;
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
