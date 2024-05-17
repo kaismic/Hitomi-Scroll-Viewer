@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Hitomi_Scroll_Viewer {
     public class SearchTag {
@@ -13,6 +14,20 @@ namespace Hitomi_Scroll_Viewer {
                 includeTags[tag] = [];
                 excludeTags[tag] = [];
             }
+        }
+
+        public string GetIncludeExcludeOverlap() {
+            Dictionary<string, string[]> overlapDict = [];
+            foreach (string category in CATEGORIES) {
+                string[] overlaps = includeTags[category].Intersect(excludeTags[category]).ToArray();
+                if (overlaps.Length > 0) {
+                    overlapDict[category] = overlaps;
+                }
+            }
+            return overlapDict.Aggregate(
+                "",
+                (result, pair) => result += pair.Key + ": " + string.Join(", ", pair.Value) + '\n'
+            );
         }
     }
 }
