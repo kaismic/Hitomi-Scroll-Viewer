@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using static Hitomi_Scroll_Viewer.SearchTag;
 using static Hitomi_Scroll_Viewer.Utils;
@@ -52,7 +53,11 @@ namespace Hitomi_Scroll_Viewer {
             Clear
         }
 
-        private readonly ContentDialog[] _confirmDialogs = new ContentDialog[Enum.GetNames<TagListAction>().Length];
+        private readonly ContentDialog _confirmDialog = new() {
+            IsPrimaryButtonEnabled = true,
+            PrimaryButtonText = "Yes",
+            CloseButtonText = "Cancel",
+        };
         private readonly Button[] _controlButtons = new Button[Enum.GetNames<TagListAction>().Length];
         private readonly string[] _controlButtonTexts = [
             "Create a new tag list",
@@ -140,16 +145,9 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 };
                 ControlButtonContainer.Children.Add(_controlButtons[i]);
-                _confirmDialogs[i] = new() {
-                    IsPrimaryButtonEnabled = true,
-                    PrimaryButtonText = "Yes",
-                    CloseButtonText = "Cancel",
-                };
             }
             void setXamlRoot(object _0, RoutedEventArgs _1) {
-                for (int i = 0; i < Enum.GetNames<TagListAction>().Length; i++) {
-                    _confirmDialogs[i].XamlRoot = XamlRoot;
-                }
+                _confirmDialog.XamlRoot = XamlRoot;
                 Loaded -= setXamlRoot;
             };
             Loaded += setXamlRoot;
@@ -169,6 +167,13 @@ namespace Hitomi_Scroll_Viewer {
             TagControlGrid.SizeChanged += setHyperlinkPanelHeight;
         }
 
+        private async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
+            _confirmDialog.Title = title;
+            _confirmDialog.Content = content;
+            ContentDialogResult result = await _confirmDialog.ShowAsync();
+            return result;
+        }
+
         private async void CreateTag(object _0, RoutedEventArgs _1) {
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
@@ -179,8 +184,12 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
-            _confirmDialogs[(int)TagListAction.Create].Title = $"Create '{newTagName}'?";
-            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Create].ShowAsync();
+            string overlappingTagsText = GetCurrTag().GetIncludeExcludeOverlap();
+            if (overlappingTagsText != "") {
+                _mw.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+                return;
+            }
+            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Create '{newTagName}'?", "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
@@ -203,8 +212,7 @@ namespace Hitomi_Scroll_Viewer {
                 _mw.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
-            _confirmDialogs[(int)TagListAction.Rename].Title = $"Rename '{oldTagName}' to '{newTagName}'?";
-            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Rename].ShowAsync();
+            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Rename '{oldTagName}' to '{newTagName}'?", "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
@@ -219,9 +227,12 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void SaveTag(object _0, RoutedEventArgs _1) {
-            _confirmDialogs[(int)TagListAction.Save].Title = $"Save current tags on '{_currTagName}'?";
-            _confirmDialogs[(int)TagListAction.Save].Content = $"'{_currTagName}' will be overwritten.";
-            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Save].ShowAsync();
+            string overlappingTagsText = GetCurrTag().GetIncludeExcludeOverlap();
+            if (overlappingTagsText != "") {
+                _mw.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+                return;
+            }
+            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Save current tags on '{_currTagName}'?", $"'{_currTagName}' will be overwritten.");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
@@ -232,8 +243,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private async void RemoveTag(object _0, RoutedEventArgs _1) {
             string oldTagName = _currTagName;
-            _confirmDialogs[(int)TagListAction.Remove].Title = $"Remove '{oldTagName}'?";
-            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Remove].ShowAsync();
+            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Remove '{oldTagName}'?", "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
@@ -245,8 +255,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async void ClearTagTextbox(object _0, RoutedEventArgs _1) {
-            _confirmDialogs[(int)TagListAction.Clear].Title = "Clear all texts in tag containers?";
-            ContentDialogResult cdr = await _confirmDialogs[(int)TagListAction.Clear].ShowAsync();
+            ContentDialogResult cdr = await ShowConfirmDialogAsync("Clear all texts in tag containers?", "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
