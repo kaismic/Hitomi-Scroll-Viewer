@@ -84,34 +84,35 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
         }
 
-        public string GetSearchParameters(int idx, string[] globalTags) {
+        public string GetSearchParameters(int idx) {
             string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (IsInclude) {
-                return string.Join(' ', curTags.Union(globalTags).Select(tag => CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_')));
+                return string.Join(' ', curTags.Select(tag => CATEGORIES[idx] + ':' + tag.Replace(' ', '_')));
             }
-            return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Trim().Replace(' ', '_')));
+            return string.Join(' ', curTags.Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Replace(' ', '_')));
         }
 
-        public string GetHyperlinkDisplayTexts(int idx, string[] globalTags) {
+        public string GetHyperlinkDisplayTexts(int idx) {
             string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (IsInclude) {
-                return string.Join(' ', curTags.Union(globalTags).Select(tag => tag.Trim().Replace(' ', '_')));
+                return string.Join(' ', curTags.Select(tag => tag.Replace(' ', '_')));
             }
-            return string.Join(' ', curTags.Union(globalTags).Select(tag => '-' + tag.Trim().Replace(' ', '_')));
+            return string.Join(' ', curTags.Select(tag => '-' + tag.Replace(' ', '_')));
         }
 
-        public void InsertTags(Dictionary<string, string[]> tagList) {
+        public void InsertTags(Dictionary<string, HashSet<string>> tagList) {
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 _tagTextBoxes[i].Text = string.Join(Environment.NewLine, tagList[CATEGORIES[i]]);
             }
         }
 
-        public Dictionary<string, string[]> GetTags() {
-            Dictionary<string, string[]> tagList = [];
+        public Dictionary<string, HashSet<string>> GetTags() {
+            Dictionary<string, HashSet<string>> tagList = [];
             for (int i = 0; i < CATEGORIES.Length; i++) {
-                string[] tags = _tagTextBoxes[i].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
-                tags = tags.Select(tag => tag.Trim().Replace(' ', '_')).ToArray();
-                Array.Sort(tags);
+                HashSet<string> tags = _tagTextBoxes[i].Text
+                    .Split(NEW_LINE_SEPS, STR_SPLIT_OPTION)
+                    .Select(tag => tag.Replace(' ', '_'))
+                    .ToHashSet();
                 tagList.Add(CATEGORIES[i], tags);
             }
             return tagList;
