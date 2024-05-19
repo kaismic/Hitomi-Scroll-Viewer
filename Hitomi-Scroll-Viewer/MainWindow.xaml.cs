@@ -11,7 +11,7 @@ using static Hitomi_Scroll_Viewer.Utils;
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
         private readonly SearchPage _sp;
-        public readonly ImageWatchingPage Iwp;
+        private readonly ImageWatchingPage _iwp;
 
         public Gallery CurrLoadedGallery { get; set; }
 
@@ -33,7 +33,7 @@ namespace Hitomi_Scroll_Viewer {
             Directory.CreateDirectory(IMAGE_DIR);
 
             _sp = new(this);
-            Iwp = new(this);
+            _iwp = new(this);
 
             // Switch page on double click
             RootFrame.DoubleTapped += (_, _) => SwitchPage();
@@ -57,12 +57,12 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 }
                 // save settings and exit app
-                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(Iwp.GetSettings(), serializerOptions));
+                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(_iwp.GetSettings(), serializerOptions));
                 Close();
             };
 
             RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
-                if (RootFrame.Content is ImageWatchingPage) Iwp.HandleKeyDown(_, e);
+                if (RootFrame.Content is ImageWatchingPage) _iwp.HandleKeyDown(_, e);
             };
 
             RootFrame.Content = _sp;
@@ -70,12 +70,12 @@ namespace Hitomi_Scroll_Viewer {
 
         public void SwitchPage() {
             if (RootFrame.Content is ImageWatchingPage) {
-                if (Iwp.IsAutoScrolling) {
-                    Iwp.StartStopAutoScroll(false);
+                if (_iwp.IsAutoScrolling) {
+                    _iwp.StartStopAutoScroll(false);
                 }
                 RootFrame.Content = _sp;
             } else {
-                RootFrame.Content = Iwp;
+                RootFrame.Content = _iwp;
             }
         }
 
@@ -94,6 +94,10 @@ namespace Hitomi_Scroll_Viewer {
             ((TextBlock)_notification.Content).Text = text;
             _notification.XamlRoot = Content.XamlRoot;
             await _notification.ShowAsync();
+        }
+
+        public void LoadGallery(Gallery gallery) {
+            _iwp.LoadGalleryFromLocalDir(gallery);
         }
     }
 }
