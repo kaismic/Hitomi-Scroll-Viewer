@@ -199,9 +199,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             DownloadProgressBar.Value = _gallery.files.Length - missingIndexes.Count;
 
             DownloadStatus.Text = "Getting server time...";
-            string serverTime;
+
+            string ggjs;
             try {
-                serverTime = await GetServerTime(_httpClient, ct);
+                ggjs = await GetggjsFile(_httpClient, ct);
             } catch (HttpRequestException e) {
                 SetStateAndText(DownloadingState.Failed, "An error has occurred while getting the server time.\n" + e.Message);
                 return;
@@ -210,16 +211,19 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 return;
             }
 
+            string serverTime = ggjs.Substring(ggjs.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
+            HashSet<string> subdomainFilterSet = ExtractSubdomainSelectionSet(ggjs);
+
             DownloadStatus.Text = "Getting Image Addresses...";
             ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
             for (int i = 0; i < missingIndexes.Count; i++) {
                 imageInfos[i] = _gallery.files[missingIndexes[i]];
             }
             string[] imgFormats = GetImageFormats(imageInfos);
-            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, serverTime);
+            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, serverTime, subdomainFilterSet);
 
             DownloadStatus.Text = "Downloading Images...";
-            Task[] tasks = DownloadImages(
+            Task downloadTask = DownloadImages(
                 new DownloadInfo {
                     httpClient = _httpClient,
                     id = _gallery.id,
@@ -232,15 +236,14 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 imgFormats,
                 missingIndexes
             );
-            Task allTask = Task.WhenAll(tasks);
             try {
-                await allTask;
+                await downloadTask;
             } catch (TaskCanceledException) {
                 HandleDownloadPaused();
                 return;
             }
             
-            if (allTask.IsCompletedSuccessfully) {
+            if (downloadTask.IsCompletedSuccessfully) {
                 _sp.AddBookmark(_gallery, true);
                 missingIndexes = GetMissingIndexes(_gallery);
                 if (missingIndexes.Count > 0) {
