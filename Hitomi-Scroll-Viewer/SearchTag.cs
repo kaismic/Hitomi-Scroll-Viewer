@@ -7,8 +7,8 @@ namespace Hitomi_Scroll_Viewer {
             "language", "female", "male", "artist", "character", "group", "series", "type", "tag"
         ];
 
-        public Dictionary<string, string[]> includeTags = [];
-        public Dictionary<string, string[]> excludeTags = [];
+        public Dictionary<string, HashSet<string>> includeTags = [];
+        public Dictionary<string, HashSet<string>> excludeTags = [];
         public SearchTag() {
             foreach (string tag in CATEGORIES) {
                 includeTags[tag] = [];
@@ -17,10 +17,10 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public string GetIncludeExcludeOverlap() {
-            Dictionary<string, string[]> overlapDict = [];
+            Dictionary<string, HashSet<string>> overlapDict = [];
             foreach (string category in CATEGORIES) {
-                string[] overlaps = includeTags[category].Intersect(excludeTags[category]).ToArray();
-                if (overlaps.Length > 0) {
+                HashSet<string> overlaps = includeTags[category].Intersect(excludeTags[category]).ToHashSet();
+                if (overlaps.Count > 0) {
                     overlapDict[category] = overlaps;
                 }
             }
