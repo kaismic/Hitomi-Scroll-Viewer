@@ -59,9 +59,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            _downloadingItems.Remove(this);
-            _sp.downloadingGalleries.TryRemove(_id, out _);
+            _bmItem.isDownloading = false;
             _bmItem?.EnableRemoveBtn(true);
+            _sp.downloadingGalleries.TryRemove(_id, out _);
+            _downloadingItems.Remove(this);
         }
 
         private void PauseOrResume(object _0, RoutedEventArgs _1) {
@@ -180,7 +181,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
 
             if (_bmItem == null) {
-                _bmItem = _sp.AddBookmark(_gallery, false);
+                _bmItem = _sp.CreateAndAddBookmark(_gallery);
             }
 
             DownloadStatus.Text = "Calculating number of images to download...";
@@ -211,16 +212,13 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 return;
             }
 
-            string serverTime = ggjs.Substring(ggjs.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
-            HashSet<string> subdomainFilterSet = ExtractSubdomainSelectionSet(ggjs);
-
             DownloadStatus.Text = "Getting Image Addresses...";
             ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
             for (int i = 0; i < missingIndexes.Count; i++) {
                 imageInfos[i] = _gallery.files[missingIndexes[i]];
             }
             string[] imgFormats = GetImageFormats(imageInfos);
-            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, serverTime, subdomainFilterSet);
+            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, ggjs);
 
             DownloadStatus.Text = "Downloading Images...";
             Task downloadTask = DownloadImages(
@@ -244,7 +242,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             
             if (downloadTask.IsCompletedSuccessfully) {
-                _sp.AddBookmark(_gallery, true);
                 missingIndexes = GetMissingIndexes(_gallery);
                 if (missingIndexes.Count > 0) {
                     SetStateAndText(DownloadingState.Failed, $"Failed to download {missingIndexes.Count} images");

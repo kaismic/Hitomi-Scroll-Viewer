@@ -104,31 +104,39 @@ namespace Hitomi_Scroll_Viewer {
             return matches.Select(match => match.Groups[1].Value).ToHashSet();
         }
 
+        public static (string notContains, string contains) ExtractSubdomainOrder(string ggjs) {
+            string pat = @"var o = (\d);";
+            Match match = Regex.Match(ggjs, pat);
+            return match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
+        }
+
+        public static string[] GetImageAddresses(ImageInfo[] imageInfos, string[] imgFormats, string ggjs) {
+            string serverTime = ggjs.Substring(ggjs.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
+            HashSet<string> subdomainFilterSet = ExtractSubdomainSelectionSet(ggjs);
+            (string notContains, string contains) = ExtractSubdomainOrder(ggjs);
+
+            string[] result = new string[imageInfos.Length];
+            for (int i = 0; i < imageInfos.Length; i++) {
+                string hash = imageInfos[i].hash;
+                string subdomainAndAddressValue = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
+                string subdomain = subdomainFilterSet.Contains(subdomainAndAddressValue) ? contains : notContains;
+                result[i] = $"https://{subdomain}.{BASE_DOMAIN}/{imgFormats[i]}/{serverTime}/{subdomainAndAddressValue}/{hash}.{imgFormats[i]}";
+            }
+            return result;
+        }
+
         public static string[] GetImageFormats(ImageInfo[] imageInfos) {
             string[] imgFormats = new string[imageInfos.Length];
             for (int i = 0; i < imgFormats.Length; i++) {
                 if (imageInfos[i].haswebp == 1) {
                     imgFormats[i] = "webp";
-                }
-                else if (imageInfos[i].hasavif == 1) {
+                } else if (imageInfos[i].hasavif == 1) {
                     imgFormats[i] = "avif";
-                }
-                else if (imageInfos[i].hasjxl == 1) {
+                } else if (imageInfos[i].hasjxl == 1) {
                     imgFormats[i] = "jxl";
                 }
             }
             return imgFormats;
-        }
-
-        public static string[] GetImageAddresses(ImageInfo[] imageInfos, string[] imgFormats, string serverTime, HashSet<string> subdomainSelectorSet) {
-            string[] result = new string[imageInfos.Length];
-            for (int i = 0; i < imageInfos.Length; i++) {
-                string hash = imageInfos[i].hash;
-                string subdomainAndAddressValue = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
-                string subdomain = subdomainSelectorSet.Contains(subdomainAndAddressValue) ? "ba" : "aa";
-                result[i] = $"https://{subdomain}.{BASE_DOMAIN}/{imgFormats[i]}/{serverTime}/{subdomainAndAddressValue}/{hash}.{imgFormats[i]}";
-            }
-            return result;
         }
 
         /**
