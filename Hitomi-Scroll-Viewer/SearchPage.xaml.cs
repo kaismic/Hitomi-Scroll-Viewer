@@ -118,7 +118,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // fill bookmarks
             foreach (Gallery gallery in galleries) {
-                bmItems.Add(new(gallery, this, true));
+                bmItems.Add(new(gallery, this, false));
             }
             UpdateBookmark();
         }
@@ -387,14 +387,14 @@ namespace Hitomi_Scroll_Viewer {
             _mw.LoadGallery(gallery);
         }
 
-        public BookmarkItem AddBookmark(Gallery gallery, bool tryLoadingImages) {
+        public BookmarkItem CreateAndAddBookmark(Gallery gallery) {
             lock (_bmLock) {
                 // return the BookmarkItem if it is already bookmarked
                 var bmItem = GetBookmarkItem(gallery.id);
                 if (bmItem != null) {
                     return bmItem;
                 }
-                bmItem = new BookmarkItem(gallery, this, tryLoadingImages);
+                bmItem = new BookmarkItem(gallery, this, true);
                 bmItems.Add(bmItem);
                 // new page is needed
                 if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {

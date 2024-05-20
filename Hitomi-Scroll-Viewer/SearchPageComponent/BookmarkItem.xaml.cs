@@ -12,26 +12,30 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         public readonly Gallery gallery;
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
         private readonly string _imageDir;
+        public bool isDownloading = false;
 
-        public BookmarkItem(Gallery newGallery, SearchPage sp, bool tryLoadingImages) {
+        public BookmarkItem(Gallery newGallery, SearchPage sp, bool initIsDownloading) {
             InitializeComponent();
+
             gallery = newGallery;
             _imageDir = Path.Combine(IMAGE_DIR, gallery.id);
+            isDownloading = initIsDownloading;
+
             Loaded += InitThumbnailImagesOnLoad;
             void InitThumbnailImagesOnLoad(object _0, RoutedEventArgs _1) {
                 Loaded -= InitThumbnailImagesOnLoad;
                 CreateThumbnailImages();
-                if (!tryLoadingImages) {
-                    EnableRemoveBtn(false);
-                    return;
-                }
                 if (!Directory.Exists(_imageDir)) {
                     return;
                 }
-                for (int i = 0; i < _thumbnailImages.Count; i++) {
-                    string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
-                    if (files.Length > 0) {
-                        _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                if (isDownloading) {
+                    EnableRemoveBtn(false);
+                } else {
+                    for (int i = 0; i < _thumbnailImages.Count; i++) {
+                        string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
+                        if (files.Length > 0) {
+                            _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                        }
                     }
                 }
                 _thumbnailImages.NotifyItemChange();
