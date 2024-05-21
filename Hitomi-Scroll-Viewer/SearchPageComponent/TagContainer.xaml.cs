@@ -84,6 +84,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
         }
 
+        public bool IsEmpty() {
+            return _tagTextBoxes.All(textBox => textBox.Text.Trim().Length == 0);
+        }
+
         public string GetSearchParameters(int idx) {
             string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (IsInclude) {
