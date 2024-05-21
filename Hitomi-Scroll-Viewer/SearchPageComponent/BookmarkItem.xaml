@@ -41,12 +41,6 @@
                         </Setter>
                     </Style>
                 </ListView.ItemContainerStyle>
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="Image">
-                        <Image Height="{x:Bind Height}" Width="{x:Bind Width}" Margin="{x:Bind Margin}"
-                               Source="{x:Bind Source}"></Image>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
                 <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsStackPanel Orientation="Horizontal"/>
