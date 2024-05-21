@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:hsv_spc="using:Hitomi_Scroll_Viewer.SearchPageComponent"
+    xmlns:spc="using:Hitomi_Scroll_Viewer.SearchPageComponent"
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer Padding="24 0">
@@ -14,34 +15,32 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <hsv_spc:TagContainer x:Name="IncludeTagContainer" Grid.Column="0" IsInclude="True"></hsv_spc:TagContainer>
-                <hsv_spc:TagContainer x:Name="ExcludeTagContainer" Grid.Column="1" IsInclude="False"></hsv_spc:TagContainer>
+                <spc:TagContainer x:Name="IncludeTagContainer" Grid.Column="0" IsInclude="True"></spc:TagContainer>
+                <spc:TagContainer x:Name="ExcludeTagContainer" Grid.Column="1" IsInclude="False"></spc:TagContainer>
             </Grid>
             <Grid Margin="0 10 0 0" ColumnSpacing="20">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="4*"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel x:Name="AddressControlPanel"
-                            Grid.Column="0"
+                <StackPanel Grid.Column="0"
                             Orientation="Vertical"
                             Spacing="20">
-                    <Button x:Name="GenerateHyperlinkBtn"
-                            Click="GenerateHyperlink"
+                    <Button x:Name="CreateHyperlinkBtn"
+                            Click="CreateHyperlinkBtn_Clicked"
                             MinHeight="80"
                             FontSize="18"
                             BorderBrush="DeepPink"
                             HorizontalAlignment="Center"
-                            Content="Generate and Copy Link"
+                            Content="Generate and Copy Search Link"
                             />
-                    <ScrollViewer VerticalScrollBarVisibility="Visible">
-                        <StackPanel x:Name="HyperlinkPanel"
-                                    Orientation="Vertical"/>
-                    </ScrollViewer>
+                    <ListView x:Name="SearchLinkItemsListView"
+                              ItemsSource="{x:Bind _searchLinkItems}"
+                              SelectionMode="None" IsItemClickEnabled="False"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="20">
-                    <Grid ColumnSpacing="10" RowSpacing="10">
+                    <Grid ColumnSpacing="10" RowSpacing="10" x:Name="DownloadActionGrid">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -54,36 +53,53 @@
                                  />
                         <Button Grid.Column="1"
                                 HorizontalAlignment="Center" VerticalAlignment="Stretch"
-                                Click="HandleDownloadBtnClick">
+                                Click="DownloadBtn_Clicked">
                             <TextBlock Text="Download Gallery" TextWrapping="WrapWholeWords"/>
                         </Button>
                     </Grid>
-                    <ListView x:Name="DownloadItemsContainer" ItemsSource="{x:Bind _downloadingItems}"
-                              MaxHeight="300"
+                    <ListView x:Name="DownloadItemsListView" ItemsSource="{x:Bind _downloadingItems}"
                               SelectionMode="None" IsItemClickEnabled="False">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <ItemsStackPanel/>
+                                <StackPanel Spacing="8"></StackPanel>
                             </ItemsPanelTemplate>
                         </ListView.ItemsPanel>
                     </ListView>
                 </StackPanel>
-                <Grid x:Name="TagControlGrid" Grid.Column="2"
+                <Grid Grid.Column="2"
                       ColumnSpacing="20">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <StackPanel Grid.Column="0" Orientation="Vertical"
                                 Spacing="20">
                         <TextBox x:Name="TagNameTextBox"
                                  PlaceholderText="Tag List Name"
+                                 TextWrapping="Wrap"
                                  FontSize="16"
                                  />
-                        <ComboBox x:Name="TagListComboBox"
-                                  SelectionChanged="LoadTagsInTextBox"
-                                  HorizontalAlignment="Stretch"
-                                  />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="TagListComboBox" Grid.Column="0"
+                                      SelectionChanged="TagListComboBox_SelectionChanged"
+                                      HorizontalAlignment="Stretch"/>
+                            <Button x:Name="AddTagToSearchBoxBtn"
+                                    Grid.Column="1" HorizontalAlignment="Right"
+                                    Margin="2 0 0 0"
+                                    Click="AddTagToSearchBoxBtn_Clicked">Add</Button>
+                        </Grid>
+                        <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems}" Background="Orange">
+                            <ItemsRepeater.Layout>
+                                <controls:WrapLayout VerticalSpacing="8" HorizontalSpacing="8"/>
+                            </ItemsRepeater.Layout>
+                        </ItemsRepeater>
                     </StackPanel>
                     <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"
                                 Orientation="Vertical" Spacing="20" Margin="0 0 20 0"/>
