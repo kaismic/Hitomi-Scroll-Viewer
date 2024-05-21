@@ -33,7 +33,7 @@
                             FontSize="18"
                             BorderBrush="DeepPink"
                             HorizontalAlignment="Center"
-                            Content="Generate and Copy Search Link"
+                            Content="Create and Copy Search Link"
                             />
                     <ListView x:Name="SearchLinkItemsListView"
                               ItemsSource="{x:Bind _searchLinkItems}"
