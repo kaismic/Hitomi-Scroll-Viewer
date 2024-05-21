@@ -95,11 +95,19 @@
                                     Margin="2 0 0 0"
                                     Click="AddTagToSearchBoxBtn_Clicked">Add</Button>
                         </Grid>
-                        <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems}" Background="Orange">
-                            <ItemsRepeater.Layout>
-                                <controls:WrapLayout VerticalSpacing="8" HorizontalSpacing="8"/>
-                            </ItemsRepeater.Layout>
-                        </ItemsRepeater>
+                        <TextBlock HorizontalAlignment="Center" FontSize="18">Searching Tags</TextBlock>
+                        <Border Background="White"
+                                BorderBrush="{ThemeResource ButtonBackgroundThemeBrush}"
+                                BorderThickness="{ThemeResource AutoSuggestListBorderThemeThickness}"
+                                CornerRadius="{ThemeResource ControlCornerRadius}"
+                                MinHeight="100"
+                                Padding="{ThemeResource ButtonPadding}">
+                            <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems}">
+                                <ItemsRepeater.Layout>
+                                    <controls:WrapLayout VerticalSpacing="8" HorizontalSpacing="8"/>
+                                </ItemsRepeater.Layout>
+                            </ItemsRepeater>
+                        </Border>
                     </StackPanel>
                     <StackPanel x:Name="ControlButtonContainer" Grid.Column="1"
                                 Orientation="Vertical" Spacing="20" Margin="0 0 20 0"/>
