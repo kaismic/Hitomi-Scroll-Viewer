@@ -12,14 +12,15 @@
     Padding="8 2 2 2"
     BorderBrush="{ThemeResource ButtonBorderThemeBrush}"
     BorderThickness="{ThemeResource ButtonBorderThemeThickness}">
-    <TextBlock Text="{x:Bind TagName}"/>
+    <TextBlock Text="{x:Bind TagName}" VerticalAlignment="Center"/>
     <Viewbox Width="32">
         <Button Margin="8 0 0 0"
                 CornerRadius="32"
                 Padding="6"
                 Background="Transparent"
                 CommandParameter="{x:Bind}"
-                BorderThickness="0">
+                BorderThickness="0"
+                VerticalAlignment="Center">
             <Button.Command>
                 <StandardUICommand x:Name="DeleteCommand" Kind="Delete" Label="Delete"/>
             </Button.Command>
