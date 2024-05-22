@@ -56,6 +56,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 textblock.IsTextSelectionEnabled = true;
             }
 
+            ImageContainerWrapper.Click += (_, _) => LoadBookmark(gallery);
             ImageContainer.ItemClick += (_, _) => LoadBookmark(gallery);
             RemoveBtn.Click += (_, _) => sp.RemoveBookmark(this);
             MoveUpBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Up);
@@ -88,10 +89,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
         }
 
-        public void EnableBookmarkLoading(bool enable) {
+        public void EnableClick(bool enable) {
             ImageContainerWrapper.IsEnabled = enable;
-            ImageContainer.IsEnabled = enable;
-            ImageContainer.Opacity = enable ? 1 : 0.25;
         }
 
         public void EnableRemoveBtn(bool enable) {
