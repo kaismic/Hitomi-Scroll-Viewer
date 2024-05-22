@@ -289,35 +289,60 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if (IncludeTagContainer.IsEmpty() && ExcludeTagContainer.IsEmpty()) return;
-            string link = SEARCH_ADDRESS + string.Join(
-                ' ',
-                CATEGORIES.Select((category, idx) => 
-                    IncludeTagContainer.GetSearchParameters(idx) + ' ' +
-                    ExcludeTagContainer.GetSearchParameters(idx)
-                ).Where(searchParam => !string.IsNullOrWhiteSpace(searchParam))
+            var selectedSearchFilterItems = _searchFilterItems.Where(item => (bool)item.IsChecked);
+            SearchTag combinedSearchTag = selectedSearchFilterItems.Aggregate(
+                new SearchTag(),
+                (result, item) => {
+                    SearchTag currSearchTag = _tagsDict[item.TagName];
+                    foreach (string category in CATEGORIES) {
+                        result.includeTags[category] = result.includeTags[category].Union(currSearchTag.includeTags[category]).ToHashSet();
+                        result.excludeTags[category] = result.excludeTags[category].Union(currSearchTag.excludeTags[category]).ToHashSet();
+                    }
+                    return result;
+                }
             );
+
+            string overlappingTagsText = combinedSearchTag.GetIncludeExcludeOverlap();
+            if (overlappingTagsText != "") {
+                _mw.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+                return;
+            }
+
+            string searchLink = SEARCH_ADDRESS + string.Join(
+                ' ',
+                CATEGORIES.Select(category =>
+                    (
+                        string.Join(' ', combinedSearchTag.includeTags[category].Select(tag => category + ':' + tag.Replace(' ', '_')))
+                            + ' ' +
+                        string.Join(' ', combinedSearchTag.excludeTags[category].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
+                    ).Trim()
+                ).Where(searchParam => searchParam != "")
+            );
+
             string displayText = string.Join(
-                        Environment.NewLine,
-                        CATEGORIES.Select((category, idx) => {
-                            string displayTagTexts =
-                                IncludeTagContainer.GetHyperlinkDisplayTexts(idx) + ' ' +
-                                ExcludeTagContainer.GetHyperlinkDisplayTexts(idx);
-                            if (!string.IsNullOrWhiteSpace(displayTagTexts)) {
-                                return char.ToUpper(category[0]) + category[1..] + ": " + displayTagTexts;
-                            } else {
-                                return "";
-                            }
-                        }).Where((displayTagTexts) => displayTagTexts != "")
-                    );
+                Environment.NewLine,
+                CATEGORIES.Select(category => {
+                    string displayTextPart =
+                        (
+                            string.Join(' ', combinedSearchTag.includeTags[category].Select(tag => tag.Replace(' ', '_')))
+                            + ' ' +
+                            string.Join(' ', combinedSearchTag.excludeTags[category].Select(tag => '-' + tag.Replace(' ', '_')))
+                        ).Trim();
+                    if (displayTextPart != "") {
+                        return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
+                    } else {
+                        return "";
+                    }
+                }).Where(displayTagTexts => displayTagTexts != "")
+            );
             
             _searchLinkItems.Add(new(
-                link,
+                searchLink,
                 displayText,
                 (_, arg) => _searchLinkItems.Remove((SearchLinkItem)arg.Parameter)
             ));
             // copy link to clipboard
-            _myDataPackage.SetText(link);
+            _myDataPackage.SetText(searchLink);
             Clipboard.SetContent(_myDataPackage);
         }
 
