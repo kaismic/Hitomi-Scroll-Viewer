@@ -1,16 +1,16 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
-using Windows.Foundation;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
-    public sealed partial class SearchFilterItem : StackPanel
+    public sealed partial class SearchFilterItem : CheckBox
     {
         public readonly string TagName;
-        public SearchFilterItem(string tagName, TypedEventHandler<XamlUICommand, ExecuteRequestedEventArgs> handler)
+        public SearchFilterItem(string tagName, RoutedEventHandler eventHandler)
         {
             TagName = tagName;
             InitializeComponent();
-            DeleteCommand.ExecuteRequested += handler;
+            Checked += eventHandler;
+            Unchecked += eventHandler;
         }
     }
 }

@@ -1,32 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<StackPanel
+<CheckBox
     x:Class="Hitomi_Scroll_Viewer.SearchPageComponent.SearchFilterItem"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-
-    Orientation="Horizontal"
-    Background="White"
-    Padding="8 2 2 2"
-    BorderBrush="{ThemeResource ButtonBorderThemeBrush}"
-    BorderThickness="{ThemeResource ButtonBorderThemeThickness}">
-    <TextBlock Text="{x:Bind TagName}" VerticalAlignment="Center"/>
-    <Viewbox Width="32">
-        <Button Margin="8 0 0 0"
-                CornerRadius="32"
-                Padding="6"
-                Background="Transparent"
-                CommandParameter="{x:Bind}"
-                BorderThickness="0"
-                VerticalAlignment="Center">
-            <Button.Command>
-                <StandardUICommand x:Name="DeleteCommand" Kind="Delete" Label="Delete"/>
-            </Button.Command>
-            <Button.Content>
-                <SymbolIcon Symbol="Cancel" Opacity="0.75"></SymbolIcon>
-            </Button.Content>
-        </Button>
-    </Viewbox>
-</StackPanel>
+    MinWidth="0">
+    <TextBlock Text="{x:Bind TagName}"></TextBlock>
+</CheckBox>
