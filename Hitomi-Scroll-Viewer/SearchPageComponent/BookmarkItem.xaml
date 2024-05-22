@@ -7,10 +7,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
-    Background="LightBlue"
-    CornerRadius="16"
+    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+    CornerRadius="{StaticResource OverlayCornerRadius}"
+    BorderThickness="1"
     Margin="8"
-    Padding="16 16"
+    Padding="16"
     ColumnSpacing="64"
     >
     <Grid.ColumnDefinitions>
@@ -25,8 +27,8 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <TextBlock x:Name="TitleTextBlock" Grid.Row="0" FontWeight="SemiBold"/>
-        <TextBlock x:Name="ArtistTextBlock" Grid.Row="1" Foreground="DarkRed"/>
-        <TextBlock x:Name="IdTextBlock" Grid.Row="2" Foreground="DarkGreen"/>
+        <TextBlock x:Name="IdTextBlock" Grid.Row="2"/>
+        <TextBlock x:Name="ArtistTextBlock" Grid.Row="1"/>
         <HyperlinkButton x:Name="ImageContainerWrapper" Grid.Row="3" HorizontalAlignment="Stretch">
             <ListView x:Name="ImageContainer" IsSwipeEnabled="False" SelectionMode="None" IsItemClickEnabled="True">
                 <ListView.ItemContainerStyle>
