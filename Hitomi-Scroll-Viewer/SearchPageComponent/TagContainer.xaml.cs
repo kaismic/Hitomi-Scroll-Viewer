@@ -84,26 +84,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
         }
 
-        public bool IsEmpty() {
-            return _tagTextBoxes.All(textBox => textBox.Text.Trim().Length == 0);
-        }
-
-        public string GetSearchParameters(int idx) {
-            string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
-            if (IsInclude) {
-                return string.Join(' ', curTags.Select(tag => CATEGORIES[idx] + ':' + tag.Replace(' ', '_')));
-            }
-            return string.Join(' ', curTags.Select(tag => '-' + CATEGORIES[idx] + ':' + tag.Replace(' ', '_')));
-        }
-
-        public string GetHyperlinkDisplayTexts(int idx) {
-            string[] curTags = _tagTextBoxes[idx].Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
-            if (IsInclude) {
-                return string.Join(' ', curTags.Select(tag => tag.Replace(' ', '_')));
-            }
-            return string.Join(' ', curTags.Select(tag => '-' + tag.Replace(' ', '_')));
-        }
-
         public void InsertTags(Dictionary<string, HashSet<string>> tagList) {
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 _tagTextBoxes[i].Text = string.Join(Environment.NewLine, tagList[CATEGORIES[i]]);
