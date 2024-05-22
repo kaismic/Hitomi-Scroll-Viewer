@@ -10,9 +10,14 @@
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="Auto"/>
     </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
     <HyperlinkButton Grid.Column="0"
                      NavigateUri="{x:Bind _searchLink}"
-                     HorizontalAlignment="Stretch">
+                     HorizontalAlignment="Stretch"
+                     HorizontalContentAlignment="Left"
+                     VerticalAlignment="Stretch">
         <TextBlock TextWrapping="WrapWholeWords"
                    FontSize="10"
                    Text="{x:Bind _displayText}"/>
