@@ -93,7 +93,9 @@ namespace Hitomi_Scroll_Viewer {
                     serializerOptions
                 )
                 : new() {
-                    { "Default", new() }
+                    { "Tag1", new() },
+                    { "Tag2", new() },
+                    { "Tag3", new() },
                 };
 
             _tagsDictKeys = new(_tagsDict.Keys);
@@ -308,7 +310,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
 
-            string searchLink = SEARCH_ADDRESS + string.Join(
+            string searchParams = string.Join(
                 ' ',
                 CATEGORIES.Select(category =>
                     (
@@ -318,6 +320,11 @@ namespace Hitomi_Scroll_Viewer {
                     ).Trim()
                 ).Where(searchParam => searchParam != "")
             );
+            if (searchParams == "") {
+                _mw.NotifyUser("All selected tags are empty", "");
+                return;
+            }
+            string searchLink = SEARCH_ADDRESS + searchParams;
 
             string displayText = string.Join(
                 Environment.NewLine,
@@ -386,13 +393,8 @@ namespace Hitomi_Scroll_Viewer {
 
         public static void LoadBookmark(Gallery gallery) {
             _mw.SwitchPage();
-
-            // if the already loaded gallery is the same gallery, just return
-            if (_mw.CurrLoadedGallery != null) {
-                if (gallery.id == _mw.CurrLoadedGallery.id) {
-                    _mw.NotifyUser("The gallery is already loaded", "");
-                    return;
-                }
+            if (_mw.CurrLoadedGallery != null && gallery.id == _mw.CurrLoadedGallery.id) {
+                return;
             }
             _mw.LoadGallery(gallery);
         }
