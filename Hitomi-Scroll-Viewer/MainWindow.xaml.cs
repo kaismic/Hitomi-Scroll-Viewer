@@ -35,9 +35,6 @@ namespace Hitomi_Scroll_Viewer {
             _sp = new(this);
             _iwp = new(this);
 
-            // Switch page on double click
-            RootFrame.DoubleTapped += (_, _) => SwitchPage();
-
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
                 e.Cancel = true;
