@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<StackPanel
+<controls:DockPanel
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     x:Class="Hitomi_Scroll_Viewer.ImageWatchingPageComponent.GroupedImagePanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-</StackPanel>
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    LastChildFill="False">
+</controls:DockPanel>
