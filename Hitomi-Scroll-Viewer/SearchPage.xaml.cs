@@ -2,13 +2,11 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -79,12 +77,9 @@ namespace Hitomi_Scroll_Viewer {
             new(Colors.Black)
         ];
 
-        private static MainWindow _mw;
-
-        public SearchPage(MainWindow mainWindow) {
+        public SearchPage() {
             InitializeComponent();
             InitLayout();
-            _mw = mainWindow;
 
             _tagsDict = File.Exists(TAGS_PATH)
                 ? (Dictionary<string, SearchTag>)JsonSerializer.Deserialize(
@@ -123,7 +118,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // fill bookmarks
             foreach (Gallery gallery in galleries) {
-                bmItems.Add(new(gallery, this, false));
+                bmItems.Add(new(gallery, false));
             }
             UpdateBookmark();
         }
@@ -192,16 +187,16 @@ namespace Hitomi_Scroll_Viewer {
         private async void CreateTagBtn_Clicked(object _0, RoutedEventArgs _1) {
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
-                _mw.NotifyUser("No Tag Name", "Please enter a tag name");
+               MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             if (_tagsDict.ContainsKey(newTagName)) {
-                _mw.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
+               MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
             string overlappingTagsText = GetCurrSearchTag().GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
-                _mw.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+               MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
             }
             ContentDialogResult cdr = await ShowConfirmDialogAsync($"Create '{newTagName}'?", "");
@@ -212,7 +207,7 @@ namespace Hitomi_Scroll_Viewer {
             AddToTagsDict(newTagName, GetCurrSearchTag());
             TagListComboBox.SelectedItem = newTagName;
             WriteObjectToJson(TAGS_PATH, _tagsDict);
-            _mw.NotifyUser($"'{newTagName}' created", "");
+            MainWindow.NotifyUser($"'{newTagName}' created", "");
         }
 
         private async void RenameTagBtn_Clicked(object _0, RoutedEventArgs _1) {
@@ -220,11 +215,11 @@ namespace Hitomi_Scroll_Viewer {
             string oldTagName = _currTagName;
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
-                _mw.NotifyUser("No Tag Name", "Please enter a tag name");
+               MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             if (_tagsDict.ContainsKey(newTagName)) {
-                _mw.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
+               MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
             ContentDialogResult cdr = await ShowConfirmDialogAsync($"Rename '{oldTagName}' to '{newTagName}'?", "");
@@ -236,14 +231,14 @@ namespace Hitomi_Scroll_Viewer {
             TagListComboBox.SelectedItem = newTagName;
             RemoveFromTagsDict(oldTagName);
             WriteObjectToJson(TAGS_PATH, _tagsDict);
-            _mw.NotifyUser($"'{oldTagName}' renamed to '{newTagName}'", "");
+           MainWindow.NotifyUser($"'{oldTagName}' renamed to '{newTagName}'", "");
         }
 
         private async void SaveTagBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (_currTagName == null) return;
             string overlappingTagsText = GetCurrSearchTag().GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
-                _mw.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+               MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
             }
             ContentDialogResult cdr = await ShowConfirmDialogAsync($"Save current tags on '{_currTagName}'?", $"'{_currTagName}' will be overwritten.");
@@ -252,7 +247,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             _tagsDict[_currTagName] = GetCurrSearchTag();
             WriteObjectToJson(TAGS_PATH, _tagsDict);
-            _mw.NotifyUser($"'{_currTagName}' saved", "");
+           MainWindow.NotifyUser($"'{_currTagName}' saved", "");
         }
 
         private async void RemoveTagBtn_Clicked(object _0, RoutedEventArgs _1) {
@@ -264,7 +259,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             RemoveFromTagsDict(oldTagName);
             WriteObjectToJson(TAGS_PATH, _tagsDict);
-            _mw.NotifyUser($"'{oldTagName}' removed", "");
+           MainWindow.NotifyUser($"'{oldTagName}' removed", "");
         }
 
         private void ClearTagTextboxBtn_Clicked(object _0, RoutedEventArgs _1) {
@@ -306,7 +301,7 @@ namespace Hitomi_Scroll_Viewer {
 
             string overlappingTagsText = combinedSearchTag.GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
-                _mw.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+               MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
             }
 
@@ -321,7 +316,7 @@ namespace Hitomi_Scroll_Viewer {
                 ).Where(searchParam => searchParam != "")
             );
             if (searchParams == "") {
-                _mw.NotifyUser("All selected tags are empty", "");
+               MainWindow.NotifyUser("All selected tags are empty", "");
                 return;
             }
             string searchLink = SEARCH_ADDRESS + searchParams;
@@ -357,7 +352,7 @@ namespace Hitomi_Scroll_Viewer {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (urlOrIds.Length == 0) {
-                _mw.NotifyUser("Please enter an ID(s) or an URL(s)", "");
+               MainWindow.NotifyUser("Please enter an ID(s) or an URL(s)", "");
                 return;
             }
             List<string> extractedIds = [];
@@ -368,7 +363,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             if (extractedIds.Count == 0) {
-                _mw.NotifyUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
+               MainWindow.NotifyUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
                 return;
             }
             GalleryIDTextBox.Text = "";
@@ -381,13 +376,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 // Download
                 downloadingGalleries.TryAdd(extractedId, 0);
-                _downloadingItems.Add(new (extractedId, _mw.httpClient, this, _downloadingItems));
-            }
-        }
-
-        public static void EnableBookmarkLoading(bool enable) {
-            for (int i = 0; i < bmItems.Count; i++) {
-                bmItems[i].EnableClick(enable);
+                _downloadingItems.Add(new (extractedId, App.MainWindow.httpClient, this, _downloadingItems));
             }
         }
 
@@ -398,7 +387,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (bmItem != null) {
                     return bmItem;
                 }
-                bmItem = new BookmarkItem(gallery, this, true);
+                bmItem = new BookmarkItem(gallery, true);
                 bmItems.Add(bmItem);
                 // new page is needed
                 if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {

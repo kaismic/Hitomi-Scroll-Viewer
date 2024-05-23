@@ -9,7 +9,7 @@ namespace Hitomi_Scroll_Viewer {
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
     public partial class App : Application {
-        private MainWindow _mainWindow;
+        public static MainWindow MainWindow { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -25,8 +25,8 @@ namespace Hitomi_Scroll_Viewer {
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs args) {
-            _mainWindow = new MainWindow();
-            _mainWindow.Activate();
+            MainWindow = new();
+            MainWindow.Activate();
         }
 
     }

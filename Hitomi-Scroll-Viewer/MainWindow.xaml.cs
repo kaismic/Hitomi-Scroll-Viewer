@@ -10,8 +10,8 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
-        private readonly SearchPage _sp;
-        private readonly ImageWatchingPage _iwp;
+        public static SearchPage SearchPage { get; private set; }
+        public static ImageWatchingPage ImageWatchingPage { get; private set; }
 
         public readonly HttpClient httpClient = new(
             new SocketsHttpHandler() {
@@ -30,13 +30,13 @@ namespace Hitomi_Scroll_Viewer {
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
 
-            _sp = new(this);
-            _iwp = new(this);
+            SearchPage = new();
+            ImageWatchingPage = new();
 
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
                 e.Cancel = true;
-                if (!_sp.downloadingGalleries.IsEmpty) {
+                if (!SearchPage.downloadingGalleries.IsEmpty) {
                     ContentDialog dialog = new() {
                         Title = "App is busy downloading galleries. Exit anyway?",
                         PrimaryButtonText = "Exit",
@@ -52,29 +52,24 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 }
                 // save settings and exit app
-                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(_iwp.GetSettings(), serializerOptions));
+                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(ImageWatchingPage.GetSettings(), serializerOptions));
                 Close();
             };
-
-            RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
-                if (RootFrame.Content is ImageWatchingPage) _iwp.HandleKeyDown(_, e);
-            };
-
-            RootFrame.Content = _sp;
+            RootFrame.Content = SearchPage;
         }
 
         public void SwitchPage() {
             if (RootFrame.Content is ImageWatchingPage) {
-                if (_iwp.IsAutoScrolling) {
-                    _iwp.StartStopAutoScroll(false);
+                if (ImageWatchingPage.IsAutoScrolling) {
+                    ImageWatchingPage.StartStopAutoScroll(false);
                 }
-                RootFrame.Content = _sp;
+                RootFrame.Content = SearchPage;
             } else {
-                RootFrame.Content = _iwp;
+                RootFrame.Content = ImageWatchingPage;
             }
         }
 
-        private readonly ContentDialog _notification = new() {
+        private static readonly ContentDialog _notification = new() {
             CloseButtonText = "Ok",
             Title = new TextBlock() {
                 TextWrapping = TextWrapping.WrapWholeWords
@@ -84,16 +79,11 @@ namespace Hitomi_Scroll_Viewer {
             }
         };
 
-        public async void NotifyUser(string title, string text) {
+        public static async void NotifyUser(string title, string text) {
             ((TextBlock)_notification.Title).Text = title;
             ((TextBlock)_notification.Content).Text = text;
-            _notification.XamlRoot = Content.XamlRoot;
+            _notification.XamlRoot = App.MainWindow.RootFrame.XamlRoot;
             await _notification.ShowAsync();
-        }
-
-        public void LoadGallery(Gallery gallery) {
-            SwitchPage();
-            _iwp.LoadGalleryFromLocalDir(gallery);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         private readonly string _imageDir;
         public bool isDownloading = false;
 
-        public BookmarkItem(Gallery newGallery, SearchPage sp, bool initIsDownloading) {
+        public BookmarkItem(Gallery newGallery, bool initIsDownloading) {
             InitializeComponent();
 
             gallery = newGallery;
@@ -49,10 +49,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             IdTextBlock.Text = "ID: " + gallery.id;
 
-            ImageContainerWrapper.Click += (_, _) => (Window.Current as MainWindow).LoadGallery(gallery);
-            RemoveBtn.Click += (_, _) => sp.RemoveBookmark(this);
-            MoveUpBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Up);
-            MoveDownBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Down);
+            ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGalleryFromLocalDir(gallery);
+            RemoveBtn.Click += (_, _) => MainWindow.SearchPage.RemoveBookmark(this);
+            MoveUpBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Up);
+            MoveDownBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Down);
         }
 
         private void CreateThumbnailImages() {
@@ -81,10 +81,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
                 _thumbnailImages.NotifyItemChange();
             }
-        }
-
-        public void EnableClick(bool enable) {
-            ImageContainerWrapper.IsEnabled = enable;
         }
 
         public void EnableRemoveBtn(bool enable) {
