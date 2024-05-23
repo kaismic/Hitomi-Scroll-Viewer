@@ -391,14 +391,6 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public static void LoadBookmark(Gallery gallery) {
-            _mw.SwitchPage();
-            if (_mw.CurrLoadedGallery != null && gallery.id == _mw.CurrLoadedGallery.id) {
-                return;
-            }
-            _mw.LoadGallery(gallery);
-        }
-
         public BookmarkItem CreateAndAddBookmark(Gallery gallery) {
             lock (_bmLock) {
                 // return the BookmarkItem if it is already bookmarked
