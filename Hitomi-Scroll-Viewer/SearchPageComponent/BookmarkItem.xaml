@@ -19,38 +19,18 @@
         <ColumnDefinition/>
         <ColumnDefinition Width="Auto"/>
     </Grid.ColumnDefinitions>
-    <Grid Grid.Column="0">
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <TextBlock x:Name="TitleTextBlock" Grid.Row="0" Style="{StaticResource SubtitleTextBlockStyle}"/>
-        <TextBlock x:Name="IdTextBlock" Grid.Row="2"/>
-        <TextBlock x:Name="ArtistTextBlock" Grid.Row="1"/>
-        <HyperlinkButton x:Name="ImageContainerWrapper" Grid.Row="3" HorizontalAlignment="Stretch">
-            <ListView x:Name="ImageContainer" IsSwipeEnabled="False" SelectionMode="None" IsItemClickEnabled="True">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListViewItem">
-                                    <ListViewItemPresenter ContentMargin="0"/>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsStackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-            </ListView>
+    <StackPanel Grid.Column="0">
+        <TextBlock x:Name="TitleTextBlock" Style="{StaticResource TitleTextBlockStyle}" IsTextSelectionEnabled="True"/>
+        <TextBlock x:Name="IdTextBlock" Style="{StaticResource SubtitleTextBlockStyle}" IsTextSelectionEnabled="True"/>
+        <TextBlock x:Name="ArtistTextBlock" Style="{StaticResource SubtitleTextBlockStyle}" IsTextSelectionEnabled="True"/>
+        <HyperlinkButton x:Name="ImageContainerWrapper" HorizontalAlignment="Stretch">
+            <ItemsRepeater ItemsSource="{x:Bind _thumbnailImages}">
+                <ItemsRepeater.Layout>
+                    <StackLayout x:Name="ImageContainer" Orientation="Horizontal" Spacing="8"/>
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
         </HyperlinkButton>
-    </Grid>
+    </StackPanel>
     <Grid Grid.Column="1">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

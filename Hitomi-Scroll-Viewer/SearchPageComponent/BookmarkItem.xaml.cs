@@ -8,7 +8,6 @@ using static Hitomi_Scroll_Viewer.Utils;
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
         private static readonly double THUMBNAIL_IMG_HEIGHT = 256;
-        private static readonly Thickness THUMBNAIL_IMG_MARGIN = new(8);
         public readonly Gallery gallery;
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
         private readonly string _imageDir;
@@ -50,14 +49,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             IdTextBlock.Text = "ID: " + gallery.id;
 
-            foreach (TextBlock textblock in new[] { TitleTextBlock, ArtistTextBlock, IdTextBlock }) {
-                textblock.TextWrapping = TextWrapping.WrapWholeWords;
-                textblock.FontSize = 24;
-                textblock.IsTextSelectionEnabled = true;
-            }
-
             ImageContainerWrapper.Click += (_, _) => LoadBookmark(gallery);
-            ImageContainer.ItemClick += (_, _) => LoadBookmark(gallery);
             RemoveBtn.Click += (_, _) => sp.RemoveBookmark(this);
             MoveUpBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Down);
@@ -65,17 +57,19 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         private void CreateThumbnailImages() {
             // Determine the number of thumbnail images which fit into ImageContainerWrapper.ActualWidth
-            double widthSum = 0;
-            double containerWidth = ImageContainerWrapper.ActualWidth;
+            double totalWidthSum = 0;
+            double imageWrapperWidth = ImageContainerWrapper.ActualWidth;
             for (int i = 0; i < gallery.files.Length; i++) {
                 double width = gallery.files[i].width * THUMBNAIL_IMG_HEIGHT / gallery.files[i].height;
-                widthSum += width + THUMBNAIL_IMG_MARGIN.Left + THUMBNAIL_IMG_MARGIN.Right;
-                if (widthSum > containerWidth) {
+                totalWidthSum += width;
+                if (i > 0) {
+                    totalWidthSum += ImageContainer.Spacing;
+                }
+                if (totalWidthSum > imageWrapperWidth) {
                     break;
                 }
-                _thumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT, Margin = THUMBNAIL_IMG_MARGIN });
+                _thumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT });
             }
-            ImageContainer.ItemsSource = _thumbnailImages;
         }
 
         public void UpdateSingleImage(int i) {
