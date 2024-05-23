@@ -13,8 +13,6 @@ namespace Hitomi_Scroll_Viewer {
         private readonly SearchPage _sp;
         private readonly ImageWatchingPage _iwp;
 
-        public Gallery CurrLoadedGallery { get; set; }
-
         public readonly HttpClient httpClient = new(
             new SocketsHttpHandler() {
                 PooledConnectionIdleTimeout = TimeSpan.FromSeconds(15)
@@ -94,6 +92,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public void LoadGallery(Gallery gallery) {
+            SwitchPage();
             _iwp.LoadGalleryFromLocalDir(gallery);
         }
     }
