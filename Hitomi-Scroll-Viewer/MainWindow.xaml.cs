@@ -55,6 +55,11 @@ namespace Hitomi_Scroll_Viewer {
                 File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(ImageWatchingPage.GetSettings(), serializerOptions));
                 Close();
             };
+
+            RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
+                if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.HandleKeyDown(_, e);
+            };
+
             RootFrame.Content = SearchPage;
         }
 
