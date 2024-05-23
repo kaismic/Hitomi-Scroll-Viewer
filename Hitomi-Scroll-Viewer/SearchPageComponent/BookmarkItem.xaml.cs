@@ -49,7 +49,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             IdTextBlock.Text = "ID: " + gallery.id;
 
-            ImageContainerWrapper.Click += (_, _) => LoadBookmark(gallery);
+            ImageContainerWrapper.Click += (_, _) => (Window.Current as MainWindow).LoadGallery(gallery);
             RemoveBtn.Click += (_, _) => sp.RemoveBookmark(this);
             MoveUpBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => sp.SwapBookmarks(this, BookmarkSwapDirection.Down);
