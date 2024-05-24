@@ -22,23 +22,29 @@ namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
                 ViewDirection.TopToBottom => Dock.Top,
                 ViewDirection.LeftToRight => Dock.Left,
                 ViewDirection.RightToLeft => Dock.Right,
-                _ => throw new ArgumentOutOfRangeException(nameof(viewDirection), $"Unexpected ViewDirection value: {viewDirection}"),
+                _ => throw new ArgumentOutOfRangeException(nameof(viewDirection), $"Unexpected {typeof(ViewDirection)} value: {viewDirection}"),
             };
             foreach (var image in Children) {
                 SetDock(image as Image, dock);
             }
         }
 
-        public void SetImageSizes(SizeInt32 windowSize, ViewDirection viewDirection) {
-            bool isVertical = (viewDirection == ViewDirection.TopToBottom);
-            int dimension = isVertical ? windowSize.Height / _images.Length : windowSize.Width / _images.Length;
-            foreach (var image in _images) {
-                if (isVertical) {
-                    image.Height = dimension / _images.Length;
-                    (image.Source as BitmapImage).DecodePixelHeight = dimension / _images.Length;
-                } else {
-                    image.Width = dimension / _images.Length;
-                    (image.Source as BitmapImage).DecodePixelWidth = dimension / _images.Length;
+        public void SetImageSizes(ViewDirection viewDirection, SizeInt32 windowSize, double rasterizationScale) {
+            double dimension = viewDirection == ViewDirection.TopToBottom ? windowSize.Height : windowSize.Width;
+            dimension = dimension / _images.Length / rasterizationScale;
+            if (viewDirection == ViewDirection.TopToBottom) {
+                foreach (var image in _images) {
+                    image.Height = dimension;
+                    if (image.Source != null) {
+                        (image.Source as BitmapImage).DecodePixelHeight = (int)dimension;
+                    }
+                }
+            } else {
+                foreach (var image in _images) {
+                    image.Width = dimension;
+                    if (image.Source != null) {
+                        (image.Source as BitmapImage).DecodePixelWidth = (int)dimension;
+                    }
                 }
             }
         }
