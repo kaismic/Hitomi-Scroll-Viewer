@@ -30,7 +30,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private static readonly int MAX_BOOKMARK_PER_PAGE = 3;
 
-        private static readonly List<BookmarkItem> bmItems = [];
+        public static readonly List<BookmarkItem> BookmarkItems = [];
         private static readonly object _bmLock = new();
 
         public enum BookmarkSwapDirection {
@@ -118,7 +118,7 @@ namespace Hitomi_Scroll_Viewer {
 
             // fill bookmarks
             foreach (Gallery gallery in galleries) {
-                bmItems.Add(new(gallery, false));
+                BookmarkItems.Add(new(gallery, false));
             }
             UpdateBookmark();
         }
@@ -388,13 +388,13 @@ namespace Hitomi_Scroll_Viewer {
                     return bmItem;
                 }
                 bmItem = new BookmarkItem(gallery, true);
-                bmItems.Add(bmItem);
+                BookmarkItems.Add(bmItem);
                 // new page is needed
-                if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
+                if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
                     BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
                 }
-                WriteObjectToJson(BM_INFO_PATH, bmItems.Select(bmItem => bmItem.gallery));
-                if (bmItems.Count == 1) {
+                WriteObjectToJson(BM_INFO_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+                if (BookmarkItems.Count == 1) {
                     BookmarkPageSelector.SelectedIndex = 0;
                 } else {
                     UpdateBookmark();
@@ -407,12 +407,12 @@ namespace Hitomi_Scroll_Viewer {
             lock (_bmLock) {
                 string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
                 if (Directory.Exists(path)) Directory.Delete(path, true);
-                bmItems.Remove(bmItem);
-                WriteObjectToJson(BM_INFO_PATH, bmItems.Select(bmItem => bmItem.gallery));
+                BookmarkItems.Remove(bmItem);
+                WriteObjectToJson(BM_INFO_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
 
                 bool pageChanged = false;
                 // a page needs to be removed
-                if (bmItems.Count % MAX_BOOKMARK_PER_PAGE == 0) {
+                if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 0) {
                     // if current page is the last page
                     if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
                         pageChanged = true;
@@ -436,18 +436,18 @@ namespace Hitomi_Scroll_Viewer {
                         if (idx == 0) {
                             return;
                         }
-                        (bmItems[idx], bmItems[idx - 1]) = (bmItems[idx - 1], bmItems[idx]);
+                        (BookmarkItems[idx], BookmarkItems[idx - 1]) = (BookmarkItems[idx - 1], BookmarkItems[idx]);
                         break;
                     }
                     case BookmarkSwapDirection.Down: {
-                        if (idx == bmItems.Count - 1) {
+                        if (idx == BookmarkItems.Count - 1) {
                             return;
                         }
-                        (bmItems[idx], bmItems[idx + 1]) = (bmItems[idx + 1], bmItems[idx]);
+                        (BookmarkItems[idx], BookmarkItems[idx + 1]) = (BookmarkItems[idx + 1], BookmarkItems[idx]);
                         break;
                     }
                 }
-                WriteObjectToJson(BM_INFO_PATH, bmItems.Select(bmItem => bmItem.gallery));
+                WriteObjectToJson(BM_INFO_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
                 UpdateBookmark();
             }
         }
@@ -459,8 +459,8 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             for (int i = page * MAX_BOOKMARK_PER_PAGE; i < (page + 1) * MAX_BOOKMARK_PER_PAGE; i++) {
-                if (i < bmItems.Count) {
-                    BookmarkPanel.Children.Add(bmItems[i]);
+                if (i < BookmarkItems.Count) {
+                    BookmarkPanel.Children.Add(BookmarkItems[i]);
                 }
             }
         }
@@ -469,9 +469,9 @@ namespace Hitomi_Scroll_Viewer {
          * <returns>The <c>Gallery</c> if the gallery with the given id is bookmarked, otherwise <c>null</c>.</returns>
          */
         public static BookmarkItem GetBookmarkItem(string id) {
-            for (int i = 0; i < bmItems.Count; i++) {
-                if (bmItems[i].gallery.id == id) {
-                    return bmItems[i];
+            for (int i = 0; i < BookmarkItems.Count; i++) {
+                if (BookmarkItems[i].gallery.id == id) {
+                    return BookmarkItems[i];
                 }
             }
             return null;
@@ -481,8 +481,8 @@ namespace Hitomi_Scroll_Viewer {
          * <returns>The bookmark index of the bookmarked gallery. The given id must be from a bookmarked gallery.</returns>
          */
         public static int GetBookmarkIndex(string id) {
-            for (int i = 0; i < bmItems.Count; i++) {
-                if (bmItems[i].gallery.id == id) {
+            for (int i = 0; i < BookmarkItems.Count; i++) {
+                if (BookmarkItems[i].gallery.id == id) {
                     return i;
                 }
             }
