@@ -28,7 +28,7 @@
             <AppBarButton x:Name="ViewModeBtn"
                           MinWidth="120"
                           Icon="ViewAll"
-                          Click="HandleViewModeBtnClick"
+                          Click="ViewModeBtn_Clicked"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
@@ -56,9 +56,9 @@
                 <ComboBox x:Name="ViewDirectionSelector" MinWidth="150"
                           SelectionChanged="ViewDirectionSelector_SelectionChanged"
                           Header="View Direction">
-                    <ComboBoxItem>Top to Bottom</ComboBoxItem>
-                    <ComboBoxItem>Left to Right</ComboBoxItem>
-                    <ComboBoxItem>Right to Left</ComboBoxItem>
+                    <x:String>Top to Bottom</x:String>
+                    <x:String>Left to Right</x:String>
+                    <x:String>Right to Left</x:String>
                 </ComboBox>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
@@ -67,10 +67,10 @@
                           SelectionChanged="NumOfPagesSelector_SelectionChanged"
                           Header="Page Display Number"
                           ToolTipService.ToolTip="Set number of pages to display in Default Mode">
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                    <ComboBoxItem>3</ComboBoxItem>
-                    <ComboBoxItem>4</ComboBoxItem>
+                    <x:Int32>1</x:Int32>
+                    <x:Int32>2</x:Int32>
+                    <x:Int32>3</x:Int32>
+                    <x:Int32>4</x:Int32>
                 </ComboBox>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
