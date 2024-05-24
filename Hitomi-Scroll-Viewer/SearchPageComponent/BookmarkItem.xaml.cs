@@ -7,7 +7,7 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
-        private static readonly double THUMBNAIL_IMG_HEIGHT = 256;
+        private static readonly int THUMBNAIL_IMG_HEIGHT = 256;
         public readonly Gallery gallery;
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
         private readonly string _imageDir;
@@ -49,7 +49,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             IdTextBlock.Text = "ID: " + gallery.id;
 
-            ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGalleryFromLocalDir(gallery);
+            ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGallery(gallery);
             RemoveBtn.Click += (_, _) => MainWindow.SearchPage.RemoveBookmark(this);
             MoveUpBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Down);
@@ -68,7 +68,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 if (totalWidthSum > imageWrapperWidth) {
                     break;
                 }
-                _thumbnailImages.Add(new() { Width = width, Height = THUMBNAIL_IMG_HEIGHT });
+                _thumbnailImages.Add(new() {
+                    Height = THUMBNAIL_IMG_HEIGHT
+                });
             }
         }
 
@@ -78,13 +80,19 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
             if (files.Length > 0 && _thumbnailImages[i].Source == null) {
-                _thumbnailImages[i].Source = new BitmapImage(new(files[0]));
+                _thumbnailImages[i].Source = new BitmapImage(new(files[0])) {
+                    DecodePixelHeight = THUMBNAIL_IMG_HEIGHT
+                };
                 _thumbnailImages.NotifyItemChange();
             }
         }
 
         public void EnableRemoveBtn(bool enable) {
             RemoveBtn.IsEnabled = enable;
+        }
+
+        public void EnableBookmarkClick(bool enable) {
+            ImageContainerWrapper.IsEnabled = enable;
         }
     }
 }
