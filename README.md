@@ -1,7 +1,7 @@
 # Hitomi Scroll Viewer
-[![GitHub release](https://img.shields.io/github/release/kaismic/Hitomi-Scroll-Viewer.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
-[![GitHub downloads](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/latest/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
-[![GitHub downloads](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases)
+[![GitHub latest release](https://img.shields.io/github/release/kaismic/Hitomi-Scroll-Viewer.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
+[![GitHub downloads count latest release](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/latest/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
+[![GitHub downloads count total](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases)
 
 A viewer for hitomi.la (18+) with features such as auto scrolling, searching by tags and downloading.
 
