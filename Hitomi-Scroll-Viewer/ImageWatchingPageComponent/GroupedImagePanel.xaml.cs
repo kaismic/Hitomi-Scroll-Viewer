@@ -26,7 +26,7 @@ namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
                 ViewDirection.TopToBottom => Dock.Top,
                 ViewDirection.LeftToRight => Dock.Left,
                 ViewDirection.RightToLeft => Dock.Right,
-                _ => throw new ArgumentOutOfRangeException(nameof(viewDirection), $"Unexpected {typeof(ViewDirection)} value: {viewDirection}"),
+                _ => throw new ArgumentOutOfRangeException(nameof(viewDirection), $"Unexpected {typeof(ViewDirection)} value: {viewDirection}")
             };
             foreach (var image in Children) {
                 SetDock(image as Image, dock);
