@@ -60,7 +60,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             double totalWidthSum = 0;
             double imageWrapperWidth = ImageContainerWrapper.ActualWidth;
             for (int i = 0; i < gallery.files.Length; i++) {
-                double width = gallery.files[i].width * THUMBNAIL_IMG_HEIGHT / gallery.files[i].height;
+                double width = THUMBNAIL_IMG_HEIGHT * gallery.files[i].width / gallery.files[i].height;
                 totalWidthSum += width;
                 if (i > 0) {
                     totalWidthSum += ImageContainer.Spacing;
@@ -69,7 +69,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     break;
                 }
                 _thumbnailImages.Add(new() {
-                    Height = THUMBNAIL_IMG_HEIGHT
+                    Height = THUMBNAIL_IMG_HEIGHT,
+                    Width = width
                 });
             }
         }
