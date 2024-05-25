@@ -37,7 +37,7 @@ namespace Hitomi_Scroll_Viewer {
         private readonly ScrollViewer _scrollViewModeScrollView = new() {
             ZoomMode = ZoomMode.Enabled
         };
-        private readonly ItemsRepeater _scrollViewItemsRepeater = new() {
+        private readonly ItemsRepeater _scrollViewItemsRepeater = new();
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -234,7 +234,7 @@ namespace Hitomi_Scroll_Viewer {
                         _scrollViewItemsRepeater.ItemsSource = _imageCollection;
                     }
                     double dimension = _viewDirection == ViewDirection.TopToBottom ? windowSize.Width : windowSize.Height;
-                    dimension = dimension / rasterizationScale / 2;
+                    dimension /= rasterizationScale;
                     switch (_viewDirection) {
                         case ViewDirection.TopToBottom:
                             for (int i = 0; i < _imageCollection.Count; i++) {
