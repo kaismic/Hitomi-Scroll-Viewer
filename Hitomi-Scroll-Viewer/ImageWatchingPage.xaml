@@ -19,10 +19,11 @@
                           Label="Go Back"
                           />
             <AppBarSeparator MinWidth="30"/>
-            <AppBarButton x:Name="ReloadBtn"
+            <AppBarButton x:Name="RefreshBtn"
                           MinWidth="50"
                           Icon="Refresh"
-                          Label="Reload Images"
+                          Label="Refresh"
+                          Click="RefreshBtn_Clicked"
                           />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
@@ -95,7 +96,8 @@
                  Width="500"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
-                 Opacity="0">
+                 Opacity="0"
+                 IsHitTestVisible="False">
             <Viewbox.Resources>
                 <Storyboard x:Name="FadeOutStoryboard">
                     <DoubleAnimation Storyboard.TargetName="ActionIndicator"
