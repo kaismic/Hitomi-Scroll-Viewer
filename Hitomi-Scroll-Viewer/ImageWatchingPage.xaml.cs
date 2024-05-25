@@ -1,5 +1,4 @@
 ﻿using Hitomi_Scroll_Viewer.ImageWatchingPageComponent;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -35,8 +34,8 @@ namespace Hitomi_Scroll_Viewer {
         private readonly ObservableCollection<GroupedImagePanel> _groupedImagePanels = [];
 
         private readonly FlipView _defaultViewModeFlipView = new();
-        private readonly ScrollView _scrollViewModeScrollView = new() {
-            ZoomMode = ScrollingZoomMode.Enabled
+        private readonly ScrollViewer _scrollViewModeScrollView = new() {
+            ZoomMode = ZoomMode.Enabled
         };
         private readonly ItemsRepeater _scrollViewItemsRepeater = new() {
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -104,17 +103,17 @@ namespace Hitomi_Scroll_Viewer {
             }
             SetScrollSpeedSlider();
             ViewDirectionSelector.SelectedIndex = (int)_viewDirection;
-            NumOfPagesSelector.SelectedIndex = (_numOfPages - 1);
+            NumOfPagesSelector.SelectedIndex = _numOfPages - 1;
             LoopBtn.IsChecked = _isLooping;
 
             // handle mouse movement on commandbar
             TopCommandBar.PointerEntered += (_, _) => {
                 TopCommandBar.IsOpen = true;
-                //TopCommandBar.Background.Opacity = 1;
+                TopCommandBar.Background.Opacity = 1;
                 PageNumDisplay.Visibility = Visibility.Visible;
             };
             TopCommandBar.Closing += (_, _) => {
-                //TopCommandBar.Background.Opacity = 0;
+                TopCommandBar.Background.Opacity = 0;
                 PageNumDisplay.Visibility = Visibility.Collapsed;
             };
 
@@ -186,17 +185,17 @@ namespace Hitomi_Scroll_Viewer {
             switch (_viewDirection) {
                 case ViewDirection.TopToBottom:
                     _scrollViewStackLayout.Orientation = Orientation.Vertical;
-                    _scrollViewModeScrollView.HorizontalScrollMode = ScrollingScrollMode.Disabled;
-                    _scrollViewModeScrollView.VerticalScrollMode = ScrollingScrollMode.Enabled;
-                    _scrollViewModeScrollView.HorizontalScrollBarVisibility = ScrollingScrollBarVisibility.Hidden;
-                    _scrollViewModeScrollView.VerticalScrollBarVisibility = ScrollingScrollBarVisibility.Visible;
+                    _scrollViewModeScrollView.HorizontalScrollMode = ScrollMode.Disabled;
+                    _scrollViewModeScrollView.VerticalScrollMode = ScrollMode.Enabled;
+                    _scrollViewModeScrollView.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+                    _scrollViewModeScrollView.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
                     break;
                 case ViewDirection.LeftToRight or ViewDirection.RightToLeft:
                     _scrollViewStackLayout.Orientation = Orientation.Horizontal;
-                    _scrollViewModeScrollView.HorizontalScrollMode = ScrollingScrollMode.Enabled;
-                    _scrollViewModeScrollView.VerticalScrollMode = ScrollingScrollMode.Disabled;
-                    _scrollViewModeScrollView.HorizontalScrollBarVisibility = ScrollingScrollBarVisibility.Visible;
-                    _scrollViewModeScrollView.VerticalScrollBarVisibility = ScrollingScrollBarVisibility.Hidden;
+                    _scrollViewModeScrollView.HorizontalScrollMode = ScrollMode.Enabled;
+                    _scrollViewModeScrollView.VerticalScrollMode = ScrollMode.Disabled;
+                    _scrollViewModeScrollView.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
+                    _scrollViewModeScrollView.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
                     break;
             }
         }
@@ -235,18 +234,22 @@ namespace Hitomi_Scroll_Viewer {
                         _scrollViewItemsRepeater.ItemsSource = _imageCollection;
                     }
                     double dimension = _viewDirection == ViewDirection.TopToBottom ? windowSize.Width : windowSize.Height;
-                    dimension /= rasterizationScale;
+                    dimension = dimension / rasterizationScale / 2;
                     switch (_viewDirection) {
                         case ViewDirection.TopToBottom:
-                            foreach (var image in _imageCollection) {
+                            for (int i = 0; i < _imageCollection.Count; i++) {
+                                Image image = _imageCollection[i];
                                 image.Width = dimension;
+                                image.Height = dimension * CurrLoadedGallery.files[i].height / CurrLoadedGallery.files[i].width;
                                 if (image.Source != null) {
                                     (image.Source as BitmapImage).DecodePixelWidth = (int)dimension;
                                 }
                             }
                             break;
                         case ViewDirection.LeftToRight or ViewDirection.RightToLeft:
-                            foreach (var image in _imageCollection) {
+                            for (int i = 0; i < _imageCollection.Count; i++) {
+                                Image image = _imageCollection[i];
+                                image.Width = dimension * CurrLoadedGallery.files[i].width / CurrLoadedGallery.files[i].height;
                                 image.Height = dimension;
                                 if (image.Source != null) {
                                     (image.Source as BitmapImage).DecodePixelHeight = (int)dimension;
@@ -341,10 +344,10 @@ namespace Hitomi_Scroll_Viewer {
                         _groupedImagePanels = [0 ~ 3, 4 ~ 7, 8 ~ 11, 12 ~ 15, 16 ~ 19, 20 ~ 21]
                     */
                     for (int i = 0; i < _imageCollection.Count / _numOfPages; i++) {
-                        _groupedImagePanels.Add(new(_imageCollection.Take((i * _numOfPages)..((i + 1) * _numOfPages)).ToArray(), _viewDirection));
-                    }
-                    if (_imageCollection.Count % _numOfPages > 0) {
-                        _groupedImagePanels.Add(new(_imageCollection.Take((_imageCollection.Count / _numOfPages * _numOfPages)..(_imageCollection.Count)).ToArray(), _viewDirection));
+                        Range range = (i * _numOfPages)..(Math.Min((i + 1) * _numOfPages, _imageCollection.Count));
+                        _groupedImagePanels.Add(
+                            new(_viewDirection, _imageCollection.Take(range), CurrLoadedGallery.files.Take(range))
+                        );
                     }
                     SetPageText(_defaultViewModeFlipView.SelectedIndex * _numOfPages);
 
@@ -607,7 +610,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private void EnableControls(bool enable) {
             SearchPage.BookmarkItems.ForEach(bmItem => bmItem.EnableBookmarkClick(enable));
-            ReloadBtn.IsEnabled = enable;
+            RefreshBtn.IsEnabled = enable;
             ViewModeBtn.IsEnabled = enable;
             ScrollSpeedSlider.IsEnabled = enable;
             AutoScrollBtn.IsEnabled = enable;
@@ -657,6 +660,8 @@ namespace Hitomi_Scroll_Viewer {
                     _groupedImagePanels.Clear();
 
                     PageNavigator.ItemsSource = Enumerable.Range(1, gallery.files.Length + 1).ToList();
+                    PageNavigator.SelectedIndex = 0;
+                    SetPageText(0);
                     for (int i = 0; i < gallery.files.Length; i++) {
                         Image image = new();
                         string[] files = Directory.GetFiles(imageDir, i.ToString() + ".*");
@@ -667,6 +672,30 @@ namespace Hitomi_Scroll_Viewer {
                         _reverseImageCollection.Insert(0, image);
                     }
                     RefreshLayout();
+                } finally {
+                    StartStopAction(false);
+                }
+            }
+        }
+
+        private void RefreshBtn_Clicked(object _0, RoutedEventArgs _1) {
+            if (StartStopAction(true)) {
+                try {
+                    ShowActionIndicator(Symbol.Refresh, null);
+                    string imageDir = Path.Combine(IMAGE_DIR, CurrLoadedGallery.id);
+                    if (!Directory.Exists(imageDir)) {
+                        return;
+                    }
+                    for (int i = 0; i < _imageCollection.Count; i++) {
+                        Image image = _imageCollection[i];
+                        if (image.Source == null) {
+                            string[] files = Directory.GetFiles(imageDir, i.ToString() + ".*");
+                            if (files.Length > 0) {
+                                image.Source = new BitmapImage(new(files[0]));
+                            }
+                        }
+                    }
+                    SetImageOrientationAndSize();
                 } finally {
                     StartStopAction(false);
                 }
