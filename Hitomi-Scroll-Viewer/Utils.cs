@@ -169,7 +169,7 @@ namespace Hitomi_Scroll_Viewer {
         /**
          * <exception cref="TaskCanceledException"></exception>
         */
-        public static Task DownloadImages(DownloadInfo di, string[] imgAddresses, string[] imgFormats, List<int> indexes) {
+        public static Task DownloadImages(DownloadInfo di, string[] imgAddresses, string[] imgFormats, List<int> missingIndexes) {
             Directory.CreateDirectory(Path.Combine(IMAGE_DIR, di.id));
 
             /*
@@ -193,12 +193,12 @@ namespace Hitomi_Scroll_Viewer {
                 int thisJMax = quotient + (i < remainder ? 1 : 0);
                 tasks[i] = Task.Run(async () => {
                     for (int j = 0; j < thisJMax; j++) {
-                        int idx = thisStartIdx + j;
-                        await FetchImage(di, imgAddresses[idx], imgFormats[idx], indexes[idx])
+                        int i = thisStartIdx + j;
+                        await FetchImage(di, imgAddresses[i], imgFormats[i], missingIndexes[i])
                         .ContinueWith(
                             (task) => {
                                 if (task.IsCompletedSuccessfully) {
-                                    di.bmItem.DispatcherQueue.TryEnqueue(() => { di.bmItem.UpdateSingleImage(idx); });
+                                    di.bmItem.DispatcherQueue.TryEnqueue(() => { di.bmItem.UpdateSingleImage(missingIndexes[i]); });
                                     di.progressBar.DispatcherQueue.TryEnqueue(() => {
                                         lock (di.progressBar) {
                                             di.progressBar.Value++;
