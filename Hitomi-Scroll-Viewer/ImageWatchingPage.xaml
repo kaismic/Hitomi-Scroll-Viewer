@@ -8,29 +8,29 @@
     <Grid>
         <ContentControl x:Name="ImageContainer"/>
         <CommandBar x:Name="TopCommandBar"
+                    Background="{ThemeResource LayerFillColorAltBrush}"
                     ClosedDisplayMode="Minimal"
                     OverflowButtonVisibility="Collapsed"
                     HorizontalAlignment="Center"
-                    IsOpen="True"
-                    Style="{ThemeResource DefaultCommandBarStyle}">
+                    IsOpen="True">
             <AppBarButton x:Name="GoBackBtn"
-                          MinWidth="50"
-                          Icon="Back"
-                          Label="Go Back"
-                          />
+                            MinWidth="50"
+                            Icon="Back"
+                            Label="Go Back"
+                            />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="RefreshBtn"
-                          MinWidth="50"
-                          Icon="Refresh"
-                          Label="Refresh"
-                          Click="RefreshBtn_Clicked"
-                          />
+                            MinWidth="50"
+                            Icon="Refresh"
+                            Label="Refresh"
+                            Click="RefreshBtn_Clicked"
+                            />
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
-                          MinWidth="120"
-                          Icon="ViewAll"
-                          Click="ViewModeBtn_Clicked"
-                          />
+                            MinWidth="120"
+                            Icon="ViewAll"
+                            Click="ViewModeBtn_Clicked"
+                            />
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <Slider x:Name="ScrollSpeedSlider"
@@ -55,8 +55,8 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="ViewDirectionSelector" MinWidth="150"
-                          SelectionChanged="ViewDirectionSelector_SelectionChanged"
-                          Header="View Direction">
+                            SelectionChanged="ViewDirectionSelector_SelectionChanged"
+                            Header="View Direction">
                     <x:String>Top to Bottom</x:String>
                     <x:String>Left to Right</x:String>
                     <x:String>Right to Left</x:String>
@@ -65,9 +65,9 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="NumOfPagesSelector"
-                          SelectionChanged="NumOfPagesSelector_SelectionChanged"
-                          Header="Page Display Number"
-                          ToolTipService.ToolTip="Set number of pages to display in Default Mode">
+                            SelectionChanged="NumOfPagesSelector_SelectionChanged"
+                            Header="Page Display Number"
+                            ToolTipService.ToolTip="Set number of pages to display in Default Mode">
                     <x:Int32>1</x:Int32>
                     <x:Int32>2</x:Int32>
                     <x:Int32>3</x:Int32>
@@ -77,19 +77,21 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="PageNavigator"
-                          SelectionChanged="PageNavigator_SelectionChanged"
-                          Header="Go to page"
-                          MinWidth="90">
+                            SelectionChanged="PageNavigator_SelectionChanged"
+                            Header="Go to page"
+                            MinWidth="90">
                 </ComboBox>
             </AppBarElementContainer>
         </CommandBar>
         <Border x:Name="PageNumDisplay"
-                Background="{ThemeResource AppBarBackgroundThemeBrush}"
+                Background="{ThemeResource LayerFillColorAltBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                CornerRadius="16"
+                BorderThickness="1"
                 Visibility="Collapsed"
                 HorizontalAlignment="Center" VerticalAlignment="Top"
                 Margin="0, 128, 0, 0"
-                Padding="8 8"
-                CornerRadius="16">
+                Padding="8">
             <TextBlock x:Name="PageNumText" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <Viewbox x:Name="ActionIndicator"
