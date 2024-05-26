@@ -33,8 +33,8 @@ namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
             }
         }
 
-        public void SetImageSizes(ViewDirection viewDirection, SizeInt32 windowSize, double rasterizationScale) {
-            double dimension = viewDirection == ViewDirection.TopToBottom ? windowSize.Height : windowSize.Width - 64; // for FlipView left/right navigation button margin
+        public void SetImageSizes(ViewDirection viewDirection, (double width, double height) viewportSize, double rasterizationScale) {
+            double dimension = viewDirection == ViewDirection.TopToBottom ? viewportSize.height : viewportSize.width - 16; // for FlipView left/right navigation button margin
             dimension = dimension / _images.Count() / rasterizationScale;
             if (viewDirection == ViewDirection.TopToBottom) {
                 for (int i = 0; i < _images.Count(); i++) {
