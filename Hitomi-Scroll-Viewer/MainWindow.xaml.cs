@@ -4,11 +4,9 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using Windows.System;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
@@ -58,11 +56,10 @@ namespace Hitomi_Scroll_Viewer {
                 File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(ImageWatchingPage.GetSettings(), serializerOptions));
                 Close();
             };
-            RootFrame.Content = SearchPage;
-        }
+            SizeChanged += (_, _) => { if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.Window_SizeChanged(); };
+            RootFrame.PointerPressed += RootFrame_PointerPressed;
 
-        public void RootFrame_KeyDown(object _, KeyRoutedEventArgs e) {
-            if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.HandleKeyDown(_, e);
+            RootFrame.Content = SearchPage;
         }
 
         private void RootFrame_PointerPressed(object _0, PointerRoutedEventArgs e) {
