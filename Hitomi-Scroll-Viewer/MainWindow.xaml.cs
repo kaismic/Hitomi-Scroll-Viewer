@@ -1,11 +1,14 @@
-﻿using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Input;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using Windows.System;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
@@ -38,7 +41,7 @@ namespace Hitomi_Scroll_Viewer {
                 e.Cancel = true;
                 if (!SearchPage.downloadingGalleries.IsEmpty) {
                     ContentDialog dialog = new() {
-                        Title = "App is busy downloading galleries. Exit anyway?",
+                        Title = "There are remaining downloads. Exit anyway?",
                         PrimaryButtonText = "Exit",
                         CloseButtonText = "Cancel",
                         XamlRoot = Content.XamlRoot
@@ -55,12 +58,20 @@ namespace Hitomi_Scroll_Viewer {
                 File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(ImageWatchingPage.GetSettings(), serializerOptions));
                 Close();
             };
-
-            RootFrame.KeyDown += (object _, KeyRoutedEventArgs e) => {
-                if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.HandleKeyDown(_, e);
-            };
-
             RootFrame.Content = SearchPage;
+        }
+
+        public void RootFrame_KeyDown(object _, KeyRoutedEventArgs e) {
+            if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.HandleKeyDown(_, e);
+        }
+
+        private void RootFrame_PointerPressed(object _0, PointerRoutedEventArgs e) {
+            // Get the pointer point 
+            var pointerProperties = e.GetCurrentPoint(null).Properties;
+            // Check if XButton1 (back button) or XButton2 (forward button) is pressed
+            if (pointerProperties.PointerUpdateKind is PointerUpdateKind.XButton1Pressed or PointerUpdateKind.XButton2Pressed) {
+                SwitchPage();
+            }
         }
 
         public void SwitchPage() {
