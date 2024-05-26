@@ -59,8 +59,10 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            _bmItem.isDownloading = false;
-            _bmItem?.EnableRemoveBtn(true);
+            if (_bmItem != null) {
+                _bmItem.isDownloading = false;
+                _bmItem?.EnableRemoveBtn(true);
+            }
             _sp.downloadingGalleries.TryRemove(_id, out _);
             _downloadingItems.Remove(this);
         }
