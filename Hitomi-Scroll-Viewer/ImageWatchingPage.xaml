@@ -8,7 +8,7 @@
     <Grid>
         <ContentControl x:Name="ImageContainer"/>
         <CommandBar x:Name="TopCommandBar"
-                    Background="{ThemeResource LayerFillColorAltBrush}"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     ClosedDisplayMode="Minimal"
                     OverflowButtonVisibility="Collapsed"
                     HorizontalAlignment="Center"
@@ -28,9 +28,11 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
                             MinWidth="120"
-                            Icon="ViewAll"
-                            Click="ViewModeBtn_Clicked"
-                            />
+                            Click="ViewModeBtn_Clicked">
+                <AppBarButton.Icon>
+                    <FontIcon x:Name="ViewModeBtnIcon" FontFamily="{StaticResource SymbolThemeFontFamily}"/>
+                </AppBarButton.Icon>
+            </AppBarButton>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <Slider x:Name="ScrollSpeedSlider"
@@ -84,7 +86,7 @@
             </AppBarElementContainer>
         </CommandBar>
         <Border x:Name="PageNumDisplay"
-                Background="{ThemeResource LayerFillColorAltBrush}"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 CornerRadius="16"
                 BorderThickness="1"
@@ -112,7 +114,7 @@
             <Grid>
                 <SymbolIcon x:Name="ActionIndicatorSymbolIcon"
                           Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
-                <FontIcon x:Name="ActionIndicatorFontIcon" FontFamily="Segoe MDL2 Assets"
+                <FontIcon x:Name="ActionIndicatorFontIcon" FontFamily="{StaticResource SymbolThemeFontFamily}"
                           Foreground="{ThemeResource AccentFillColorDefaultBrush}"
                           FontSize="32"/>
             </Grid>
