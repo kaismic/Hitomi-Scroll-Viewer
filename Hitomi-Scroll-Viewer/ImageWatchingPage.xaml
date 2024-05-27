@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <Grid>
-        <ContentControl x:Name="ImageContainer"/>
+        <ContentControl x:Name="ImageContainer" IsTabStop="False"/>
         <CommandBar x:Name="TopCommandBar"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     ClosedDisplayMode="Minimal"
@@ -93,7 +93,9 @@
                 Visibility="Collapsed"
                 HorizontalAlignment="Center" VerticalAlignment="Top"
                 Margin="0, 128, 0, 0"
-                Padding="8">
+                Padding="8"
+                IsTabStop="False"
+                IsTapEnabled="False">
             <TextBlock x:Name="PageNumText" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <Viewbox x:Name="ActionIndicator"
@@ -101,7 +103,9 @@
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
                  Opacity="0"
-                 IsHitTestVisible="False">
+                 IsHitTestVisible="False"
+                 IsTabStop="False"
+                 IsTapEnabled="False">
             <Viewbox.Resources>
                 <Storyboard x:Name="FadeOutStoryboard">
                     <DoubleAnimation Storyboard.TargetName="ActionIndicator"
