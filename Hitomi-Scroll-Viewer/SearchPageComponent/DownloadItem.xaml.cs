@@ -2,7 +2,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -10,6 +9,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
+using static Hitomi_Scroll_Viewer.SearchPage;
+using static Hitomi_Scroll_Viewer.MainWindow;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class DownloadItem : Grid {
@@ -21,10 +22,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
         private DownloadingState _downloadingState = DownloadingState.Downloading;
 
-        private readonly SearchPage _sp;
-        private readonly HttpClient _httpClient;
         private CancellationTokenSource _cts;
-        private readonly ObservableCollection<DownloadItem> _downloadingItems;
 
         private Gallery _gallery;
         private string _id;
@@ -32,12 +30,9 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
 
-        public DownloadItem(string id, HttpClient httpClient, SearchPage sp, ObservableCollection<DownloadItem> downloadingItems) {
+        public DownloadItem(string id) {
             _id = id;
-            _httpClient = httpClient;
-            _sp = sp;
             _cts = new();
-            _downloadingItems = downloadingItems;
 
             InitializeComponent();
 
@@ -49,7 +44,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 RemoveSelf();
             };
 
-            Download(_cts.Token);
+            //Download(_cts.Token);
         }
 
         private void EnableButtons(bool enable) {
@@ -63,8 +58,8 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 _bmItem.isDownloading = false;
                 _bmItem?.EnableRemoveBtn(true);
             }
-            _sp.downloadingGalleries.TryRemove(_id, out _);
-            _downloadingItems.Remove(this);
+            DownloadingGalleries.TryRemove(_id, out _);
+            MainWindow.SearchPage.DownloadingItems.Remove(this);
         }
 
         private void PauseOrResume(object _0, RoutedEventArgs _1) {
@@ -144,7 +139,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 DownloadStatus.Text = "Getting gallery info...";
                 string galleryInfo;
                 try {
-                    galleryInfo = await GetGalleryInfo(_httpClient, _id, ct);
+                    galleryInfo = await GetGalleryInfo(HitomiHttpClient, _id, ct);
                 } catch (HttpRequestException e) {
                     if (e.InnerException != null) {
                         _ = File.AppendAllTextAsync(
@@ -177,13 +172,13 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             // sometimes gallery id is different to the id in ltn.hitomi.la/galleries/{id}.js but points to the same gallery
             if (_id != _gallery.id) {
-                _sp.downloadingGalleries.TryAdd(_gallery.id, 0);
-                _sp.downloadingGalleries.TryRemove(_id, out _);
+                DownloadingGalleries.TryAdd(_gallery.id, 0);
+                DownloadingGalleries.TryRemove(_id, out _);
                 _id = _gallery.id;
             }
 
             if (_bmItem == null) {
-                _bmItem = _sp.CreateAndAddBookmark(_gallery);
+                _bmItem = MainWindow.SearchPage.CreateAndAddBookmark(_gallery);
             }
 
             DownloadStatus.Text = "Calculating number of images to download...";
@@ -205,7 +200,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             string ggjs;
             try {
-                ggjs = await GetggjsFile(_httpClient, ct);
+                ggjs = await GetggjsFile(HitomiHttpClient, ct);
             } catch (HttpRequestException e) {
                 SetStateAndText(DownloadingState.Failed, "An error has occurred while getting the server time.\n" + e.Message);
                 return;
@@ -225,7 +220,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             DownloadStatus.Text = "Downloading Images...";
             Task downloadTask = DownloadImages(
                 new DownloadInfo {
-                    httpClient = _httpClient,
+                    httpClient = HitomiHttpClient,
                     id = _gallery.id,
                     concurrentTaskNum = (int)ThreadNumComboBox.SelectedItem,
                     progressBar = DownloadProgressBar,
