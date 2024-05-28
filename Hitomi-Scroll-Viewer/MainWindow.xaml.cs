@@ -14,7 +14,7 @@ namespace Hitomi_Scroll_Viewer {
         public static SearchPage SearchPage { get; private set; }
         public static ImageWatchingPage ImageWatchingPage { get; private set; }
 
-        public readonly HttpClient httpClient = new(
+        public static readonly HttpClient HitomiHttpClient = new(
             new SocketsHttpHandler() {
                 PooledConnectionIdleTimeout = TimeSpan.FromSeconds(15)
             }
@@ -37,7 +37,7 @@ namespace Hitomi_Scroll_Viewer {
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
                 e.Cancel = true;
-                if (!SearchPage.downloadingGalleries.IsEmpty) {
+                if (!SearchPage.DownloadingGalleries.IsEmpty) {
                     ContentDialog dialog = new() {
                         Title = "There are remaining downloads. Exit anyway?",
                         PrimaryButtonText = "Exit",
