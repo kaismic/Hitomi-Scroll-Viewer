@@ -32,7 +32,7 @@ namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
             }
         }
 
-        public void SetImageSizes(ViewDirection viewDirection, (double width, double height) viewportSize, double rasterizationScale) {
+        public void SetImageSizes(ViewDirection viewDirection, (double width, double height) viewportSize) {
             int numOfPages = _images.Count();
             double maxImgWidth = viewDirection == ViewDirection.TopToBottom ? viewportSize.width : viewportSize.width / numOfPages;
             double maxImgHeight = viewDirection != ViewDirection.TopToBottom ? viewportSize.height : viewportSize.height / numOfPages;
