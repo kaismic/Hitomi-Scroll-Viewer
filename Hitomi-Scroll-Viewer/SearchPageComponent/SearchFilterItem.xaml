@@ -6,5 +6,5 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     MinWidth="0">
-    <TextBlock Text="{x:Bind TagName}"></TextBlock>
+    <TextBlock Text="{x:Bind TagName}" TextWrapping="Wrap"></TextBlock>
 </CheckBox>
