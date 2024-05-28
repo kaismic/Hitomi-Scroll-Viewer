@@ -32,7 +32,9 @@ namespace Hitomi_Scroll_Viewer {
         private readonly ObservableCollection<Image> _reverseImageCollection = [];
         private readonly ObservableCollection<GroupedImagePanel> _groupedImagePanels = [];
 
-        private readonly FlipView _flipView = new();
+        private readonly FlipView _flipView = new() {
+            Padding = new(24, 0, 24, 0)
+        };
         private readonly ScrollViewer _scrollViewer = new() {
             ZoomMode = ZoomMode.Enabled
         };
@@ -232,9 +234,11 @@ namespace Hitomi_Scroll_Viewer {
                         viewportSize = (_flipView.ActualWidth, _flipView.ActualHeight);
                         await Task.Delay(200);
                     }
+                    var flipViewPadding= _flipView.Padding;
+                    viewportSize.width -= flipViewPadding.Left + flipViewPadding.Right;
                     foreach (var panel in _groupedImagePanels) {
                         panel.UpdateViewDirection(_viewDirection);
-                        panel.SetImageSizes(_viewDirection, viewportSize, rasterizationScale);
+                        panel.SetImageSizes(_viewDirection, viewportSize);
                     }
                     break;
                 case ViewMode.Scroll:
