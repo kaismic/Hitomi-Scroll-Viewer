@@ -43,8 +43,8 @@ namespace Hitomi_Scroll_Viewer {
 
         private readonly ObservableCollection<SearchLinkItem> _searchLinkItems = [];
 
-        private readonly ObservableCollection<DownloadItem> _downloadingItems = [];
-        public readonly ConcurrentDictionary<string, byte> downloadingGalleries = [];
+        public readonly ObservableCollection<DownloadItem> DownloadingItems = [];
+        public static readonly ConcurrentDictionary<string, byte> DownloadingGalleries = [];
 
         private string _currTagName;
 
@@ -59,7 +59,13 @@ namespace Hitomi_Scroll_Viewer {
         private readonly ContentDialog _confirmDialog = new() {
             IsPrimaryButtonEnabled = true,
             PrimaryButtonText = "Yes",
-            CloseButtonText = "Cancel"
+            CloseButtonText = "Cancel",
+            Title = new TextBlock() {
+                TextWrapping = TextWrapping.WrapWholeWords
+            },
+            Content = new TextBlock() {
+                TextWrapping = TextWrapping.WrapWholeWords
+            }
         };
         private readonly Button[] _controlButtons = new Button[Enum.GetNames<TagListAction>().Length];
         private readonly string[] _controlButtonTexts = [
@@ -128,41 +134,35 @@ namespace Hitomi_Scroll_Viewer {
             CornerRadius radius = new(4);
             for (int i = 0; i < Enum.GetNames<TagListAction>().Length; i++) {
                 _controlButtons[i] = new() {
-                    MinHeight = 80,
                     CornerRadius = radius,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch,
                     BorderBrush = _controlButtonBorderColors[i],
                     Content = new TextBlock() {
                         Text = _controlButtonTexts[i],
                         TextWrapping = TextWrapping.WrapWholeWords
                     }
                 };
+                ControlButtonContainer.RowDefinitions.Add(new());
+                Grid.SetRow(_controlButtons[i], i);
                 ControlButtonContainer.Children.Add(_controlButtons[i]);
             }
-            void setXamlRoot(object _0, RoutedEventArgs _1) {
+            void SetConfirmDialogXamlRoot(object _0, RoutedEventArgs _1) {
                 _confirmDialog.XamlRoot = XamlRoot;
-                Loaded -= setXamlRoot;
+                Loaded -= SetConfirmDialogXamlRoot;
             };
-            Loaded += setXamlRoot;
+            Loaded += SetConfirmDialogXamlRoot;
 
             _controlButtons[(int)TagListAction.Create].Click += CreateTagBtn_Clicked;
             _controlButtons[(int)TagListAction.Rename].Click += RenameTagBtn_Clicked;
             _controlButtons[(int)TagListAction.Save].Click += SaveTagBtn_Clicked;
             _controlButtons[(int)TagListAction.Remove].Click += RemoveTagBtn_Clicked;
             _controlButtons[(int)TagListAction.Clear].Click += ClearTagTextboxBtn_Clicked;
-
-            void SetActionPanelsHeight(object _0, RoutedEventArgs _1) {
-                SearchLinkItemsListView.MaxHeight = ControlButtonContainer.ActualHeight - CreateHyperlinkBtn.ActualHeight - (SearchLinkItemsListView.Parent as StackPanel).Spacing;
-                DownloadItemsListView.MaxHeight = ControlButtonContainer.ActualHeight - DownloadActionGrid.ActualHeight - (DownloadItemsListView.Parent as StackPanel).Spacing;
-                ControlButtonContainer.Loaded -= SetActionPanelsHeight;
-            };
-            ControlButtonContainer.Loaded += SetActionPanelsHeight;
-
         }
 
         private async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
-            _confirmDialog.Title = title;
-            _confirmDialog.Content = content;
+            (_confirmDialog.Title as TextBlock).Text = title;
+            (_confirmDialog.Content as TextBlock).Text = content;
             ContentDialogResult result = await _confirmDialog.ShowAsync();
             return result;
         }
@@ -215,11 +215,11 @@ namespace Hitomi_Scroll_Viewer {
             string oldTagName = _currTagName;
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
-               MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
+                MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             if (_tagsDict.ContainsKey(newTagName)) {
-               MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
+                MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
             ContentDialogResult cdr = await ShowConfirmDialogAsync($"Rename '{oldTagName}' to '{newTagName}'?", "");
@@ -370,13 +370,13 @@ namespace Hitomi_Scroll_Viewer {
             
             foreach (string extractedId in extractedIds) {
                 // skip if it is already downloading
-                if (downloadingGalleries.TryGetValue(extractedId, out _)) {
+                if (DownloadingGalleries.TryGetValue(extractedId, out _)) {
                     // TODO toast message "Gallery {extractedId} is currently being downloaded"
                     continue;
                 }
                 // Download
-                downloadingGalleries.TryAdd(extractedId, 0);
-                _downloadingItems.Add(new (extractedId, App.MainWindow.httpClient, this, _downloadingItems));
+                DownloadingGalleries.TryAdd(extractedId, 0);
+                DownloadingItems.Add(new(extractedId));
             }
         }
 
