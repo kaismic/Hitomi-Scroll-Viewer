@@ -19,7 +19,7 @@
                      HorizontalContentAlignment="Left"
                      VerticalAlignment="Stretch">
         <TextBlock TextWrapping="WrapWholeWords"
-                   FontSize="10"
+                   FontSize="12"
                    Text="{x:Bind _displayText}"/>
     </HyperlinkButton>
     <Button Grid.Column="1" CommandParameter="{x:Bind}">
