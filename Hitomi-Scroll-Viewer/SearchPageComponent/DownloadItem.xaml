@@ -7,10 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     
+    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+    CornerRadius="{StaticResource OverlayCornerRadius}"
     BorderThickness="1"
-    Background="LightBlue"
-    CornerRadius="10"
-    Padding="10"
+    Padding="16"
     ColumnSpacing="8"
     RowSpacing="4"
     >
@@ -31,15 +32,20 @@
     <TextBlock x:Name="DownloadStatus" Grid.Row="2" Grid.Column="0"
                TextWrapping="WrapWholeWords"/>
     <Button x:Name="DownloadControlBtn" Grid.Row="0" Grid.Column="1"
-            Click="PauseOrResume"/>
+            Click="PauseOrResume"
+            HorizontalAlignment="Stretch"/>
     <Button x:Name="CancelBtn" Grid.Row="0" Grid.Column="2"
-            ToolTipService.ToolTip="Cancel Download">
+            ToolTipService.ToolTip="Cancel Download"
+            HorizontalAlignment="Stretch">
         <SymbolIcon Symbol="Delete"></SymbolIcon>
     </Button>
     <ComboBox x:Name="ThreadNumComboBox"
               Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
-              Header="Download Threads"
               ItemsSource="{x:Bind _threadNums}"
               SelectedIndex="0"
-              SelectionChanged="HandleThreadNumChange"/>
+              SelectionChanged="HandleThreadNumChange">
+        <ComboBox.Header>
+            <TextBlock Text="Download Threads" Style="{StaticResource BaseTextBlockStyle}"/>
+        </ComboBox.Header>
+    </ComboBox>
 </Grid>
