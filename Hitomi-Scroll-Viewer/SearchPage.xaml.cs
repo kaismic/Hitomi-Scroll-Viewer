@@ -18,8 +18,8 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
-        private static readonly string BM_INFO_PATH = Path.Combine(ROOT_DIR, "bookmarkInfo.json");
-        private static readonly string TAGS_PATH = Path.Combine(ROOT_DIR, "search_tags.json");
+        private static readonly string BOOKMARK_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
+        private static readonly string SEARCH_TAGS_PATH = Path.Combine(ROOT_DIR, "search_tags.json");
 
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
@@ -87,9 +87,9 @@ namespace Hitomi_Scroll_Viewer {
             InitializeComponent();
             InitLayout();
 
-            _tagsDict = File.Exists(TAGS_PATH)
+            _tagsDict = File.Exists(SEARCH_TAGS_PATH)
                 ? (Dictionary<string, SearchTag>)JsonSerializer.Deserialize(
-                    File.ReadAllText(TAGS_PATH),
+                    File.ReadAllText(SEARCH_TAGS_PATH),
                     typeof(Dictionary<string, SearchTag>),
                     serializerOptions
                 )
@@ -103,12 +103,12 @@ namespace Hitomi_Scroll_Viewer {
             _searchFilterItems = new(_tagsDict.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
 
             // create bookmarked galleries' info file if it doesn't exist
-            if (!File.Exists(BM_INFO_PATH)) {
-                WriteObjectToJson(BM_INFO_PATH, new List<Gallery>());
+            if (!File.Exists(BOOKMARK_PATH)) {
+                WriteObjectToJson(BOOKMARK_PATH, new List<Gallery>());
             }
             // read bookmarked galleries' info from file
             List<Gallery> galleries = (List<Gallery>)JsonSerializer.Deserialize(
-                File.ReadAllText(BM_INFO_PATH),
+                File.ReadAllText(BOOKMARK_PATH),
                 typeof(List<Gallery>),
                 serializerOptions
                 );
@@ -206,7 +206,7 @@ namespace Hitomi_Scroll_Viewer {
             TagNameTextBox.Text = "";
             AddToTagsDict(newTagName, GetCurrSearchTag());
             TagListComboBox.SelectedItem = newTagName;
-            WriteObjectToJson(TAGS_PATH, _tagsDict);
+            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
             MainWindow.NotifyUser($"'{newTagName}' created", "");
         }
 
@@ -230,7 +230,7 @@ namespace Hitomi_Scroll_Viewer {
             AddToTagsDict(newTagName, _tagsDict[oldTagName]);
             TagListComboBox.SelectedItem = newTagName;
             RemoveFromTagsDict(oldTagName);
-            WriteObjectToJson(TAGS_PATH, _tagsDict);
+            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
            MainWindow.NotifyUser($"'{oldTagName}' renamed to '{newTagName}'", "");
         }
 
@@ -246,7 +246,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             _tagsDict[_currTagName] = GetCurrSearchTag();
-            WriteObjectToJson(TAGS_PATH, _tagsDict);
+            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
            MainWindow.NotifyUser($"'{_currTagName}' saved", "");
         }
 
@@ -258,7 +258,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             RemoveFromTagsDict(oldTagName);
-            WriteObjectToJson(TAGS_PATH, _tagsDict);
+            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
            MainWindow.NotifyUser($"'{oldTagName}' removed", "");
         }
 
@@ -393,7 +393,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
                     BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
                 }
-                WriteObjectToJson(BM_INFO_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+                WriteObjectToJson(BOOKMARK_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
                 if (BookmarkItems.Count == 1) {
                     BookmarkPageSelector.SelectedIndex = 0;
                 } else {
@@ -408,7 +408,7 @@ namespace Hitomi_Scroll_Viewer {
                 string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
                 if (Directory.Exists(path)) Directory.Delete(path, true);
                 BookmarkItems.Remove(bmItem);
-                WriteObjectToJson(BM_INFO_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+                WriteObjectToJson(BOOKMARK_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
 
                 bool pageChanged = false;
                 // a page needs to be removed
@@ -447,7 +447,7 @@ namespace Hitomi_Scroll_Viewer {
                         break;
                     }
                 }
-                WriteObjectToJson(BM_INFO_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+                WriteObjectToJson(BOOKMARK_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
                 UpdateBookmark();
             }
         }
