@@ -121,30 +121,31 @@
                                   SelectionChanged="TagListComboBox_SelectionChanged"
                                   HorizontalAlignment="Stretch"/>
                     </Grid>
-                    <Grid Grid.Row="2"
-                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                CornerRadius="{StaticResource OverlayCornerRadius}"
-                                BorderThickness="1"
-                                Padding="16"
-                                RowSpacing="16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0"
-                                   Text="Select tags to filter search"
-                                   HorizontalAlignment="Center"
-                                   Style="{StaticResource SubtitleTextBlockStyle}"
-                                   />
-                        <ScrollViewer x:Name="SearchFilterItemsScrollViewer" Grid.Row="1">
-                            <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems}">
-                                <ItemsRepeater.Layout>
-                                    <controls:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
-                                </ItemsRepeater.Layout>
-                            </ItemsRepeater>
-                        </ScrollViewer>
-                    </Grid>
+                    <controls:DockPanel LastChildFill="False"  Grid.Row="2">
+                        <Grid controls:DockPanel.Dock="Top"
+                              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                              CornerRadius="{StaticResource OverlayCornerRadius}"
+                              BorderThickness="1"
+                              Padding="16"
+                              RowSpacing="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0"
+                                       Text="Select tags to filter search"
+                                       HorizontalAlignment="Center"
+                                       Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            <ScrollViewer x:Name="SearchFilterItemsScrollViewer" Grid.Row="1">
+                                <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems}">
+                                    <ItemsRepeater.Layout>
+                                        <controls:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
+                                    </ItemsRepeater.Layout>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+                        </Grid>
+                    </controls:DockPanel>
                 </Grid>
                 <Grid x:Name="ControlButtonContainer" Grid.Column="3"
                             RowSpacing="16"/>
