@@ -150,11 +150,7 @@
                 <Grid x:Name="ControlButtonContainer" Grid.Column="3"
                             RowSpacing="16"/>
             </Grid>
-            <ComboBox x:Name="BookmarkPageSelector" Grid.Column="1" FontSize="16" HorizontalAlignment="Center">
-                <ComboBox.Header>
-                    <TextBlock Text="Bookmark Page" Style="{StaticResource BaseTextBlockStyle}"/>
-                </ComboBox.Header>
-            </ComboBox>
+            <ComboBox x:Name="BookmarkPageSelector" Grid.Column="1" FontSize="16" HorizontalAlignment="Center"/>
             <StackPanel x:Name="BookmarkPanel" Orientation="Vertical" Spacing="16"/>
         </StackPanel>
     </ScrollViewer>
