@@ -106,7 +106,7 @@ namespace Hitomi_Scroll_Viewer {
                 PageNumDisplay.Visibility = Visibility.Visible;
             };
             TopCommandBar.Closing += (_, _) => {
-                TopCommandBar.Opacity = 0.125;
+                TopCommandBar.Opacity = 0;
                 PageNumDisplay.Visibility = Visibility.Collapsed;
             };
             GoBackBtn.Click += (_, _) => App.MainWindow.SwitchPage();
@@ -208,7 +208,6 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private async Task SetImageOrientationAndSize() {
-            double rasterizationScale = App.MainWindow.Content.XamlRoot.RasterizationScale;
             (double width, double height) viewportSize = (0, 0);
             foreach (var image in _imageCollection) {
                 image.Width = double.NaN;
@@ -243,7 +242,6 @@ namespace Hitomi_Scroll_Viewer {
                         _scrollViewerItemsRepeater.ItemsSource = _imageCollection;
                     }
                     double dimension = _viewDirection == ViewDirection.TopToBottom ? viewportSize.width : viewportSize.height;
-                    dimension /= rasterizationScale;
                     switch (_viewDirection) {
                         case ViewDirection.TopToBottom:
                             _scrollOffsetAccum.vertical = new double[_imageCollection.Count];
