@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.ObjectModel;
@@ -33,7 +34,7 @@ namespace Hitomi_Scroll_Viewer {
         private readonly ObservableCollection<GroupedImagePanel> _groupedImagePanels = [];
 
         private readonly FlipView _flipView = new() {
-            Padding = new(24, 0, 24, 0)
+            FocusVisualPrimaryThickness = new(0)
         };
         private readonly ScrollViewer _scrollViewer = new() {
             ZoomMode = ZoomMode.Enabled
@@ -115,6 +116,19 @@ namespace Hitomi_Scroll_Viewer {
             };
             GoBackBtn.Click += (_, _) => App.MainWindow.SwitchPage();
             AutoScrollBtn.Click += (_, _) => StartStopAutoScroll((bool)AutoScrollBtn.IsChecked);
+
+            // remove _flipview navigation buttons
+            void FlipView_Loaded(object sender, RoutedEventArgs e) {
+                _flipView.Loaded -= FlipView_Loaded;
+                Grid flipViewGrid = VisualTreeHelper.GetChild(_flipView, 0) as Grid;
+                var children = flipViewGrid.Children;
+                for (int i = children.Count - 1; i >= 0; i--) {
+                    if (children[i] is Button) {
+                        children.RemoveAt(i);
+                    }
+                }
+            }
+            _flipView.Loaded += FlipView_Loaded;
         }
 
         private void SetScrollSpeedSlider() {
@@ -227,8 +241,6 @@ namespace Hitomi_Scroll_Viewer {
                         viewportSize = (_flipView.ActualWidth, _flipView.ActualHeight);
                         await Task.Delay(200);
                     }
-                    var flipViewPadding= _flipView.Padding;
-                    viewportSize.width -= flipViewPadding.Left + flipViewPadding.Right;
                     foreach (var panel in _groupedImagePanels) {
                         panel.UpdateViewDirection(_viewDirection);
                         panel.SetImageSizes(_viewDirection, viewportSize);
