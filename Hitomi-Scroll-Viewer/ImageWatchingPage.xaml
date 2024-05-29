@@ -7,7 +7,7 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Grid>
-        <ContentControl x:Name="ImageContainer" IsTabStop="False"/>
+        <ContentControl x:Name="ImageContainer"/>
         <CommandBar x:Name="TopCommandBar"
                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     ClosedDisplayMode="Compact"
