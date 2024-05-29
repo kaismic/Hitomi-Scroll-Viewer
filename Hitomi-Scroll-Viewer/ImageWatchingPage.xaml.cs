@@ -100,27 +100,17 @@ namespace Hitomi_Scroll_Viewer {
 
             PreviewKeyDown += ImageWatchingPage_PreviewKeyDown;
 
-            // handle mouse movement on commandbar
             TopCommandBar.PointerEntered += (_, _) => {
-                Trace.WriteLine("PointerEntered");
+                TopCommandBar.Opacity = 1;
                 TopCommandBar.IsOpen = true;
-                TopCommandBar.Opacity = 1;
-                PageNumDisplay.Visibility = Visibility.Visible;
-            };
-            TopCommandBar.Opening += (_, _) => {
-                Trace.WriteLine("Opening");
-                TopCommandBar.Opacity = 1;
                 PageNumDisplay.Visibility = Visibility.Visible;
             };
             TopCommandBar.Closing += (_, _) => {
-                Trace.WriteLine("Closing");
-                TopCommandBar.Opacity = 0.5;
+                TopCommandBar.Opacity = 0.125;
                 PageNumDisplay.Visibility = Visibility.Collapsed;
             };
-
             GoBackBtn.Click += (_, _) => App.MainWindow.SwitchPage();
             AutoScrollBtn.Click += (_, _) => StartStopAutoScroll((bool)AutoScrollBtn.IsChecked);
-
         }
 
         private void SetScrollSpeedSlider() {
