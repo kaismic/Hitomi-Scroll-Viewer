@@ -105,6 +105,10 @@ namespace Hitomi_Scroll_Viewer {
                 TopCommandBar.IsOpen = true;
                 PageNumDisplay.Visibility = Visibility.Visible;
             };
+            TopCommandBar.Opening += (_, _) => {
+                TopCommandBar.Opacity = 1;
+                PageNumDisplay.Visibility = Visibility.Visible;
+            };
             TopCommandBar.Closing += (_, _) => {
                 TopCommandBar.Opacity = 0;
                 PageNumDisplay.Visibility = Visibility.Collapsed;
