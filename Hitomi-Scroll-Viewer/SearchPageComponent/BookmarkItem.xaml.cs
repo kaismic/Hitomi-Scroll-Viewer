@@ -49,7 +49,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             IdTextBlock.Text = "ID: " + gallery.id;
 
-            ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGallery(gallery);
+            ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGalleryAsync(gallery);
             RemoveBtn.Click += (_, _) => MainWindow.SearchPage.RemoveBookmark(this);
             MoveUpBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Down);
@@ -94,6 +94,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         public void EnableBookmarkClick(bool enable) {
             ImageContainerWrapper.IsEnabled = enable;
+            ImageContainerWrapper.Opacity = enable ? 1 : 0.25;
         }
     }
 }
