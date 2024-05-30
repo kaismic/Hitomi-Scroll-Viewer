@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -18,8 +19,6 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class ImageWatchingPage : Page {
-        private static readonly string SCROLL_SPEED_TEXT = "Auto Scroll Speed";
-        private static readonly string PAGE_TURN_DELAY_TEXT = "Auto Page Turn Delay";
         private static readonly (double min, double max) SCROLL_SPEED_RANGE = (0.001, 1);
         private static readonly (double min, double max) PAGE_TURN_DELAY_RANGE = (1, 10);
         private static readonly double SCROLL_SPEED_FREQ = 0.001;
@@ -34,15 +33,19 @@ namespace Hitomi_Scroll_Viewer {
         private readonly ObservableCollection<GroupedImagePanel> _groupedImagePanels = [];
 
         private readonly FlipView _flipView = new() {
-            FocusVisualPrimaryThickness = new(0)
+            FocusVisualPrimaryThickness = new(0),
+            IsTabStop = true
         };
         private readonly ScrollViewer _scrollViewer = new() {
-            ZoomMode = ZoomMode.Enabled
+            ZoomMode = ZoomMode.Enabled,
+            IsTabStop = true
         };
         private readonly ItemsRepeater _scrollViewerItemsRepeater = new();
         private readonly StackLayout _scrollViewerStackLayout = new();
 
         private (double[] vertical, double[] horizontal) _scrollOffsetAccum;
+
+        private DateTime _lastWindowSizeChangeTime;
 
         public enum ViewMode {
             Default,
@@ -136,22 +139,22 @@ namespace Hitomi_Scroll_Viewer {
                 case ViewMode.Default:
                     // save pageTurnDelay value because ScrollSpeedSlider.Value resets when min max is set
                     double pageTurnDelay = _pageTurnDelay;
+                    ScrollSpeedSlider.Header = "Auto Page Turn Delay";
                     ScrollSpeedSlider.StepFrequency = PAGE_TURN_DELAY_FREQ;
                     ScrollSpeedSlider.TickFrequency = PAGE_TURN_DELAY_FREQ;
                     ScrollSpeedSlider.Minimum = PAGE_TURN_DELAY_RANGE.min;
                     ScrollSpeedSlider.Maximum = PAGE_TURN_DELAY_RANGE.max;
-                    ScrollSpeedSlider.Header = PAGE_TURN_DELAY_TEXT;
                     ScrollSpeedSlider.Value = pageTurnDelay;
                     _pageTurnDelay = pageTurnDelay;
                     break;
                 case ViewMode.Scroll:
                     // save scrollSpeed value because ScrollSpeedSlider.Value resets when min max is set
                     double scrollSpeed = _scrollSpeed;
+                    ScrollSpeedSlider.Header = "Auto Scroll Speed";
                     ScrollSpeedSlider.StepFrequency = SCROLL_SPEED_FREQ;
                     ScrollSpeedSlider.TickFrequency = SCROLL_SPEED_FREQ;
                     ScrollSpeedSlider.Minimum = SCROLL_SPEED_RANGE.min;
                     ScrollSpeedSlider.Maximum = SCROLL_SPEED_RANGE.max;
-                    ScrollSpeedSlider.Header = SCROLL_SPEED_TEXT;
                     ScrollSpeedSlider.Value = scrollSpeed;
                     _scrollSpeed = scrollSpeed;
                     break;
@@ -220,13 +223,18 @@ namespace Hitomi_Scroll_Viewer {
                     await SetImageOrientationAndSize();
                     break;
                 case ViewMode.Scroll:
-                    RefreshLayout();
+                    if (StartStopAction(true)) {
+                        try {
+                            await RefreshLayout();
+                        } finally {
+                            StartStopAction(false);
+                        }
+                    }
                     break;
             }
         }
 
         private async Task SetImageOrientationAndSize() {
-            (double width, double height) viewportSize = (0, 0);
             foreach (var image in _imageCollection) {
                 image.Width = double.NaN;
                 image.Height = double.NaN;
@@ -235,22 +243,20 @@ namespace Hitomi_Scroll_Viewer {
                     (image.Source as BitmapImage).DecodePixelHeight = 0;
                 }
             }
+            Control targetViewer = _viewMode == ViewMode.Default ? _flipView : _scrollViewer;
+            (double width, double height) viewportSize = (0, 0);
+            while (viewportSize.width == 0 || viewportSize.height == 0) {
+                viewportSize = (targetViewer.ActualWidth, targetViewer.ActualHeight);
+                await Task.Delay(200);
+            }
             switch (_viewMode) {
                 case ViewMode.Default:
-                    while (viewportSize.width == 0 || viewportSize.height == 0) {
-                        viewportSize = (_flipView.ActualWidth, _flipView.ActualHeight);
-                        await Task.Delay(200);
-                    }
                     foreach (var panel in _groupedImagePanels) {
                         panel.UpdateViewDirection(_viewDirection);
                         panel.SetImageSizes(_viewDirection, viewportSize);
                     }
                     break;
                 case ViewMode.Scroll:
-                    while (viewportSize.width == 0 || viewportSize.height == 0) {
-                        viewportSize = (_scrollViewer.ActualWidth, _scrollViewer.ActualHeight);
-                        await Task.Delay(200);
-                    }
                     SetScrollMode();
                     if (_viewDirection == ViewDirection.RightToLeft) {
                         _scrollViewerItemsRepeater.ItemsSource = _reverseImageCollection;
@@ -292,9 +298,12 @@ namespace Hitomi_Scroll_Viewer {
             if (e.RemovedItems.Count == 0 || _pageChangedBySystem || _flipView.SelectedItem == null || _isInAction) {
                 return;
             }
+            bool alreadyMarked = _pageChangedBySystem;
             _pageChangedBySystem = true;
             SetCurrPageIndex(_flipView.SelectedIndex * _numOfPages);
-            _pageChangedBySystem = false;
+            if (!alreadyMarked) {
+                _pageChangedBySystem = false;
+            }
         }
 
         private void PageNavigator_SelectionChanged(object _0, SelectionChangedEventArgs e) {
@@ -303,6 +312,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             int groupedPageIndex = PageNavigator.SelectedIndex / _numOfPages;
             int pageIndex = groupedPageIndex * _numOfPages;
+            bool alreadyMarked = _pageChangedBySystem;
             _pageChangedBySystem = true;
             switch (_viewMode) {
                 case ViewMode.Default:
@@ -321,10 +331,12 @@ namespace Hitomi_Scroll_Viewer {
                     break;
             }
             SetCurrPageIndex(pageIndex);
-            _pageChangedBySystem = false;
+            if (!alreadyMarked) {
+                _pageChangedBySystem = false;
+            }
         }
 
-        private void NumOfPagesSelector_SelectionChanged(object _0, SelectionChangedEventArgs e) {
+        private async void NumOfPagesSelector_SelectionChanged(object _0, SelectionChangedEventArgs e) {
             if (NumOfPagesSelector.SelectedItem == null) {
                 return;
             }
@@ -334,7 +346,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             if (StartStopAction(true)) {
                 try {
-                    RefreshLayout();
+                    await RefreshLayout();
                 } finally {
                     StartStopAction(false);
                 }
@@ -362,12 +374,12 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void SetCurrPageIndex(int idx) {
-            bool alreadyIndicated = _pageChangedBySystem;
+            bool alreadyMarked = _pageChangedBySystem;
             _pageChangedBySystem = true;
             _currPageIndex = idx;
             PageNumText.Text = $"{idx + 1} of {CurrLoadedGallery.files.Length}";
             PageNavigator.SelectedIndex = idx;
-            if (!alreadyIndicated) {
+            if (!alreadyMarked) {
                 _pageChangedBySystem = false;
             }
         }
@@ -375,7 +387,7 @@ namespace Hitomi_Scroll_Viewer {
         /**
          * <summary>Inserts images based on current page number</summary>
          */
-        private async void RefreshLayout() {
+        private async Task RefreshLayout() {
             foreach (var panel in _groupedImagePanels) {
                 panel.Children.Clear();
             }
@@ -397,15 +409,16 @@ namespace Hitomi_Scroll_Viewer {
                             new(_viewDirection, _imageCollection.Take(range), CurrLoadedGallery.files.Take(range))
                         );
                     }
+                    bool alreadyMarked = _pageChangedBySystem;
                     _pageChangedBySystem = true;
                     int groupedPanelPageIndex = _currPageIndex / _numOfPages;
                     _flipView.SelectedIndex = groupedPanelPageIndex;
                     SetCurrPageIndex(groupedPanelPageIndex * _numOfPages);
-                    _pageChangedBySystem = false;
-
+                    if (!alreadyMarked) {
+                        _pageChangedBySystem = false;
+                    }
                     ImageContainer.Content = _flipView;
                     await SetImageOrientationAndSize();
-                    _flipView.Focus(FocusState.Programmatic);
                     break;
                 case ViewMode.Scroll:
                     if (_viewDirection == ViewDirection.RightToLeft) {
@@ -435,13 +448,13 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private void ViewModeBtn_Clicked(object _0, RoutedEventArgs _1) {
+        private async void ViewModeBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (StartStopAction(true)) {
                 try {
                     _viewMode = _viewMode == ViewMode.Default ? ViewMode.Scroll : ViewMode.Default;
                     SetViewModeTextAndIcon();
                     SetScrollSpeedSlider();
-                    RefreshLayout();
+                    await RefreshLayout();
                 } finally {
                     StartStopAction(false);
                 }
@@ -499,7 +512,7 @@ namespace Hitomi_Scroll_Viewer {
         private async Task<double> GetMaxScrollOffset() {
             if (_viewDirection == ViewDirection.TopToBottom) {
                 while (true) {
-                    if (_scrollViewer.ExtentHeight != 0 && _scrollViewer.ActualHeight != 0) {
+                    if (_scrollViewer.ScrollableHeight != 0) {
                         break;
                     } else {
                         await Task.Delay(200);
@@ -507,37 +520,35 @@ namespace Hitomi_Scroll_Viewer {
                 }
             } else {
                 while (true) {
-                    if (_scrollViewer.ExtentWidth != 0 && _scrollViewer.ActualWidth != 0) {
+                    if (_scrollViewer.ScrollableWidth != 0) {
                         break;
                     } else {
                         await Task.Delay(200);
                     }
                 }
             }
-            return _viewDirection == ViewDirection.TopToBottom
-                ? _scrollViewer.ExtentHeight - _scrollViewer.ActualHeight
-                : _scrollViewer.ExtentWidth - _scrollViewer.ActualWidth;
+            return _viewDirection == ViewDirection.TopToBottom ? _scrollViewer.ScrollableHeight : _scrollViewer.ScrollableWidth;
         }
 
         private async Task TryScrollToPageIndex() {
-            double targetOffset = Math.Min(GetScrollOffsetFromPageIndex(_currPageIndex), await GetMaxScrollOffset());
-            double lastOffset = GetCurrScrollOffset();
+            double scrollableSize = await GetMaxScrollOffset();
+            double targetOffset = Math.Floor(Math.Min(GetScrollOffsetFromPageIndex(_currPageIndex), scrollableSize));
+            HashSet<double> offsetRecords = [];
             int tryCount = 0;
             while (true) {
+                _scrollViewer.UpdateLayout();
                 if (_viewDirection == ViewDirection.TopToBottom) {
                     _scrollViewer.ScrollToVerticalOffset(targetOffset);
                 } else {
                     _scrollViewer.ScrollToHorizontalOffset(targetOffset);
                 }
                 double currOffset = GetCurrScrollOffset();
-                if (currOffset != lastOffset) {
-                    tryCount = 0;
-                }
-                if (currOffset == targetOffset || tryCount > 2) {
+
+                if (currOffset == targetOffset || tryCount > 4 || offsetRecords.Contains(currOffset)) {
                     break;
                 }
+                offsetRecords.Add(currOffset);
                 tryCount++;
-                lastOffset = currOffset;
                 await Task.Delay(200);
             }
         }
@@ -619,12 +630,32 @@ namespace Hitomi_Scroll_Viewer {
                         }
                     }
                     break;
+                case VirtualKey.Number1:
+                    Trace.WriteLine("horizontal accum");
+                    for (int i = 0; i < _scrollOffsetAccum.horizontal.Length; i++) {
+                        Trace.WriteLine($"{i} = {_scrollOffsetAccum.horizontal[i]}");
+                    }
+                    Trace.WriteLine($"HorizontalOffset = {_scrollViewer.HorizontalOffset}");
+                    break;
+                case VirtualKey.Number2:
+                    Trace.WriteLine("vertical accum");
+                    for (int i = 0; i < _scrollOffsetAccum.vertical.Length; i++) {
+                        Trace.WriteLine($"{i} = {_scrollOffsetAccum.vertical[i]}");
+                    }
+                    Trace.WriteLine($"VerticalOffset = {_scrollViewer.VerticalOffset}");
+                    break;
                 default:
                     break;
             }
         }
 
-        public void Window_SizeChanged() {
+        public async void Window_SizeChanged() {
+            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.Now;
+            // wait for 0.5 seconds to prevent rapid CheckAndUpdateImageSources() calls
+            await Task.Delay(500);
+            if (_lastWindowSizeChangeTime != thisDateTime) {
+                return;
+            }
             if (CurrLoadedGallery != null) {
                 CheckAndUpdateImageSources();
             }
@@ -634,78 +665,79 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly Stopwatch stopwatch = new();
 
         private async void ScrollAutomatically(CancellationToken ct) {
-            // TODO
-            //while (IsAutoScrolling) {
-            //    switch (_viewMode) {
-            //        case ViewMode.Default:
-            //            if (_currPage + 1 == _mw.CurrLoadedGallery.files.Length && !_isLooping) {
-            //                DispatcherQueue.TryEnqueue(() => StartStopAutoScroll(false));
-            //                return;
-            //            }
-            //            try {
-            //                await Task.Delay((int)(_pageTurnDelay * 1000), ct);
-            //            } catch (TaskCanceledException) {
-            //                return;
-            //            }
-            //            if (IsAutoScrolling) {
-            //                if (_currPage + 1 == _mw.CurrLoadedGallery.files.Length && !_isLooping) {
-            //                    DispatcherQueue.TryEnqueue(() => StartStopAutoScroll(false));
-            //                    return;
-            //                }
-            //                DispatcherQueue.TryEnqueue(() => { UpdatePageNum(_numOfPages); });
-            //                DispatcherQueue.TryEnqueue(UpdateImages);
-            //            }
-            //            break;
-            //        case ViewMode.Scroll:
-            //            try {
-            //                await Task.Delay(10, ct);
-            //            } catch (TaskCanceledException) {
-            //                return;
-            //            }
-            //            MainScrollViewer.DispatcherQueue.TryEnqueue(() => {
-            //                bool isEndOfPage = _viewDirection switch {
-            //                    ViewDirection.TopToBottom => MainScrollViewer.VerticalOffset == MainScrollViewer.ScrollableHeight,
-            //                    ViewDirection.LeftToRight => MainScrollViewer.HorizontalOffset == MainScrollViewer.ScrollableWidth,
-            //                    ViewDirection.RightToLeft => MainScrollViewer.HorizontalOffset == 0,
-            //                    _ => throw new NotImplementedException("Unhandled ViewDirection Mode")
-            //                };
-            //                if (isEndOfPage) {
-            //                    if (_isLooping) {
-            //                        switch (_viewDirection) {
-            //                            case ViewDirection.TopToBottom:
-            //                                MainScrollViewer.ScrollToVerticalOffset(0);
-            //                                break;
-            //                            case ViewDirection.LeftToRight:
-            //                                MainScrollViewer.ScrollToHorizontalOffset(0);
-            //                                break;
-            //                            case ViewDirection.RightToLeft:
-            //                                MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.ScrollableWidth);
-            //                                break;
-            //                        }
-            //                    } else {
-            //                        StartStopAutoScroll(false);
-            //                        return;
-            //                    }
-            //                }
-            //                else {
-            //                    stopwatch.Stop();
-            //                    switch (_viewDirection) {
-            //                        case ViewDirection.TopToBottom:
-            //                            MainScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
-            //                            break;
-            //                        case ViewDirection.LeftToRight:
-            //                            MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.HorizontalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
-            //                            break;
-            //                        case ViewDirection.RightToLeft:
-            //                            MainScrollViewer.ScrollToHorizontalOffset(MainScrollViewer.HorizontalOffset - _scrollSpeed * stopwatch.ElapsedMilliseconds);
-            //                            break;
-            //                    }
-            //                    stopwatch.Restart();
-            //                }
-            //            });
-            //            break;
-            //    }
-            //}
+            while (IsAutoScrolling) {
+                switch (_viewMode) {
+                    case ViewMode.Default:
+                        DispatcherQueue.TryEnqueue(() => {
+                            if (!_isLooping && _flipView.SelectedIndex == _flipView.Items.Count - 1) {
+                                StartStopAutoScroll(false);
+                                return;
+                            }
+                        });
+                        try {
+                            await Task.Delay((int)(_pageTurnDelay * 1000), ct);
+                        } catch (TaskCanceledException) {
+                            return;
+                        }
+                        DispatcherQueue.TryEnqueue(() => {
+                            if (IsAutoScrolling) {
+                                if (!_isLooping && _flipView.SelectedIndex == _flipView.Items.Count - 1) {
+                                    StartStopAutoScroll(false);
+                                    return;
+                                }
+                                _flipView.SelectedIndex = (_flipView.SelectedIndex + 1) % _flipView.Items.Count;
+                            }
+                        });
+                        break;
+                    case ViewMode.Scroll:
+                        try {
+                            await Task.Delay(10, ct);
+                        } catch (TaskCanceledException) {
+                            return;
+                        }
+                        _scrollViewer.DispatcherQueue.TryEnqueue(() => {
+                            bool isEndOfPage = _viewDirection switch {
+                                ViewDirection.TopToBottom => _scrollViewer.VerticalOffset == _scrollViewer.ScrollableHeight,
+                                ViewDirection.LeftToRight => _scrollViewer.HorizontalOffset == _scrollViewer.ScrollableWidth,
+                                ViewDirection.RightToLeft => _scrollViewer.HorizontalOffset == 0,
+                                _ => throw new ArgumentOutOfRangeException($"Unexpected {typeof(ViewDirection)} value: {_viewDirection}")
+                            };
+                            if (isEndOfPage) {
+                                if (_isLooping) {
+                                    switch (_viewDirection) {
+                                        case ViewDirection.TopToBottom:
+                                            _scrollViewer.ScrollToVerticalOffset(0);
+                                            break;
+                                        case ViewDirection.LeftToRight:
+                                            _scrollViewer.ScrollToHorizontalOffset(0);
+                                            break;
+                                        case ViewDirection.RightToLeft:
+                                            _scrollViewer.ScrollToHorizontalOffset(_scrollViewer.ScrollableWidth);
+                                            break;
+                                    }
+                                } else {
+                                    StartStopAutoScroll(false);
+                                    return;
+                                }
+                            } else {
+                                stopwatch.Stop();
+                                switch (_viewDirection) {
+                                    case ViewDirection.TopToBottom:
+                                        _scrollViewer.ScrollToVerticalOffset(_scrollViewer.VerticalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
+                                        break;
+                                    case ViewDirection.LeftToRight:
+                                        _scrollViewer.ScrollToHorizontalOffset(_scrollViewer.HorizontalOffset + _scrollSpeed * stopwatch.ElapsedMilliseconds);
+                                        break;
+                                    case ViewDirection.RightToLeft:
+                                        _scrollViewer.ScrollToHorizontalOffset(_scrollViewer.HorizontalOffset - _scrollSpeed * stopwatch.ElapsedMilliseconds);
+                                        break;
+                                }
+                                stopwatch.Restart();
+                            }
+                        });
+                        break;
+                }
+            }
         }
 
         private void EnableControls(bool enable) {
@@ -739,13 +771,14 @@ namespace Hitomi_Scroll_Viewer {
             return true;
         }
 
-        public void LoadGallery(Gallery gallery) {
+        public async void LoadGalleryAsync(Gallery gallery) {
             App.MainWindow.SwitchPage();
-            if (CurrLoadedGallery != null && gallery.id == CurrLoadedGallery.id) {
-                return;
-            }
             if (StartStopAction(true)) {
                 try {
+                    if (CurrLoadedGallery != null && gallery.id == CurrLoadedGallery.id) {
+                        await SetImageOrientationAndSize();
+                        return;
+                    }
                     string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
                     if (!Directory.Exists(imageDir)) {
                         return;
@@ -772,7 +805,7 @@ namespace Hitomi_Scroll_Viewer {
                         _imageCollection.Add(image);
                         _reverseImageCollection.Insert(0, image);
                     }
-                    RefreshLayout();
+                    await RefreshLayout();
                 } finally {
                     StartStopAction(false);
                 }
