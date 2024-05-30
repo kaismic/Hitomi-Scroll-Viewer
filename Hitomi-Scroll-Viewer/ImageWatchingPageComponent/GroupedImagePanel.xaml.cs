@@ -36,15 +36,15 @@ namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
             int numOfPages = _images.Count();
             double maxImgWidth = viewDirection == ViewDirection.TopToBottom ? viewportSize.width : viewportSize.width / numOfPages;
             double maxImgHeight = viewDirection != ViewDirection.TopToBottom ? viewportSize.height : viewportSize.height / numOfPages;
-            double idealRatio = maxImgWidth / maxImgHeight;
+            double idealAspectRatio = maxImgWidth / maxImgHeight;
             for (int i = 0; i < _images.Count(); i++) {
                 ImageInfo imgInfo = _imageInfos.ElementAt(i);
-                double imgRatio = (double)imgInfo.width / imgInfo.height;
+                double imgAspectRatio = (double)imgInfo.width / imgInfo.height;
                 Image img = _images.ElementAt(i);
                 BitmapImage imgSource = img.Source as BitmapImage;
 
-                img.Width = imgRatio > idealRatio ? maxImgWidth : maxImgHeight * imgRatio;
-                img.Height = imgRatio <= idealRatio ? maxImgHeight : maxImgWidth / imgRatio;
+                img.Width = imgAspectRatio > idealAspectRatio ? maxImgWidth : maxImgHeight * imgAspectRatio;
+                img.Height = imgAspectRatio <= idealAspectRatio ? maxImgHeight : maxImgWidth / imgAspectRatio;
                 if (img.Source != null) {
                     imgSource.DecodePixelWidth = (int)img.Width;
                 }
