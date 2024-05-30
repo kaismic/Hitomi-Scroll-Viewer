@@ -17,17 +17,20 @@
             <AppBarButton x:Name="GoBackBtn"
                           MinWidth="50"
                           Icon="Back"
-                          Label="Go Back"/>
+                          Label="Go Back"
+                          IsTabStop="False"/>
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="RefreshBtn"
                           MinWidth="50"
                           Icon="Refresh"
                           Label="Refresh"
-                          Click="RefreshBtn_Clicked"/>
+                          Click="RefreshBtn_Clicked"
+                          IsTabStop="False"/>
             <AppBarSeparator MinWidth="30"/>
             <AppBarButton x:Name="ViewModeBtn"
                           MinWidth="120"
-                          Click="ViewModeBtn_Clicked">
+                          Click="ViewModeBtn_Clicked"
+                          IsTabStop="False">
                 <AppBarButton.Icon>
                     <FontIcon x:Name="ViewModeBtnIcon" FontFamily="{StaticResource SymbolThemeFontFamily}"/>
                 </AppBarButton.Icon>
@@ -38,26 +41,27 @@
                         MinWidth="240"
                         FontSize="14"
                         ValueChanged="SetScrollSpeed"
-                        />
+                        IsTabStop="False"/>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarToggleButton x:Name="AutoScrollBtn"
                                 MinWidth="90"
                                 Icon="Play"
                                 Label="Start Auto Page Turning / Scrolling"
-                                />
+                                IsTabStop="False"/>
             <AppBarToggleButton x:Name="LoopBtn"
                                 Click="HandleLoopBtnClick"
                                 IsChecked="{x:Bind _isLooping, Mode=TwoWay}"
                                 Label="Toggle Loop"
                                 Icon="RepeatAll"
                                 MinWidth="90"
-                                />
+                                IsTabStop="False"/>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="ViewDirectionSelector" MinWidth="150"
-                            SelectionChanged="ViewDirectionSelector_SelectionChanged"
-                            Header="View Direction">
+                          SelectionChanged="ViewDirectionSelector_SelectionChanged"
+                          Header="View Direction"
+                          IsTabStop="False">
                     <x:String>Top to Bottom</x:String>
                     <x:String>Left to Right</x:String>
                     <x:String>Right to Left</x:String>
@@ -66,9 +70,10 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="NumOfPagesSelector"
-                            SelectionChanged="NumOfPagesSelector_SelectionChanged"
-                            Header="Page Display Number"
-                            ToolTipService.ToolTip="Set number of pages to display in Default Mode">
+                          SelectionChanged="NumOfPagesSelector_SelectionChanged"
+                          Header="Page Display Number"
+                          ToolTipService.ToolTip="Set number of pages to display in Default Mode"
+                          IsTabStop="False">
                     <x:Int32>1</x:Int32>
                     <x:Int32>2</x:Int32>
                     <x:Int32>3</x:Int32>
@@ -78,9 +83,10 @@
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="PageNavigator"
-                            SelectionChanged="PageNavigator_SelectionChanged"
-                            Header="Go to page"
-                            MinWidth="90">
+                          SelectionChanged="PageNavigator_SelectionChanged"
+                          Header="Go to page"
+                          MinWidth="90"
+                          IsTabStop="False">
                 </ComboBox>
             </AppBarElementContainer>
         </CommandBar>
@@ -116,7 +122,7 @@
             </Viewbox.Resources>
             <Grid>
                 <SymbolIcon x:Name="ActionIndicatorSymbolIcon"
-                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
+                            Foreground="{ThemeResource AccentFillColorDefaultBrush}"/>
                 <FontIcon x:Name="ActionIndicatorFontIcon" FontFamily="{StaticResource SymbolThemeFontFamily}"
                           Foreground="{ThemeResource AccentFillColorDefaultBrush}"
                           FontSize="32"/>
