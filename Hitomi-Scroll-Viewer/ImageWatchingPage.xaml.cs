@@ -502,7 +502,7 @@ namespace Hitomi_Scroll_Viewer {
                     scrollOffsetAccum = _scrollOffsetAccum.horizontal;
                     break;
                 default:
-                    return CurrLoadedGallery.files.Length - 1;
+                    throw new ArgumentOutOfRangeException($"Unexpected {typeof(ViewDirection)} value: {_viewDirection}");
             }
 
             for (int i = 0; i < scrollOffsetAccum.Length; i++) {
