@@ -31,6 +31,7 @@ namespace Hitomi_Scroll_Viewer {
         private readonly ObservableCollection<Image> _imageCollection = [];
         private readonly ObservableCollection<Image> _reverseImageCollection = [];
         private readonly ObservableCollection<GroupedImagePanel> _groupedImagePanels = [];
+        private readonly ObservableCollection<GroupedImagePanel> _reverseGroupedImagePanels = [];
 
         private readonly FlipView _flipView = new() {
             FocusVisualPrimaryThickness = new(0),
@@ -86,7 +87,7 @@ namespace Hitomi_Scroll_Viewer {
                 _viewMode = ViewMode.Default;
                 _viewDirection = ViewDirection.RightToLeft;
                 _scrollSpeed = 0.05;
-                _numOfPages = 1;
+                _numOfPages = 2;
                 _pageTurnDelay = 5;
                 _isLooping = true;
             }
@@ -96,7 +97,6 @@ namespace Hitomi_Scroll_Viewer {
             NumOfPagesSelector.SelectedIndex = _numOfPages - 1;
             LoopBtn.IsChecked = _isLooping;
 
-            _flipView.ItemsSource = _groupedImagePanels;
             _flipView.SelectionChanged += FlipView_SelectionChanged;
             _scrollViewer.Content = _scrollViewerItemsRepeater;
             _scrollViewer.ViewChanging += ScrollViewer_ViewChanging;
@@ -234,6 +234,11 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
+        private int GetFlipViewIndex() {
+            int baseGroupedPageIndex = _currPageIndex / _numOfPages;
+            return _viewDirection == ViewDirection.RightToLeft ? CurrLoadedGallery.files.Length / _numOfPages - 1 - baseGroupedPageIndex : baseGroupedPageIndex;
+        }
+
         private async Task SetImageOrientationAndSize() {
             foreach (var image in _imageCollection) {
                 image.Width = double.NaN;
@@ -243,26 +248,24 @@ namespace Hitomi_Scroll_Viewer {
                     (image.Source as BitmapImage).DecodePixelHeight = 0;
                 }
             }
-            Control targetViewer = _viewMode == ViewMode.Default ? _flipView : _scrollViewer;
             (double width, double height) viewportSize = (0, 0);
             while (viewportSize.width == 0 || viewportSize.height == 0) {
-                viewportSize = (targetViewer.ActualWidth, targetViewer.ActualHeight);
+                viewportSize = (ImageContainer.ActualWidth, ImageContainer.ActualHeight);
                 await Task.Delay(200);
             }
             switch (_viewMode) {
                 case ViewMode.Default:
-                    foreach (var panel in _groupedImagePanels) {
+                    var targetGroupedImagePanel = _viewDirection == ViewDirection.RightToLeft ? _reverseGroupedImagePanels : _groupedImagePanels;
+                    _flipView.ItemsSource = targetGroupedImagePanel;
+                    foreach (var panel in targetGroupedImagePanel) {
                         panel.UpdateViewDirection(_viewDirection);
                         panel.SetImageSizes(_viewDirection, viewportSize);
                     }
+                    _flipView.SelectedIndex = GetFlipViewIndex();
                     break;
                 case ViewMode.Scroll:
                     SetScrollMode();
-                    if (_viewDirection == ViewDirection.RightToLeft) {
-                        _scrollViewerItemsRepeater.ItemsSource = _reverseImageCollection;
-                    } else {
-                        _scrollViewerItemsRepeater.ItemsSource = _imageCollection;
-                    }
+                    _scrollViewerItemsRepeater.ItemsSource = _viewDirection == ViewDirection.RightToLeft ? _reverseImageCollection : _imageCollection;
                     double dimension = _viewDirection == ViewDirection.TopToBottom ? viewportSize.width : viewportSize.height;
                     switch (_viewDirection) {
                         case ViewDirection.TopToBottom:
@@ -298,28 +301,27 @@ namespace Hitomi_Scroll_Viewer {
             if (e.RemovedItems.Count == 0 || _pageChangedBySystem || _flipView.SelectedItem == null || _isInAction) {
                 return;
             }
-            bool alreadyMarked = _pageChangedBySystem;
+            bool prevPageChangedBySystem = _pageChangedBySystem;
             _pageChangedBySystem = true;
-            SetCurrPageIndex(_flipView.SelectedIndex * _numOfPages);
-            if (!alreadyMarked) {
-                _pageChangedBySystem = false;
-            }
+            SetCurrPageIndex(_viewDirection == ViewDirection.RightToLeft ? (_flipView.Items.Count - 1 - _flipView.SelectedIndex) * _numOfPages : _flipView.SelectedIndex * _numOfPages);
+            _pageChangedBySystem = prevPageChangedBySystem;
         }
 
         private void PageNavigator_SelectionChanged(object _0, SelectionChangedEventArgs e) {
             if (e.RemovedItems.Count == 0 || _pageChangedBySystem || PageNavigator.SelectedItem == null || _isInAction) {
                 return;
             }
-            int groupedPageIndex = PageNavigator.SelectedIndex / _numOfPages;
-            int pageIndex = groupedPageIndex * _numOfPages;
-            bool alreadyMarked = _pageChangedBySystem;
+            bool prevPageChangedBySystem = _pageChangedBySystem;
             _pageChangedBySystem = true;
+
             switch (_viewMode) {
                 case ViewMode.Default:
-                    _flipView.SelectedIndex = groupedPageIndex;
+                    SetCurrPageIndex(PageNavigator.SelectedIndex / _numOfPages * _numOfPages);
+                    _flipView.SelectedIndex = GetFlipViewIndex();
                     break;
                 case ViewMode.Scroll:
-                    double offset = GetScrollOffsetFromPageIndex(pageIndex);
+                    SetCurrPageIndex(PageNavigator.SelectedIndex);
+                    double offset = GetScrollOffsetFromPageIndex(PageNavigator.SelectedIndex);
                     switch (_viewDirection) {
                         case ViewDirection.TopToBottom:
                             _scrollViewer.ScrollToVerticalOffset(offset);
@@ -330,10 +332,7 @@ namespace Hitomi_Scroll_Viewer {
                     }
                     break;
             }
-            SetCurrPageIndex(pageIndex);
-            if (!alreadyMarked) {
-                _pageChangedBySystem = false;
-            }
+            _pageChangedBySystem = prevPageChangedBySystem;
         }
 
         private async void NumOfPagesSelector_SelectionChanged(object _0, SelectionChangedEventArgs e) {
@@ -374,14 +373,12 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void SetCurrPageIndex(int idx) {
-            bool alreadyMarked = _pageChangedBySystem;
+            bool prevPageChangedBySystem = _pageChangedBySystem;
             _pageChangedBySystem = true;
             _currPageIndex = idx;
             PageNumText.Text = $"{idx + 1} of {CurrLoadedGallery.files.Length}";
             PageNavigator.SelectedIndex = idx;
-            if (!alreadyMarked) {
-                _pageChangedBySystem = false;
-            }
+            _pageChangedBySystem = prevPageChangedBySystem;
         }
 
         /**
@@ -391,11 +388,15 @@ namespace Hitomi_Scroll_Viewer {
             foreach (var panel in _groupedImagePanels) {
                 panel.Children.Clear();
             }
+            foreach (var panel in _reverseGroupedImagePanels) {
+                panel.Children.Clear();
+            }
             _scrollViewerItemsRepeater.ItemsSource = null;
             ImageContainer.Content = null;
             switch (_viewMode) {
                 case ViewMode.Default:
                     _groupedImagePanels.Clear();
+                    _reverseGroupedImagePanels.Clear();
                     /*
                         example:
                         _images.Count = 22, _numOfPages = 4
@@ -403,20 +404,27 @@ namespace Hitomi_Scroll_Viewer {
                         -----------------
                         _groupedImagePanels = [0 ~ 3, 4 ~ 7, 8 ~ 11, 12 ~ 15, 16 ~ 19, 20 ~ 21]
                     */
-                    for (int i = 0; i < _imageCollection.Count / _numOfPages; i++) {
-                        Range range = (i * _numOfPages)..(Math.Min((i + 1) * _numOfPages, _imageCollection.Count));
-                        _groupedImagePanels.Add(
-                            new(_viewDirection, _imageCollection.Take(range), CurrLoadedGallery.files.Take(range))
-                        );
+                    if (_viewDirection == ViewDirection.RightToLeft) {
+                        for (int i = _imageCollection.Count / _numOfPages - 1; i >= 0; i--) {
+                            Range range = (i * _numOfPages)..(Math.Min((i + 1) * _numOfPages, _imageCollection.Count));
+                            _reverseGroupedImagePanels.Add(
+                                new(_viewDirection, _imageCollection.Take(range), CurrLoadedGallery.files.Take(range))
+                            );
+                        }
+                    } else {
+                        for (int i = 0; i < _imageCollection.Count / _numOfPages; i++) {
+                            Range range = (i * _numOfPages)..(Math.Min((i + 1) * _numOfPages, _imageCollection.Count));
+                            _groupedImagePanels.Add(
+                                new(_viewDirection, _imageCollection.Take(range), CurrLoadedGallery.files.Take(range))
+                            );
+                        }
                     }
-                    bool alreadyMarked = _pageChangedBySystem;
+                    bool prevPageChangedBySystem = _pageChangedBySystem;
                     _pageChangedBySystem = true;
                     int groupedPanelPageIndex = _currPageIndex / _numOfPages;
                     _flipView.SelectedIndex = groupedPanelPageIndex;
                     SetCurrPageIndex(groupedPanelPageIndex * _numOfPages);
-                    if (!alreadyMarked) {
-                        _pageChangedBySystem = false;
-                    }
+                    _pageChangedBySystem = prevPageChangedBySystem;
                     ImageContainer.Content = _flipView;
                     await SetImageOrientationAndSize();
                     break;
@@ -536,7 +544,6 @@ namespace Hitomi_Scroll_Viewer {
             HashSet<double> offsetRecords = [];
             int tryCount = 0;
             while (true) {
-                _scrollViewer.UpdateLayout();
                 if (_viewDirection == ViewDirection.TopToBottom) {
                     _scrollViewer.ScrollToVerticalOffset(targetOffset);
                 } else {
@@ -651,7 +658,7 @@ namespace Hitomi_Scroll_Viewer {
 
         public async void Window_SizeChanged() {
             DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.Now;
-            // wait for 0.5 seconds to prevent rapid CheckAndUpdateImageSources() calls
+            // wait for 0.5 seconds to and check if there is a later SizeChanged event to prevent rapid CheckAndUpdateImageSources() calls
             await Task.Delay(500);
             if (_lastWindowSizeChangeTime != thisDateTime) {
                 return;
@@ -792,6 +799,10 @@ namespace Hitomi_Scroll_Viewer {
                         panel.Children.Clear();
                     }
                     _groupedImagePanels.Clear();
+                    foreach (var panel in _reverseGroupedImagePanels) {
+                        panel.Children.Clear();
+                    }
+                    _reverseGroupedImagePanels.Clear();
 
                     PageNavigator.ItemsSource = Enumerable.Range(1, gallery.files.Length + 1).ToList();
                     PageNavigator.SelectedIndex = 0;
