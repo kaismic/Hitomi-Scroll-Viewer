@@ -5,9 +5,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    PreviewKeyDown="ImageWatchingPage_PreviewKeyDown">
     <Grid>
-        <ContentControl x:Name="ImageContainer"/>
+        <FlipView x:Name="ImageFlipView" ItemsSource="{x:Bind _groupedImagePanels}"
+                  FocusVisualPrimaryThickness="0" IsTabStop="True"
+                  SelectionChanged="ImageFlipView_SelectionChanged">
+        </FlipView>
         <CommandBar x:Name="TopCommandBar"
                     Background="{ThemeResource LayerFillColorAltBrush}"
                     ClosedDisplayMode="Compact"
@@ -27,21 +31,16 @@
                           Click="RefreshBtn_Clicked"
                           IsTabStop="False"/>
             <AppBarSeparator MinWidth="30"/>
-            <AppBarButton x:Name="ViewModeBtn"
-                          MinWidth="120"
-                          Click="ViewModeBtn_Clicked"
-                          IsTabStop="False">
-                <AppBarButton.Icon>
-                    <FontIcon x:Name="ViewModeBtnIcon" FontFamily="{StaticResource SymbolThemeFontFamily}"/>
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
-                <Slider x:Name="ScrollSpeedSlider"
+                <Slider x:Name="AutoScrollIntervalSlider"
                         MinWidth="240"
-                        FontSize="14"
-                        ValueChanged="SetScrollSpeed"
-                        IsTabStop="False"/>
+                        IsTabStop="False">
+                    <Slider.Header>
+                        <TextBlock Text="Auto Scroll Interval (seconds)"
+                                   Style="{StaticResource BaseTextBlockStyle}"
+                                   HorizontalAlignment="Center"/>
+                    </Slider.Header>
+                </Slider>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarToggleButton x:Name="AutoScrollBtn"
@@ -50,18 +49,38 @@
                                 Label="Start Auto Page Turning / Scrolling"
                                 IsTabStop="False"/>
             <AppBarToggleButton x:Name="LoopBtn"
-                                Click="HandleLoopBtnClick"
+                                Click="LoopBtn_Clicked"
                                 IsChecked="{x:Bind _isLooping, Mode=TwoWay}"
                                 Label="Toggle Loop"
                                 Icon="RepeatAll"
                                 MinWidth="90"
-                                IsTabStop="False"/>
+                                IsTabStop="False"
+                                VerticalAlignment="Center"/>
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarElementContainer>
+                <ComboBox x:Name="ScrollDirectionSelector"
+                          SelectionChanged="ScrollDirectionSelector_SelectionChanged"
+                          MinWidth="150"
+                          IsTabStop="False">
+                    <ComboBox.Header>
+                        <TextBlock Text="Scroll Direction"
+                                   Style="{StaticResource BaseTextBlockStyle}"
+                                   HorizontalAlignment="Center"/>
+                    </ComboBox.Header>
+                    <x:String>Horizontal</x:String>
+                    <x:String>Vertical</x:String>
+                </ComboBox>
+            </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="ViewDirectionSelector" MinWidth="150"
                           SelectionChanged="ViewDirectionSelector_SelectionChanged"
-                          Header="View Direction"
                           IsTabStop="False">
+                    <ComboBox.Header>
+                        <TextBlock Text="View Direction"
+                                   Style="{StaticResource BaseTextBlockStyle}"
+                                   HorizontalAlignment="Center"/>
+                    </ComboBox.Header>
                     <x:String>Top to Bottom</x:String>
                     <x:String>Left to Right</x:String>
                     <x:String>Right to Left</x:String>
@@ -71,9 +90,13 @@
             <AppBarElementContainer>
                 <ComboBox x:Name="NumOfPagesSelector"
                           SelectionChanged="NumOfPagesSelector_SelectionChanged"
-                          Header="Page Display Number"
                           ToolTipService.ToolTip="Set number of pages to display in Default Mode"
                           IsTabStop="False">
+                    <ComboBox.Header>
+                        <TextBlock Text="Number of Pages"
+                                   Style="{StaticResource BaseTextBlockStyle}"
+                                   HorizontalAlignment="Center"/>
+                    </ComboBox.Header>
                     <x:Int32>1</x:Int32>
                     <x:Int32>2</x:Int32>
                     <x:Int32>3</x:Int32>
@@ -84,9 +107,13 @@
             <AppBarElementContainer>
                 <ComboBox x:Name="PageNavigator"
                           SelectionChanged="PageNavigator_SelectionChanged"
-                          Header="Go to page"
                           MinWidth="90"
                           IsTabStop="False">
+                    <ComboBox.Header>
+                        <TextBlock Text="Go to page"
+                                   Style="{StaticResource BaseTextBlockStyle}"
+                                   HorizontalAlignment="Center"/>
+                    </ComboBox.Header>
                 </ComboBox>
             </AppBarElementContainer>
         </CommandBar>
