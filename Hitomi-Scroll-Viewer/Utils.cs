@@ -30,7 +30,6 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
         public static readonly StringSplitOptions STR_SPLIT_OPTION = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 
-        //ApplicationData.Current.LocalSettings. TODO
         public struct Settings {
             public ViewMode viewMode;
             public ViewDirection viewDirection;
