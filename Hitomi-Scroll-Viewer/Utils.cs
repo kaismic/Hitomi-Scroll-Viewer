@@ -30,33 +30,6 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
         public static readonly StringSplitOptions STR_SPLIT_OPTION = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 
-        public struct Settings {
-            public ViewMode viewMode;
-            public ViewDirection viewDirection;
-            public double scrollSpeed;
-            public int numOfPages;
-            public double pageTurnDelay;
-            public bool isLooping;
-
-            public Settings() { }
-            
-            public Settings(
-                ViewMode viewMode,
-                ViewDirection viewDirection,
-                double scrollSpeed,
-                int numOfPages,
-                double pageTurnDelay,
-                bool isLooping
-            ) {
-                this.viewMode = viewMode;
-                this.viewDirection = viewDirection;
-                this.scrollSpeed = scrollSpeed;
-                this.numOfPages = numOfPages;
-                this.pageTurnDelay = pageTurnDelay;
-                this.isLooping = isLooping;
-            }
-        }
-
         public struct DownloadInfo {
             public HttpClient httpClient;
             public string id;
