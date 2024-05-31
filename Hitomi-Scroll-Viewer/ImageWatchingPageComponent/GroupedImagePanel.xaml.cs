@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.Foundation;
 using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 
 namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
@@ -32,10 +33,10 @@ namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
             }
         }
 
-        public void SetImageSizes(ViewDirection viewDirection, (double width, double height) viewportSize) {
+        public void SetImageSizes(ViewDirection viewDirection, Size viewportSize) {
             int numOfPages = _images.Count();
-            double maxImgWidth = viewDirection == ViewDirection.TopToBottom ? viewportSize.width : viewportSize.width / numOfPages;
-            double maxImgHeight = viewDirection != ViewDirection.TopToBottom ? viewportSize.height : viewportSize.height / numOfPages;
+            double maxImgWidth = viewDirection == ViewDirection.TopToBottom ? viewportSize.Width : viewportSize.Width / numOfPages;
+            double maxImgHeight = viewDirection != ViewDirection.TopToBottom ? viewportSize.Height : viewportSize.Height / numOfPages;
             double idealAspectRatio = maxImgWidth / maxImgHeight;
             for (int i = 0; i < _images.Count(); i++) {
                 ImageInfo imgInfo = _imageInfos.ElementAt(i);
