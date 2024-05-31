@@ -9,7 +9,7 @@
     <Grid>
         <ContentControl x:Name="ImageContainer"/>
         <CommandBar x:Name="TopCommandBar"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    Background="{ThemeResource LayerFillColorAltBrush}"
                     ClosedDisplayMode="Compact"
                     OverflowButtonVisibility="Collapsed"
                     HorizontalAlignment="Center"
