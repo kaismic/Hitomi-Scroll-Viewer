@@ -19,9 +19,9 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class ImageWatchingPage : Page {
-        private static readonly (double min, double max) SCROLL_SPEED_RANGE = (0.001, 1);
+        private static readonly (double min, double max) SCROLL_SPEED_RANGE = (0.125, 1);
         private static readonly (double min, double max) PAGE_TURN_DELAY_RANGE = (1, 10);
-        private static readonly double SCROLL_SPEED_FREQ = 0.001;
+        private static readonly double SCROLL_SPEED_FREQ = 0.125;
         private static readonly double PAGE_TURN_DELAY_FREQ = 0.5;
         private static double _scrollSpeed;
         private static double _pageTurnDelay; // in seconds
@@ -85,10 +85,10 @@ namespace Hitomi_Scroll_Viewer {
                 _isLooping = settings.isLooping;
             } else {
                 _viewMode = ViewMode.Default;
-                _viewDirection = ViewDirection.RightToLeft;
-                _scrollSpeed = 0.05;
-                _numOfPages = 2;
-                _pageTurnDelay = 5;
+                _viewDirection = ViewDirection.TopToBottom;
+                _numOfPages = 1;
+                _scrollSpeed = (SCROLL_SPEED_RANGE.min + SCROLL_SPEED_RANGE.max) / 2;
+                _pageTurnDelay = (PAGE_TURN_DELAY_RANGE.min + PAGE_TURN_DELAY_RANGE.max) / 2;
                 _isLooping = true;
             }
             SetScrollSpeedSlider();
