@@ -371,7 +371,10 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void ScrollDirectionSelector_SelectionChanged(object _0, SelectionChangedEventArgs e) {
-            // TODO
+            _scrollDirection = (Orientation)ScrollDirectionSelector.SelectedIndex;
+            if (ImageFlipView.ItemsPanelRoot != null) {
+                (ImageFlipView.ItemsPanelRoot as VirtualizingStackPanel).Orientation = _scrollDirection;
+            }
         }
 
         private void LoopBtn_Clicked(object _0, RoutedEventArgs _1) {
