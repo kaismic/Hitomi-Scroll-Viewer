@@ -54,7 +54,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 ImageWatchingPage.StartStopAutoScroll(false);
                 // save settings and exit app
-                File.WriteAllText(SETTINGS_PATH, JsonSerializer.Serialize(ImageWatchingPage.GetSettings(), serializerOptions));
+                ImageWatchingPage.SaveSettings();
                 Close();
             };
             SizeChanged += (_, _) => { if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.Window_SizeChanged(); };
