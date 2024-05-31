@@ -103,6 +103,7 @@ namespace Hitomi_Scroll_Viewer {
             _scrollViewerItemsRepeater.Layout = _scrollViewerStackLayout;
 
             PreviewKeyDown += ImageWatchingPage_PreviewKeyDown;
+            ImageContainer.PreviewKeyDown += ImageWatchingPage_PreviewKeyDown;
 
             TopCommandBar.PointerEntered += (_, _) => {
                 TopCommandBar.Opacity = 1;
