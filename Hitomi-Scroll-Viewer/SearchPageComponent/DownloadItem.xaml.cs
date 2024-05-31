@@ -44,7 +44,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 RemoveSelf();
             };
 
-            //Download(_cts.Token);
+            Download(_cts.Token);
         }
 
         private void EnableButtons(bool enable) {
