@@ -8,7 +8,7 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     PreviewKeyDown="ImageWatchingPage_PreviewKeyDown">
     <Grid>
-        <FlipView x:Name="ImageFlipView" ItemsSource="{x:Bind _groupedImagePanels}"
+        <FlipView x:Name="ImageFlipView"
                   FocusVisualPrimaryThickness="0" IsTabStop="True"
                   SelectionChanged="ImageFlipView_SelectionChanged">
         </FlipView>
@@ -34,7 +34,11 @@
             <AppBarElementContainer>
                 <Slider x:Name="AutoScrollIntervalSlider"
                         MinWidth="240"
-                        IsTabStop="False">
+                        IsTabStop="False"
+                        Minimum="{x:Bind AUTO_SCROLL_INTERVAL_RANGE.Start.Value}"
+                        Maximum="{x:Bind AUTO_SCROLL_INTERVAL_RANGE.End.Value}"
+                        TickFrequency="{x:Bind AUTO_SCROLL_INTERVAL_FREQ}"
+                        StepFrequency="{x:Bind AUTO_SCROLL_INTERVAL_FREQ}">
                     <Slider.Header>
                         <TextBlock Text="Auto Scroll Interval (seconds)"
                                    Style="{StaticResource BaseTextBlockStyle}"
@@ -46,7 +50,7 @@
             <AppBarToggleButton x:Name="AutoScrollBtn"
                                 MinWidth="90"
                                 Icon="Play"
-                                Label="Start Auto Page Turning / Scrolling"
+                                Label="Start Auto Scrolling"
                                 IsTabStop="False"/>
             <AppBarToggleButton x:Name="LoopBtn"
                                 Click="LoopBtn_Clicked"
@@ -58,7 +62,7 @@
                                 VerticalAlignment="Center"/>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
-                <ComboBox x:Name="ScrollDirectionSelector"
+                <ComboBox x:Name="ScrollDirectionSelector" ItemsSource="{x:Bind ORIENTATION_NAMES}"
                           SelectionChanged="ScrollDirectionSelector_SelectionChanged"
                           MinWidth="150"
                           IsTabStop="False">
@@ -67,47 +71,26 @@
                                    Style="{StaticResource BaseTextBlockStyle}"
                                    HorizontalAlignment="Center"/>
                     </ComboBox.Header>
-                    <x:String>Horizontal</x:String>
-                    <x:String>Vertical</x:String>
                 </ComboBox>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
-                <ComboBox x:Name="ViewDirectionSelector" MinWidth="150"
+                <ComboBox x:Name="ViewDirectionSelector" ItemsSource="{x:Bind VIEW_DIRECTION_NAMES}"
                           SelectionChanged="ViewDirectionSelector_SelectionChanged"
+                          MinWidth="160"
                           IsTabStop="False">
                     <ComboBox.Header>
                         <TextBlock Text="View Direction"
                                    Style="{StaticResource BaseTextBlockStyle}"
                                    HorizontalAlignment="Center"/>
                     </ComboBox.Header>
-                    <x:String>Top to Bottom</x:String>
-                    <x:String>Left to Right</x:String>
-                    <x:String>Right to Left</x:String>
-                </ComboBox>
-            </AppBarElementContainer>
-            <AppBarSeparator MinWidth="30"/>
-            <AppBarElementContainer>
-                <ComboBox x:Name="NumOfPagesSelector"
-                          SelectionChanged="NumOfPagesSelector_SelectionChanged"
-                          ToolTipService.ToolTip="Set number of pages to display in Default Mode"
-                          IsTabStop="False">
-                    <ComboBox.Header>
-                        <TextBlock Text="Number of Pages"
-                                   Style="{StaticResource BaseTextBlockStyle}"
-                                   HorizontalAlignment="Center"/>
-                    </ComboBox.Header>
-                    <x:Int32>1</x:Int32>
-                    <x:Int32>2</x:Int32>
-                    <x:Int32>3</x:Int32>
-                    <x:Int32>4</x:Int32>
                 </ComboBox>
             </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="PageNavigator"
                           SelectionChanged="PageNavigator_SelectionChanged"
-                          MinWidth="90"
+                          MinWidth="120"
                           IsTabStop="False">
                     <ComboBox.Header>
                         <TextBlock Text="Go to page"
