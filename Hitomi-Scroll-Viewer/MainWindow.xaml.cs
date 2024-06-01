@@ -58,18 +58,8 @@ namespace Hitomi_Scroll_Viewer {
                 Close();
             };
             SizeChanged += (_, _) => { if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.Window_SizeChanged(); };
-            RootFrame.PointerPressed += RootFrame_PointerPressed;
 
             RootFrame.Content = SearchPage;
-        }
-
-        private void RootFrame_PointerPressed(object _0, PointerRoutedEventArgs e) {
-            // Get the pointer point 
-            var pointerProperties = e.GetCurrentPoint(null).Properties;
-            // Check if XButton1 (back button) or XButton2 (forward button) is pressed
-            if (pointerProperties.PointerUpdateKind is PointerUpdateKind.XButton1Pressed or PointerUpdateKind.XButton2Pressed) {
-                SwitchPage();
-            }
         }
 
         public void SwitchPage() {
