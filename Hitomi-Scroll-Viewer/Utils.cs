@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static Hitomi_Scroll_Viewer.ImageWatchingPage;
 
 namespace Hitomi_Scroll_Viewer {
     public static class Utils {

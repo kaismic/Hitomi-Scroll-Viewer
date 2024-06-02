@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Windows.Foundation;
-using static Hitomi_Scroll_Viewer.ImageWatchingPage;
+using static Hitomi_Scroll_Viewer.ViewPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {

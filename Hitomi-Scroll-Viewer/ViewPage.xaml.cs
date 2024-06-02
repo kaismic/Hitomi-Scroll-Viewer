@@ -18,7 +18,7 @@ using Windows.System;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
-    public sealed partial class ImageWatchingPage : Page {
+    public sealed partial class ViewPage : Page {
         private static readonly string SCROLL_DIRECTION_SETTING_KEY = "ScrollDirection";
         private static readonly string VIEW_DIRECTION_SETTING_KEY = "ViewDirection";
         private static readonly string AUTO_SCROLL_INTERVAL_SETTING_KEY = "AutoScrollInterval";
@@ -53,7 +53,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private bool _isInAction = false;
 
-        public ImageWatchingPage() {
+        public ViewPage() {
             InitializeComponent();
 
             EnableControls(false);

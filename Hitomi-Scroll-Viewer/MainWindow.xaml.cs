@@ -12,7 +12,7 @@ using static Hitomi_Scroll_Viewer.Utils;
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
         public static SearchPage SearchPage { get; private set; }
-        public static ImageWatchingPage ImageWatchingPage { get; private set; }
+        public static ViewPage ImageWatchingPage { get; private set; }
 
         public static readonly HttpClient HitomiHttpClient = new(
             new SocketsHttpHandler() {
@@ -57,13 +57,13 @@ namespace Hitomi_Scroll_Viewer {
                 ImageWatchingPage.SaveSettings();
                 Close();
             };
-            SizeChanged += (_, _) => { if (RootFrame.Content is ImageWatchingPage) ImageWatchingPage.Window_SizeChanged(); };
+            SizeChanged += (_, _) => { if (RootFrame.Content is ViewPage) ImageWatchingPage.Window_SizeChanged(); };
 
             RootFrame.Content = SearchPage;
         }
 
         public void SwitchPage() {
-            if (RootFrame.Content is ImageWatchingPage) {
+            if (RootFrame.Content is ViewPage) {
                 if (ImageWatchingPage.IsAutoScrolling) {
                     ImageWatchingPage.StartStopAutoScroll(false);
                 }
