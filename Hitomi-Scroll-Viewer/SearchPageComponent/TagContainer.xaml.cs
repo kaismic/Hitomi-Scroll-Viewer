@@ -6,7 +6,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Hitomi_Scroll_Viewer.SearchTag;
+using static Hitomi_Scroll_Viewer.TagFilterList;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
