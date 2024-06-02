@@ -21,7 +21,7 @@
             BorderThickness="1" BorderBrush="Black">
         <TextBlock x:Name="Header"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                   FontSize="20" FontWeight="Bold">
+                   Style="{StaticResource SubtitleTextBlockStyle}">
         </TextBlock>
     </Border>
 </Grid>
