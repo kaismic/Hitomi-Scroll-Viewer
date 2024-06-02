@@ -25,6 +25,12 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly string GG_JS_ADDRESS = "https://ltn.hitomi.la/gg.js";
         public static readonly string SERVER_TIME_EXCLUDE_STRING = "0123456789/'\r\n};";
 
+        /*
+         * apparently I can't just use Environment.NewLine as separator
+         * because of this TextBox bug which somehow converts \r\n to \r and it's still not fixed...
+         * https://github.com/microsoft/microsoft-ui-xaml/issues/1826
+         * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
+        */
         public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
         public static readonly StringSplitOptions STR_SPLIT_OPTION = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
