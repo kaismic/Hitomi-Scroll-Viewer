@@ -209,7 +209,6 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 return;
             }
 
-            DownloadStatusTextBlock.Text = "Getting Image Addresses...";
             ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
             for (int i = 0; i < missingIndexes.Count; i++) {
                 imageInfos[i] = _gallery.files[missingIndexes[i]];
@@ -237,16 +236,12 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 HandleDownloadPaused();
                 return;
             }
-            
-            if (downloadTask.IsCompletedSuccessfully) {
-                missingIndexes = GetMissingIndexes(_gallery);
-                if (missingIndexes.Count > 0) {
-                    SetStateAndText(DownloadStatus.Failed, $"Failed to download {missingIndexes.Count} images");
-                } else {
-                    RemoveSelf();
-                }
+
+            missingIndexes = GetMissingIndexes(_gallery);
+            if (missingIndexes.Count > 0) {
+                SetStateAndText(DownloadStatus.Failed, $"Failed to download {missingIndexes.Count} images");
             } else {
-                SetStateAndText(DownloadStatus.Failed, "An unknown error has occurred. Please try again");
+                RemoveSelf();
             }
         }
     }
