@@ -2,14 +2,14 @@
 using System.Linq;
 
 namespace Hitomi_Scroll_Viewer {
-    public class TagFilterList {
+    public class TagFilter {
         public static readonly string[] CATEGORIES = [
             "language", "female", "male", "artist", "character", "group", "series", "type", "tag"
         ];
 
         public Dictionary<string, HashSet<string>> includeTags = [];
         public Dictionary<string, HashSet<string>> excludeTags = [];
-        public TagFilterList() {
+        public TagFilter() {
             foreach (string tag in CATEGORIES) {
                 includeTags[tag] = [];
                 excludeTags[tag] = [];

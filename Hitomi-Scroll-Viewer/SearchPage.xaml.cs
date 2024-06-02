@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using static Hitomi_Scroll_Viewer.Resources;
-using static Hitomi_Scroll_Viewer.TagFilterList;
+using static Hitomi_Scroll_Viewer.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
@@ -33,7 +33,7 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
-        private readonly Dictionary<string, TagFilterList> _tagsDict;
+        private readonly Dictionary<string, TagFilter> _tagsDict;
         private readonly ObservableCollection<string> _tagsDictKeys;
         private readonly ObservableCollection<SearchFilterItem> _searchFilterItems;
 
@@ -97,9 +97,9 @@ namespace Hitomi_Scroll_Viewer {
             InitLayout();
 
             _tagsDict = File.Exists(SEARCH_TAGS_PATH)
-                ? (Dictionary<string, TagFilterList>)JsonSerializer.Deserialize(
+                ? (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
                     File.ReadAllText(SEARCH_TAGS_PATH),
-                    typeof(Dictionary<string, TagFilterList>),
+                    typeof(Dictionary<string, TagFilter>),
                     serializerOptions
                 )
                 : new() {
@@ -180,7 +180,7 @@ namespace Hitomi_Scroll_Viewer {
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Any(item => (bool)item.IsChecked);
         }
 
-        private void AddToTagsDict(string tagName, TagFilterList searchTag) {
+        private void AddToTagsDict(string tagName, TagFilter searchTag) {
             _tagsDict.Add(tagName, searchTag);
             _tagsDictKeys.Add(tagName);
             _searchFilterItems.Add(new(tagName, TagNameCheckBox_StateChanged));
@@ -282,13 +282,13 @@ namespace Hitomi_Scroll_Viewer {
                 ClearTagTextboxBtn_Clicked(null, null);
                 return;
             }
-            TagFilterList tag = _tagsDict[_currTagName];
+            TagFilter tag = _tagsDict[_currTagName];
             IncludeTagContainer.InsertTags(tag.includeTags);
             ExcludeTagContainer.InsertTags(tag.excludeTags);
         }
 
-        private TagFilterList GetCurrSearchTag() {
-            return new TagFilterList() {
+        private TagFilter GetCurrSearchTag() {
+            return new TagFilter() {
                 includeTags = IncludeTagContainer.GetTags(),
                 excludeTags = ExcludeTagContainer.GetTags()
             };
@@ -296,10 +296,10 @@ namespace Hitomi_Scroll_Viewer {
 
         private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
             var selectedSearchFilterItems = _searchFilterItems.Where(item => (bool)item.IsChecked);
-            TagFilterList combinedSearchTag = selectedSearchFilterItems.Aggregate(
-                new TagFilterList(),
+            TagFilter combinedSearchTag = selectedSearchFilterItems.Aggregate(
+                new TagFilter(),
                 (result, item) => {
-                    TagFilterList currSearchTag = _tagsDict[item.TagName];
+                    TagFilter currSearchTag = _tagsDict[item.TagName];
                     foreach (string category in CATEGORIES) {
                         result.includeTags[category] = result.includeTags[category].Union(currSearchTag.includeTags[category]).ToHashSet();
                         result.excludeTags[category] = result.excludeTags[category].Union(currSearchTag.excludeTags[category]).ToHashSet();
