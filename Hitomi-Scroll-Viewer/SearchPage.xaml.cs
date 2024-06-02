@@ -3,6 +3,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,11 +14,19 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.SearchTag;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
+        private static readonly ResourceMap ResourceManager = new ResourceManager().MainResourceMap.GetSubtree("SearchPage");
+        private static readonly string BUTTON_TEXT_CREATE_TAG_FILTER = ResourceManager.GetValue("ButtonText_CreateTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_RENAME_TAG_FILTER = ResourceManager.GetValue("ButtonText_RenameTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_SAVE_TAG_FILTER = ResourceManager.GetValue("ButtonText_SaveTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_DELETE_TAG_FILTER = ResourceManager.GetValue("ButtonText_DeleteTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_CLEAR_TEXTBOXES = ResourceManager.GetValue("ButtonText_ClearTextBoxes").ValueAsString;
+
         private static readonly string BOOKMARK_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
         private static readonly string SEARCH_TAGS_PATH = Path.Combine(ROOT_DIR, "search_tags.json");
 
@@ -52,14 +61,14 @@ namespace Hitomi_Scroll_Viewer {
             Create,
             Rename,
             Save,
-            Remove,
+            Delete,
             Clear
         }
 
         private readonly ContentDialog _confirmDialog = new() {
             IsPrimaryButtonEnabled = true,
-            PrimaryButtonText = "Yes",
-            CloseButtonText = "Cancel",
+            PrimaryButtonText = DIALOG_TEXT_YES,
+            CloseButtonText = DIALOG_TEXT_CANCEL,
             Title = new TextBlock() {
                 TextWrapping = TextWrapping.WrapWholeWords
             },
@@ -69,11 +78,11 @@ namespace Hitomi_Scroll_Viewer {
         };
         private readonly Button[] _controlButtons = new Button[Enum.GetNames<TagListAction>().Length];
         private readonly string[] _controlButtonTexts = [
-            "Create a new tag list",
-            "Rename current tag list",
-            "Save current tag list",
-            "Remove current tag list",
-            "Clear texts in tag containers",
+            BUTTON_TEXT_CREATE_TAG_FILTER,
+            BUTTON_TEXT_RENAME_TAG_FILTER,
+            BUTTON_TEXT_SAVE_TAG_FILTER,
+            BUTTON_TEXT_DELETE_TAG_FILTER,
+            BUTTON_TEXT_CLEAR_TEXTBOXES
         ];
         private readonly SolidColorBrush[] _controlButtonBorderColors = [
             new(Colors.Blue),
@@ -156,7 +165,7 @@ namespace Hitomi_Scroll_Viewer {
             _controlButtons[(int)TagListAction.Create].Click += CreateTagBtn_Clicked;
             _controlButtons[(int)TagListAction.Rename].Click += RenameTagBtn_Clicked;
             _controlButtons[(int)TagListAction.Save].Click += SaveTagBtn_Clicked;
-            _controlButtons[(int)TagListAction.Remove].Click += RemoveTagBtn_Clicked;
+            _controlButtons[(int)TagListAction.Delete].Click += DeleteTagBtn_Clicked;
             _controlButtons[(int)TagListAction.Clear].Click += ClearTagTextboxBtn_Clicked;
         }
 
@@ -250,16 +259,16 @@ namespace Hitomi_Scroll_Viewer {
            MainWindow.NotifyUser($"'{_currTagName}' saved", "");
         }
 
-        private async void RemoveTagBtn_Clicked(object _0, RoutedEventArgs _1) {
+        private async void DeleteTagBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (_currTagName == null) return;
             string oldTagName = _currTagName;
-            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Remove '{oldTagName}'?", "");
+            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Delete '{oldTagName}'?", "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
             RemoveFromTagsDict(oldTagName);
             WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
-           MainWindow.NotifyUser($"'{oldTagName}' removed", "");
+           MainWindow.NotifyUser($"'{oldTagName}' deleted", "");
         }
 
         private void ClearTagTextboxBtn_Clicked(object _0, RoutedEventArgs _1) {
@@ -403,7 +412,7 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        public void RemoveBookmark(BookmarkItem bmItem) {
+        public void DeleteBookmark(BookmarkItem bmItem) {
             lock (_bmLock) {
                 string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
                 if (Directory.Exists(path)) Directory.Delete(path, true);
@@ -411,7 +420,7 @@ namespace Hitomi_Scroll_Viewer {
                 WriteObjectToJson(BOOKMARK_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
 
                 bool pageChanged = false;
-                // a page needs to be removed
+                // a page needs to be deleted
                 if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 0) {
                     // if current page is the last page
                     if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
