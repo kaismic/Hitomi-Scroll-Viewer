@@ -33,7 +33,7 @@ namespace Hitomi_Scroll_Viewer {
         public bool IsAutoScrolling { get; private set; } = false;
         private bool _isLooping = true;
         public Gallery CurrLoadedGallery { get; private set; }
-        private readonly ItemsChangeObservableCollection<GroupedImagePanel> _groupedImagePanels = [];
+        private readonly List<GroupedImagePanel> _groupedImagePanels = [];
         private readonly List<Range> _imgIndexRangesPerPage = [];
 
         private DateTime _lastWindowSizeChangeTime;
@@ -203,7 +203,6 @@ namespace Hitomi_Scroll_Viewer {
                 panel.UpdateViewDirection(_viewDirection);
                 panel.SetImageSizes(new(ImageFlipView.ActualWidth, ImageFlipView.ActualHeight));
             }
-            _groupedImagePanels.NotifyItemChange();
         }
 
         /**
