@@ -27,14 +27,14 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly string BUTTON_TEXT_DELETE_TAG_FILTER = ResourceManager.GetValue("ButtonText_DeleteTagFilter").ValueAsString;
         private static readonly string BUTTON_TEXT_CLEAR_TEXTBOXES = ResourceManager.GetValue("ButtonText_ClearTextBoxes").ValueAsString;
 
-        private static readonly string BOOKMARK_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
-        private static readonly string SEARCH_TAGS_PATH = Path.Combine(ROOT_DIR, "search_tags.json");
+        private static readonly string BOOKMARKS_FILE_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
+        private static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, "tag_filters.json");
 
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
-        private readonly Dictionary<string, TagFilter> _tagsDict;
-        private readonly ObservableCollection<string> _tagsDictKeys;
+        private readonly Dictionary<string, TagFilter> _tagFilterDict;
+        private readonly ObservableCollection<string> _tagFilterDictKeys;
         private readonly ObservableCollection<SearchFilterItem> _searchFilterItems;
 
         private static readonly int MAX_BOOKMARK_PER_PAGE = 3;
@@ -57,7 +57,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private string _currTagName;
 
-        private enum TagListAction {
+        private enum FilterTagAction {
             Create,
             Rename,
             Save,
@@ -76,7 +76,7 @@ namespace Hitomi_Scroll_Viewer {
                 TextWrapping = TextWrapping.WrapWholeWords
             }
         };
-        private readonly Button[] _controlButtons = new Button[Enum.GetNames<TagListAction>().Length];
+        private readonly Button[] _controlButtons = new Button[Enum.GetNames<FilterTagAction>().Length];
         private readonly string[] _controlButtonTexts = [
             BUTTON_TEXT_CREATE_TAG_FILTER,
             BUTTON_TEXT_RENAME_TAG_FILTER,
@@ -96,9 +96,9 @@ namespace Hitomi_Scroll_Viewer {
             InitializeComponent();
             InitLayout();
 
-            _tagsDict = File.Exists(SEARCH_TAGS_PATH)
+            _tagFilterDict = File.Exists(TAG_FILTERS_FILE_PATH)
                 ? (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
-                    File.ReadAllText(SEARCH_TAGS_PATH),
+                    File.ReadAllText(TAG_FILTERS_FILE_PATH),
                     typeof(Dictionary<string, TagFilter>),
                     serializerOptions
                 )
@@ -108,16 +108,16 @@ namespace Hitomi_Scroll_Viewer {
                     { "Tag3", new() },
                 };
 
-            _tagsDictKeys = new(_tagsDict.Keys);
-            _searchFilterItems = new(_tagsDict.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
+            _tagFilterDictKeys = new(_tagFilterDict.Keys);
+            _searchFilterItems = new(_tagFilterDict.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
 
             // create bookmarked galleries' info file if it doesn't exist
-            if (!File.Exists(BOOKMARK_PATH)) {
-                WriteObjectToJson(BOOKMARK_PATH, new List<Gallery>());
+            if (!File.Exists(BOOKMARKS_FILE_PATH)) {
+                WriteObjectToJson(BOOKMARKS_FILE_PATH, new List<Gallery>());
             }
             // read bookmarked galleries' info from file
             List<Gallery> galleries = (List<Gallery>)JsonSerializer.Deserialize(
-                File.ReadAllText(BOOKMARK_PATH),
+                File.ReadAllText(BOOKMARKS_FILE_PATH),
                 typeof(List<Gallery>),
                 serializerOptions
                 );
@@ -141,7 +141,7 @@ namespace Hitomi_Scroll_Viewer {
         private void InitLayout() {
             // Create Tag Control Buttons
             CornerRadius radius = new(4);
-            for (int i = 0; i < Enum.GetNames<TagListAction>().Length; i++) {
+            for (int i = 0; i < Enum.GetNames<FilterTagAction>().Length; i++) {
                 _controlButtons[i] = new() {
                     CornerRadius = radius,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -162,11 +162,11 @@ namespace Hitomi_Scroll_Viewer {
             };
             Loaded += SetConfirmDialogXamlRoot;
 
-            _controlButtons[(int)TagListAction.Create].Click += CreateTagBtn_Clicked;
-            _controlButtons[(int)TagListAction.Rename].Click += RenameTagBtn_Clicked;
-            _controlButtons[(int)TagListAction.Save].Click += SaveTagBtn_Clicked;
-            _controlButtons[(int)TagListAction.Delete].Click += DeleteTagBtn_Clicked;
-            _controlButtons[(int)TagListAction.Clear].Click += ClearTagTextboxBtn_Clicked;
+            _controlButtons[(int)FilterTagAction.Create].Click += CreateTagBtn_Clicked;
+            _controlButtons[(int)FilterTagAction.Rename].Click += RenameTagBtn_Clicked;
+            _controlButtons[(int)FilterTagAction.Save].Click += SaveTagBtn_Clicked;
+            _controlButtons[(int)FilterTagAction.Delete].Click += DeleteTagBtn_Clicked;
+            _controlButtons[(int)FilterTagAction.Clear].Click += ClearTagTextboxBtn_Clicked;
         }
 
         private async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
@@ -180,15 +180,15 @@ namespace Hitomi_Scroll_Viewer {
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Any(item => (bool)item.IsChecked);
         }
 
-        private void AddToTagsDict(string tagName, TagFilter searchTag) {
-            _tagsDict.Add(tagName, searchTag);
-            _tagsDictKeys.Add(tagName);
+        private void AddToTagsDict(string tagName, TagFilter tagFilter) {
+            _tagFilterDict.Add(tagName, tagFilter);
+            _tagFilterDictKeys.Add(tagName);
             _searchFilterItems.Add(new(tagName, TagNameCheckBox_StateChanged));
         }
         
         private void RemoveFromTagsDict(string tagName) {
-            _tagsDict.Remove(tagName);
-            _tagsDictKeys.Remove(tagName);
+            _tagFilterDict.Remove(tagName);
+            _tagFilterDictKeys.Remove(tagName);
             _searchFilterItems.Remove(_searchFilterItems.First(item => item.TagName == tagName));
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Count != 0;
         }
@@ -199,11 +199,11 @@ namespace Hitomi_Scroll_Viewer {
                MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
-            if (_tagsDict.ContainsKey(newTagName)) {
+            if (_tagFilterDict.ContainsKey(newTagName)) {
                MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
-            string overlappingTagsText = GetCurrSearchTag().GetIncludeExcludeOverlap();
+            string overlappingTagsText = GetCurrTagFilter().GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
@@ -213,9 +213,9 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             TagNameTextBox.Text = "";
-            AddToTagsDict(newTagName, GetCurrSearchTag());
-            TagListComboBox.SelectedItem = newTagName;
-            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
+            AddToTagsDict(newTagName, GetCurrTagFilter());
+            FilterTagComboBox.SelectedItem = newTagName;
+            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
             MainWindow.NotifyUser($"'{newTagName}' created", "");
         }
 
@@ -227,7 +227,7 @@ namespace Hitomi_Scroll_Viewer {
                 MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
-            if (_tagsDict.ContainsKey(newTagName)) {
+            if (_tagFilterDict.ContainsKey(newTagName)) {
                 MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
@@ -236,16 +236,16 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             TagNameTextBox.Text = "";
-            AddToTagsDict(newTagName, _tagsDict[oldTagName]);
-            TagListComboBox.SelectedItem = newTagName;
+            AddToTagsDict(newTagName, _tagFilterDict[oldTagName]);
+            FilterTagComboBox.SelectedItem = newTagName;
             RemoveFromTagsDict(oldTagName);
-            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
+            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
            MainWindow.NotifyUser($"'{oldTagName}' renamed to '{newTagName}'", "");
         }
 
         private async void SaveTagBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (_currTagName == null) return;
-            string overlappingTagsText = GetCurrSearchTag().GetIncludeExcludeOverlap();
+            string overlappingTagsText = GetCurrTagFilter().GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
@@ -254,8 +254,8 @@ namespace Hitomi_Scroll_Viewer {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            _tagsDict[_currTagName] = GetCurrSearchTag();
-            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
+            _tagFilterDict[_currTagName] = GetCurrTagFilter();
+            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
            MainWindow.NotifyUser($"'{_currTagName}' saved", "");
         }
 
@@ -267,7 +267,7 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             RemoveFromTagsDict(oldTagName);
-            WriteObjectToJson(SEARCH_TAGS_PATH, _tagsDict);
+            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
            MainWindow.NotifyUser($"'{oldTagName}' deleted", "");
         }
 
@@ -276,18 +276,18 @@ namespace Hitomi_Scroll_Viewer {
             ExcludeTagContainer.Clear();
         }
 
-        private void TagListComboBox_SelectionChanged(object sender, SelectionChangedEventArgs _1) {
-            _currTagName = (string)TagListComboBox.SelectedItem;
+        private void FilterTagComboBox_SelectionChanged(object _0, SelectionChangedEventArgs _1) {
+            _currTagName = (string)FilterTagComboBox.SelectedItem;
             if (_currTagName == null) {
                 ClearTagTextboxBtn_Clicked(null, null);
                 return;
             }
-            TagFilter tag = _tagsDict[_currTagName];
+            TagFilter tag = _tagFilterDict[_currTagName];
             IncludeTagContainer.InsertTags(tag.includeTags);
             ExcludeTagContainer.InsertTags(tag.excludeTags);
         }
 
-        private TagFilter GetCurrSearchTag() {
+        private TagFilter GetCurrTagFilter() {
             return new TagFilter() {
                 includeTags = IncludeTagContainer.GetTags(),
                 excludeTags = ExcludeTagContainer.GetTags()
@@ -296,19 +296,19 @@ namespace Hitomi_Scroll_Viewer {
 
         private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
             var selectedSearchFilterItems = _searchFilterItems.Where(item => (bool)item.IsChecked);
-            TagFilter combinedSearchTag = selectedSearchFilterItems.Aggregate(
+            TagFilter combinedTagFilter = selectedSearchFilterItems.Aggregate(
                 new TagFilter(),
                 (result, item) => {
-                    TagFilter currSearchTag = _tagsDict[item.TagName];
+                    TagFilter currTagFilter = _tagFilterDict[item.TagName];
                     foreach (string category in CATEGORIES) {
-                        result.includeTags[category] = result.includeTags[category].Union(currSearchTag.includeTags[category]).ToHashSet();
-                        result.excludeTags[category] = result.excludeTags[category].Union(currSearchTag.excludeTags[category]).ToHashSet();
+                        result.includeTags[category] = result.includeTags[category].Union(currTagFilter.includeTags[category]).ToHashSet();
+                        result.excludeTags[category] = result.excludeTags[category].Union(currTagFilter.excludeTags[category]).ToHashSet();
                     }
                     return result;
                 }
             );
 
-            string overlappingTagsText = combinedSearchTag.GetIncludeExcludeOverlap();
+            string overlappingTagsText = combinedTagFilter.GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
@@ -318,9 +318,9 @@ namespace Hitomi_Scroll_Viewer {
                 ' ',
                 CATEGORIES.Select(category =>
                     (
-                        string.Join(' ', combinedSearchTag.includeTags[category].Select(tag => category + ':' + tag.Replace(' ', '_')))
+                        string.Join(' ', combinedTagFilter.includeTags[category].Select(tag => category + ':' + tag.Replace(' ', '_')))
                             + ' ' +
-                        string.Join(' ', combinedSearchTag.excludeTags[category].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
+                        string.Join(' ', combinedTagFilter.excludeTags[category].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
                     ).Trim()
                 ).Where(searchParam => searchParam != "")
             );
@@ -335,9 +335,9 @@ namespace Hitomi_Scroll_Viewer {
                 CATEGORIES.Select(category => {
                     string displayTextPart =
                         (
-                            string.Join(' ', combinedSearchTag.includeTags[category].Select(tag => tag.Replace(' ', '_')))
+                            string.Join(' ', combinedTagFilter.includeTags[category].Select(tag => tag.Replace(' ', '_')))
                             + ' ' +
-                            string.Join(' ', combinedSearchTag.excludeTags[category].Select(tag => '-' + tag.Replace(' ', '_')))
+                            string.Join(' ', combinedTagFilter.excludeTags[category].Select(tag => '-' + tag.Replace(' ', '_')))
                         ).Trim();
                     if (displayTextPart != "") {
                         return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
@@ -380,7 +380,6 @@ namespace Hitomi_Scroll_Viewer {
             foreach (string extractedId in extractedIds) {
                 // skip if it is already downloading
                 if (DownloadingGalleries.TryGetValue(extractedId, out _)) {
-                    // TODO toast message "Gallery {extractedId} is currently being downloaded"
                     continue;
                 }
                 // Download
@@ -402,7 +401,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
                     BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
                 }
-                WriteObjectToJson(BOOKMARK_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+                WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
                 if (BookmarkItems.Count == 1) {
                     BookmarkPageSelector.SelectedIndex = 0;
                 } else {
@@ -417,7 +416,7 @@ namespace Hitomi_Scroll_Viewer {
                 string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
                 if (Directory.Exists(path)) Directory.Delete(path, true);
                 BookmarkItems.Remove(bmItem);
-                WriteObjectToJson(BOOKMARK_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+                WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
 
                 bool pageChanged = false;
                 // a page needs to be deleted
@@ -456,7 +455,7 @@ namespace Hitomi_Scroll_Viewer {
                         break;
                     }
                 }
-                WriteObjectToJson(BOOKMARK_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+                WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
                 UpdateBookmark();
             }
         }

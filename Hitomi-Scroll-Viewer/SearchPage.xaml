@@ -116,9 +116,9 @@
                         <TextBlock Grid.Column="0" Text="Select tag to edit:"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Style="{StaticResource BaseTextBlockStyle}"/>
-                        <ComboBox x:Name="TagListComboBox" ItemsSource="{x:Bind _tagsDictKeys}"
+                        <ComboBox x:Name="FilterTagComboBox" ItemsSource="{x:Bind _tagFilterDictKeys}"
                                   Grid.Column="1"
-                                  SelectionChanged="TagListComboBox_SelectionChanged"
+                                  SelectionChanged="FilterTagComboBox_SelectionChanged"
                                   HorizontalAlignment="Stretch"/>
                     </Grid>
                     <controls:DockPanel LastChildFill="False"  Grid.Row="2">
