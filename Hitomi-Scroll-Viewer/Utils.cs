@@ -35,6 +35,12 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
         public static readonly StringSplitOptions STR_SPLIT_OPTION = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 
+        public static readonly HttpClient HitomiHttpClient = new() {
+            DefaultRequestHeaders = {
+                {"referer", REFERER }
+            }
+        };
+
         public struct DownloadInfo {
             public HttpClient httpClient;
             public string id;

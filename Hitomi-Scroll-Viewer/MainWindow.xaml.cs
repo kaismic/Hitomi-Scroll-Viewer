@@ -11,16 +11,6 @@ namespace Hitomi_Scroll_Viewer {
         public static SearchPage SearchPage { get; private set; }
         public static ViewPage ImageWatchingPage { get; private set; }
 
-        public static readonly HttpClient HitomiHttpClient = new(
-            new SocketsHttpHandler() {
-                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(15)
-            }
-        ) {
-            DefaultRequestHeaders = {
-                {"referer", REFERER }
-            }
-        };
-
         public MainWindow() {
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             InitializeComponent();
