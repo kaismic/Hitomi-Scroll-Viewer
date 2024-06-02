@@ -11,10 +11,12 @@ using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.MainWindow;
+using Windows.ApplicationModel.Resources;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class DownloadItem : Grid {
-        private static readonly string DOWNLOAD_PAUSED = "Download Paused";
+        private static readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("SearchPageComponent/DownloadItem");
+        private static readonly string STATUS_TEXT_PAUSED = resourceLoader.GetString("StatusText_Paused");
         private enum DownloadStatus {
             Downloading,
             Paused,
@@ -101,7 +103,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
         }
 
         private void HandleDownloadPaused() {
-            SetStateAndText(DownloadStatus.Paused, DOWNLOAD_PAUSED);
+            SetStateAndText(DownloadStatus.Paused, STATUS_TEXT_PAUSED);
             // download paused due to ThreadNum change so continue downloading
             if (_threadNumChanged) {
                 _threadNumChanged = false;
