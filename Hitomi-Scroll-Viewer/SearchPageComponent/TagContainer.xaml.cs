@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class TagContainer : Grid {
+        private static readonly ResourceMap ResourceManager = new ResourceManager().MainResourceMap.GetSubtree("TagContainer");
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];
 
         private bool _isInclude;
@@ -17,12 +19,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             get => _isInclude;
             set {
                 _isInclude = value;
-                //SetValue(IsIncludeProperty, value);
                 if (value) {
-                    Header.Text = "Include";
+                    Header.Text = ResourceManager.GetValue("HeaderText_Include").ValueAsString;
                     Header.Foreground = new SolidColorBrush(Colors.Green);
                 } else {
-                    Header.Text = "Exclude";
+                    Header.Text = ResourceManager.GetValue("HeaderText_Exclude").ValueAsString;
                     Header.Foreground = new SolidColorBrush(Colors.Red);
                 }
             }

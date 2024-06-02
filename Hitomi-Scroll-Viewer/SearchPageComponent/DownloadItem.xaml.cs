@@ -11,12 +11,24 @@ using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.MainWindow;
-using Windows.ApplicationModel.Resources;
+using Microsoft.Windows.ApplicationModel.Resources;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class DownloadItem : Grid {
-        private static readonly ResourceLoader resourceLoader = ResourceLoader.GetForCurrentView("SearchPageComponent/DownloadItem");
-        private static readonly string STATUS_TEXT_PAUSED = resourceLoader.GetString("StatusText_Paused");
+        private static readonly ResourceMap ResourceManager = new ResourceManager().MainResourceMap.GetSubtree("DownloadItem");
+        private static readonly string STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER = ResourceManager.GetValue("StatusText_CalculatingDownloadNumber").ValueAsString;
+        private static readonly string STATUS_TEXT_DOWNLOADING = ResourceManager.GetValue("StatusText_Downloading").ValueAsString;
+        private static readonly string STATUS_TEXT_FAILED = ResourceManager.GetValue("StatusText_Failed").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO = ResourceManager.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO_ERROR = ResourceManager.GetValue("StatusText_FetchingGalleryInfo_Error").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME = ResourceManager.GetValue("StatusText_FetchingServerTime").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME_ERROR = ResourceManager.GetValue("StatusText_FetchingServerTime_Error").ValueAsString;
+        private static readonly string STATUS_TEXT_PAUSED = ResourceManager.GetValue("StatusText_Paused").ValueAsString;
+        private static readonly string STATUS_TEXT_READING_GALLERY_INFO = ResourceManager.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
+        private static readonly string STATUS_TEXT_READING_GALLERY_INFO_ERROR = ResourceManager.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString;
+        private static readonly string TOOLTIP_TEXT_PAUSE = ResourceManager.GetValue("ToolTipText_Pause").ValueAsString;
+        private static readonly string TOOLTIP_TEXT_RESUME = ResourceManager.GetValue("ToolTipText_Resume").ValueAsString;
+        private static readonly string TOOLTIP_TEXT_TRY_AGAIN = ResourceManager.GetValue("ToolTipText_TryAgain").ValueAsString;
         private enum DownloadStatus {
             Downloading,
             Paused,
@@ -83,15 +95,15 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             switch (_downloadingState) {
                 case DownloadStatus.Downloading:
                     DownloadControlBtn.Content = new SymbolIcon(Symbol.Pause);
-                    ToolTipService.SetToolTip(DownloadControlBtn, "Pause Download");
+                    ToolTipService.SetToolTip(DownloadControlBtn, TOOLTIP_TEXT_PAUSE);
                     break;
                 case DownloadStatus.Paused:
                     DownloadControlBtn.Content = new SymbolIcon(Symbol.Play);
-                    ToolTipService.SetToolTip(DownloadControlBtn, "Resume Download");
+                    ToolTipService.SetToolTip(DownloadControlBtn, TOOLTIP_TEXT_RESUME);
                     break;
                 case DownloadStatus.Failed:
                     DownloadControlBtn.Content = new SymbolIcon(Symbol.Refresh);
-                    ToolTipService.SetToolTip(DownloadControlBtn, "Try Again");
+                    ToolTipService.SetToolTip(DownloadControlBtn, TOOLTIP_TEXT_TRY_AGAIN);
                     break;
             }
         }
@@ -138,7 +150,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             SetStateAndText(DownloadStatus.Downloading, "");
             _bmItem?.EnableRemoveBtn(false);
             if (_gallery == null) {
-                DownloadStatusTextBlock.Text = "Getting gallery info...";
+                DownloadStatusTextBlock.Text = STATUS_TEXT_FETCHING_GALLERY_INFO;
                 string galleryInfo;
                 try {
                     galleryInfo = await GetGalleryInfo(HitomiHttpClient, _id, ct);
@@ -153,21 +165,21 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                             ct
                         );
                     }
-                    SetStateAndText(DownloadStatus.Failed, "An error has occurred while getting gallery info.\n" + e.Message);
+                    SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_FETCHING_GALLERY_INFO_ERROR + Environment.NewLine + e.Message);
                     return;
                 } catch (TaskCanceledException) {
                     HandleDownloadPaused();
                     return;
                 }
 
-                DownloadStatusTextBlock.Text = "Reading gallery JSON file...";
+                DownloadStatusTextBlock.Text = STATUS_TEXT_READING_GALLERY_INFO;
                 try {
                     _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
                     DownloadProgressBar.Maximum = _gallery.files.Length;
                     Description.Text += $" - {_gallery.title}"; // add title to description
                 }
                 catch (JsonException e) {
-                    SetStateAndText(DownloadStatus.Failed, "An error has occurred while reading gallery json.\n" + e.Message);
+                    SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_READING_GALLERY_INFO_ERROR + Environment.NewLine + e.Message);
                     return;
                 }
             }
@@ -183,7 +195,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 _bmItem = MainWindow.SearchPage.CreateAndAddBookmark(_gallery);
             }
 
-            DownloadStatusTextBlock.Text = "Calculating number of images to download...";
+            DownloadStatusTextBlock.Text = STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER;
             List<int> missingIndexes;
             try {
                 missingIndexes = GetMissingIndexes(_gallery);
@@ -198,13 +210,13 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             }
             DownloadProgressBar.Value = _gallery.files.Length - missingIndexes.Count;
 
-            DownloadStatusTextBlock.Text = "Getting server time...";
+            DownloadStatusTextBlock.Text = STATUS_TEXT_FETCHING_SERVER_TIME;
 
             string ggjs;
             try {
                 ggjs = await GetggjsFile(HitomiHttpClient, ct);
             } catch (HttpRequestException e) {
-                SetStateAndText(DownloadStatus.Failed, "An error has occurred while getting the server time.\n" + e.Message);
+                SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_FETCHING_SERVER_TIME_ERROR + Environment.NewLine + e.Message);
                 return;
             } catch (TaskCanceledException) {
                 HandleDownloadPaused();
@@ -218,7 +230,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             string[] imgFormats = GetImageFormats(imageInfos);
             string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, ggjs);
 
-            DownloadStatusTextBlock.Text = "Downloading Images...";
+            DownloadStatusTextBlock.Text = STATUS_TEXT_DOWNLOADING;
             Task downloadTask = DownloadImages(
                 new DownloadInfo {
                     httpClient = HitomiHttpClient,
@@ -241,7 +253,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             missingIndexes = GetMissingIndexes(_gallery);
             if (missingIndexes.Count > 0) {
-                SetStateAndText(DownloadStatus.Failed, $"Failed to download {missingIndexes.Count} images");
+                SetStateAndText(DownloadStatus.Failed, string.Format(STATUS_TEXT_FAILED, missingIndexes.Count));
             } else {
                 RemoveSelf();
             }

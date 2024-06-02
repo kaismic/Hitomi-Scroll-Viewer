@@ -1,12 +1,15 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System.IO;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
+        private static readonly ResourceMap ResourceManager = new ResourceManager().MainResourceMap.GetSubtree("BookmarkItem");
+        private static readonly string TEXT_ARTIST = ResourceManager.GetValue("Text_Artist").ValueAsString;
         private static readonly int THUMBNAIL_IMG_HEIGHT = 256;
         public readonly Gallery gallery;
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
@@ -42,15 +45,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             TitleTextBlock.Text = gallery.title;
             string artistsText = gallery.GetArtists();
-            if (artistsText == null) {
-                ArtistTextBlock.Text = "Artist: N/A";
-            } else {
-                ArtistTextBlock.Text = "Artist: " + artistsText;
-            }
+            ArtistTextBlock.Text = artistsText == null ? TEXT_ARTIST + ": N/A" : TEXT_ARTIST + ": " + artistsText;
             IdTextBlock.Text = "ID: " + gallery.id;
 
             ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGallery(gallery);
-            RemoveBtn.Click += (_, _) => MainWindow.SearchPage.RemoveBookmark(this);
+            RemoveBtn.Click += (_, _) => MainWindow.SearchPage.DeleteBookmark(this);
             MoveUpBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Down);
         }
