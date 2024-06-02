@@ -124,7 +124,7 @@
     <value>Create a new tag filter</value>
   </data>
   <data name="ButtonText_DeleteTagFilter" xml:space="preserve">
-    <value>Remove current tag filter</value>
+    <value>Delete current tag filter</value>
   </data>
   <data name="ButtonText_RenameTagFilter" xml:space="preserve">
     <value>Rename current tag filter</value>
