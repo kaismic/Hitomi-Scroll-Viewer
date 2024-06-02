@@ -29,7 +29,7 @@
                TextWrapping="WrapWholeWords"/>
     <ProgressBar x:Name="DownloadProgressBar" Grid.Row="1" Grid.Column="0"
                  Background="Gray"/>
-    <TextBlock x:Name="DownloadStatus" Grid.Row="2" Grid.Column="0"
+    <TextBlock x:Name="DownloadStatusTextBlock" Grid.Row="2" Grid.Column="0"
                TextWrapping="WrapWholeWords"/>
     <Button x:Name="DownloadControlBtn" Grid.Row="0" Grid.Column="1"
             Click="PauseOrResume"
