@@ -10,8 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Utils;
 using static Hitomi_Scroll_Viewer.SearchPage;
-using static Hitomi_Scroll_Viewer.MainWindow;
 using Microsoft.Windows.ApplicationModel.Resources;
+using Soluling;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class DownloadItem : Grid {
@@ -253,7 +253,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
             missingIndexes = GetMissingIndexes(_gallery);
             if (missingIndexes.Count > 0) {
-                SetStateAndText(DownloadStatus.Failed, string.Format(STATUS_TEXT_FAILED, missingIndexes.Count));
+                SetStateAndText(DownloadStatus.Failed, MultiPattern.Format(STATUS_TEXT_FAILED, missingIndexes.Count));
             } else {
                 RemoveSelf();
             }

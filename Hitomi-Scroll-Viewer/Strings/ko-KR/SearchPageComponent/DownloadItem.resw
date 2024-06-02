@@ -124,8 +124,8 @@
     <value>다운로드 중...</value>
   </data>
   <data name="StatusText_Failed" xml:space="preserve">
-    <value>{0}개의 이미지를 다운로드 하지 못했습니다</value>
-    <comment>0: Number of missing indexes</comment>
+    <value>{plural, other {{0}}}개의 이미지를 다운로드 하지 못했습니다</value>
+    <comment>{0}: Number of missing images</comment>
   </data>
   <data name="StatusText_FetchingGalleryInfo" xml:space="preserve">
     <value>갤러리 정보를 가져오는 중...</value>
