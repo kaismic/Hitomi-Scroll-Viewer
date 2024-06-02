@@ -38,7 +38,8 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly HttpClient HitomiHttpClient = new() {
             DefaultRequestHeaders = {
                 {"referer", REFERER }
-            }
+            },
+            Timeout = TimeSpan.FromSeconds(10)
         };
 
         public struct DownloadInfo {
