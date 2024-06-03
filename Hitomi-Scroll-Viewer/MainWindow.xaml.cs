@@ -70,9 +70,9 @@ namespace Hitomi_Scroll_Viewer {
             }
         };
 
-        public static async void NotifyUser(string title, string text) {
+        public static async void NotifyUser(string title, string content) {
             ((TextBlock)_notification.Title).Text = title;
-            ((TextBlock)_notification.Content).Text = text;
+            ((TextBlock)_notification.Content).Text = content;
             _notification.XamlRoot = App.MainWindow.RootFrame.XamlRoot;
             await _notification.ShowAsync();
         }
