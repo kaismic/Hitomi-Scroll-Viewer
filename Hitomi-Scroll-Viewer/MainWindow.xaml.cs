@@ -39,8 +39,8 @@ namespace Hitomi_Scroll_Viewer {
                         }
                     }
                 }
+                SearchPage.WriteTagFilters();
                 ImageWatchingPage.StartStopAutoScroll(false);
-                // save settings and exit app
                 ImageWatchingPage.SaveSettings();
                 Close();
             };
