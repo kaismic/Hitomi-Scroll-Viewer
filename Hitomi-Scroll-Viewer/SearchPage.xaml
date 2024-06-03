@@ -106,7 +106,7 @@
                              PlaceholderText="Create or rename tag"
                              TextWrapping="Wrap"
                              FontSize="16"
-                             MaxLength="16"
+                             MaxLength="40"
                              />
                     <Grid Grid.Row="1" ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
