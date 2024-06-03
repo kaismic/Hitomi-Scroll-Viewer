@@ -96,17 +96,25 @@ namespace Hitomi_Scroll_Viewer {
             InitializeComponent();
             InitLayout();
 
-            _tagFilterDict = File.Exists(TAG_FILTERS_FILE_PATH)
-                ? (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
+            if (File.Exists(TAG_FILTERS_FILE_PATH)) {
+                _tagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
                     File.ReadAllText(TAG_FILTERS_FILE_PATH),
                     typeof(Dictionary<string, TagFilter>),
                     serializerOptions
-                )
-                : new() {
-                    { "Tag1", new() },
-                    { "Tag2", new() },
-                    { "Tag3", new() },
+                );
+            } else {
+                _tagFilterDict = new() {
+                    { "Example: Include english", new() },
+                    { "Example: Include non-h", new() },
+                    { "Example: Include Full color", new() },
+                    { "Example: Exclude gamecg", new() }
                 };
+                _tagFilterDict["Example: Include english"].includeTags["language"].Add("english");
+                _tagFilterDict["Example: Include non-h"].includeTags["tag"].Add("non-h_imageset");
+                _tagFilterDict["Example: Include Full color"].includeTags["tag"].Add("full_color");
+                _tagFilterDict["Example: Exclude gamecg"].includeTags["type"].Add("gamecg");
+                WriteTagFilters();
+            }
 
             _tagFilterDictKeys = new(_tagFilterDict.Keys);
             _searchFilterItems = new(_tagFilterDict.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
@@ -196,16 +204,16 @@ namespace Hitomi_Scroll_Viewer {
         private async void CreateTagBtn_Clicked(object _0, RoutedEventArgs _1) {
             string newTagName = TagNameTextBox.Text.Trim();
             if (newTagName.Length == 0) {
-               MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
+                MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
                 return;
             }
             if (_tagFilterDict.ContainsKey(newTagName)) {
-               MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
+                MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
                 return;
             }
             string overlappingTagsText = GetCurrTagFilter().GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
-               MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
             }
             ContentDialogResult cdr = await ShowConfirmDialogAsync($"Create '{newTagName}'?", "");
@@ -215,7 +223,7 @@ namespace Hitomi_Scroll_Viewer {
             TagNameTextBox.Text = "";
             AddToTagsDict(newTagName, GetCurrTagFilter());
             FilterTagComboBox.SelectedItem = newTagName;
-            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
+            WriteTagFilters();
             MainWindow.NotifyUser($"'{newTagName}' created", "");
         }
 
@@ -239,15 +247,15 @@ namespace Hitomi_Scroll_Viewer {
             AddToTagsDict(newTagName, _tagFilterDict[oldTagName]);
             FilterTagComboBox.SelectedItem = newTagName;
             RemoveFromTagsDict(oldTagName);
-            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
-           MainWindow.NotifyUser($"'{oldTagName}' renamed to '{newTagName}'", "");
+            WriteTagFilters();
+            MainWindow.NotifyUser($"'{oldTagName}' renamed to '{newTagName}'", "");
         }
 
         private async void SaveTagBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (_currTagName == null) return;
             string overlappingTagsText = GetCurrTagFilter().GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
-               MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
             }
             ContentDialogResult cdr = await ShowConfirmDialogAsync($"Save current tags on '{_currTagName}'?", $"'{_currTagName}' will be overwritten.");
@@ -255,8 +263,8 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             _tagFilterDict[_currTagName] = GetCurrTagFilter();
-            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
-           MainWindow.NotifyUser($"'{_currTagName}' saved", "");
+            WriteTagFilters();
+            MainWindow.NotifyUser($"'{_currTagName}' saved", "");
         }
 
         private async void DeleteTagBtn_Clicked(object _0, RoutedEventArgs _1) {
@@ -267,13 +275,17 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             RemoveFromTagsDict(oldTagName);
-            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
-           MainWindow.NotifyUser($"'{oldTagName}' deleted", "");
+            WriteTagFilters();
+            MainWindow.NotifyUser($"'{oldTagName}' deleted", "");
         }
 
         private void ClearTagTextboxBtn_Clicked(object _0, RoutedEventArgs _1) {
             IncludeTagContainer.Clear();
             ExcludeTagContainer.Clear();
+        }
+
+        public void WriteTagFilters() {
+            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
         }
 
         private void FilterTagComboBox_SelectionChanged(object _0, SelectionChangedEventArgs _1) {
@@ -310,7 +322,7 @@ namespace Hitomi_Scroll_Viewer {
 
             string overlappingTagsText = combinedTagFilter.GetIncludeExcludeOverlap();
             if (overlappingTagsText != "") {
-               MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
                 return;
             }
 
@@ -325,7 +337,7 @@ namespace Hitomi_Scroll_Viewer {
                 ).Where(searchParam => searchParam != "")
             );
             if (searchParams == "") {
-               MainWindow.NotifyUser("All selected tags are empty", "");
+                MainWindow.NotifyUser("All selected tags are empty", "");
                 return;
             }
             string searchLink = SEARCH_ADDRESS + searchParams;
@@ -361,7 +373,7 @@ namespace Hitomi_Scroll_Viewer {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (urlOrIds.Length == 0) {
-               MainWindow.NotifyUser("Please enter an ID(s) or an URL(s)", "");
+                MainWindow.NotifyUser("Please enter an ID(s) or an URL(s)", "");
                 return;
             }
             List<string> extractedIds = [];
@@ -372,7 +384,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             if (extractedIds.Count == 0) {
-               MainWindow.NotifyUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
+                MainWindow.NotifyUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
                 return;
             }
             GalleryIDTextBox.Text = "";
