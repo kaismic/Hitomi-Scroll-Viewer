@@ -20,12 +20,12 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
-        private static readonly ResourceMap ResourceManager = new ResourceManager().MainResourceMap.GetSubtree("SearchPage");
-        private static readonly string BUTTON_TEXT_CREATE_TAG_FILTER = ResourceManager.GetValue("ButtonText_CreateTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_RENAME_TAG_FILTER = ResourceManager.GetValue("ButtonText_RenameTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_SAVE_TAG_FILTER = ResourceManager.GetValue("ButtonText_SaveTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_DELETE_TAG_FILTER = ResourceManager.GetValue("ButtonText_DeleteTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_CLEAR_TEXTBOXES = ResourceManager.GetValue("ButtonText_ClearTextBoxes").ValueAsString;
+        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SearchPage");
+        private static readonly string BUTTON_TEXT_CREATE_TAG_FILTER = ResourceMap.GetValue("ButtonText_CreateTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_RENAME_TAG_FILTER = ResourceMap.GetValue("ButtonText_RenameTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_SAVE_TAG_FILTER = ResourceMap.GetValue("ButtonText_SaveTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_DELETE_TAG_FILTER = ResourceMap.GetValue("ButtonText_DeleteTagFilter").ValueAsString;
+        private static readonly string BUTTON_TEXT_CLEAR_TEXTBOXES = ResourceMap.GetValue("ButtonText_ClearTextBoxes").ValueAsString;
 
         private static readonly string BOOKMARKS_FILE_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
         private static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, "tag_filters.json");

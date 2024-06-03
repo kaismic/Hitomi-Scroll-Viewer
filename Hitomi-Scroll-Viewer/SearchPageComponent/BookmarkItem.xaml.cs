@@ -3,13 +3,14 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System.IO;
+using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
-        private static readonly ResourceMap ResourceManager = new ResourceManager().MainResourceMap.GetSubtree("BookmarkItem");
-        private static readonly string TEXT_ARTIST = ResourceManager.GetValue("Text_Artist").ValueAsString;
+        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("BookmarkItem");
+        private static readonly string TEXT_ARTIST = ResourceMap.GetValue("Text_Artist").ValueAsString;
         private static readonly int THUMBNAIL_IMG_HEIGHT = 256;
         public readonly Gallery gallery;
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
