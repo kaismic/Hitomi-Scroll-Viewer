@@ -33,12 +33,12 @@
                     <Button x:Name="CreateHyperlinkBtn" Grid.Row="0"
                             Click="CreateHyperlinkBtn_Clicked"
                             MinHeight="80"
-                            FontSize="18"
                             BorderBrush="DeepPink"
                             HorizontalAlignment="Center"
-                            Content="Create and Copy Search Link"
-                            IsEnabled="False"
-                            />
+                            IsEnabled="False">
+                        <TextBlock x:Uid="/SearchPage/CreateHyperlinkBtnTextBlock"
+                                   FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
+                    </Button>
                     <ListView x:Name="SearchLinkItemsListView" Grid.Row="1"
                               ItemsSource="{x:Bind _searchLinkItems}"
                               SelectionMode="None" IsItemClickEnabled="False">
@@ -67,11 +67,11 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="GalleryIDTextBox" Grid.Column="0"
+                        <TextBox x:Name="GalleryIDTextBox" x:Uid="/SearchPage/GalleryIDTextBox"
+                                 Grid.Column="0"
                                  Height="160"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 PlaceholderText="Enter Gallery id(s) or an URL(s) Here. e.g. 2058075 or https://hitomi.la/..."
                                  />
                         <Button Grid.Column="1" Padding="32"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -102,8 +102,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBox x:Name="TagNameTextBox" Grid.Row="0"
-                             PlaceholderText="Create or rename tag"
+                    <TextBox x:Name="TagNameTextBox" x:Uid="/SearchPage/TagNameTextBox"
+                             Grid.Row="0"
                              TextWrapping="Wrap"
                              FontSize="16"
                              MaxLength="40"
@@ -113,7 +113,8 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Select tag to edit:"
+                        <TextBlock x:Uid="/SearchPage/TagFilterEditDescTextBlock"
+                                   Grid.Column="0"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Style="{StaticResource BaseTextBlockStyle}"/>
                         <ComboBox x:Name="FilterTagComboBox" ItemsSource="{x:Bind _tagFilterDictKeys}"
@@ -133,10 +134,11 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0"
-                                       Text="Select tags to filter search"
+                            <TextBlock x:Uid="/SearchPage/TagFilterSelectionDescTextBlock"
+                                       TextWrapping="Wrap"
+                                       Grid.Row="0"
                                        HorizontalAlignment="Center"
-                                       Style="{StaticResource SubtitleTextBlockStyle}"/>
+                                       FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                             <ScrollViewer x:Name="SearchFilterItemsScrollViewer" Grid.Row="1">
                                 <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems}">
                                     <ItemsRepeater.Layout>
@@ -150,11 +152,7 @@
                 <Grid x:Name="ControlButtonContainer" Grid.Column="3"
                             RowSpacing="16"/>
             </Grid>
-            <ComboBox x:Name="BookmarkPageSelector" Grid.Column="1" FontSize="16" HorizontalAlignment="Center">
-                <ComboBox.Header>
-                    <TextBlock Text="Bookmark Page" Style="{StaticResource BaseTextBlockStyle}"/>
-                </ComboBox.Header>
-            </ComboBox>
+            <ComboBox x:Name="BookmarkPageSelector" Grid.Column="1" HorizontalAlignment="Center"/>
             <StackPanel x:Name="BookmarkPanel" Orientation="Vertical" Spacing="16"/>
         </StackPanel>
     </ScrollViewer>

@@ -21,11 +21,6 @@ using static Hitomi_Scroll_Viewer.Utils;
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class SearchPage : Page {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SearchPage");
-        private static readonly string BUTTON_TEXT_CREATE_TAG_FILTER = ResourceMap.GetValue("ButtonText_CreateTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_RENAME_TAG_FILTER = ResourceMap.GetValue("ButtonText_RenameTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_SAVE_TAG_FILTER = ResourceMap.GetValue("ButtonText_SaveTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_DELETE_TAG_FILTER = ResourceMap.GetValue("ButtonText_DeleteTagFilter").ValueAsString;
-        private static readonly string BUTTON_TEXT_CLEAR_TEXTBOXES = ResourceMap.GetValue("ButtonText_ClearTextBoxes").ValueAsString;
 
         private static readonly string BOOKMARKS_FILE_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
         private static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, "tag_filters.json");
@@ -55,15 +50,7 @@ namespace Hitomi_Scroll_Viewer {
         public readonly ObservableCollection<DownloadItem> DownloadingItems = [];
         public static readonly ConcurrentDictionary<string, byte> DownloadingGalleries = [];
 
-        private string _currTagName;
-
-        private enum FilterTagAction {
-            Create,
-            Rename,
-            Save,
-            Delete,
-            Clear
-        }
+        private string _currTagFilterName;
 
         private readonly ContentDialog _confirmDialog = new() {
             IsPrimaryButtonEnabled = true,
@@ -76,21 +63,6 @@ namespace Hitomi_Scroll_Viewer {
                 TextWrapping = TextWrapping.WrapWholeWords
             }
         };
-        private readonly Button[] _controlButtons = new Button[Enum.GetNames<FilterTagAction>().Length];
-        private readonly string[] _controlButtonTexts = [
-            BUTTON_TEXT_CREATE_TAG_FILTER,
-            BUTTON_TEXT_RENAME_TAG_FILTER,
-            BUTTON_TEXT_SAVE_TAG_FILTER,
-            BUTTON_TEXT_DELETE_TAG_FILTER,
-            BUTTON_TEXT_CLEAR_TEXTBOXES
-        ];
-        private readonly SolidColorBrush[] _controlButtonBorderColors = [
-            new(Colors.Blue),
-            new(Colors.Orange),
-            new(Colors.Green),
-            new(Colors.Red),
-            new(Colors.Black)
-        ];
 
         public SearchPage() {
             InitializeComponent();
@@ -148,33 +120,51 @@ namespace Hitomi_Scroll_Viewer {
 
         private void InitLayout() {
             // Create Tag Control Buttons
+            Button[] controlButtons = new Button[5];
             CornerRadius radius = new(4);
-            for (int i = 0; i < Enum.GetNames<FilterTagAction>().Length; i++) {
-                _controlButtons[i] = new() {
+            string[] controlButtonTexts = [
+                ResourceMap.GetValue("ButtonText_CreateTagFilter").ValueAsString,
+                ResourceMap.GetValue("ButtonText_RenameTagFilter").ValueAsString,
+                ResourceMap.GetValue("ButtonText_SaveTagFilter").ValueAsString,
+                ResourceMap.GetValue("ButtonText_DeleteTagFilter").ValueAsString,
+                ResourceMap.GetValue("ButtonText_ClearTextBoxes").ValueAsString
+            ];
+            SolidColorBrush[] controlButtonBorderColors = [
+                new(Colors.Blue),
+                new(Colors.Orange),
+                new(Colors.Green),
+                new(Colors.Red),
+                new(Colors.Black)
+            ];
+            RoutedEventHandler[] controlButtonEventHandlers = [
+                CreateTagFilterBtn_Clicked,
+                RenameTagFilterBtn_Clicked,
+                SaveTagFilterBtn_Clicked,
+                DeleteTagFilterBtn_Clicked,
+                ClearTextBoxesBtn_Clicked
+            ];
+            for (int i = 0; i < controlButtons.Length; i++) {
+                controlButtons[i] = new() {
                     CornerRadius = radius,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch,
-                    BorderBrush = _controlButtonBorderColors[i],
+                    BorderBrush = controlButtonBorderColors[i],
                     Content = new TextBlock() {
-                        Text = _controlButtonTexts[i],
+                        Text = controlButtonTexts[i],
                         TextWrapping = TextWrapping.WrapWholeWords
                     }
                 };
+                controlButtons[i].Click += controlButtonEventHandlers[i];
+                Grid.SetRow(controlButtons[i], i);
                 ControlButtonContainer.RowDefinitions.Add(new());
-                Grid.SetRow(_controlButtons[i], i);
-                ControlButtonContainer.Children.Add(_controlButtons[i]);
+                ControlButtonContainer.Children.Add(controlButtons[i]);
             }
+
             void SetConfirmDialogXamlRoot(object _0, RoutedEventArgs _1) {
                 _confirmDialog.XamlRoot = XamlRoot;
                 Loaded -= SetConfirmDialogXamlRoot;
             };
             Loaded += SetConfirmDialogXamlRoot;
-
-            _controlButtons[(int)FilterTagAction.Create].Click += CreateTagBtn_Clicked;
-            _controlButtons[(int)FilterTagAction.Rename].Click += RenameTagBtn_Clicked;
-            _controlButtons[(int)FilterTagAction.Save].Click += SaveTagBtn_Clicked;
-            _controlButtons[(int)FilterTagAction.Delete].Click += DeleteTagBtn_Clicked;
-            _controlButtons[(int)FilterTagAction.Clear].Click += ClearTagTextboxBtn_Clicked;
         }
 
         private async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
@@ -201,85 +191,107 @@ namespace Hitomi_Scroll_Viewer {
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Count != 0;
         }
 
-        private async void CreateTagBtn_Clicked(object _0, RoutedEventArgs _1) {
-            string newTagName = TagNameTextBox.Text.Trim();
-            if (newTagName.Length == 0) {
-                MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE = ResourceMap.GetValue("Notification_TagFilter_NameEmpty_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT = ResourceMap.GetValue("Notification_TagFilter_NameEmpty_Content").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE = ResourceMap.GetValue("Notification_TagFilter_NameDup_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT = ResourceMap.GetValue("Notification_TagFilter_NameDup_Content").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_OVERLAP_TITLE = ResourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString;
+        
+        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Create_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Create_2_Title").ValueAsString;
+
+        private async void CreateTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
+            string newTagFilterName = TagNameTextBox.Text.Trim();
+            if (newTagFilterName.Length == 0) {
+                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE, NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT);
                 return;
             }
-            if (_tagFilterDict.ContainsKey(newTagName)) {
-                MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
+            if (_tagFilterDict.ContainsKey(newTagFilterName)) {
+                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE, NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT);
                 return;
             }
-            string overlappingTagsText = GetCurrTagFilter().GetIncludeExcludeOverlap();
-            if (overlappingTagsText != "") {
-                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+            string overlappingTagFiltersText = GetCurrTagFilter().GetIncludeExcludeOverlap();
+            if (overlappingTagFiltersText != "") {
+                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_OVERLAP_TITLE, overlappingTagFiltersText);
                 return;
             }
-            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Create '{newTagName}'?", "");
+            ContentDialogResult cdr = await ShowConfirmDialogAsync(string.Format(NOTIFICATION_TAG_FILTER_CREATE_1_TITLE, newTagFilterName), "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
             TagNameTextBox.Text = "";
-            AddToTagsDict(newTagName, GetCurrTagFilter());
-            FilterTagComboBox.SelectedItem = newTagName;
+            AddToTagsDict(newTagFilterName, GetCurrTagFilter());
+            FilterTagComboBox.SelectedItem = newTagFilterName;
             WriteTagFilters();
-            MainWindow.NotifyUser($"'{newTagName}' created", "");
+            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_CREATE_2_TITLE, newTagFilterName), "");
         }
 
-        private async void RenameTagBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if (_currTagName == null) return;
-            string oldTagName = _currTagName;
-            string newTagName = TagNameTextBox.Text.Trim();
-            if (newTagName.Length == 0) {
-                MainWindow.NotifyUser("No Tag Name", "Please enter a tag name");
+        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Rename_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Rename_2_Title").ValueAsString;
+
+        private async void RenameTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
+            if (_currTagFilterName == null) return;
+            string oldTagFilterName = _currTagFilterName;
+            string newTagFilterName = TagNameTextBox.Text.Trim();
+            if (newTagFilterName.Length == 0) {
+                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE, NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT);
                 return;
             }
-            if (_tagFilterDict.ContainsKey(newTagName)) {
-                MainWindow.NotifyUser("Duplicate Tag Name", "A tag list with the name already exists");
+            if (_tagFilterDict.ContainsKey(newTagFilterName)) {
+                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE, NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT);
                 return;
             }
-            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Rename '{oldTagName}' to '{newTagName}'?", "");
+            ContentDialogResult cdr = await ShowConfirmDialogAsync(string.Format(NOTIFICATION_TAG_FILTER_RENAME_1_TITLE, oldTagFilterName, newTagFilterName), "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
             TagNameTextBox.Text = "";
-            AddToTagsDict(newTagName, _tagFilterDict[oldTagName]);
-            FilterTagComboBox.SelectedItem = newTagName;
-            RemoveFromTagsDict(oldTagName);
+            AddToTagsDict(newTagFilterName, _tagFilterDict[oldTagFilterName]);
+            FilterTagComboBox.SelectedItem = newTagFilterName;
+            RemoveFromTagsDict(oldTagFilterName);
             WriteTagFilters();
-            MainWindow.NotifyUser($"'{oldTagName}' renamed to '{newTagName}'", "");
+            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_RENAME_2_TITLE, oldTagFilterName, newTagFilterName), "");
         }
 
-        private async void SaveTagBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if (_currTagName == null) return;
-            string overlappingTagsText = GetCurrTagFilter().GetIncludeExcludeOverlap();
-            if (overlappingTagsText != "") {
-                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Save_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_CONTENT = ResourceMap.GetValue("Notification_TagFilter_Save_1_Content").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Save_2_Title").ValueAsString;
+
+        private async void SaveTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
+            if (_currTagFilterName == null) return;
+            string overlappingTagFiltersText = GetCurrTagFilter().GetIncludeExcludeOverlap();
+            if (overlappingTagFiltersText != "") {
+                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_OVERLAP_TITLE, overlappingTagFiltersText);
                 return;
             }
-            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Save current tags on '{_currTagName}'?", $"'{_currTagName}' will be overwritten.");
+            ContentDialogResult cdr = await ShowConfirmDialogAsync(
+                string.Format(NOTIFICATION_TAG_FILTER_SAVE_1_TITLE, _currTagFilterName),
+                string.Format(NOTIFICATION_TAG_FILTER_SAVE_1_CONTENT, _currTagFilterName)
+            );
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            _tagFilterDict[_currTagName] = GetCurrTagFilter();
+            _tagFilterDict[_currTagFilterName] = GetCurrTagFilter();
             WriteTagFilters();
-            MainWindow.NotifyUser($"'{_currTagName}' saved", "");
+            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_SAVE_2_TITLE, _currTagFilterName), "");
         }
 
-        private async void DeleteTagBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if (_currTagName == null) return;
-            string oldTagName = _currTagName;
-            ContentDialogResult cdr = await ShowConfirmDialogAsync($"Delete '{oldTagName}'?", "");
+        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Delete_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Delete_2_Title").ValueAsString;
+
+        private async void DeleteTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
+            if (_currTagFilterName == null) return;
+            string tagFilterName = _currTagFilterName;
+            ContentDialogResult cdr = await ShowConfirmDialogAsync(string.Format(NOTIFICATION_TAG_FILTER_DELETE_1_TITLE, tagFilterName), "");
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            RemoveFromTagsDict(oldTagName);
+            RemoveFromTagsDict(tagFilterName);
             WriteTagFilters();
-            MainWindow.NotifyUser($"'{oldTagName}' deleted", "");
+            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_DELETE_2_TITLE, tagFilterName), "");
         }
 
-        private void ClearTagTextboxBtn_Clicked(object _0, RoutedEventArgs _1) {
+        private void ClearTextBoxesBtn_Clicked(object _0, RoutedEventArgs _1) {
             IncludeTagContainer.Clear();
             ExcludeTagContainer.Clear();
         }
@@ -289,12 +301,12 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void FilterTagComboBox_SelectionChanged(object _0, SelectionChangedEventArgs _1) {
-            _currTagName = (string)FilterTagComboBox.SelectedItem;
-            if (_currTagName == null) {
-                ClearTagTextboxBtn_Clicked(null, null);
+            _currTagFilterName = (string)FilterTagComboBox.SelectedItem;
+            if (_currTagFilterName == null) {
+                ClearTextBoxesBtn_Clicked(null, null);
                 return;
             }
-            TagFilter tag = _tagFilterDict[_currTagName];
+            TagFilter tag = _tagFilterDict[_currTagFilterName];
             IncludeTagContainer.InsertTags(tag.includeTags);
             ExcludeTagContainer.InsertTags(tag.excludeTags);
         }
@@ -305,6 +317,8 @@ namespace Hitomi_Scroll_Viewer {
                 excludeTags = ExcludeTagContainer.GetTags()
             };
         }
+
+        private static readonly string NOTIFICATION_SEARCH_LINK_CONTENT_EMPTY_TITLE = ResourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString;
 
         private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
             var selectedSearchFilterItems = _searchFilterItems.Where(item => (bool)item.IsChecked);
@@ -320,9 +334,9 @@ namespace Hitomi_Scroll_Viewer {
                 }
             );
 
-            string overlappingTagsText = combinedTagFilter.GetIncludeExcludeOverlap();
-            if (overlappingTagsText != "") {
-                MainWindow.NotifyUser("The following tags are overlapping in Include and Exclude tags", overlappingTagsText);
+            string overlappingTagFiltersText = combinedTagFilter.GetIncludeExcludeOverlap();
+            if (overlappingTagFiltersText != "") {
+                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_OVERLAP_TITLE, overlappingTagFiltersText);
                 return;
             }
 
@@ -337,7 +351,7 @@ namespace Hitomi_Scroll_Viewer {
                 ).Where(searchParam => searchParam != "")
             );
             if (searchParams == "") {
-                MainWindow.NotifyUser("All selected tags are empty", "");
+                MainWindow.NotifyUser(NOTIFICATION_SEARCH_LINK_CONTENT_EMPTY_TITLE, "");
                 return;
             }
             string searchLink = SEARCH_ADDRESS + searchParams;
@@ -369,11 +383,15 @@ namespace Hitomi_Scroll_Viewer {
             Clipboard.SetContent(_myDataPackage);
         }
 
+        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE = ResourceMap.GetValue("Notification_GalleryIDTextBox_ContentEmpty_Title").ValueAsString;
+        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_TITLE = ResourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Title").ValueAsString;
+        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_CONTENT = ResourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Content").ValueAsString;
+
         private void DownloadBtn_Clicked(object _0, RoutedEventArgs _1) {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
             if (urlOrIds.Length == 0) {
-                MainWindow.NotifyUser("Please enter an ID(s) or an URL(s)", "");
+                MainWindow.NotifyUser(NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE, "");
                 return;
             }
             List<string> extractedIds = [];
@@ -384,7 +402,10 @@ namespace Hitomi_Scroll_Viewer {
                 }
             }
             if (extractedIds.Count == 0) {
-                MainWindow.NotifyUser("Invalid ID(s) or URL(s)", "Please enter valid ID(s) or URL(s)");
+                MainWindow.NotifyUser(
+                    NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_TITLE,
+                    NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_CONTENT
+                );
                 return;
             }
             GalleryIDTextBox.Text = "";
