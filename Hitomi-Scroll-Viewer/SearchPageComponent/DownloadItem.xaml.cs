@@ -17,19 +17,7 @@ using static Hitomi_Scroll_Viewer.Utils;
 namespace Hitomi_Scroll_Viewer.SearchPageComponent {
     public sealed partial class DownloadItem : Grid {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("DownloadItem");
-        private static readonly string STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER = ResourceMap.GetValue("StatusText_CalculatingDownloadNumber").ValueAsString;
-        private static readonly string STATUS_TEXT_DOWNLOADING = ResourceMap.GetValue("StatusText_Downloading").ValueAsString;
-        private static readonly string STATUS_TEXT_FAILED = ResourceMap.GetValue("StatusText_Failed").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO = ResourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO_ERROR = ResourceMap.GetValue("StatusText_FetchingGalleryInfo_Error").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME = ResourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME_ERROR = ResourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString;
-        private static readonly string STATUS_TEXT_PAUSED = ResourceMap.GetValue("StatusText_Paused").ValueAsString;
-        private static readonly string STATUS_TEXT_READING_GALLERY_INFO = ResourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
-        private static readonly string STATUS_TEXT_READING_GALLERY_INFO_ERROR = ResourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString;
-        private static readonly string TOOLTIP_TEXT_PAUSE = ResourceMap.GetValue("ToolTipText_Pause").ValueAsString;
-        private static readonly string TOOLTIP_TEXT_RESUME = ResourceMap.GetValue("ToolTipText_Resume").ValueAsString;
-        private static readonly string TOOLTIP_TEXT_TRY_AGAIN = ResourceMap.GetValue("ToolTipText_TryAgain").ValueAsString;
+
         private enum DownloadStatus {
             Downloading,
             Paused,
@@ -92,6 +80,11 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     break;
             }
         }
+
+        private static readonly string TOOLTIP_TEXT_PAUSE = ResourceMap.GetValue("ToolTipText_Pause").ValueAsString;
+        private static readonly string TOOLTIP_TEXT_RESUME = ResourceMap.GetValue("ToolTipText_Resume").ValueAsString;
+        private static readonly string TOOLTIP_TEXT_TRY_AGAIN = ResourceMap.GetValue("ToolTipText_TryAgain").ValueAsString;
+
         private void SetDownloadControlBtnState() {
             switch (_downloadingState) {
                 case DownloadStatus.Downloading:
@@ -146,6 +139,17 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                     break;
             }
         }
+
+        private static readonly string STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER = ResourceMap.GetValue("StatusText_CalculatingDownloadNumber").ValueAsString;
+        private static readonly string STATUS_TEXT_DOWNLOADING = ResourceMap.GetValue("StatusText_Downloading").ValueAsString;
+        private static readonly string STATUS_TEXT_FAILED = ResourceMap.GetValue("StatusText_Failed").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO = ResourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO_ERROR = ResourceMap.GetValue("StatusText_FetchingGalleryInfo_Error").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME = ResourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
+        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME_ERROR = ResourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString;
+        private static readonly string STATUS_TEXT_PAUSED = ResourceMap.GetValue("StatusText_Paused").ValueAsString;
+        private static readonly string STATUS_TEXT_READING_GALLERY_INFO = ResourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
+        private static readonly string STATUS_TEXT_READING_GALLERY_INFO_ERROR = ResourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString;
 
         private async void Download(CancellationToken ct) {
             SetStateAndText(DownloadStatus.Downloading, "");
