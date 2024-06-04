@@ -27,8 +27,11 @@ Built using WinUI 3 with C#.
 3. Run MSIX File (.msix)
 4. If a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
-## Controls
-- Move the mouse to the top of the screen to show the settings menu.
-- Press the Spacebar to start/stop auto scrolling.
-- Press the `L` key to enable/disable the loop when auto-scrolling.
-- Use the left/up and right/down arrow keys or mouse wheel to switch between pages.
+## Usage / Controls
+- In the search page:
+    - Enter each tag in the text boxes at each new line.
+- In the view page:
+    - Move the mouse to the top of the screen to show the settings menu.
+    - Press the Spacebar to start/stop auto scrolling.
+    - Press the `L` key to enable/disable the loop when auto-scrolling.
+    - Use the left/up and right/down arrow keys or mouse wheel to switch between pages.
