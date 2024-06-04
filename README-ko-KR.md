@@ -24,7 +24,7 @@ WinUI 3와 C#으로 개발했습니다.
 1. 자신의 CPU 아키텍처에 맞는 파일을 [다운로드](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)후 압축을 풀어주세요.
 2. 압축 해제한 파일을 연 다음 보안인증서 열기 (.cer) -> 인증서 설치 -> 로컬 컴퓨터 -> 모든 인증서를 다음 인증소에 저장 -> 찾아보기 -> 신뢰할 수 있는 사용자 -> 다음 -> 마침.
 3. MSIX File (.msix) 을 실행
-4. 만약에 "You must install .NET Desktop Runtime...", 라는 창이 설치해주세요.
+4. 만약에 "You must install .NET Desktop Runtime...", 라는 창이 나오면 그대로 따라서 설치해주세요.
 
 ## 조작법
 - 스페이스바로 자동 스크롤 시작/정지
