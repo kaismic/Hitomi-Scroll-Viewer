@@ -28,6 +28,7 @@ Built using WinUI 3 with C#.
 4. If a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Controls
-- Press Spacebar to start/stop auto scrolling
-- Press `L` key to enable/disable loop when auto scrolling
-- Use left/up and right/down arrow keys or mouse wheel to switch between pages
+- Move the mouse to the top of the screen to show the settings menu.
+- Press the Spacebar to start/stop auto scrolling.
+- Press the `L` key to enable/disable the loop when auto-scrolling.
+- Use the left/up and right/down arrow keys or mouse wheel to switch between pages.
