@@ -8,12 +8,12 @@
 
   <Identity
     Name="Hitomi-Scroll-Viewer"
-    Publisher="CN=kaismic Long Expiry"
-    Version="1.0.10.0" />
+    Publisher="CN=kaismic"
+    Version="2.0.0.0" />
 
   <Properties>
     <DisplayName>Hitomi-Scroll-Viewer</DisplayName>
-    <PublisherDisplayName>isac0</PublisherDisplayName>
+    <PublisherDisplayName>kaismic</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
