@@ -3,41 +3,31 @@
 [![GitHub downloads count latest release](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/latest/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
 [![GitHub downloads count total](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases)
 
-A viewer for hitomi.la (18+) with features such as auto scrolling, searching by tags and downloading.
+*Read this in other languages:* [한국어](README-ko-KR.md)
 
-Built using C# .NET 6, WinUI 3
+A viewer for hitomi.la (18+) various features.
+
+Built using WinUI 3 with C#.
 
 ## Preview
-<div>
-    <img src="images/preview_0.png" style="width: 100%;">
-    <img src="images/preview_1.png" style="width: 100%;">
-    <img src="images/preview_2.png" style="width: 100%;">
-    <img src="images/preview_3.png" style="width: 100%;">
+<div align="center">
+    <img src="images/preview1.png" style="width: 50%;">
+    <img src="images/preview2.png" style="width: 50%;">
 </div>
 
 ## Features
-- Search galleries with multiple tag filters
-- Auto scrolling / Auto page turning
+- Create search links with combinable tag filters
 - Download galleries
+- Auto scrolling
 - Change view direction
-- Image zooming in/out
 
 ## How to install
-1. Unzip one of the x86, x64 or arm64 zip files
-2. Open Hitomi-Scroll-Viewer_x.x.x.x_x64.cer (or x86, arm64) -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish
-3. Open Hitomi-Scroll-Viewer_x.x.x.x_x64.msix
-4. Install .NET 6.0 Desktop Runtime if it also pops up
+1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) the file corresponding to your CPU architecture and unzip the file.
+2. Open the unzipped folder and click on the Security Certificate file (.cer) -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
+3. Run MSIX File (.msix)
+4. If a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Controls
-- Doubleclick to switch between pages
-
-In image watching page:
-- Press Spacebar to start/stop auto page turning/auto scrolling
-- Press `L` key to enable/disable loop when auto page turning/auto scrolling
-- Press `V` key to change view mode (Default/Scroll)
-- Hold `Ctrl` key and use mouse wheel or `+`, `-` key to zoom in/out
-- In Default mode:
-    - Use left / right keys to switch between images
-
-## Notes
-- It is not recommended to download a large number of galleries together or downloading with large thread number because hitomi.la throws 503 error on rapid request above its API rate limit.
+- Press Spacebar to start/stop auto scrolling
+- Press `L` key to enable/disable loop when auto scrolling
+- Use left/up and right/down arrow keys or mouse wheel to switch between pages
