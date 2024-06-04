@@ -100,7 +100,7 @@
                 Padding="8"
                 IsTabStop="False"
                 IsTapEnabled="False">
-            <TextBlock x:Name="PageNumText" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="PageNumTextBlock" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
         <Viewbox x:Name="ActionIndicator"
                  Width="500"

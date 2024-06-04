@@ -246,7 +246,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private void SetCurrPageText(Range range) {
-            PageNumText.Text = $"{GetPageIndexText(range)} of {CurrLoadedGallery.files.Length}";
+            PageNumTextBlock.Text = $"{GetPageIndexText(range)} / {CurrLoadedGallery.files.Length}";
         }
 
         private void ShowActionIndicator(Symbol? symbol, string glyph) {
