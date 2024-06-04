@@ -45,7 +45,7 @@
                 </Slider>
             </AppBarElementContainer>
             <AppBarToggleButton x:Name="AutoScrollBtn"
-                                MinWidth="90"
+                                MinWidth="120"
                                 Icon="Play"
                                 IsTabStop="False"
                                 Margin="16 0"/>
