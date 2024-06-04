@@ -1,13 +1,12 @@
 ﻿using Hitomi_Scroll_Viewer.ImageWatchingPageComponent;
-using Microsoft.OpenApi.Extensions;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -15,10 +14,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.System;
+using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class ViewPage : Page {
+        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("ViewPage");
+        private readonly string[] ORIENTATION_NAMES = ResourceMap.GetValue("Text_StringArray_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
+        private readonly string[] VIEW_DIRECTION_NAMES = ResourceMap.GetValue("Text_StringArray_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
+
         private static readonly string SCROLL_DIRECTION_SETTING_KEY = "ScrollDirection";
         private static readonly string VIEW_DIRECTION_SETTING_KEY = "ViewDirection";
         private static readonly string AUTO_SCROLL_INTERVAL_SETTING_KEY = "AutoScrollInterval";
@@ -27,11 +31,8 @@ namespace Hitomi_Scroll_Viewer {
 
         private static readonly string GLYPH_CANCEL = "\xE711";
 
-        private readonly Range AUTO_SCROLL_INTERVAL_RANGE = 1..10;
-        private readonly double AUTO_SCROLL_INTERVAL_FREQ = 0.5;
         private double _autoScrollInterval; // in seconds
         public bool IsAutoScrolling { get; private set; } = false;
-        private bool _isLooping = true;
         public Gallery CurrLoadedGallery { get; private set; }
         private readonly List<GroupedImagePanel> _groupedImagePanels = [];
         private readonly List<Range> _imgIndexRangesPerPage = [];
@@ -39,17 +40,11 @@ namespace Hitomi_Scroll_Viewer {
         private DateTime _lastWindowSizeChangeTime;
 
         private Orientation _scrollDirection;
-        private readonly string[] ORIENTATION_NAMES = Enum.GetNames(typeof(Orientation));
         public enum ViewDirection {
-            [Description("Left to Right")]
             LeftToRight,
-            [Description("Right to Left")]
             RightToLeft
         }
         private ViewDirection _viewDirection;
-        private readonly IEnumerable<string> VIEW_DIRECTION_NAMES = Enum.GetValues(typeof(ViewDirection))
-            .Cast<ViewDirection>()
-            .Select(viewDirection => EnumExtensions.GetAttributeOfType<DescriptionAttribute>(viewDirection).Description);
 
         private bool _isInAction = false;
 
@@ -59,15 +54,21 @@ namespace Hitomi_Scroll_Viewer {
             EnableControls(false);
 
             _settings = ApplicationData.Current.LocalSettings;
-            _scrollDirection = (Orientation)(_settings.Values[SCROLL_DIRECTION_SETTING_KEY] ?? Orientation.Horizontal);
+            _scrollDirection = (Orientation)(_settings.Values[SCROLL_DIRECTION_SETTING_KEY] ?? Orientation.Vertical);
             _viewDirection = (ViewDirection)(_settings.Values[VIEW_DIRECTION_SETTING_KEY] ?? ViewDirection.LeftToRight);
-            _autoScrollInterval = (double)(_settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] ?? (AUTO_SCROLL_INTERVAL_RANGE.Start.Value + AUTO_SCROLL_INTERVAL_RANGE.End.Value) / 2.0);
-            _isLooping = (bool)(_settings.Values[IS_LOOPING_SETTING_KEY] ?? true);
+            _autoScrollInterval = (double)(_settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] ?? AutoScrollIntervalSlider.Minimum);
+            LoopBtn.IsChecked = (bool)(_settings.Values[IS_LOOPING_SETTING_KEY] ?? true);
 
             AutoScrollIntervalSlider.Value = _autoScrollInterval;
             ViewDirectionSelector.SelectedIndex = (int)_viewDirection;
             ScrollDirectionSelector.SelectedIndex = (int)_scrollDirection;
-            LoopBtn.IsChecked = _isLooping;
+
+            AutoScrollBtn.Label = TEXT_AUTO_SCROLL_BTN_OFF;
+            LoopBtn.Label = (bool)LoopBtn.IsChecked ? TEXT_LOOP_BTN_ON : TEXT_LOOP_BTN_OFF;
+
+            foreach (var elem in TopCommandBar.PrimaryCommands.Cast<Control>()) {
+                elem.VerticalAlignment = VerticalAlignment.Stretch;
+            }
 
             TopCommandBar.PointerEntered += (_, _) => {
                 TopCommandBar.Opacity = 1;
@@ -85,6 +86,7 @@ namespace Hitomi_Scroll_Viewer {
             GoBackBtn.Click += (_, _) => App.MainWindow.SwitchPage();
             AutoScrollIntervalSlider.ValueChanged += (object sender, RangeBaseValueChangedEventArgs e) => { _autoScrollInterval = e.NewValue; };
             AutoScrollBtn.Click += (_, _) => StartStopAutoScroll((bool)AutoScrollBtn.IsChecked);
+            LoopBtn.Click += (_, _) => SetLoopBtnStatus((bool)LoopBtn.IsChecked);
 
             // remove _flipview navigation buttons
             void FlipView_Loaded(object sender, RoutedEventArgs e) {
@@ -104,7 +106,7 @@ namespace Hitomi_Scroll_Viewer {
             _settings.Values[SCROLL_DIRECTION_SETTING_KEY] = (int)_scrollDirection;
             _settings.Values[VIEW_DIRECTION_SETTING_KEY] = (int)_viewDirection;
             _settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] = _autoScrollInterval;
-            _settings.Values[IS_LOOPING_SETTING_KEY] = _isLooping;
+            _settings.Values[IS_LOOPING_SETTING_KEY] = LoopBtn.IsChecked;
         }
 
         public async void LoadGallery(Gallery gallery) {
@@ -263,6 +265,9 @@ namespace Hitomi_Scroll_Viewer {
             FadeOutStoryboard.Begin();
         }
 
+        private static readonly string TEXT_AUTO_SCROLL_BTN_ON = ResourceMap.GetValue("Text_AutoScrollBtn_On").ValueAsString;
+        private static readonly string TEXT_AUTO_SCROLL_BTN_OFF = ResourceMap.GetValue("Text_AutoScrollBtn_Off").ValueAsString;
+
         private CancellationTokenSource _autoScrollCts = new();
         public void StartStopAutoScroll(bool starting) {
             IsAutoScrolling = starting;
@@ -271,14 +276,14 @@ namespace Hitomi_Scroll_Viewer {
             if (starting) {
                 ShowActionIndicator(Symbol.Play, null);
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Pause);
-                AutoScrollBtn.Label = "Stop Auto Scrolling";
+                AutoScrollBtn.Label = TEXT_AUTO_SCROLL_BTN_ON;
                 _autoScrollCts = new();
                 Task.Run(() => ScrollAutomatically(_autoScrollCts.Token), _autoScrollCts.Token);
             } else {
                 ShowActionIndicator(Symbol.Pause, null);
                 _autoScrollCts.Cancel();
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Play);
-                AutoScrollBtn.Label = "Start Auto Scrolling";
+                AutoScrollBtn.Label = TEXT_AUTO_SCROLL_BTN_OFF;
             }
         }
 
@@ -288,7 +293,7 @@ namespace Hitomi_Scroll_Viewer {
         private async void ScrollAutomatically(CancellationToken ct) {
             while (IsAutoScrolling) {
                 DispatcherQueue.TryEnqueue(() => {
-                    if (!_isLooping && ImageFlipView.SelectedIndex == ImageFlipView.Items.Count - 1) {
+                    if (!(bool)LoopBtn.IsChecked && ImageFlipView.SelectedIndex == ImageFlipView.Items.Count - 1) {
                         StartStopAutoScroll(false);
                         return;
                     }
@@ -300,7 +305,7 @@ namespace Hitomi_Scroll_Viewer {
                 }
                 DispatcherQueue.TryEnqueue(() => {
                     if (IsAutoScrolling) {
-                        if (!_isLooping && ImageFlipView.SelectedIndex == ImageFlipView.Items.Count - 1) {
+                        if (!(bool)LoopBtn.IsChecked && ImageFlipView.SelectedIndex == ImageFlipView.Items.Count - 1) {
                             StartStopAutoScroll(false);
                             return;
                         }
@@ -310,18 +315,28 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
+        private static readonly string TEXT_LOOP_BTN_ON = ResourceMap.GetValue("Text_LoopBtn_On").ValueAsString;
+        private static readonly string TEXT_LOOP_BTN_OFF = ResourceMap.GetValue("Text_LoopBtn_Off").ValueAsString;
+
+        private void SetLoopBtnStatus(bool on) {
+            LoopBtn.IsChecked = on;
+            if (on) {
+                ShowActionIndicator(Symbol.RepeatAll, null);
+                LoopBtn.Label = TEXT_LOOP_BTN_ON;
+            } else {
+                ShowActionIndicator(Symbol.RepeatAll, GLYPH_CANCEL);
+                LoopBtn.Label = TEXT_LOOP_BTN_OFF;
+            }
+        }
+
         public void ImageWatchingPage_PreviewKeyDown(object _, KeyRoutedEventArgs e) {
             if (CurrLoadedGallery == null) return;
             switch (e.Key) {
                 case VirtualKey.L:
                     e.Handled = true;
-                    if ((bool)LoopBtn.IsChecked) {
-                        LoopBtn.IsChecked = false;
-                        ShowActionIndicator(Symbol.RepeatAll, GLYPH_CANCEL);
-                    } else {
-                        LoopBtn.IsChecked = true;
-                        ShowActionIndicator(Symbol.RepeatAll, null);
-                    }
+                    bool isChecked = (bool)LoopBtn.IsChecked;
+                    LoopBtn.IsChecked = !isChecked;
+                    SetLoopBtnStatus(!isChecked);
                     break;
                 case VirtualKey.Space:
                     e.Handled = true;
@@ -390,14 +405,6 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private void LoopBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if ((bool)LoopBtn.IsChecked) {
-                ShowActionIndicator(Symbol.RepeatAll, null);
-            } else {
-                ShowActionIndicator(Symbol.RepeatAll, GLYPH_CANCEL);
-            }
-        }
-
         private async void ScrollDirectionSelector_SelectionChanged(object _0, SelectionChangedEventArgs e) {
             _scrollDirection = (Orientation)ScrollDirectionSelector.SelectedIndex;
             if (ImageFlipView.ItemsPanelRoot != null) {
@@ -439,7 +446,7 @@ namespace Hitomi_Scroll_Viewer {
 
         public async void Window_SizeChanged() {
             DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.Now;
-            // wait for a short time to check if there is a later SizeChanged event to prevent rapid CheckAndUpdateImageSources() calls
+            // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
             await Task.Delay(200);
             if (_lastWindowSizeChangeTime != thisDateTime) {
                 return;

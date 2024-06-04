@@ -18,16 +18,15 @@
                     OverflowButtonVisibility="Collapsed"
                     HorizontalAlignment="Center"
                     IsOpen="True">
-            <AppBarButton x:Name="GoBackBtn"
+            <AppBarButton x:Name="GoBackBtn" x:Uid="/ViewPage/GoBackBtn"
                           MinWidth="50"
                           Icon="Back"
-                          Label="Go Back"
-                          IsTabStop="False"/>
+                          IsTabStop="False"
+                          />
             <AppBarSeparator MinWidth="30"/>
-            <AppBarButton x:Name="RefreshBtn"
+            <AppBarButton x:Name="RefreshBtn" x:Uid="/ViewPage/RefreshBtn"
                           MinWidth="50"
                           Icon="Refresh"
-                          Label="Refresh"
                           Click="RefreshBtn_Clicked"
                           IsTabStop="False"/>
             <AppBarSeparator MinWidth="30"/>
@@ -35,53 +34,44 @@
                 <Slider x:Name="AutoScrollIntervalSlider"
                         MinWidth="240"
                         IsTabStop="False"
-                        Minimum="{x:Bind AUTO_SCROLL_INTERVAL_RANGE.Start.Value}"
-                        Maximum="{x:Bind AUTO_SCROLL_INTERVAL_RANGE.End.Value}"
-                        TickFrequency="{x:Bind AUTO_SCROLL_INTERVAL_FREQ}"
-                        StepFrequency="{x:Bind AUTO_SCROLL_INTERVAL_FREQ}">
+                        Minimum="1"
+                        Maximum="10"
+                        TickFrequency="0.5"
+                        StepFrequency="0.5">
                     <Slider.Header>
-                        <TextBlock Text="Auto Scroll Interval (seconds)"
-                                   Style="{StaticResource BaseTextBlockStyle}"
+                        <TextBlock x:Uid="/ViewPage/AutoScrollIntervalSliderTextBlock"
                                    HorizontalAlignment="Center"/>
                     </Slider.Header>
                 </Slider>
             </AppBarElementContainer>
-            <AppBarSeparator MinWidth="30"/>
             <AppBarToggleButton x:Name="AutoScrollBtn"
                                 MinWidth="90"
                                 Icon="Play"
-                                Label="Start Auto Scrolling"
-                                IsTabStop="False"/>
+                                IsTabStop="False"
+                                Margin="16 0"/>
             <AppBarToggleButton x:Name="LoopBtn"
-                                Click="LoopBtn_Clicked"
-                                IsChecked="{x:Bind _isLooping, Mode=TwoWay}"
-                                Label="Toggle Loop"
                                 Icon="RepeatAll"
                                 MinWidth="90"
-                                IsTabStop="False"
-                                VerticalAlignment="Center"/>
+                                IsTabStop="False"/>
             <AppBarSeparator MinWidth="30"/>
-            <AppBarElementContainer>
+            <AppBarElementContainer Margin="0 0 16 0">
                 <ComboBox x:Name="ScrollDirectionSelector" ItemsSource="{x:Bind ORIENTATION_NAMES}"
                           SelectionChanged="ScrollDirectionSelector_SelectionChanged"
                           MinWidth="150"
                           IsTabStop="False">
                     <ComboBox.Header>
-                        <TextBlock Text="Scroll Direction"
-                                   Style="{StaticResource BaseTextBlockStyle}"
+                        <TextBlock x:Uid="/ViewPage/ScrollDirectionSelectorTextBlock"
                                    HorizontalAlignment="Center"/>
                     </ComboBox.Header>
                 </ComboBox>
             </AppBarElementContainer>
-            <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="ViewDirectionSelector" ItemsSource="{x:Bind VIEW_DIRECTION_NAMES}"
                           SelectionChanged="ViewDirectionSelector_SelectionChanged"
-                          MinWidth="160"
+                          MinWidth="200"
                           IsTabStop="False">
                     <ComboBox.Header>
-                        <TextBlock Text="View Direction"
-                                   Style="{StaticResource BaseTextBlockStyle}"
+                        <TextBlock x:Uid="/ViewPage/ViewDirectionSelectorTextBlock"
                                    HorizontalAlignment="Center"/>
                     </ComboBox.Header>
                 </ComboBox>
@@ -93,8 +83,7 @@
                           MinWidth="120"
                           IsTabStop="False">
                     <ComboBox.Header>
-                        <TextBlock Text="Go to page"
-                                   Style="{StaticResource BaseTextBlockStyle}"
+                        <TextBlock x:Uid="/ViewPage/PageNavigatorTextBlock"
                                    HorizontalAlignment="Center"/>
                     </ComboBox.Header>
                 </ComboBox>
