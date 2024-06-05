@@ -1,13 +1,17 @@
 ﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.IO;
-using System.Net.Http;
+using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
+        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("MainWindow");
+        private static readonly string EXIT_CONFIRM_TEXT = ResourceMap.GetValue("ExitConfirmText").ValueAsString;
+
         public static SearchPage SearchPage { get; private set; }
         public static ViewPage ImageWatchingPage { get; private set; }
 
@@ -26,9 +30,9 @@ namespace Hitomi_Scroll_Viewer {
                 e.Cancel = true;
                 if (!SearchPage.DownloadingGalleries.IsEmpty) {
                     ContentDialog dialog = new() {
-                        Title = "There are remaining downloads. Exit anyway?",
-                        PrimaryButtonText = "Exit",
-                        CloseButtonText = "Cancel",
+                        Title = EXIT_CONFIRM_TEXT,
+                        PrimaryButtonText = DIALOG_BUTTON_TEXT_EXIT,
+                        CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
                         XamlRoot = Content.XamlRoot
                     };
                     ContentDialogResult cdr = await dialog.ShowAsync();
