@@ -5,9 +5,11 @@
 
 *Read this in other languages:* [한국어](README-ko-KR.md)
 
-A viewer for hitomi.la (18+) various features.
+A viewer for hitomi.la (18+) with various features.
 
 Built using WinUI 3 with C#.
+
+Currently supported languages: English and Korean
 
 ## Preview
 <div align="center">
