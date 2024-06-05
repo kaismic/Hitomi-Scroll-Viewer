@@ -54,8 +54,8 @@ namespace Hitomi_Scroll_Viewer {
 
         private readonly ContentDialog _confirmDialog = new() {
             IsPrimaryButtonEnabled = true,
-            PrimaryButtonText = DIALOG_TEXT_YES,
-            CloseButtonText = DIALOG_TEXT_CANCEL,
+            PrimaryButtonText = DIALOG_BUTTON_TEXT_YES,
+            CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
             Title = new TextBlock() {
                 TextWrapping = TextWrapping.WrapWholeWords
             },
