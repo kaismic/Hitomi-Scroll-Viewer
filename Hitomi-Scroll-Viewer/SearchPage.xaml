@@ -106,7 +106,7 @@
                              Grid.Row="0"
                              TextWrapping="Wrap"
                              FontSize="16"
-                             MaxLength="40"
+                             MaxLength="100"
                              />
                     <Grid Grid.Row="1" ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
