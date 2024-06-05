@@ -22,10 +22,12 @@ Built using WinUI 3 with C#.
 - Change view direction
 
 ## How to install
+If you are installing for the first time or upgrading the app version from 1.x.x to 2.x.x, follow all the steps. Otherwise, follow only step 3-4.
 1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) the file corresponding to your CPU architecture and unzip the file.
 2. Open the unzipped folder and click on the Security Certificate file (.cer) -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
 3. Run MSIX File (.msix)
 4. If a window pops up saying "You must install .NET Desktop Runtime...", install it.
+
 
 ## Usage / Controls
 - In the search page:
