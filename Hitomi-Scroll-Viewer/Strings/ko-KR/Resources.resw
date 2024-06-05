@@ -117,10 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DialogText_Cancel" xml:space="preserve">
+  <data name="DialogButtonText_Cancel" xml:space="preserve">
     <value>취소</value>
   </data>
-  <data name="DialogText_Yes" xml:space="preserve">
+  <data name="DialogButtonText_Exit" xml:space="preserve">
+    <value>종료</value>
+  </data>
+  <data name="DialogButtonText_Yes" xml:space="preserve">
     <value>예</value>
   </data>
 </root>
