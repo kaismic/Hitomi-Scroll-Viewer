@@ -126,4 +126,13 @@
   <data name="DialogButtonText_Yes" xml:space="preserve">
     <value>예</value>
   </data>
+  <data name="ExampleTagFilterName_1" xml:space="preserve">
+    <value>예시: 영어, 풀컬러 포함 그리고 게임 CG 제외</value>
+  </data>
+  <data name="ExampleTagFilterName_2" xml:space="preserve">
+    <value>예시: 동인지, 망가, 나루토, 한국어 포함</value>
+  </data>
+  <data name="ExampleTagFilterName_3" xml:space="preserve">
+    <value>예시: 블루 아카이브, 1인 여성 포함 그리고 중국어 제외</value>
+  </data>
 </root>

@@ -76,15 +76,22 @@ namespace Hitomi_Scroll_Viewer {
                 );
             } else {
                 _tagFilterDict = new() {
-                    { "Example: Include english", new() },
-                    { "Example: Include non-h", new() },
-                    { "Example: Include Full color", new() },
-                    { "Example: Exclude gamecg", new() }
+                    { EXAMPLE_TAG_FILTER_NAME_1, new() },
+                    { EXAMPLE_TAG_FILTER_NAME_2, new() },
+                    { EXAMPLE_TAG_FILTER_NAME_3, new() },
                 };
-                _tagFilterDict["Example: Include english"].includeTags["language"].Add("english");
-                _tagFilterDict["Example: Include non-h"].includeTags["tag"].Add("non-h_imageset");
-                _tagFilterDict["Example: Include Full color"].includeTags["tag"].Add("full_color");
-                _tagFilterDict["Example: Exclude gamecg"].includeTags["type"].Add("gamecg");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["language"].Add("english");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["tag"].Add("full_color");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].excludeTags["type"].Add("gamecg");
+
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("doujinshi");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("manga");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["series"].Add("naruto");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["language"].Add("korean");
+
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["series"].Add("blue_archive");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["female"].Add("sole_female");
+                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].excludeTags["language"].Add("chinese");
                 WriteTagFilters();
             }
 

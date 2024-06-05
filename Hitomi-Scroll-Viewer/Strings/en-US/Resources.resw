@@ -126,4 +126,13 @@
   <data name="DialogButtonText_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
+  <data name="ExampleTagFilterName_1" xml:space="preserve">
+    <value>Example: Include English, Full Color and Exclude Game CG</value>
+  </data>
+  <data name="ExampleTagFilterName_2" xml:space="preserve">
+    <value>Example: Include Doujinshi, Manga, Naruto, Korean</value>
+  </data>
+  <data name="ExampleTagFilterName_3" xml:space="preserve">
+    <value>Example: Include Blue Archive, Sole Female and Exclude Chinese</value>
+  </data>
 </root>
