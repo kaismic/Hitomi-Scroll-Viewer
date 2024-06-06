@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CancelBtn.ToolTipService.ToolTip" xml:space="preserve">
+    <value>다운로드 취소</value>
+  </data>
   <data name="StatusText_CalculatingDownloadNumber" xml:space="preserve">
     <value>다운로드 해야하는 이미지의 수를 계산하는 중...</value>
   </data>
@@ -147,6 +150,9 @@
   </data>
   <data name="StatusText_ReadingGalleryInfo_Error" xml:space="preserve">
     <value>갤러리 정보를 읽는 도중 문제가 발생했습니다</value>
+  </data>
+  <data name="ThreadNumComboBoxHeader.Text" xml:space="preserve">
+    <value>다운로드 스레드</value>
   </data>
   <data name="ToolTipText_Pause" xml:space="preserve">
     <value>다운로드 일시정지</value>

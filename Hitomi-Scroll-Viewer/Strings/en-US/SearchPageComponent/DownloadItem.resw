@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CancelBtn.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Cancel download</value>
+  </data>
   <data name="StatusText_CalculatingDownloadNumber" xml:space="preserve">
     <value>Calculating the number of images to download...</value>
   </data>
@@ -147,6 +150,9 @@
   </data>
   <data name="StatusText_ReadingGalleryInfo_Error" xml:space="preserve">
     <value>An error has occurred while reading gallery information</value>
+  </data>
+  <data name="ThreadNumComboBoxHeader.Text" xml:space="preserve">
+    <value>Download threads</value>
   </data>
   <data name="ToolTipText_Pause" xml:space="preserve">
     <value>Pause download</value>

@@ -35,7 +35,7 @@
             Click="PauseOrResume"
             HorizontalAlignment="Stretch"/>
     <Button x:Name="CancelBtn" Grid.Row="0" Grid.Column="2"
-            ToolTipService.ToolTip="Cancel Download"
+            x:Uid="/DownloadItem/CancelBtn"
             HorizontalAlignment="Stretch">
         <SymbolIcon Symbol="Delete"></SymbolIcon>
     </Button>
@@ -45,7 +45,7 @@
               SelectedIndex="0"
               SelectionChanged="HandleThreadNumChange">
         <ComboBox.Header>
-            <TextBlock Text="Download Threads" Style="{StaticResource BaseTextBlockStyle}"/>
+            <TextBlock x:Uid="/DownloadItem/ThreadNumComboBoxHeader"/>
         </ComboBox.Header>
     </ComboBox>
 </Grid>
