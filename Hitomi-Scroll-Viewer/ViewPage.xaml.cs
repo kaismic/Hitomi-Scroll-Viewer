@@ -46,7 +46,7 @@ namespace Hitomi_Scroll_Viewer {
         }
         private ViewDirection _viewDirection;
 
-        private bool _isInAction = false;
+        private static readonly object _actionLock = new();
 
         public ViewPage() {
             InitializeComponent();
@@ -85,7 +85,7 @@ namespace Hitomi_Scroll_Viewer {
             };
             GoBackBtn.Click += (_, _) => App.MainWindow.SwitchPage();
             AutoScrollIntervalSlider.ValueChanged += (object sender, RangeBaseValueChangedEventArgs e) => { _autoScrollInterval = e.NewValue; };
-            AutoScrollBtn.Click += (_, _) => StartStopAutoScroll((bool)AutoScrollBtn.IsChecked);
+            AutoScrollBtn.Click += (_, _) => ToggleAutoScroll((bool)AutoScrollBtn.IsChecked);
             LoopBtn.Click += (_, _) => SetLoopBtnStatus((bool)LoopBtn.IsChecked);
 
             // remove _flipview navigation buttons
@@ -111,7 +111,7 @@ namespace Hitomi_Scroll_Viewer {
 
         public async void LoadGallery(Gallery gallery) {
             App.MainWindow.SwitchPage();
-            if (StartStopAction(true)) {
+            if (ToggleAction(true)) {
                 try {
                     if (CurrLoadedGallery != null && gallery.id == CurrLoadedGallery.id) {
                         await SetImageOrientationAndSize();
@@ -125,7 +125,7 @@ namespace Hitomi_Scroll_Viewer {
 
                     await AddGroupedImagePanels(0);
                 } finally {
-                    StartStopAction(false);
+                    ToggleAction(false);
                 }
             }
         }
@@ -165,12 +165,10 @@ namespace Hitomi_Scroll_Viewer {
             AddRangeItems(currRange.start..currRange.end);
 
             SetCurrPageText(_imgIndexRangesPerPage[(int)rangeIndexIncludingPageIndex]);
-            AttachPageEventHandlers(false);
-            await Task.Delay(200);
+            await AttachPageEventHandlers(false);
             ImageFlipView.SelectedIndex = (int)rangeIndexIncludingPageIndex;
             PageNavigator.SelectedIndex = (int)rangeIndexIncludingPageIndex;
-            await Task.Delay(200);
-            AttachPageEventHandlers(true);
+            await AttachPageEventHandlers(true);
 
             await SetImageOrientationAndSize();
         }
@@ -193,13 +191,11 @@ namespace Hitomi_Scroll_Viewer {
             while (ImageFlipView.ItemsPanelRoot == null) {
                 await Task.Delay(100);
             }
-            AttachPageEventHandlers(false);
-            await Task.Delay(200);
+            await AttachPageEventHandlers(false);
             int temp = ImageFlipView.SelectedIndex;
             (ImageFlipView.ItemsPanelRoot as VirtualizingStackPanel).Orientation = _scrollDirection;
             ImageFlipView.SelectedIndex = temp;
-            await Task.Delay(200);
-            AttachPageEventHandlers(true);
+            await AttachPageEventHandlers(true);
 
             foreach (var panel in _groupedImagePanels) {
                 panel.UpdateViewDirection(_viewDirection);
@@ -210,10 +206,9 @@ namespace Hitomi_Scroll_Viewer {
         /**
          * <returns><c>true</c> if action is permitted, otherwise, <c>false</c></returns>
          */
-        public bool StartStopAction(bool doOrFinishAction) {
+        public bool ToggleAction(bool doOrFinishAction) {
             if (doOrFinishAction) {
-                if (!_isInAction) {
-                    _isInAction = true;
+                if (Monitor.TryEnter(_actionLock, 0)) {
                     EnableControls(false);
                     SearchPage.BookmarkItems.ForEach(bmItem => bmItem.EnableBookmarkClick(false));
                     return true;
@@ -222,7 +217,7 @@ namespace Hitomi_Scroll_Viewer {
             }
             EnableControls(true);
             SearchPage.BookmarkItems.ForEach(bmItem => bmItem.EnableBookmarkClick(true));
-            _isInAction = false;
+            Monitor.Exit(_actionLock);
             return true;
         }
 
@@ -234,7 +229,7 @@ namespace Hitomi_Scroll_Viewer {
             ScrollDirectionSelector.IsEnabled = enable;
             ViewDirectionSelector.IsEnabled = enable;
             PageNavigator.IsEnabled = enable;
-            if (IsAutoScrolling) StartStopAutoScroll(false);
+            if (IsAutoScrolling) ToggleAutoScroll(false);
         }
 
         private static string GetPageIndexText(Range range) {
@@ -269,7 +264,7 @@ namespace Hitomi_Scroll_Viewer {
         private static readonly string TEXT_AUTO_SCROLL_BTN_OFF = ResourceMap.GetValue("Text_AutoScrollBtn_Off").ValueAsString;
 
         private CancellationTokenSource _autoScrollCts = new();
-        public void StartStopAutoScroll(bool starting) {
+        public void ToggleAutoScroll(bool starting) {
             IsAutoScrolling = starting;
             AutoScrollBtn.IsChecked = starting;
             stopwatch.Reset();
@@ -294,7 +289,7 @@ namespace Hitomi_Scroll_Viewer {
             while (IsAutoScrolling) {
                 DispatcherQueue.TryEnqueue(() => {
                     if (!(bool)LoopBtn.IsChecked && ImageFlipView.SelectedIndex == ImageFlipView.Items.Count - 1) {
-                        StartStopAutoScroll(false);
+                        ToggleAutoScroll(false);
                         return;
                     }
                 });
@@ -306,7 +301,7 @@ namespace Hitomi_Scroll_Viewer {
                 DispatcherQueue.TryEnqueue(() => {
                     if (IsAutoScrolling) {
                         if (!(bool)LoopBtn.IsChecked && ImageFlipView.SelectedIndex == ImageFlipView.Items.Count - 1) {
-                            StartStopAutoScroll(false);
+                            ToggleAutoScroll(false);
                             return;
                         }
                         ImageFlipView.SelectedIndex = (ImageFlipView.SelectedIndex + 1) % ImageFlipView.Items.Count;
@@ -340,8 +335,8 @@ namespace Hitomi_Scroll_Viewer {
                     break;
                 case VirtualKey.Space:
                     e.Handled = true;
-                    if (!_isInAction) {
-                        StartStopAutoScroll(!IsAutoScrolling);
+                    if (!Monitor.IsEntered(_actionLock)) {
+                        ToggleAutoScroll(!IsAutoScrolling);
                     }
                     break;
                 case VirtualKey.Left or VirtualKey.Up:
@@ -365,31 +360,31 @@ namespace Hitomi_Scroll_Viewer {
             }
         }
 
-        private void AttachPageEventHandlers(bool attach) {
+        private async Task AttachPageEventHandlers(bool attach) {
             if (attach) {
+                await Task.Delay(200);
                 ImageFlipView.SelectionChanged += ImageFlipView_SelectionChanged;
                 PageNavigator.SelectionChanged += PageNavigator_SelectionChanged;
             } else {
                 ImageFlipView.SelectionChanged -= ImageFlipView_SelectionChanged;
                 PageNavigator.SelectionChanged -= PageNavigator_SelectionChanged;
+                await Task.Delay(200);
             }
         }
 
         private async void ImageFlipView_SelectionChanged(object _0, SelectionChangedEventArgs e) {
-            if (e.RemovedItems.Count == 0 || ImageFlipView.SelectedItem == null || _isInAction) {
+            if (e.RemovedItems.Count == 0 || ImageFlipView.SelectedItem == null || Monitor.IsEntered(_actionLock)) {
                 return;
             }
-            AttachPageEventHandlers(false);
-            await Task.Delay(200);
+            await AttachPageEventHandlers(false);
             PageNavigator.SelectedIndex = ImageFlipView.SelectedIndex;
             SetCurrPageText(_imgIndexRangesPerPage[ImageFlipView.SelectedIndex]);
-            await Task.Delay(200);
-            AttachPageEventHandlers(true);
+            await AttachPageEventHandlers(true);
         }
 
         private async void RefreshBtn_Clicked(object _0, RoutedEventArgs _1) {
             ShowActionIndicator(Symbol.Refresh, null);
-            if (StartStopAction(true)) {
+            if (ToggleAction(true)) {
                 try {
                     string imageDir = Path.Combine(IMAGE_DIR, CurrLoadedGallery.id);
                     if (!Directory.Exists(imageDir)) {
@@ -400,7 +395,7 @@ namespace Hitomi_Scroll_Viewer {
                     }
                     await SetImageOrientationAndSize();
                 } finally {
-                    StartStopAction(false);
+                    ToggleAction(false);
                 }
             }
         }
@@ -408,12 +403,11 @@ namespace Hitomi_Scroll_Viewer {
         private async void ScrollDirectionSelector_SelectionChanged(object _0, SelectionChangedEventArgs e) {
             _scrollDirection = (Orientation)ScrollDirectionSelector.SelectedIndex;
             if (ImageFlipView.ItemsPanelRoot != null) {
-                AttachPageEventHandlers(false);
+                await AttachPageEventHandlers(false);
                 int temp = ImageFlipView.SelectedIndex;
                 (ImageFlipView.ItemsPanelRoot as VirtualizingStackPanel).Orientation = _scrollDirection;
-                await Task.Delay(200);
                 ImageFlipView.SelectedIndex = temp;
-                AttachPageEventHandlers(true);
+                await AttachPageEventHandlers(true);
             }
         }
 
@@ -422,26 +416,23 @@ namespace Hitomi_Scroll_Viewer {
                 return;
             }
             _viewDirection = (ViewDirection)ViewDirectionSelector.SelectedIndex;
-            AttachPageEventHandlers(false);
+            await AttachPageEventHandlers(false);
             int temp = ImageFlipView.SelectedIndex;
             foreach (var panel in _groupedImagePanels) {
                 panel.UpdateViewDirection(_viewDirection);
             }
-            await Task.Delay(200);
             ImageFlipView.SelectedIndex = temp;
-            AttachPageEventHandlers(true);
+            await AttachPageEventHandlers(true);
         }
 
         private async void PageNavigator_SelectionChanged(object _0, SelectionChangedEventArgs e) {
-            if (e.RemovedItems.Count == 0 || PageNavigator.SelectedItem == null || _isInAction) {
+            if (e.RemovedItems.Count == 0 || PageNavigator.SelectedItem == null || Monitor.IsEntered(_actionLock)) {
                 return;
             }
-            AttachPageEventHandlers(false);
-            await Task.Delay(200);
+            await AttachPageEventHandlers(false);
             ImageFlipView.SelectedIndex = PageNavigator.SelectedIndex;
             SetCurrPageText(_imgIndexRangesPerPage[PageNavigator.SelectedIndex]);
-            await Task.Delay(200);
-            AttachPageEventHandlers(true);
+            await AttachPageEventHandlers(true);
         }
 
         public async void Window_SizeChanged() {
