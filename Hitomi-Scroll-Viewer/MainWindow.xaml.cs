@@ -44,7 +44,7 @@ namespace Hitomi_Scroll_Viewer {
                     }
                 }
                 SearchPage.WriteTagFilters();
-                ImageWatchingPage.StartStopAutoScroll(false);
+                ImageWatchingPage.ToggleAutoScroll(false);
                 ImageWatchingPage.SaveSettings();
                 Close();
             };
@@ -56,7 +56,7 @@ namespace Hitomi_Scroll_Viewer {
         public void SwitchPage() {
             if (RootFrame.Content is ViewPage) {
                 if (ImageWatchingPage.IsAutoScrolling) {
-                    ImageWatchingPage.StartStopAutoScroll(false);
+                    ImageWatchingPage.ToggleAutoScroll(false);
                 }
                 RootFrame.Content = SearchPage;
             } else {
