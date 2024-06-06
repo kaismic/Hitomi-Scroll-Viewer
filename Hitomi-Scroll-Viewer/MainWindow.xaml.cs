@@ -18,6 +18,7 @@ namespace Hitomi_Scroll_Viewer {
         public MainWindow() {
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             InitializeComponent();
+            Title = MainResourceMap.GetValue("AppDisplayName").ValueAsString;
             // create directories if they don't exist
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
