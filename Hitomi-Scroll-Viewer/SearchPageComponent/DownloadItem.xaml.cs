@@ -194,6 +194,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
                 DownloadingGalleries.TryAdd(_gallery.id, 0);
                 DownloadingGalleries.TryRemove(_id, out _);
                 _id = _gallery.id;
+                Description.Text += $"{_gallery.id} - {_gallery.title}";
             }
 
             if (_bmItem == null) {
