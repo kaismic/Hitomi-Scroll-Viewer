@@ -58,7 +58,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
         private void RemoveSelf() {
             if (_bmItem != null) {
-                _bmItem.isDownloading = false;
+                _bmItem.IsDownloading = false;
                 _bmItem?.EnableRemoveBtn(true);
             }
             DownloadingGalleries.TryRemove(_id, out _);
@@ -237,21 +237,20 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, ggjs);
 
             DownloadStatusTextBlock.Text = STATUS_TEXT_DOWNLOADING;
-            Task downloadTask = DownloadImages(
-                new DownloadInfo {
-                    httpClient = HitomiHttpClient,
-                    id = _gallery.id,
-                    concurrentTaskNum = (int)ThreadNumComboBox.SelectedItem,
-                    progressBar = DownloadProgressBar,
-                    bmItem = _bmItem,
-                    ct = ct
-                },
-                imgAddresses,
-                imgFormats,
-                missingIndexes
-            );
             try {
-                await downloadTask;
+                await DownloadImages(
+                    new DownloadInfo {
+                        httpClient = HitomiHttpClient,
+                        id = _gallery.id,
+                        concurrentTaskNum = (int)ThreadNumComboBox.SelectedItem,
+                        progressBar = DownloadProgressBar,
+                        bmItem = _bmItem,
+                        ct = ct
+                    },
+                    imgAddresses,
+                    imgFormats,
+                    missingIndexes
+                );
             } catch (TaskCanceledException) {
                 HandleDownloadPaused();
                 return;
