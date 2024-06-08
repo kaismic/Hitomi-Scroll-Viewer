@@ -1,4 +1,5 @@
 ﻿using Hitomi_Scroll_Viewer.SearchPageComponent;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -177,21 +178,19 @@ namespace Hitomi_Scroll_Viewer {
                 int thisJMax = quotient + (i < remainder ? 1 : 0);
                 tasks[i] = Task.Run(async () => {
                     for (int j = 0; j < thisJMax; j++) {
-                        int i = thisStartIdx + j;
-                        await FetchImage(di, imgAddresses[i], imgFormats[i], missingIndexes[i])
-                        .ContinueWith(
-                            (task) => {
+                        int idx = thisStartIdx + j;
+                        await FetchImage(di, imgAddresses[idx], imgFormats[idx], missingIndexes[idx])
+                            .ContinueWith(task => {
                                 if (task.IsCompletedSuccessfully) {
-                                    di.bmItem.DispatcherQueue.TryEnqueue(() => { di.bmItem.UpdateSingleImage(missingIndexes[i]); });
-                                    di.progressBar.DispatcherQueue.TryEnqueue(() => {
+                                    MainWindow.SearchPage.DispatcherQueue.TryEnqueue(() => {
+                                        di.bmItem.UpdateSingleImage(missingIndexes[idx]);
                                         lock (di.progressBar) {
                                             di.progressBar.Value++;
                                         }
                                     });
                                 }
                             },
-                            di.ct
-                        );
+                            di.ct);
                     }
                 }, di.ct);
                 startIdx += thisJMax;
