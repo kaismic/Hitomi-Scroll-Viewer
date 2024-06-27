@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Windowing;
+﻿using Hitomi_Scroll_Viewer.MainWindowComponent;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;

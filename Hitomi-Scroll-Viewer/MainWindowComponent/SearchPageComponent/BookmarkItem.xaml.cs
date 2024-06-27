@@ -4,10 +4,10 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System.IO;
 using static Hitomi_Scroll_Viewer.Resources;
-using static Hitomi_Scroll_Viewer.SearchPage;
+using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer.SearchPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("BookmarkItem");
         private static readonly string TEXT_ARTIST = ResourceMap.GetValue("Text_Artist").ValueAsString;

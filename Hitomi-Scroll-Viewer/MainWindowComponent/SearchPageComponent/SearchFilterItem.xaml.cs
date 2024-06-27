@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace Hitomi_Scroll_Viewer.SearchPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class SearchFilterItem : CheckBox
     {
         public readonly string TagName;

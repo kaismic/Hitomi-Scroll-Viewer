@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Windows.Foundation;
-using static Hitomi_Scroll_Viewer.ViewPage;
+using static Hitomi_Scroll_Viewer.MainWindowComponent.ViewPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer.ImageWatchingPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent {
     public sealed partial class GroupedImagePanel : DockPanel {
         private readonly List<Image> _images = [];
         private readonly List<ImageInfo> _imageInfos = [];

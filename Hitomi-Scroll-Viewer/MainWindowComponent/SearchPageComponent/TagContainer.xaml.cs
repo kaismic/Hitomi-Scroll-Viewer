@@ -10,7 +10,7 @@ using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer.SearchPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class TagContainer : Grid {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("TagContainer");
         private readonly TextBox[] _tagTextBoxes = new TextBox[CATEGORIES.Length];

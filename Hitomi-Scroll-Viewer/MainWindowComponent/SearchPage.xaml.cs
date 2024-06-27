@@ -1,4 +1,4 @@
-﻿using Hitomi_Scroll_Viewer.SearchPageComponent;
+﻿using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -18,7 +18,7 @@ using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent {
     public sealed partial class SearchPage : Page {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SearchPage");
 

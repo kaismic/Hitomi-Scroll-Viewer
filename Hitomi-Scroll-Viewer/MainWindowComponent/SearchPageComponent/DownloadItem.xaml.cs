@@ -13,10 +13,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Resources;
-using static Hitomi_Scroll_Viewer.SearchPage;
+using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer.SearchPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class DownloadItem : Grid {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("DownloadItem");
 

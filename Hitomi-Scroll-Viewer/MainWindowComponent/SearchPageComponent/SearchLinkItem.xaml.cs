@@ -2,7 +2,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Windows.Foundation;
 
-namespace Hitomi_Scroll_Viewer.SearchPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class SearchLinkItem : Grid {
         private readonly string _searchLink;
         private readonly string _displayText;
