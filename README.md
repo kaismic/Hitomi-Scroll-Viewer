@@ -24,12 +24,11 @@ Currently supported languages: English and Korean
 - Change view direction
 
 ## How to install
-If you are upgrading the app from version 2.x.x to 2.x.x, please skip step 2. Otherwise, follow all the steps.
-1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) the file corresponding to your CPU architecture and unzip the file.
-2. Open the unzipped folder and click on the Security Certificate file (.cer) -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
-3. Run MSIX File (.msix)
-4. If a window pops up saying "You must install .NET Desktop Runtime...", install it.
-
+If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2. Otherwise, follow all the steps.
+1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) `Hitomi-Scroll-Viewer.cer` and `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle`.
+2. Open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
+3. Open `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` and install.
+4. Also, if a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Usage / Controls
 - In the search page:
