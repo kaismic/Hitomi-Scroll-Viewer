@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Text.Json;
 
 namespace Hitomi_Scroll_Viewer {
@@ -33,6 +34,28 @@ namespace Hitomi_Scroll_Viewer {
 
         public static void WriteObjectToJson(string path, object obj) {
             File.WriteAllText(path, JsonSerializer.Serialize(obj, DEFAULT_SERIALIZER_OPTIONS));
+        }
+
+        // ref https://stackoverflow.com/a/46666370
+        public static bool TryBindListenerOnFreePort(out HttpListener httpListener, out int port) {
+            // IANA suggested range for dynamic or private ports
+            const int MinPort = 49215;
+            const int MaxPort = 65535;
+
+            for (port = MinPort; port < MaxPort; port++) {
+                httpListener = new HttpListener();
+                httpListener.Prefixes.Add($"http://localhost:{port}/");
+                try {
+                    httpListener.Start();
+                    return true;
+                } catch {
+                    // nothing to do here -- the listener disposes itself when Start throws
+                }
+            }
+
+            port = 0;
+            httpListener = null;
+            return false;
         }
     }
 }
