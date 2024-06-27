@@ -100,15 +100,17 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
+                    <spc:SyncManager Grid.Row="0"></spc:SyncManager>
                     <TextBox x:Name="TagNameTextBox" x:Uid="/SearchPage/TagNameTextBox"
-                             Grid.Row="0"
+                             Grid.Row="1"
                              TextWrapping="Wrap"
                              FontSize="16"
                              MaxLength="100"
                              />
-                    <Grid Grid.Row="1" ColumnSpacing="16">
+                    <Grid Grid.Row="2" ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
@@ -122,7 +124,7 @@
                                   SelectionChanged="FilterTagComboBox_SelectionChanged"
                                   HorizontalAlignment="Stretch"/>
                     </Grid>
-                    <controls:DockPanel LastChildFill="False"  Grid.Row="2">
+                    <controls:DockPanel LastChildFill="False" Grid.Row="3">
                         <Grid controls:DockPanel.Dock="Top"
                               Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                               BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
