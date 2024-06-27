@@ -195,7 +195,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
 
                 DownloadStatusTextBlock.Text = STATUS_TEXT_READING_GALLERY_INFO;
                 try {
-                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, serializerOptions);
+                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS);
                     DownloadProgressBar.Maximum = _gallery.files.Length;
                     Description.Text += $" - {_gallery.title}"; // add title to description
                 }

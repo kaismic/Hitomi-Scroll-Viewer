@@ -85,7 +85,7 @@ namespace Hitomi_Scroll_Viewer.SearchPageComponent {
             Dictionary<string, HashSet<string>> tagList = [];
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 HashSet<string> tags = _tagTextBoxes[i].Text
-                    .Split(NEW_LINE_SEPS, STR_SPLIT_OPTION)
+                    .Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS)
                     .Select(tag => tag.Replace(' ', '_'))
                     .ToHashSet();
                 tagList.Add(CATEGORIES[i], tags);

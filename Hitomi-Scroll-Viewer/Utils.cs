@@ -15,8 +15,8 @@ namespace Hitomi_Scroll_Viewer {
          * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
         */
         public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
-        public static readonly JsonSerializerOptions serializerOptions = new() { IncludeFields = true, WriteIndented = true };
-        public static readonly StringSplitOptions STR_SPLIT_OPTION = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+        public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new() { IncludeFields = true, WriteIndented = true };
+        public static readonly StringSplitOptions DEFAULT_STR_SPLIT_OPTIONS = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 
         public static string GetExceptionDetails(Exception e) {
             string output = "";
@@ -32,7 +32,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         public static void WriteObjectToJson(string path, object obj) {
-            File.WriteAllText(path, JsonSerializer.Serialize(obj, serializerOptions));
+            File.WriteAllText(path, JsonSerializer.Serialize(obj, DEFAULT_SERIALIZER_OPTIONS));
         }
     }
 }

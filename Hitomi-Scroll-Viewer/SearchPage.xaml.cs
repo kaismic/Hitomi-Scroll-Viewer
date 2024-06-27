@@ -72,7 +72,7 @@ namespace Hitomi_Scroll_Viewer {
                 _tagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
                     File.ReadAllText(TAG_FILTERS_FILE_PATH),
                     typeof(Dictionary<string, TagFilter>),
-                    serializerOptions
+                    DEFAULT_SERIALIZER_OPTIONS
                 );
             } else {
                 _tagFilterDict = new() {
@@ -106,7 +106,7 @@ namespace Hitomi_Scroll_Viewer {
             List<Gallery> galleries = (List<Gallery>)JsonSerializer.Deserialize(
                 File.ReadAllText(BOOKMARKS_FILE_PATH),
                 typeof(List<Gallery>),
-                serializerOptions
+                DEFAULT_SERIALIZER_OPTIONS
                 );
 
             int pages = galleries.Count / MAX_BOOKMARK_PER_PAGE + (galleries.Count % MAX_BOOKMARK_PER_PAGE > 0 ? 1 : 0);
@@ -396,7 +396,7 @@ namespace Hitomi_Scroll_Viewer {
 
         private void DownloadBtn_Clicked(object _0, RoutedEventArgs _1) {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
-            string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, STR_SPLIT_OPTION);
+            string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS);
             if (urlOrIds.Length == 0) {
                 MainWindow.NotifyUser(NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE, "");
                 return;
