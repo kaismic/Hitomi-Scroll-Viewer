@@ -174,7 +174,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             Loaded += SetConfirmDialogXamlRoot;
         }
 
-        private async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
+        public async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
             (_confirmDialog.Title as TextBlock).Text = title;
             (_confirmDialog.Content as TextBlock).Text = content;
             ContentDialogResult result = await _confirmDialog.ShowAsync();
