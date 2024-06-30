@@ -12,8 +12,9 @@
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="80"/>
     </Grid.ColumnDefinitions>
-    <Button Grid.Column="0"
-            Padding="12 10" HorizontalAlignment="Stretch">
+    <Button x:Name="SignInBtn" Grid.Column="0"
+            Padding="12 10" HorizontalAlignment="Stretch"
+            Click="SignInBtn_Clicked">
         <Grid ColumnSpacing="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
@@ -22,16 +23,18 @@
             <Image Grid.Column="0"
                    Source="/Assets/Google-g-logo.svg"
                    VerticalAlignment="Center"/>
-            <TextBlock Grid.Column="1"
+            <TextBlock x:Name="SignInBtnTextBlock"
+                       Grid.Column="1"
                        Text="Sign in with Google to Sync Data"
                        TextWrapping="Wrap"
                        FontSize="16"
                        HorizontalTextAlignment="Center"/>
         </Grid>
     </Button>
-    <Button Grid.Column="1"
+    <Button x:Name="SyncBtn"
+            Grid.Column="1"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            IsEnabled="False">
+            Click="SyncBtn_Clicked">
         <SymbolIcon Symbol="Sync"/>
     </Button>
 </Grid>
