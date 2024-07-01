@@ -1,18 +1,21 @@
-using System;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Drive.v3;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Oauth2.v2.Data;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System.Diagnostics;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.Windows.ApplicationModel.Resources;
+using System;
+using System.Diagnostics;
 using System.Threading;
-using Google.Apis.Drive.v3;
-using Google.Apis.Services;
-using Google.Apis.Oauth2.v2;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Util.Store;
+using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Resources;
-using Google.Apis.Auth.OAuth2.Flows;
-using Microsoft.UI.Windowing;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class SyncManager : Grid {
@@ -22,54 +25,43 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         private static readonly string CLIENT_SECRET = ResourceMap.GetValue("OAuthAppClientSecret").ValueAsString;
         private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
         private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
-        private static readonly int AUTH_USER_ACTION_TIMEOUT = 120; // seconds
 
         private static bool _isSignedIn = false;
         private static UserCredential _userCredential;
 
         public SyncManager() {
             InitializeComponent();
-
-            TokenResponse tokenResponse = FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName).Result;
-            if (tokenResponse != null) {
-                ToggleSignInState(true);
-
-                _userCredential = new(
-                    new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
-                        ClientSecrets = new ClientSecrets {
-                            ClientId = CLIENT_ID,
-                            ClientSecret = CLIENT_SECRET
-                        },
-                        Scopes = SCOPES,
-                        DataStore = FILE_DATA_STORE
-                    }),
-                    Environment.UserName,
-                    tokenResponse
-                );
-
-                Trace.WriteLine($"credential.UserId = {_userCredential.UserId}");
-                Trace.WriteLine($"token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
-                Trace.WriteLine($"token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
-                if (tokenResponse.IsStale) {
-                    Trace.WriteLine("Refreshing token...");
-                    _userCredential.RefreshTokenAsync(CancellationToken.None);
-                    Trace.WriteLine("Token refreshed");
-                    Trace.WriteLine($"credential.UserId = {_userCredential.UserId}");
-                    Trace.WriteLine($"new token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
-                    Trace.WriteLine($"new token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
+            Task.Run(async () => {
+                TokenResponse tokenResponse = FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName).Result;
+                bool tokenExists = tokenResponse != null;
+                try {
+                    if (tokenExists) {
+                        _userCredential = new(
+                            new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+                                ClientSecrets = new ClientSecrets {
+                                    ClientId = CLIENT_ID,
+                                    ClientSecret = CLIENT_SECRET
+                                },
+                                Scopes = SCOPES,
+                                DataStore = FILE_DATA_STORE
+                            }),
+                            Environment.UserName,
+                            tokenResponse
+                        );
+                        var initializer = new BaseClientService.Initializer() {
+                            HttpClientInitializer = _userCredential,
+                            ApplicationName = APP_DISPLAY_NAME
+                        };
+                        Userinfo userinfo = await new Oauth2Service(initializer).Userinfo.Get().ExecuteAsync();
+                        DispatcherQueue.TryEnqueue(() => SignInBtnTextBlock.Text = "Signed in as " + userinfo.Email);
+                    }
+                } finally {
+                    DispatcherQueue.TryEnqueue(() => {
+                        ToggleSignInState(tokenExists);
+                        SignInBtn.IsEnabled = true;
+                    });
                 }
-
-                Trace.WriteLine("Requesting the email address of the user from Google");
-                var initializer = new BaseClientService.Initializer() {
-                    HttpClientInitializer = _userCredential,
-                    ApplicationName = APP_DISPLAY_NAME
-                };
-                var oauth2Service = new Oauth2Service(initializer);
-                SignInBtnTextBlock.Text = "Signed in as " + oauth2Service.Userinfo.Get().ExecuteAsync().Result.Email;
-            } else {
-                ToggleSignInState(false);
-                Trace.WriteLine("There are no previously stored user access token");
-            }
+            });
         }
 
         private async void SignInBtn_Clicked(object _0, RoutedEventArgs _1) {
@@ -87,11 +79,25 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
                     SignInBtnTextBlock.Text = "Sign in with Google to Sync Data";
                 } else {
+                    bool isWindowFocused = false;
                     try {
-                        Trace.WriteLine("before AuthorizeAsync");
                         CancellationTokenSource cts = new();
-                        cts.CancelAfter(AUTH_USER_ACTION_TIMEOUT * 1000);
-                        _userCredential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                        // ContentDialog is needed because it is currently not possible to detect when the user has closed the browser
+                        // ref https://github.com/googleapis/google-api-dotnet-client/issues/508#issuecomment-290700919
+                        ContentDialog manualCancelDialog = new() {
+                            CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
+                            Title = new TextBlock() {
+                                TextWrapping = TextWrapping.WrapWholeWords,
+                                Text = "Waiting to Sign in on external browser..."
+                            },
+                            Content = new TextBlock() {
+                                TextWrapping = TextWrapping.WrapWholeWords,
+                                Text = "To cancel sign in, click the cancel button."
+                            },
+                            XamlRoot = XamlRoot
+                        };
+                        Task manualCancelTask = manualCancelDialog.ShowAsync().AsTask();
+                        Task<UserCredential> authTask = GoogleWebAuthorizationBroker.AuthorizeAsync(
                             new ClientSecrets {
                                 ClientId = CLIENT_ID,
                                 ClientSecret = CLIENT_SECRET
@@ -100,27 +106,27 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                             Environment.UserName,
                             cts.Token
                         );
-                        Trace.WriteLine("after AuthorizeAsync");
+                        if (await Task.WhenAny(manualCancelTask, authTask) == authTask) {
+                            manualCancelDialog.Hide();
+                            _userCredential = await authTask;
+                        } else {
+                            isWindowFocused = true;
+                            cts.Cancel();
+                            return;
+                        }
                     } catch (TokenResponseException) {
-                        Trace.WriteLine("TokenResponseException thrown");
                         return;
                     } catch (OperationCanceledException) {
-                        Trace.WriteLine("OperationCanceledException thrown");
                         return;
                     } finally {
-                        Trace.WriteLine("activating current window");
-                        // MainWindow.Current.Activate() workaround ref https://github.com/microsoft/microsoft-ui-xaml/issues/7595#issuecomment-1909723229
-                        OverlappedPresenter presenter = App.MainWindow.AppWindow.Presenter as OverlappedPresenter;
-                        presenter.Minimize();
-                        App.MainWindow.Activate();
+                        // App.MainWindow.Activate(); alone doesn't work and instead we need to
+                        // minimize then activate the window because of this bug https://github.com/microsoft/microsoft-ui-xaml/issues/7595
+                        if (!isWindowFocused) {
+                            (App.MainWindow.AppWindow.Presenter as OverlappedPresenter).Minimize();
+                            App.MainWindow.Activate();
+                        }
                     }
                     ToggleSignInState(true);
-                    Trace.WriteLine($"credential.UserId = {_userCredential.UserId}");
-                    Trace.WriteLine($"credential.Token.ExpiresInSeconds = {_userCredential.Token.ExpiresInSeconds}");
-                    Trace.WriteLine($"new token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
-                    Trace.WriteLine($"new token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
-
-                    Trace.WriteLine("Requesting the e-mail address of the user from Google");
 
                     var initializer = new BaseClientService.Initializer() {
                         HttpClientInitializer = _userCredential,
@@ -136,17 +142,22 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
         private void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
             Trace.WriteLine("SyncBtn_Clicked");
-            if (_userCredential.Token.IsStale) {
-                Trace.WriteLine("The access token is stale, refreshing it");
-                if (_userCredential.RefreshTokenAsync(CancellationToken.None).Result) {
-                    Trace.WriteLine("The access token is now refreshed");
-                    Trace.WriteLine($"new token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
-                    Trace.WriteLine($"new token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
-                } else {
-                    Trace.WriteLine("_userCredential.Token.RefreshToken is null and cannot be refreshed");
-                    return;
-                }
-            }
+
+            ContentDialog syncOptionSelectDialog = new() {
+                CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
+                PrimaryButtonText = "Sync",
+                Title = new TextBlock() {
+                    TextWrapping = TextWrapping.WrapWholeWords,
+                    Text = "Select data to sync"
+                },
+                Content = new SyncDialogContent(),
+                XamlRoot = XamlRoot
+            };
+
+            //var initializer = new BaseClientService.Initializer() {
+            //    HttpClientInitializer = _userCredential,
+            //    ApplicationName = APP_DISPLAY_NAME
+            //};
             //var driveService = new DriveService(initializer);
         }
 

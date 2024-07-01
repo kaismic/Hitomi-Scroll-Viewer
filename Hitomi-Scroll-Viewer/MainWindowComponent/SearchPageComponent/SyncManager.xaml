@@ -3,7 +3,6 @@
     x:Class="Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManager"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -14,7 +13,8 @@
     </Grid.ColumnDefinitions>
     <Button x:Name="SignInBtn" Grid.Column="0"
             Padding="12 10" HorizontalAlignment="Stretch"
-            Click="SignInBtn_Clicked">
+            Click="SignInBtn_Clicked"
+            IsEnabled="False">
         <Grid ColumnSpacing="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
@@ -34,7 +34,8 @@
     <Button x:Name="SyncBtn"
             Grid.Column="1"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            Click="SyncBtn_Clicked">
+            Click="SyncBtn_Clicked"
+            IsEnabled="False">
         <SymbolIcon Symbol="Sync"/>
     </Button>
 </Grid>
