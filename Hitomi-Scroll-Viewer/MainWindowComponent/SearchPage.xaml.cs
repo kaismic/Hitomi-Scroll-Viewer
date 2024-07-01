@@ -53,7 +53,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         private string _currTagFilterName;
 
         private readonly ContentDialog _confirmDialog = new() {
-            IsPrimaryButtonEnabled = true,
             PrimaryButtonText = DIALOG_BUTTON_TEXT_YES,
             CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
             Title = new TextBlock() {
