@@ -11,8 +11,8 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Util.Store;
 using static Hitomi_Scroll_Viewer.Resources;
-using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPage;
 using Google.Apis.Auth.OAuth2.Flows;
+using Microsoft.UI.Windowing;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class SyncManager : Grid {
@@ -21,139 +21,138 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         private static readonly string CLIENT_ID = ResourceMap.GetValue("OAuthAppClientId").ValueAsString;
         private static readonly string CLIENT_SECRET = ResourceMap.GetValue("OAuthAppClientSecret").ValueAsString;
         private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
+        private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
+        private static readonly int AUTH_USER_ACTION_TIMEOUT = 120; // seconds
 
         private static bool _isSignedIn = false;
+        private static UserCredential _userCredential;
 
         public SyncManager() {
             InitializeComponent();
 
-            Trace.WriteLine("SyncManager constructor called");
-            FileDataStore fileDataStore = new(GoogleWebAuthorizationBroker.Folder);
-            TokenResponse tokenResponse = fileDataStore.GetAsync<TokenResponse>(Environment.UserName).Result;
-
+            TokenResponse tokenResponse = FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName).Result;
             if (tokenResponse != null) {
+                ToggleSignInState(true);
+
+                _userCredential = new(
+                    new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+                        ClientSecrets = new ClientSecrets {
+                            ClientId = CLIENT_ID,
+                            ClientSecret = CLIENT_SECRET
+                        },
+                        Scopes = SCOPES,
+                        DataStore = FILE_DATA_STORE
+                    }),
+                    Environment.UserName,
+                    tokenResponse
+                );
+
+                Trace.WriteLine($"credential.UserId = {_userCredential.UserId}");
+                Trace.WriteLine($"token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
+                Trace.WriteLine($"token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
                 if (tokenResponse.IsStale) {
-                    UserCredential credential = new(
-                        new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
-                            ClientSecrets = new ClientSecrets {
-                                ClientId = CLIENT_ID,
-                                ClientSecret = CLIENT_SECRET
-                            },
-                            Scopes = SCOPES,
-                            DataStore = fileDataStore
-                        }),
-                        Environment.UserName,
-                        tokenResponse
-                    );
-                    Trace.WriteLine($"credential.UserId = {credential.UserId}");
-                    Trace.WriteLine($"token expiry UTC time = {tokenResponse.IssuedUtc.AddSeconds((double)credential.Token.ExpiresInSeconds)}");
-                    Trace.WriteLine($"token expiry time = {tokenResponse.Issued.AddSeconds((double)credential.Token.ExpiresInSeconds)}");
+                    Trace.WriteLine("Refreshing token...");
+                    _userCredential.RefreshTokenAsync(CancellationToken.None);
+                    Trace.WriteLine("Token refreshed");
+                    Trace.WriteLine($"credential.UserId = {_userCredential.UserId}");
+                    Trace.WriteLine($"new token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
+                    Trace.WriteLine($"new token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
                 }
+
+                Trace.WriteLine("Requesting the email address of the user from Google");
+                var initializer = new BaseClientService.Initializer() {
+                    HttpClientInitializer = _userCredential,
+                    ApplicationName = APP_DISPLAY_NAME
+                };
+                var oauth2Service = new Oauth2Service(initializer);
+                SignInBtnTextBlock.Text = "Signed in as " + oauth2Service.Userinfo.Get().ExecuteAsync().Result.Email;
             } else {
-                Trace.WriteLine("tokenResponse is null");
-
+                ToggleSignInState(false);
+                Trace.WriteLine("There are no previously stored user access token");
             }
-
-            //if (tokenResponse != null) {
-            //    _isSignedIn = true;
-            //    Trace.WriteLine("Requesting the e-mail address of the user from Google");
-            //    GoogleCredential credential = GoogleCredential.FromAccessToken(tokenResponse.AccessToken);
-            //    Trace.WriteLine("1111");
-
-            //    var initializer = new BaseClientService.Initializer() {
-            //        HttpClientInitializer = credential,
-            //        ApplicationName = APP_DISPLAY_NAME
-            //    };
-            //    Trace.WriteLine("2222");
-            //    var oauth2Service = new Oauth2Service(initializer);
-            //    Trace.WriteLine("3333");
-            //    SignInBtnTextBlock.Text = "Signed in as " + oauth2Service.Userinfo.Get().ExecuteAsync().Result.Email;
-            //    Trace.WriteLine("4444");
-            //} else {
-            //    Trace.WriteLine("There are no previously stored user access token");
-            //}
-
         }
 
         private async void SignInBtn_Clicked(object _0, RoutedEventArgs _1) {
             SignInBtn.IsEnabled = false;
             try {
-                //if (_isSignedIn) {
-                //    ContentDialogResult cdr = await MainWindow.SearchPage.ShowConfirmDialogAsync("Sign out?", "Make sure you have synced your data.");
-                //    if (cdr != ContentDialogResult.Primary) {
-                //        return;
-                //    }
-                //    FileDataStore fileDataStore = new(GoogleWebAuthorizationBroker.Folder);
-                //    TokenResponse tokenResponse = fileDataStore.GetAsync<TokenResponse>(USER).Result;
-                //    UserCredential credential = new(
-                //        new GoogleAuthorizationCodeFlow.Initializer {
-                //            ClientSecrets = new ClientSecrets {
-                //                ClientId = CLIENT_ID,
-                //                ClientSecret = CLIENT_SECRET
-                //            },
-                //            Scopes = SCOPES,
-                //            DataStore = fileDataStore
-                //        },
+                if (_isSignedIn) {
+                    ContentDialogResult cdr = await MainWindow.SearchPage.ShowConfirmDialogAsync("Sign out?", "Make sure you have synced your data.");
+                    if (cdr != ContentDialogResult.Primary) {
+                        return;
+                    }
+                    ToggleSignInState(false);
 
-                //    );
-                //    FileDataStore fileDataStore = new(GoogleWebAuthorizationBroker.Folder);
-                //    await fileDataStore.DeleteAsync<TokenResponse>(USER);
-                    
-                //} else {
-                    UserCredential credential;
+                    await FILE_DATA_STORE.DeleteAsync<TokenResponse>(Environment.UserName);
+                    await _userCredential.RevokeTokenAsync(CancellationToken.None);
+
+                    SignInBtnTextBlock.Text = "Sign in with Google to Sync Data";
+                } else {
                     try {
-                        credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                        Trace.WriteLine("before AuthorizeAsync");
+                        CancellationTokenSource cts = new();
+                        cts.CancelAfter(AUTH_USER_ACTION_TIMEOUT * 1000);
+                        _userCredential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                             new ClientSecrets {
                                 ClientId = CLIENT_ID,
                                 ClientSecret = CLIENT_SECRET
                             },
                             SCOPES,
                             Environment.UserName,
-                            CancellationToken.None
+                            cts.Token
                         );
+                        Trace.WriteLine("after AuthorizeAsync");
                     } catch (TokenResponseException) {
+                        Trace.WriteLine("TokenResponseException thrown");
+                        return;
+                    } catch (OperationCanceledException) {
+                        Trace.WriteLine("OperationCanceledException thrown");
                         return;
                     } finally {
-                        Window.Current.Activate();
+                        Trace.WriteLine("activating current window");
+                        // MainWindow.Current.Activate() workaround ref https://github.com/microsoft/microsoft-ui-xaml/issues/7595#issuecomment-1909723229
+                        OverlappedPresenter presenter = App.MainWindow.AppWindow.Presenter as OverlappedPresenter;
+                        presenter.Minimize();
+                        App.MainWindow.Activate();
                     }
-
-                    Trace.WriteLine($"credential.UserId = {credential.UserId}");
-                    Trace.WriteLine($"credential.Token.ExpiresInSeconds = {credential.Token.ExpiresInSeconds}");
-                    Trace.WriteLine($"Environment.UserName = {Environment.UserName}");
-
-                    if (credential.Token.IsStale) {
-                        Trace.WriteLine("The access token is stale, refreshing it");
-                        if (credential.RefreshTokenAsync(CancellationToken.None).Result) {
-                            Trace.WriteLine("The access token is now refreshed");
-                        } else {
-                            Trace.WriteLine("credential.Token.RefreshToken is null and cannot be refreshed");
-                            return;
-                        }
-                    } else {
-                        Trace.WriteLine("The access token is OK, continue");
-                    }
+                    ToggleSignInState(true);
+                    Trace.WriteLine($"credential.UserId = {_userCredential.UserId}");
+                    Trace.WriteLine($"credential.Token.ExpiresInSeconds = {_userCredential.Token.ExpiresInSeconds}");
+                    Trace.WriteLine($"new token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
+                    Trace.WriteLine($"new token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
 
                     Trace.WriteLine("Requesting the e-mail address of the user from Google");
 
                     var initializer = new BaseClientService.Initializer() {
-                        HttpClientInitializer = credential,
+                        HttpClientInitializer = _userCredential,
                         ApplicationName = APP_DISPLAY_NAME
                     };
                     var oauth2Service = new Oauth2Service(initializer);
                     SignInBtnTextBlock.Text = "Signed in as " + oauth2Service.Userinfo.Get().ExecuteAsync().Result.Email;
-
-                    
-                //}
-
-                //var driveService = new DriveService(initializer);
-
+                }
             } finally {
                 SignInBtn.IsEnabled = true;
             }
         }
 
-        private async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) { 
-        
+        private void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
+            Trace.WriteLine("SyncBtn_Clicked");
+            if (_userCredential.Token.IsStale) {
+                Trace.WriteLine("The access token is stale, refreshing it");
+                if (_userCredential.RefreshTokenAsync(CancellationToken.None).Result) {
+                    Trace.WriteLine("The access token is now refreshed");
+                    Trace.WriteLine($"new token expiry UTC time = {_userCredential.Token.IssuedUtc.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
+                    Trace.WriteLine($"new token expiry time = {_userCredential.Token.Issued.AddSeconds((double)_userCredential.Token.ExpiresInSeconds)}");
+                } else {
+                    Trace.WriteLine("_userCredential.Token.RefreshToken is null and cannot be refreshed");
+                    return;
+                }
+            }
+            //var driveService = new DriveService(initializer);
+        }
+
+        private void ToggleSignInState(bool isSignedIn) {
+            _isSignedIn = isSignedIn;
+            SyncBtn.IsEnabled = isSignedIn;
         }
     }
 }
