@@ -123,6 +123,9 @@
   <data name="DialogButtonText_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="DialogButtonText_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <data name="DialogButtonText_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>

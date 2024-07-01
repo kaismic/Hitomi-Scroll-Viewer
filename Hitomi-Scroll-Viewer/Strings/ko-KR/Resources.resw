@@ -123,6 +123,9 @@
   <data name="DialogButtonText_Cancel" xml:space="preserve">
     <value>취소</value>
   </data>
+  <data name="DialogButtonText_Close" xml:space="preserve">
+    <value>닫기</value>
+  </data>
   <data name="DialogButtonText_Exit" xml:space="preserve">
     <value>종료</value>
   </data>
