@@ -140,19 +140,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             }
         }
 
-        private void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
-            Trace.WriteLine("SyncBtn_Clicked");
-
-            ContentDialog syncOptionSelectDialog = new() {
-                CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
-                PrimaryButtonText = "Sync",
-                Title = new TextBlock() {
-                    TextWrapping = TextWrapping.WrapWholeWords,
-                    Text = "Select data to sync"
-                },
-                Content = new SyncDialogContent(),
-                XamlRoot = XamlRoot
+        private async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
+            SyncContentDialog dialog = new() {
+                XamlRoot = XamlRoot,
             };
+
+            await dialog.ShowAsync();
 
             //var initializer = new BaseClientService.Initializer() {
             //    HttpClientInitializer = _userCredential,

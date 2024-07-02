@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent.SyncContentDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Style="{ThemeResource DefaultContentDialogStyle}"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="False"
+    >
+    <ContentDialog.Title>
+        <TextBlock TextWrapping="WrapWholeWords">Select sync options</TextBlock>
+    </ContentDialog.Title>
+    <StackPanel Spacing="8" MinWidth="600">
+        <InfoBar x:Name="UploadWarningInfoBar"
+                 IsOpen="True"
+                 Severity="Warning"
+                 IsClosable="False"
+                 Title="Warning"
+                 Message="Uploading will overwrite the currently synced Tag Filters / Bookmarks in the cloud."
+                 Visibility="Collapsed"/>
+        <RadioButtons x:Name="SyncMethodRadioButtons"
+                      MaxColumns="2"
+                      SelectionChanged="SyncMethodRadioButtons_SelectionChanged">
+            <x:String>Upload</x:String>
+            <x:String>Fetch</x:String>
+        </RadioButtons>
+        <Border x:Name="Border0"
+                BorderThickness="1"
+                BorderBrush="{StaticResource DividerStrokeColorDefaultBrush}"
+                Visibility="Collapsed"/>
+        <CheckBox x:Name="TagFilterOptionCheckBox"
+                  Checked="TagFilterOptionCheckBox_Checked"
+                  Unchecked="TagFilterOptionCheckBox_Unchecked"
+                  Visibility="Collapsed">Tag filters</CheckBox>
+        <StackPanel x:Name="FetchTagFilterOptionStackPanel"
+                    Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Style="{StaticResource BaseTextBlockStyle}">Select how to fetch the tag filters</TextBlock>
+                <RadioButtons x:Name="FetchTagFilterOption0"
+                              MaxColumns="2"
+                              SelectionChanged="FetchTagFilterOption0_SelectionChanged">
+                    <RadioButton>Overwrite</RadioButton>
+                    <RadioButton>Append</RadioButton>
+                </RadioButtons>
+            </StackPanel>
+            <StackPanel Visibility="Collapsed">
+                <TextBlock Style="{StaticResource BaseTextBlockStyle}">Select how to handle tag filters with duplicate names:</TextBlock>
+                <RadioButtons x:Name="FetchTagFilterOption1"
+                              MaxColumns="2"
+                              SelectionChanged="FetchTagFilterOption1_SelectionChanged">
+                    <RadioButton>Replace them with tag filters from cloud</RadioButton>
+                    <RadioButton>Keep local tag filters</RadioButton>
+                </RadioButtons>
+            </StackPanel>
+        </StackPanel>
+        <CheckBox x:Name="BookmarkOptionCheckBox"
+                  Checked="BookmarkOptionCheckBox_Checked"
+                  Unchecked="BookmarkOptionCheckBox_Unchecked"
+                  Visibility="Collapsed">Bookmarks</CheckBox>
+        <StackPanel x:Name="FetchBookmarkOptionStackPanel"
+                    Visibility="Collapsed">
+            <TextBlock Style="{StaticResource BaseTextBlockStyle}">Start downloading all bookmarks after fetching?</TextBlock>
+            <RadioButtons x:Name="FetchBookmarkOption0"
+                          MaxColumns="2"
+                          SelectionChanged="FetchBookmarkOption0_SelectionChanged">
+                <RadioButton>Yes</RadioButton>
+                <RadioButton>No</RadioButton>
+            </RadioButtons>
+        </StackPanel>
+    </StackPanel>
+</ContentDialog>
