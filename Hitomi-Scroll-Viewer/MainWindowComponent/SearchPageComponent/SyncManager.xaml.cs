@@ -15,6 +15,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent.SyncContentDialog;
 using static Hitomi_Scroll_Viewer.Resources;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
@@ -68,7 +69,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             SignInBtn.IsEnabled = false;
             try {
                 if (_isSignedIn) {
-                    ContentDialogResult cdr = await MainWindow.SearchPage.ShowConfirmDialogAsync("Sign out?", "Make sure you have synced your data.");
+                    ContentDialogResult cdr = await MainWindow.SearchPage.ShowConfirmDialogAsync("Sign out?", "");
                     if (cdr != ContentDialogResult.Primary) {
                         return;
                     }
@@ -141,17 +142,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         }
 
         private async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
-            SyncContentDialog dialog = new() {
+            SyncContentDialog dialog = new(new(new BaseClientService.Initializer() {
+                HttpClientInitializer = _userCredential,
+                ApplicationName = APP_DISPLAY_NAME
+            })) {
                 XamlRoot = XamlRoot,
             };
-
             await dialog.ShowAsync();
-
-            //var initializer = new BaseClientService.Initializer() {
-            //    HttpClientInitializer = _userCredential,
-            //    ApplicationName = APP_DISPLAY_NAME
-            //};
-            //var driveService = new DriveService(initializer);
         }
 
         private void ToggleSignInState(bool isSignedIn) {

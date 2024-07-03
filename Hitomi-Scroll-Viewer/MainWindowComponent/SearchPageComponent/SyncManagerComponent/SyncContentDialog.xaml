@@ -9,18 +9,20 @@
     Style="{ThemeResource DefaultContentDialogStyle}"
     DefaultButton="Primary"
     IsPrimaryButtonEnabled="False"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    CloseButtonClick="ContentDialog_CloseButtonClick"
+    Closing="ContentDialog_Closing"
     >
     <ContentDialog.Title>
         <TextBlock TextWrapping="WrapWholeWords">Select sync options</TextBlock>
     </ContentDialog.Title>
     <StackPanel Spacing="8" MinWidth="600">
         <InfoBar x:Name="UploadWarningInfoBar"
-                 IsOpen="True"
+                 IsOpen="False"
                  Severity="Warning"
                  IsClosable="False"
                  Title="Warning"
-                 Message="Uploading will overwrite the currently synced Tag Filters / Bookmarks in the cloud."
-                 Visibility="Collapsed"/>
+                 Message="Uploading will overwrite the currently synced Tag Filters / Bookmarks in the cloud."/>
         <RadioButtons x:Name="SyncMethodRadioButtons"
                       MaxColumns="2"
                       SelectionChanged="SyncMethodRadioButtons_SelectionChanged">
@@ -70,5 +72,11 @@
                 <RadioButton>No</RadioButton>
             </RadioButtons>
         </StackPanel>
+        <ProgressBar x:Name="SyncProgressBar"
+                     IsIndeterminate="True"
+                     Visibility="Collapsed"></ProgressBar>
+        <InfoBar x:Name="SyncErrorInfoBar"
+                 IsOpen="False"
+                 IsClosable="False"/>
     </StackPanel>
 </ContentDialog>
