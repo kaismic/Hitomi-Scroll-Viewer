@@ -22,9 +22,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
     public sealed partial class SearchPage : Page {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SearchPage");
 
-        private static readonly string BOOKMARKS_FILE_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
-        private static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, "tag_filters.json");
-
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 

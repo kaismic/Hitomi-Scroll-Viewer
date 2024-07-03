@@ -4,10 +4,17 @@ using System.Text.Json;
 
 namespace Hitomi_Scroll_Viewer {
     public static class Utils {
-        public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HSV");
+        public static readonly string ROOT_DIR_NAME = "HSV";
+        public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ROOT_DIR_NAME);
         public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
         public static readonly string SETTINGS_PATH = Path.Combine(ROOT_DIR, "settings.json");
         public static readonly string LOGS_PATH = Path.Combine(ROOT_DIR, "logs.txt");
+
+        public static readonly string BOOKMARKS_FILE_NAME = "bookmarks.json";
+        public static readonly string BOOKMARKS_FILE_PATH = Path.Combine(ROOT_DIR, BOOKMARKS_FILE_NAME);
+        public static readonly string TAG_FILTERS_FILE_NAME = "tag_filters.json";
+        public static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, TAG_FILTERS_FILE_NAME);
+
         /*
          * apparently I can't just use Environment.NewLine as separator
          * because of this TextBox bug which somehow converts \r\n to \r and it's still not fixed...
