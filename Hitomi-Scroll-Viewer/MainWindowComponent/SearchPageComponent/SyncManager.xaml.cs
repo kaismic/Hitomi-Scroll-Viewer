@@ -31,6 +31,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
         private static bool _isSignedIn = false;
         private static UserCredential _userCredential;
+        private static BaseClientService.Initializer _initializer;
 
         public SyncManager() {
             InitializeComponent();
@@ -51,6 +52,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                             Environment.UserName,
                             tokenResponse
                         );
+                        _initializer = new BaseClientService.Initializer() {
+                            HttpClientInitializer = _userCredential,
+                            ApplicationName = APP_DISPLAY_NAME
+                        };
                         string userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH);
                         DispatcherQueue.TryEnqueue(() => SignInBtnTextBlock.Text = "Signed in as " + userEmail);
                     }
@@ -128,11 +133,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                     }
                     ToggleSignInState(true);
 
-                    BaseClientService.Initializer initializer = new() {
+                    _initializer = new() {
                         HttpClientInitializer = _userCredential,
                         ApplicationName = APP_DISPLAY_NAME
                     };
-                    Userinfo userInfo = await new Oauth2Service(initializer).Userinfo.Get().ExecuteAsync();
+                    Userinfo userInfo = await new Oauth2Service(_initializer).Userinfo.Get().ExecuteAsync();
                     SignInBtnTextBlock.Text = "Signed in as " + userInfo.Email;
                     await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH, userInfo.Email);
                 }
@@ -142,10 +147,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         }
 
         private async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
-            SyncContentDialog dialog = new(new(new BaseClientService.Initializer() {
-                HttpClientInitializer = _userCredential,
-                ApplicationName = APP_DISPLAY_NAME
-            })) {
+            SyncContentDialog dialog = new(new(_initializer)) {
                 XamlRoot = XamlRoot,
             };
             await dialog.ShowAsync();
