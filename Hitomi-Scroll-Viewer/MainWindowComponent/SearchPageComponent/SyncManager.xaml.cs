@@ -12,14 +12,16 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent.SyncContentDialog;
 using static Hitomi_Scroll_Viewer.Resources;
+using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class SyncManager : Grid {
+        private static readonly string USER_EMAIL_FILE_PATH = Path.Combine(ROOT_DIR, "user_email.txt");
+
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("Credentials");
 
         private static readonly string CLIENT_ID = ResourceMap.GetValue("OAuthAppClientId").ValueAsString;
@@ -33,7 +35,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         public SyncManager() {
             InitializeComponent();
             Task.Run(async () => {
-                TokenResponse tokenResponse = FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName).Result;
+                TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
                 bool tokenExists = tokenResponse != null;
                 try {
                     if (tokenExists) {
@@ -49,12 +51,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                             Environment.UserName,
                             tokenResponse
                         );
-                        var initializer = new BaseClientService.Initializer() {
-                            HttpClientInitializer = _userCredential,
-                            ApplicationName = APP_DISPLAY_NAME
-                        };
-                        Userinfo userinfo = await new Oauth2Service(initializer).Userinfo.Get().ExecuteAsync();
-                        DispatcherQueue.TryEnqueue(() => SignInBtnTextBlock.Text = "Signed in as " + userinfo.Email);
+                        string userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH);
+                        DispatcherQueue.TryEnqueue(() => SignInBtnTextBlock.Text = "Signed in as " + userEmail);
                     }
                 } finally {
                     DispatcherQueue.TryEnqueue(() => {
@@ -75,8 +73,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                     }
                     ToggleSignInState(false);
 
-                    await FILE_DATA_STORE.DeleteAsync<TokenResponse>(Environment.UserName);
                     await _userCredential.RevokeTokenAsync(CancellationToken.None);
+                    await FILE_DATA_STORE.DeleteAsync<TokenResponse>(Environment.UserName);
+                    File.Delete(USER_EMAIL_FILE_PATH);
 
                     SignInBtnTextBlock.Text = "Sign in with Google to Sync Data";
                 } else {
@@ -129,12 +128,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                     }
                     ToggleSignInState(true);
 
-                    var initializer = new BaseClientService.Initializer() {
+                    BaseClientService.Initializer initializer = new() {
                         HttpClientInitializer = _userCredential,
                         ApplicationName = APP_DISPLAY_NAME
                     };
-                    var oauth2Service = new Oauth2Service(initializer);
-                    SignInBtnTextBlock.Text = "Signed in as " + oauth2Service.Userinfo.Get().ExecuteAsync().Result.Email;
+                    Userinfo userInfo = await new Oauth2Service(initializer).Userinfo.Get().ExecuteAsync();
+                    SignInBtnTextBlock.Text = "Signed in as " + userInfo.Email;
+                    await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH, userInfo.Email);
                 }
             } finally {
                 SignInBtn.IsEnabled = true;
