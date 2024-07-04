@@ -90,11 +90,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 bool success = true;
                 if (TagFilterOptionCheckBox.IsChecked == true) {
                     // Upload tag filters
-                    success = await UploadFile(TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json);
+                    success = await UploadFileAsync(TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json);
                 }
                 if (success && BookmarkOptionCheckBox.IsChecked == true) {
                     // Upload bookmarks
-                    success = await UploadFile(BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json);
+                    success = await UploadFileAsync(BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json);
                 }
                 if (success) {
                     SyncProgressBar.Visibility = Visibility.Collapsed;
@@ -111,62 +111,52 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             }
         }
 
-        private async Task<bool> UploadFile(string fileName, string filePath, string contentType) {
-            Google.Apis.Drive.v3.Data.File fileMetaData = new() {
-                Name = fileName,
-                Parents = ["appDataFolder"]
-            };
-            
-            // TODO
-            // 1. delete accidentally created tag_filters.json files
-            // 2. implement:
-            // check if a file with the same file name already exists
-            // if it does, use updateRequest
-            // otherwise use createRequest
-
-            FilesResource.CreateMediaUpload createRequest;
-            FilesResource.UpdateMediaUpload updateRequest;
-
-
-            using (FileStream stream = new(filePath, FileMode.Open)) {
-                createRequest = _driveService.Files.Create(
+        private async Task<bool> UploadFileAsync(string fileName, string filePath, string contentType) {
+            FileList fileList = await GetFileListAsync();
+            string fileId = null;
+            foreach (var file in fileList.Files) {
+                if (file.Name == fileName) {
+                    fileId = file.Id;
+                }
+            }
+            using FileStream stream = new(filePath, FileMode.Open);
+            Google.Apis.Drive.v3.Data.File fileMetaData = new();
+            ResumableUpload request;
+            if (fileId == null) {
+                fileMetaData.Name = fileName;
+                fileMetaData.Parents = ["appDataFolder"];
+                request = _driveService.Files.Create(
                     fileMetaData,
                     stream,
                     contentType
                 );
-                //updateRequest = _driveService.Files.Update(
-                //    fileMetaData,
-                //    // TODO get file id,
-                //    stream,
-                //    contentType
-                //);
-
-                createRequest.Fields = "id";
-
-                try {
-                    Trace.WriteLine($"Uploading {fileName}...");
-                    IUploadProgress result = await createRequest.UploadAsync();
-                    if (result.Exception != null) {
-                        throw result.Exception;
-                    }
-                    Google.Apis.Drive.v3.Data.File file = createRequest.ResponseBody;
-                    // Prints the file id.
-                    Trace.WriteLine("File upload complete. File ID: " + file.Id);
-                } catch (Exception e) {
-                    SyncProgressBar.Visibility = Visibility.Collapsed;
-                    SyncErrorInfoBar.Severity = InfoBarSeverity.Error;
-                    SyncErrorInfoBar.Title = "Error";
-                    if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                        SyncErrorInfoBar.Message = "This app is not authorized to access Google Drive."
-                            + "\nPlease sign out, sign in again and allow access to Google Drive";
-                    } else {
-                        SyncErrorInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
-                    }
-                    SyncErrorInfoBar.IsOpen = true;
-                    return false;
-                } finally {
-                    IsEnabled = true;
+            } else {
+                request = _driveService.Files.Update(
+                    fileMetaData,
+                    fileId,
+                    stream,
+                    contentType
+                );
+            }
+            try {
+                IUploadProgress result = await request.UploadAsync();
+                if (result.Exception != null) {
+                    throw result.Exception;
                 }
+            } catch (Exception e) {
+                SyncProgressBar.Visibility = Visibility.Collapsed;
+                SyncErrorInfoBar.Severity = InfoBarSeverity.Error;
+                SyncErrorInfoBar.Title = "Error";
+                if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                    SyncErrorInfoBar.Message = "This app is not authorized to access Google Drive."
+                        + "\nPlease sign out, sign in again and allow access to Google Drive";
+                } else {
+                    SyncErrorInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                }
+                SyncErrorInfoBar.IsOpen = true;
+                return false;
+            } finally {
+                IsEnabled = true;
             }
             return true;
         }
