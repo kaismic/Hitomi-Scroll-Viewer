@@ -417,11 +417,15 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             }
             GalleryIDTextBox.Text = "";
             
+            // only download if the gallery is not already downloading
             foreach (string extractedId in extractedIds) {
-                // only download if it is not already downloading
-                if (DownloadingGalleryIds.TryAdd(extractedId, 0)) {
-                    DownloadingItems.Add(new(extractedId));
-                }
+                TryDownload(extractedId);
+            }
+        }
+
+        internal void TryDownload(string id) {
+            if (DownloadingGalleryIds.TryAdd(id, 0)) {
+                DownloadingItems.Add(new(id));
             }
         }
 
