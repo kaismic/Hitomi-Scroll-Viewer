@@ -95,7 +95,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["series"].Add("blue_archive");
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["female"].Add("sole_female");
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].excludeTags["language"].Add("chinese");
-                WriteTagFilters();
+                WriteTagFilterDict();
             }
 
             // create bookmarked galleries' info file if it doesn't exist
@@ -229,7 +229,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             TagNameTextBox.Text = "";
             AddTagFilterDict(newTagFilterName, GetCurrTagFilter());
             FilterTagComboBox.SelectedItem = newTagFilterName;
-            WriteTagFilters();
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_CREATE_2_TITLE, newTagFilterName), "");
         }
 
@@ -256,7 +256,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             AddTagFilterDict(newTagFilterName, TagFilterDict[oldTagFilterName]);
             FilterTagComboBox.SelectedItem = newTagFilterName;
             RemoveTagFilterDict(oldTagFilterName);
-            WriteTagFilters();
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_RENAME_2_TITLE, oldTagFilterName, newTagFilterName), "");
         }
 
@@ -279,7 +279,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 return;
             }
             TagFilterDict[_currTagFilterName] = GetCurrTagFilter();
-            WriteTagFilters();
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_SAVE_2_TITLE, _currTagFilterName), "");
         }
 
@@ -294,7 +294,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 return;
             }
             RemoveTagFilterDict(tagFilterName);
-            WriteTagFilters();
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_DELETE_2_TITLE, tagFilterName), "");
         }
 
@@ -303,7 +303,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             ExcludeTagContainer.Clear();
         }
 
-        public void WriteTagFilters() {
+        public void WriteTagFilterDict() {
             WriteObjectToJson(TAG_FILTERS_FILE_PATH, TagFilterDict);
         }
 
