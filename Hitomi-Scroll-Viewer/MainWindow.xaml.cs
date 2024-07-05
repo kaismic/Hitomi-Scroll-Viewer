@@ -30,7 +30,7 @@ namespace Hitomi_Scroll_Viewer {
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
                 e.Cancel = true;
-                if (!SearchPage.DownloadingGalleries.IsEmpty) {
+                if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
                     ContentDialog dialog = new() {
                         Title = EXIT_CONFIRM_TEXT,
                         PrimaryButtonText = DIALOG_BUTTON_TEXT_EXIT,
