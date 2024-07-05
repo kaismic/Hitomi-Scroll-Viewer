@@ -1,4 +1,5 @@
 using Google;
+using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
 using Google.Apis.Upload;
@@ -8,9 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Mime;
+using System.Text.Json;
 using System.Threading.Tasks;
-using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent.SyncContentDialog.SyncOptions;
 using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.Utils;
 
@@ -30,20 +32,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
      *          single-select option: start downloading all bookmarks fetched from cloud, do not download
      */
     public sealed partial class SyncContentDialog : ContentDialog {
-        internal struct SyncOptions {
-            public SyncOptions() {}
-            public bool IsUpload { get; internal set; }
-            public enum SyncDataType {
-                TagFilter, Bookmark
-            }
-            public HashSet<SyncDataType> SyncDataTypes { get; internal set; } = [];
-            public bool FetchTagFilterOverwrite { get; internal set; }
-            public bool FetchTagFilterReplaceDups { get; internal set; }
-            public bool FetchBookmarkStartDownload { get; internal set; }
-        }
-
         private bool _closeDialog = true;
-
         private readonly DriveService _driveService;
 
         public SyncContentDialog(DriveService driveService) {
@@ -52,67 +41,132 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             // this code is needed because of this bug https://github.com/microsoft/microsoft-ui-xaml/issues/424
             Resources["ContentDialogMaxWidth"] = double.MaxValue;
             PrimaryButtonText = "Sync";
-            CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL;
+            CloseButtonText = DIALOG_BUTTON_TEXT_CLOSE;
         }
 
         private void ContentDialog_CloseButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
             _closeDialog = true;
         }
 
-        private static void DisableControlsRecursive(StackPanel parentStackPanel) {
-            foreach (var child in parentStackPanel.Children) {
-                if (child is Control control && control is not ProgressBar) {
-                    control.IsEnabled = false;
-                } else if (child is StackPanel childStackPanel) {
-                    DisableControlsRecursive(childStackPanel);
-                }
-            }
-        }
-
         private async void ContentDialog_PrimaryButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
             _closeDialog = false;
             IsEnabled = false;
-            IsPrimaryButtonEnabled = false;
-            DisableControlsRecursive(Content as StackPanel);
             SyncProgressBar.Visibility = Visibility.Visible;
 
-            SyncOptions options = new() {
-                IsUpload = SyncMethodRadioButtons.SelectedIndex == 0,
-                FetchTagFilterOverwrite = FetchTagFilterOption0.SelectedIndex == 0,
-                FetchTagFilterReplaceDups = FetchTagFilterOption1.SelectedIndex == 0,
-                FetchBookmarkStartDownload = FetchBookmarkOption0.SelectedIndex == 0
-            };
-            if (TagFilterOptionCheckBox.IsChecked == true) options.SyncDataTypes.Add(SyncDataType.TagFilter);
-            if (BookmarkOptionCheckBox.IsChecked == true) options.SyncDataTypes.Add(SyncDataType.Bookmark);
-            
+            FilesResource.ListRequest listRequest = _driveService.Files.List();
+            listRequest.Spaces = "appDataFolder";
+            listRequest.Fields = "nextPageToken, files(id, name)";
+            listRequest.PageSize = 2;
+            FileList fileList = await listRequest.ExecuteAsync();
+
+            // TODO
+            // handle situation correctly
+            // Upload: 1. upload success, 2. exception
+            // Fetch: 1. fetch success, 2. file(s) not yet uploaded, 3. exception
+
+            // Upload
             if (SyncMethodRadioButtons.SelectedIndex == 0) {
-                // Upload
                 bool success = true;
+                // Upload tag filters
                 if (TagFilterOptionCheckBox.IsChecked == true) {
-                    // Upload tag filters
-                    success = await UploadFileAsync(TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json);
+                    success = await UploadFileAsync(fileList, TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json);
                 }
+                // Upload bookmarks
                 if (success && BookmarkOptionCheckBox.IsChecked == true) {
-                    // Upload bookmarks
-                    success = await UploadFileAsync(BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json);
+                    success = await UploadFileAsync(fileList, BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json);
                 }
                 if (success) {
                     SyncProgressBar.Visibility = Visibility.Collapsed;
                     SyncErrorInfoBar.Severity = InfoBarSeverity.Success;
                     SyncErrorInfoBar.Title = "Upload completed";
                     SyncErrorInfoBar.Message = "Uploading has completed successfully.";
-                    CloseButtonText = DIALOG_BUTTON_TEXT_CLOSE;
                     SyncErrorInfoBar.IsOpen = true;
                 }
             } else {
                 // Fetch
-                // TODO
-
+                bool success = true;
+                // Fetch tag filters
+                if (TagFilterOptionCheckBox.IsChecked == true) {
+                    string fetchedFileData = await FetchFile(fileList, TAG_FILTERS_FILE_NAME);
+                    if (fetchedFileData != null) {
+                        Dictionary<string, TagFilter> fetchedTagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
+                            fetchedFileData,
+                            typeof(Dictionary<string, TagFilter>),
+                            DEFAULT_SERIALIZER_OPTIONS
+                        );
+                        // Overwrite tag filters
+                        if (FetchTagFilterOption0.SelectedIndex == 0) {
+                            MainWindow.SearchPage.TagFilterDict = fetchedTagFilterDict;
+                        }
+                        // Append tag filters
+                        else {
+                            // Replace locally stored tag filters with duplicate names from the cloud
+                            if (FetchTagFilterOption1.SelectedIndex == 0) {
+                                MainWindow.SearchPage.TagFilterDict =
+                                    (Dictionary<string, TagFilter>)fetchedTagFilterDict
+                                    .Concat(
+                                        MainWindow.SearchPage.TagFilterDict.Where(
+                                            pair => !fetchedTagFilterDict.ContainsKey(pair.Key)
+                                        )
+                                    );
+                            }
+                            // Keep locally stored tag filters with duplicate names
+                            else {
+                                MainWindow.SearchPage.TagFilterDict =
+                                    (Dictionary<string, TagFilter>)MainWindow.SearchPage.TagFilterDict
+                                    .Concat(
+                                        fetchedTagFilterDict.Where(
+                                            pair => !MainWindow.SearchPage.TagFilterDict.ContainsKey(pair.Key)
+                                        )
+                                    );
+                            }
+                        }
+                        MainWindow.SearchPage.WriteTagFilterDict();
+                    } else {
+                        success = false;
+                    }
+                }
+                // Fetch bookmarks
+                if (success && BookmarkOptionCheckBox.IsChecked == true) {
+                    string fetchedFileData = await FetchFile(fileList, BOOKMARKS_FILE_NAME);
+                    if (fetchedFileData != null) {
+                        IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
+                            fetchedFileData,
+                            typeof(IEnumerable<Gallery>),
+                            DEFAULT_SERIALIZER_OPTIONS
+                        );
+                        // append fetched galleries to existing bookmark if they are not already in the bookmark
+                        IEnumerable<Gallery> localBookmarkGalleries = SearchPage.BookmarkItems.Select(item => item.gallery);
+                        IEnumerable<Gallery> appendingGalleries = fetchedBookmarkGalleries.ExceptBy(
+                            localBookmarkGalleries.Select(gallery => gallery.id),
+                            gallery => gallery.id
+                        );
+                        List<BookmarkItem> appendedBookmarkItems = [];
+                        foreach (var gallery in appendingGalleries) {
+                            appendedBookmarkItems.Add(MainWindow.SearchPage.AddBookmark(gallery));
+                        }
+                        // start downloading all appended galleries if the corresponding option is checked
+                        if (FetchBookmarkOption0.SelectedIndex == 0) {
+                            foreach (var gallery in appendingGalleries) {
+                                MainWindow.SearchPage.TryDownload(gallery.id);
+                            }  
+                        }
+                    } else {
+                        success = false;
+                    }
+                }
+                if (success) {
+                    SyncProgressBar.Visibility = Visibility.Collapsed;
+                    SyncErrorInfoBar.Severity = InfoBarSeverity.Success;
+                    SyncErrorInfoBar.Title = "Fetch completed";
+                    SyncErrorInfoBar.Message = "Fetching has completed successfully.";
+                    SyncErrorInfoBar.IsOpen = true;
+                }
             }
+            IsEnabled = true;
         }
 
-        private async Task<bool> UploadFileAsync(string fileName, string filePath, string contentType) {
-            FileList fileList = await GetFileListAsync();
+        private async Task<bool> UploadFileAsync(FileList fileList, string fileName, string filePath, string contentType) {
             string fileId = null;
             foreach (var file in fileList.Files) {
                 if (file.Name == fileName) {
@@ -155,35 +209,41 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 }
                 SyncErrorInfoBar.IsOpen = true;
                 return false;
-            } finally {
-                IsEnabled = true;
             }
             return true;
         }
 
-        private async Task<FileList> GetFileListAsync() {
-            FilesResource.ListRequest listRequest = _driveService.Files.List();
-            listRequest.Spaces = "appDataFolder";
-            listRequest.Fields = "nextPageToken, files(id, name)";
-            listRequest.PageSize = 4;
-            return await listRequest.ExecuteAsync();
-        }
-
-
         /**
-         * <returns>The file <see cref="MemoryStream"/> if the file is found successfully, otherwise, <c>null</c>.</returns>
+         * <returns>The file content <c>string</c> if the file is fetched and read successfully, otherwise, <c>null</c>.</returns>
          */
-        private async Task<MemoryStream> FetchFile(string fileName) {
+        private async Task<string> FetchFile(FileList fileList, string fileName) {
             Trace.WriteLine($"Searching for file {fileName}...");
-            FileList filstList = await GetFileListAsync();
-            foreach (Google.Apis.Drive.v3.Data.File file in filstList.Files) {
-                // Prints the list of 10 file names.
+            foreach (var file in fileList.Files) {
                 if (file.Name == fileName) {
-                    Trace.WriteLine($"Found file {fileName}: id = {file.Id}");
-                    FilesResource.GetRequest getRequest = _driveService.Files.Get(file.Id);
+                    Trace.WriteLine($"Found file {fileName}, id = {file.Id}");
                     MemoryStream stream = new();
-                    getRequest.Download(stream);
-                    return stream;
+                    FilesResource.GetRequest getRequest = _driveService.Files.Get(file.Id);
+                    try {
+                        IDownloadProgress result = await getRequest.DownloadAsync(stream);
+                        if (result.Exception != null) {
+                            throw result.Exception;
+                        }
+                        stream.Position = 0;
+                        using StreamReader reader = new(stream);
+                        return await reader.ReadToEndAsync();
+                    } catch (Exception e) {
+                        SyncProgressBar.Visibility = Visibility.Collapsed;
+                        SyncErrorInfoBar.Severity = InfoBarSeverity.Error;
+                        SyncErrorInfoBar.Title = "Error";
+                        if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                            SyncErrorInfoBar.Message = "This app is not authorized to access Google Drive."
+                                + "\nPlease sign out, sign in again and allow access to Google Drive";
+                        } else {
+                            SyncErrorInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                        }
+                        SyncErrorInfoBar.IsOpen = true;
+                        return null;
+                    }
                 }
             }
             Trace.WriteLine($"File not found: {fileName}");
