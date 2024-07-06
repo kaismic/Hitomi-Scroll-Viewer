@@ -7,33 +7,21 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent {
-    /**
-     * single-select option: push and pull (upload and fetch?)
-     * push:
-     *      multi-select option: tag filter, bookmark - show warning: this will overwrite the currently uploaded tag filters/bookmarks
-     * pull:
-     *      multi-select option:
-     *      tag filter:
-     *          single-select option: Append to local tag filters, Overwrite local tag filters
-     *              if (Append to local tag filters) is selected: 
-     *                  single-select option: Replace duplicate named local tag filters with tag filters in cloud, keep duplicate named tag filters at local storage
-     * 
-     *      bookmark: do (CloudBookmark - LocalBookmark) enumberable and add them to bookmark
-     *          single-select option: start downloading all bookmarks fetched from cloud, do not download
-     */
     public sealed partial class SyncContentDialog : ContentDialog {
         private bool _closeDialog = true;
         private readonly DriveService _driveService;
+        private bool _isSyncing = false;
+        private CancellationTokenSource _cts;
 
         public SyncContentDialog(DriveService driveService) {
             _driveService = driveService;
@@ -45,209 +33,298 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
         }
 
         private void ContentDialog_CloseButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
-            _closeDialog = true;
+            if (_isSyncing) {
+                _cts.Cancel();
+            } else {
+                _closeDialog = true;
+            }
+        }
+
+        private static void EnableContentControls(StackPanel parentStackPanel, bool enable) {
+            foreach (var child in parentStackPanel.Children) {
+                if (child is Control control) {
+                    control.IsEnabled = enable;
+                } else if (child is StackPanel childStackPanel) {
+                    EnableContentControls(childStackPanel, enable);
+                }
+            }
+        }
+        
+        private void StartStopSync(bool start) {
+            _isSyncing = start;
+            IsPrimaryButtonEnabled = !start;
+            EnableContentControls(Content as StackPanel, !start);
+            if (start) {
+                SyncProgressBar.Visibility = Visibility.Visible;
+                CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL;
+                BookmarkSyncResultInfoBar.IsOpen = false;
+                TagFilterSyncResultInfoBar.IsOpen = false;
+            } else {
+                SyncProgressBar.Visibility = Visibility.Collapsed;
+                CloseButtonText = DIALOG_BUTTON_TEXT_CLOSE;
+            }
         }
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
+            _cts = new();
             _closeDialog = false;
-            IsEnabled = false;
-            SyncProgressBar.Visibility = Visibility.Visible;
+            StartStopSync(true);
 
             FilesResource.ListRequest listRequest = _driveService.Files.List();
             listRequest.Spaces = "appDataFolder";
             listRequest.Fields = "nextPageToken, files(id, name)";
             listRequest.PageSize = 2;
             FileList fileList = await listRequest.ExecuteAsync();
-
-            // TODO
-            // handle situation correctly
-            // Upload: 1. upload success, 2. exception
-            // Fetch: 1. fetch success, 2. file(s) not yet uploaded, 3. exception
+            string tagFiltersFileId = null;
+            string bookmarksFileId = null;
+            foreach (var file in fileList.Files) {
+                if (file.Name == TAG_FILTERS_FILE_NAME) {
+                    tagFiltersFileId = file.Id;
+                } else if (file.Name == BOOKMARKS_FILE_NAME) {
+                    bookmarksFileId = file.Id;
+                }
+            }
 
             // Upload
             if (SyncMethodRadioButtons.SelectedIndex == 0) {
-                bool success = true;
                 // Upload tag filters
                 if (TagFilterOptionCheckBox.IsChecked == true) {
-                    success = await UploadFileAsync(fileList, TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json);
+                    try {
+                        if (tagFiltersFileId == null) {
+                            await CreateFileAsync(TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
+                        } else {
+                            await UpdateFileAsync(tagFiltersFileId, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
+                        }
+                        TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
+                        TagFilterSyncResultInfoBar.Title = "Upload completed";
+                        TagFilterSyncResultInfoBar.Message = "Uploading tag filters have completed successfully.";
+                    } catch (TaskCanceledException) {
+                        TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
+                        TagFilterSyncResultInfoBar.Title = "Upload canceled";
+                        TagFilterSyncResultInfoBar.Message = "Uploading tag filters have been canceled.";
+                    } catch (Exception e) {
+                        TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                        TagFilterSyncResultInfoBar.Title = "Error";
+                        if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                            TagFilterSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
+                                + "\nPlease sign out, sign in again and allow access to Google Drive";
+                        } else {
+                            TagFilterSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                        }
+                    } finally {
+                        TagFilterSyncResultInfoBar.IsOpen = true;
+                    }
                 }
                 // Upload bookmarks
-                if (success && BookmarkOptionCheckBox.IsChecked == true) {
-                    success = await UploadFileAsync(fileList, BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json);
+                if (BookmarkOptionCheckBox.IsChecked == true) {
+                    try {
+                        if (bookmarksFileId == null) {
+                            await CreateFileAsync(BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
+                        } else {
+                            await UpdateFileAsync(bookmarksFileId, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
+                        }
+                        BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
+                        BookmarkSyncResultInfoBar.Title = "Upload completed";
+                        BookmarkSyncResultInfoBar.Message = "Uploading bookmarks have completed successfully.";
+                    } catch (TaskCanceledException) {
+                        BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
+                        BookmarkSyncResultInfoBar.Title = "Upload canceled";
+                        BookmarkSyncResultInfoBar.Message = "Uploading bookmarks have been canceled.";
+                    } catch (Exception e) {
+                        BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                        BookmarkSyncResultInfoBar.Title = "Error";
+                        if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                            BookmarkSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
+                                + "\nPlease sign out, sign in again and allow access to Google Drive";
+                        } else {
+                            BookmarkSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                        }
+                    } finally {
+                        BookmarkSyncResultInfoBar.IsOpen = true;
+                    }
                 }
-                if (success) {
-                    SyncProgressBar.Visibility = Visibility.Collapsed;
-                    SyncErrorInfoBar.Severity = InfoBarSeverity.Success;
-                    SyncErrorInfoBar.Title = "Upload completed";
-                    SyncErrorInfoBar.Message = "Uploading has completed successfully.";
-                    SyncErrorInfoBar.IsOpen = true;
-                }
-            } else {
-                // Fetch
-                bool success = true;
+            }
+            // Fetch
+            else {
                 // Fetch tag filters
                 if (TagFilterOptionCheckBox.IsChecked == true) {
-                    string fetchedFileData = await FetchFile(fileList, TAG_FILTERS_FILE_NAME);
-                    if (fetchedFileData != null) {
-                        Dictionary<string, TagFilter> fetchedTagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
-                            fetchedFileData,
-                            typeof(Dictionary<string, TagFilter>),
-                            DEFAULT_SERIALIZER_OPTIONS
-                        );
-                        // Overwrite tag filters
-                        if (FetchTagFilterOption0.SelectedIndex == 0) {
-                            MainWindow.SearchPage.TagFilterDict = fetchedTagFilterDict;
-                        }
-                        // Append tag filters
-                        else {
-                            // Replace locally stored tag filters with duplicate names from the cloud
-                            if (FetchTagFilterOption1.SelectedIndex == 0) {
-                                MainWindow.SearchPage.TagFilterDict =
-                                    (Dictionary<string, TagFilter>)fetchedTagFilterDict
-                                    .Concat(
-                                        MainWindow.SearchPage.TagFilterDict.Where(
-                                            pair => !fetchedTagFilterDict.ContainsKey(pair.Key)
-                                        )
-                                    );
-                            }
-                            // Keep locally stored tag filters with duplicate names
-                            else {
-                                MainWindow.SearchPage.TagFilterDict =
-                                    (Dictionary<string, TagFilter>)MainWindow.SearchPage.TagFilterDict
-                                    .Concat(
-                                        fetchedTagFilterDict.Where(
-                                            pair => !MainWindow.SearchPage.TagFilterDict.ContainsKey(pair.Key)
-                                        )
-                                    );
-                            }
-                        }
-                        MainWindow.SearchPage.WriteTagFilterDict();
-                    } else {
-                        success = false;
+                    // file is not uploaded yet
+                    if (tagFiltersFileId == null) {
+                        TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                        TagFilterSyncResultInfoBar.Title = "File not found";
+                        TagFilterSyncResultInfoBar.Message = "Tag filters have not been uploaded yet.";
                     }
+                    // file exists
+                    else {
+                        try {
+                            string fetchedTagFiltersData = await GetFile(tagFiltersFileId, _cts.Token);
+                            Dictionary<string, TagFilter> fetchedTagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
+                                fetchedTagFiltersData,
+                                typeof(Dictionary<string, TagFilter>),
+                                DEFAULT_SERIALIZER_OPTIONS
+                            );
+                            // Overwrite tag filters
+                            if (FetchTagFilterOption1.SelectedIndex == 0) {
+                                MainWindow.SearchPage.TagFilterDict = fetchedTagFilterDict;
+                            }
+                            // Append tag filters
+                            else {
+                                // Replace locally stored tag filters with duplicate names from the cloud
+                                if (FetchTagFilterOption2.SelectedIndex == 0) {
+                                    MainWindow.SearchPage.TagFilterDict =
+                                        (Dictionary<string, TagFilter>)fetchedTagFilterDict
+                                        .Concat(
+                                            MainWindow.SearchPage.TagFilterDict.Where(
+                                                pair => !fetchedTagFilterDict.ContainsKey(pair.Key)
+                                            )
+                                        );
+                                }
+                                // Keep locally stored tag filters with duplicate names
+                                else {
+                                    MainWindow.SearchPage.TagFilterDict =
+                                        (Dictionary<string, TagFilter>)MainWindow.SearchPage.TagFilterDict
+                                        .Concat(
+                                            fetchedTagFilterDict.Where(
+                                                pair => !MainWindow.SearchPage.TagFilterDict.ContainsKey(pair.Key)
+                                            )
+                                        );
+                                }
+                            }
+                            MainWindow.SearchPage.WriteTagFilterDict();
+
+                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
+                            TagFilterSyncResultInfoBar.Title = "Fetch completed";
+                            TagFilterSyncResultInfoBar.Message = "Fetching tag filters have completed successfully.";
+                        } catch (TaskCanceledException) {
+                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
+                            TagFilterSyncResultInfoBar.Title = "Fetch canceled";
+                            TagFilterSyncResultInfoBar.Message = "Fetching tag filters have been canceled.";
+                        } catch (Exception e) {
+                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                            TagFilterSyncResultInfoBar.Title = "Error";
+                            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                                TagFilterSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
+                                    + "\nPlease sign out, sign in again and allow access to Google Drive";
+                            } else {
+                                TagFilterSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                            }
+                        }
+                    }
+                    TagFilterSyncResultInfoBar.IsOpen = true;
                 }
                 // Fetch bookmarks
-                if (success && BookmarkOptionCheckBox.IsChecked == true) {
-                    string fetchedFileData = await FetchFile(fileList, BOOKMARKS_FILE_NAME);
-                    if (fetchedFileData != null) {
-                        IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
-                            fetchedFileData,
-                            typeof(IEnumerable<Gallery>),
-                            DEFAULT_SERIALIZER_OPTIONS
-                        );
-                        // append fetched galleries to existing bookmark if they are not already in the bookmark
-                        IEnumerable<Gallery> localBookmarkGalleries = SearchPage.BookmarkItems.Select(item => item.gallery);
-                        IEnumerable<Gallery> appendingGalleries = fetchedBookmarkGalleries.ExceptBy(
-                            localBookmarkGalleries.Select(gallery => gallery.id),
-                            gallery => gallery.id
-                        );
-                        List<BookmarkItem> appendedBookmarkItems = [];
-                        foreach (var gallery in appendingGalleries) {
-                            appendedBookmarkItems.Add(MainWindow.SearchPage.AddBookmark(gallery));
-                        }
-                        // start downloading all appended galleries if the corresponding option is checked
-                        if (FetchBookmarkOption0.SelectedIndex == 0) {
-                            foreach (var gallery in appendingGalleries) {
-                                MainWindow.SearchPage.TryDownload(gallery.id);
-                            }  
-                        }
-                    } else {
-                        success = false;
+                if (BookmarkOptionCheckBox.IsChecked == true) {
+                    // file is not uploaded yet
+                    if (tagFiltersFileId == null) {
+                        BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                        BookmarkSyncResultInfoBar.Title = "File not found";
+                        BookmarkSyncResultInfoBar.Message = "Bookmarks have not been uploaded yet.";
                     }
-                }
-                if (success) {
-                    SyncProgressBar.Visibility = Visibility.Collapsed;
-                    SyncErrorInfoBar.Severity = InfoBarSeverity.Success;
-                    SyncErrorInfoBar.Title = "Fetch completed";
-                    SyncErrorInfoBar.Message = "Fetching has completed successfully.";
-                    SyncErrorInfoBar.IsOpen = true;
-                }
-            }
-            IsEnabled = true;
-        }
+                    // file exists
+                    else {
+                        try {
+                            string fetchedBookmarksData = await GetFile(bookmarksFileId, _cts.Token);
+                            IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
+                                fetchedBookmarksData,
+                                typeof(IEnumerable<Gallery>),
+                                DEFAULT_SERIALIZER_OPTIONS
+                            );
+                            // append fetched galleries to existing bookmark if they are not already in the bookmark
+                            IEnumerable<Gallery> localBookmarkGalleries = SearchPage.BookmarkItems.Select(item => item.gallery);
+                            IEnumerable<Gallery> appendingGalleries = fetchedBookmarkGalleries.ExceptBy(
+                                localBookmarkGalleries.Select(gallery => gallery.id),
+                                gallery => gallery.id
+                            );
+                            List<BookmarkItem> appendedBookmarkItems = [];
+                            foreach (var gallery in appendingGalleries) {
+                                appendedBookmarkItems.Add(MainWindow.SearchPage.AddBookmark(gallery));
+                            }
+                            // start downloading all appended galleries if the corresponding option is checked
+                            if (FetchBookmarkOption1.SelectedIndex == 0) {
+                                foreach (var gallery in appendingGalleries) {
+                                    MainWindow.SearchPage.TryDownload(gallery.id);
+                                }
+                            }
 
-        private async Task<bool> UploadFileAsync(FileList fileList, string fileName, string filePath, string contentType) {
-            string fileId = null;
-            foreach (var file in fileList.Files) {
-                if (file.Name == fileName) {
-                    fileId = file.Id;
+                            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
+                            BookmarkSyncResultInfoBar.Title = "Fetch completed";
+                            BookmarkSyncResultInfoBar.Message = "Fetching bookmarks have completed successfully.";
+                        } catch (TaskCanceledException) {
+                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
+                            TagFilterSyncResultInfoBar.Title = "Fetch canceled";
+                            TagFilterSyncResultInfoBar.Message = "Fetching bookmarks have been canceled.";
+                        } catch (Exception e) {
+                            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                            BookmarkSyncResultInfoBar.Title = "Error";
+                            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                                BookmarkSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
+                                    + "\nPlease sign out, sign in again and allow access to Google Drive";
+                            } else {
+                                BookmarkSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                            }
+                        }
+                    }
+                    BookmarkSyncResultInfoBar.IsOpen = true;
                 }
             }
-            using FileStream stream = new(filePath, FileMode.Open);
-            Google.Apis.Drive.v3.Data.File fileMetaData = new();
-            ResumableUpload request;
-            if (fileId == null) {
-                fileMetaData.Name = fileName;
-                fileMetaData.Parents = ["appDataFolder"];
-                request = _driveService.Files.Create(
-                    fileMetaData,
-                    stream,
-                    contentType
-                );
-            } else {
-                request = _driveService.Files.Update(
-                    fileMetaData,
-                    fileId,
-                    stream,
-                    contentType
-                );
-            }
-            try {
-                IUploadProgress result = await request.UploadAsync();
-                if (result.Exception != null) {
-                    throw result.Exception;
-                }
-            } catch (Exception e) {
-                SyncProgressBar.Visibility = Visibility.Collapsed;
-                SyncErrorInfoBar.Severity = InfoBarSeverity.Error;
-                SyncErrorInfoBar.Title = "Error";
-                if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                    SyncErrorInfoBar.Message = "This app is not authorized to access Google Drive."
-                        + "\nPlease sign out, sign in again and allow access to Google Drive";
-                } else {
-                    SyncErrorInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
-                }
-                SyncErrorInfoBar.IsOpen = true;
-                return false;
-            }
-            return true;
+            StartStopSync(false);
         }
 
         /**
-         * <returns>The file content <c>string</c> if the file is fetched and read successfully, otherwise, <c>null</c>.</returns>
+         * <exception cref="Exception"/>
+         * <exception cref="TaskCanceledException"/>
          */
-        private async Task<string> FetchFile(FileList fileList, string fileName) {
-            Trace.WriteLine($"Searching for file {fileName}...");
-            foreach (var file in fileList.Files) {
-                if (file.Name == fileName) {
-                    Trace.WriteLine($"Found file {fileName}, id = {file.Id}");
-                    MemoryStream stream = new();
-                    FilesResource.GetRequest getRequest = _driveService.Files.Get(file.Id);
-                    try {
-                        IDownloadProgress result = await getRequest.DownloadAsync(stream);
-                        if (result.Exception != null) {
-                            throw result.Exception;
-                        }
-                        stream.Position = 0;
-                        using StreamReader reader = new(stream);
-                        return await reader.ReadToEndAsync();
-                    } catch (Exception e) {
-                        SyncProgressBar.Visibility = Visibility.Collapsed;
-                        SyncErrorInfoBar.Severity = InfoBarSeverity.Error;
-                        SyncErrorInfoBar.Title = "Error";
-                        if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                            SyncErrorInfoBar.Message = "This app is not authorized to access Google Drive."
-                                + "\nPlease sign out, sign in again and allow access to Google Drive";
-                        } else {
-                            SyncErrorInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
-                        }
-                        SyncErrorInfoBar.IsOpen = true;
-                        return null;
-                    }
-                }
+        private async Task CreateFileAsync(string fileName, string filePath, string contentType, CancellationToken ct) {
+            using FileStream stream = new(filePath, FileMode.Open);
+            Google.Apis.Drive.v3.Data.File fileMetaData = new() {
+                Name = fileName,
+                Parents = ["appDataFolder"]
+            };
+            var request = _driveService.Files.Create(
+                fileMetaData,
+                stream,
+                contentType
+            );
+            IUploadProgress result = await request.UploadAsync(ct);
+            if (result.Exception != null) {
+                throw result.Exception;
             }
-            Trace.WriteLine($"File not found: {fileName}");
-            return null;
+        }
+
+        /**
+         * <exception cref="Exception"/>
+         * <exception cref="TaskCanceledException"/>
+         */
+        private async Task UpdateFileAsync(string fileId, string filePath, string contentType, CancellationToken ct) {
+            using FileStream stream = new(filePath, FileMode.Open);
+            Google.Apis.Drive.v3.Data.File fileMetaData = new();
+            var request = _driveService.Files.Update(
+                fileMetaData,
+                fileId,
+                stream,
+                contentType
+            );
+            IUploadProgress result = await request.UploadAsync(ct);
+            if (result.Exception != null) {
+                throw result.Exception;
+            }
+        }
+
+        /**
+         * <returns>The file content <c>string</c>.</returns>
+         * <exception cref="Exception"/>
+         * <exception cref="TaskCanceledException"/>
+         */
+        private async Task<string> GetFile(string fileId, CancellationToken ct) {
+            MemoryStream stream = new();
+            FilesResource.GetRequest getRequest = _driveService.Files.Get(fileId);
+            IDownloadProgress result = await getRequest.DownloadAsync(stream, ct);
+            if (result.Exception != null) {
+                throw result.Exception;
+            }
+            stream.Position = 0;
+            using StreamReader reader = new(stream);
+            return await reader.ReadToEndAsync();
         }
 
         private void ContentDialog_Closing(ContentDialog _0, ContentDialogClosingEventArgs args) {
@@ -318,12 +395,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             switch (radioButtons.SelectedIndex) {
                 // Overwrite option selected
                 case 0: {
-                    (FetchTagFilterOption1.Parent as StackPanel).Visibility = Visibility.Collapsed;
+                    (FetchTagFilterOption2.Parent as StackPanel).Visibility = Visibility.Collapsed;
                     break;
                 }
                 // Append option selected
                 case 1: {
-                    (FetchTagFilterOption1.Parent as StackPanel).Visibility = Visibility.Visible;
+                    (FetchTagFilterOption2.Parent as StackPanel).Visibility = Visibility.Visible;
                     break;
                 }
             }
@@ -358,12 +435,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 }
                 bool enable = true;
                 if ((bool)TagFilterOptionCheckBox.IsChecked) {
-                    int option0Idx = FetchTagFilterOption0.SelectedIndex;
                     int option1Idx = FetchTagFilterOption1.SelectedIndex;
-                    enable &= option0Idx != -1 && (option0Idx == 0 || option1Idx != -1);
+                    int option2Idx = FetchTagFilterOption2.SelectedIndex;
+                    enable &= option1Idx != -1 && (option1Idx == 0 || option2Idx != -1);
                 }
                 if ((bool)BookmarkOptionCheckBox.IsChecked) {
-                    enable &= FetchBookmarkOption0.SelectedIndex != -1;
+                    enable &= FetchBookmarkOption1.SelectedIndex != -1;
                 }
                 IsPrimaryButtonEnabled = enable;
             }
