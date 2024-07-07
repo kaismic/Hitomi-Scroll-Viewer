@@ -44,7 +44,7 @@
                 <TextBlock Style="{StaticResource BaseTextBlockStyle}">Select how to fetch the tag filters</TextBlock>
                 <RadioButtons x:Name="FetchTagFilterOption1"
                               MaxColumns="2"
-                              SelectionChanged="FetchTagFilterOption0_SelectionChanged">
+                              SelectionChanged="FetchTagFilterOption1_SelectionChanged">
                     <RadioButton>Overwrite</RadioButton>
                     <RadioButton>Append</RadioButton>
                 </RadioButtons>
@@ -53,7 +53,7 @@
                 <TextBlock Style="{StaticResource BaseTextBlockStyle}">Select how to handle tag filters with duplicate names:</TextBlock>
                 <RadioButtons x:Name="FetchTagFilterOption2"
                               MaxColumns="2"
-                              SelectionChanged="FetchTagFilterOption1_SelectionChanged">
+                              SelectionChanged="FetchTagFilterOption2_SelectionChanged">
                     <RadioButton>Replace them with tag filters from cloud</RadioButton>
                     <RadioButton>Keep local tag filters</RadioButton>
                 </RadioButtons>
@@ -68,7 +68,7 @@
             <TextBlock Style="{StaticResource BaseTextBlockStyle}">Start downloading all bookmarks after fetching?</TextBlock>
             <RadioButtons x:Name="FetchBookmarkOption1"
                           MaxColumns="2"
-                          SelectionChanged="FetchBookmarkOption0_SelectionChanged">
+                          SelectionChanged="FetchBookmarkOption1_SelectionChanged">
                 <RadioButton>Yes</RadioButton>
                 <RadioButton>No</RadioButton>
             </RadioButtons>
