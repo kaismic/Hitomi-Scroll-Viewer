@@ -277,6 +277,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
         /**
          * <exception cref="Exception"/>
          * <exception cref="TaskCanceledException"/>
+         * <exception cref="GoogleApiException"/>
          */
         private async Task CreateFileAsync(string fileName, string filePath, string contentType, CancellationToken ct) {
             using FileStream stream = new(filePath, FileMode.Open);
@@ -298,6 +299,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
         /**
          * <exception cref="Exception"/>
          * <exception cref="TaskCanceledException"/>
+         * <exception cref="GoogleApiException"/>
          */
         private async Task UpdateFileAsync(string fileId, string filePath, string contentType, CancellationToken ct) {
             using FileStream stream = new(filePath, FileMode.Open);
@@ -318,6 +320,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
          * <returns>The file content <c>string</c>.</returns>
          * <exception cref="Exception"/>
          * <exception cref="TaskCanceledException"/>
+         * <exception cref="GoogleApiException"/>
          */
         private async Task<string> GetFile(string fileId, CancellationToken ct) {
             MemoryStream stream = new();
