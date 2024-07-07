@@ -119,6 +119,7 @@
   </resheader>
   <data name="AppDisplayName" xml:space="preserve">
     <value>Hitomi Scroll Viewer</value>
+    <comment>Do not translate nor add this string resource for other languages. It will cause an error in SyncManager.</comment>
   </data>
   <data name="DialogButtonText_Cancel" xml:space="preserve">
     <value>Cancel</value>
