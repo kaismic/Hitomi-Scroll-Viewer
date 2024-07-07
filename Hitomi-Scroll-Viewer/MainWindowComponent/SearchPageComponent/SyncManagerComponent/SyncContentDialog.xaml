@@ -9,6 +9,7 @@
     Style="{ThemeResource DefaultContentDialogStyle}"
     DefaultButton="Primary"
     IsPrimaryButtonEnabled="False"
+    PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
     PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
     CloseButtonClick="ContentDialog_CloseButtonClick"
     Closing="ContentDialog_Closing"
