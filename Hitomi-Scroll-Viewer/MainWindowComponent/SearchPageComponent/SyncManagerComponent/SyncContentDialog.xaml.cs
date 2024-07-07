@@ -57,8 +57,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             if (start) {
                 SyncProgressBar.Visibility = Visibility.Visible;
                 CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL;
-                BookmarkSyncResultInfoBar.IsOpen = false;
                 TagFilterSyncResultInfoBar.IsOpen = false;
+                BookmarkSyncResultInfoBar.IsOpen = false;
             } else {
                 SyncProgressBar.Visibility = Visibility.Collapsed;
                 CloseButtonText = DIALOG_BUTTON_TEXT_CLOSE;
@@ -340,6 +340,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             if (radioButtons.SelectedIndex == -1) {
                 return;
             }
+            TagFilterSyncResultInfoBar.IsOpen = false;
+            BookmarkSyncResultInfoBar.IsOpen = false;
             TagFilterOptionCheckBox.IsChecked = false;
             BookmarkOptionCheckBox.IsChecked = false;
             TogglePrimaryButton();
@@ -390,7 +392,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             }
         }
 
-        private void FetchTagFilterOption0_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void FetchTagFilterOption1_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             RadioButtons radioButtons = sender as RadioButtons;
             if (radioButtons.SelectedIndex == -1) {
                 return;
@@ -410,7 +412,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             }
         }
 
-        private void FetchTagFilterOption1_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void FetchTagFilterOption2_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             RadioButtons radioButtons = sender as RadioButtons;
             if (radioButtons.SelectedIndex == -1) {
                 return;
@@ -418,7 +420,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             TogglePrimaryButton();
         }
 
-        private void FetchBookmarkOption0_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void FetchBookmarkOption1_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             RadioButtons radioButtons = sender as RadioButtons;
             if (radioButtons.SelectedIndex == -1) {
                 return;
