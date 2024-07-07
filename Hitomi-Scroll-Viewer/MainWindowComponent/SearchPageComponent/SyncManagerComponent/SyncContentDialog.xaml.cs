@@ -74,16 +74,20 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             listRequest.Spaces = "appDataFolder";
             listRequest.Fields = "nextPageToken, files(id, name)";
             listRequest.PageSize = 2;
-            FileList fileList = await listRequest.ExecuteAsync();
             string tagFiltersFileId = null;
             string bookmarksFileId = null;
-            foreach (var file in fileList.Files) {
-                if (file.Name == TAG_FILTERS_FILE_NAME) {
-                    tagFiltersFileId = file.Id;
-                } else if (file.Name == BOOKMARKS_FILE_NAME) {
-                    bookmarksFileId = file.Id;
+            try {
+                FileList fileList = await listRequest.ExecuteAsync(_cts.Token);
+                if (fileList != null) {
+                    foreach (var file in fileList.Files) {
+                        if (file.Name == TAG_FILTERS_FILE_NAME) {
+                            tagFiltersFileId = file.Id;
+                        } else if (file.Name == BOOKMARKS_FILE_NAME) {
+                            bookmarksFileId = file.Id;
+                        }
+                    }
                 }
-            }
+            } catch (Exception) {}
 
             // Upload
             if (SyncMethodRadioButtons.SelectedIndex == 0) {
