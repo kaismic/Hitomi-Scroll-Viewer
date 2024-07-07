@@ -25,8 +25,7 @@
                    VerticalAlignment="Center"/>
             <TextBlock x:Name="SignInBtnTextBlock"
                        Grid.Column="1"
-                       Text="Sign in with Google to Sync Data"
-                       TextWrapping="Wrap"
+                       TextWrapping="WrapWholeWords"
                        FontSize="16"
                        HorizontalTextAlignment="Center"/>
         </Grid>
