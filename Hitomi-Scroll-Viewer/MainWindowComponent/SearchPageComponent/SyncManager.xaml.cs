@@ -22,10 +22,18 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class SyncManager : Grid {
         private static readonly string USER_EMAIL_FILE_PATH = Path.Combine(ROOT_DIR, "user_email.txt");
 
-        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("Credentials");
+        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SyncManager");
 
-        private static readonly string CLIENT_ID = ResourceMap.GetValue("OAuthAppClientId").ValueAsString;
-        private static readonly string CLIENT_SECRET = ResourceMap.GetValue("OAuthAppClientSecret").ValueAsString;
+        private static readonly ResourceMap CredentialsResourceMap = MainResourceMap.GetSubtree("Credentials");
+        private static readonly string CLIENT_ID = CredentialsResourceMap.GetValue("OAuthAppClientId").ValueAsString;
+        private static readonly string CLIENT_SECRET = CredentialsResourceMap.GetValue("OAuthAppClientSecret").ValueAsString;
+
+        private static readonly string BUTTON_TEXT_NOT_SIGNED_IN = ResourceMap.GetValue("ButtonText_NotSignedIn").ValueAsString;
+        private static readonly string BUTTON_TEXT_SIGNED_IN = ResourceMap.GetValue("ButtonText_SignedIn").ValueAsString;
+        private static readonly string NOTIFICATION_SIGN_IN_TITLE = ResourceMap.GetValue("Notification_SignIn_Title").ValueAsString;
+        private static readonly string NOTIFICATION_SIGN_IN_CONTENT = ResourceMap.GetValue("Notification_SignIn_Content").ValueAsString;
+        private static readonly string NOTIFICATION_SIGN_OUT_TITLE = ResourceMap.GetValue("Notification_SignOut_Title").ValueAsString;
+
         private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
         private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
 
@@ -35,36 +43,35 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
         public SyncManager() {
             InitializeComponent();
+
             Task.Run(async () => {
                 TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
                 bool tokenExists = tokenResponse != null;
-                try {
-                    if (tokenExists) {
-                        _userCredential = new(
-                            new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
-                                ClientSecrets = new ClientSecrets {
-                                    ClientId = CLIENT_ID,
-                                    ClientSecret = CLIENT_SECRET
-                                },
-                                Scopes = SCOPES,
-                                DataStore = FILE_DATA_STORE
-                            }),
-                            Environment.UserName,
-                            tokenResponse
-                        );
-                        _initializer = new BaseClientService.Initializer() {
-                            HttpClientInitializer = _userCredential,
-                            ApplicationName = APP_DISPLAY_NAME
-                        };
-                        string userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH);
-                        DispatcherQueue.TryEnqueue(() => SignInBtnTextBlock.Text = "Signed in as " + userEmail);
-                    }
-                } finally {
-                    DispatcherQueue.TryEnqueue(() => {
-                        ToggleSignInState(tokenExists);
-                        SignInBtn.IsEnabled = true;
-                    });
+                string userEmail = null;
+                if (tokenExists) {
+                    _userCredential = new(
+                        new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+                            ClientSecrets = new ClientSecrets {
+                                ClientId = CLIENT_ID,
+                                ClientSecret = CLIENT_SECRET
+                            },
+                            Scopes = SCOPES,
+                            DataStore = FILE_DATA_STORE
+                        }),
+                        Environment.UserName,
+                        tokenResponse
+                    );
+                    _initializer = new BaseClientService.Initializer() {
+                        HttpClientInitializer = _userCredential,
+                        ApplicationName = APP_DISPLAY_NAME
+                    };
+                    userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH);
                 }
+                DispatcherQueue.TryEnqueue(() => {
+                    SignInBtnTextBlock.Text = tokenExists && userEmail != null ? string.Format(BUTTON_TEXT_SIGNED_IN, userEmail) : BUTTON_TEXT_NOT_SIGNED_IN;
+                    ToggleSignInState(tokenExists);
+                    SignInBtn.IsEnabled = true;
+                });
             });
         }
 
@@ -72,17 +79,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             SignInBtn.IsEnabled = false;
             try {
                 if (_isSignedIn) {
-                    ContentDialogResult cdr = await MainWindow.SearchPage.ShowConfirmDialogAsync("Sign out?", "");
+                    ContentDialogResult cdr = await MainWindow.SearchPage.ShowConfirmDialogAsync(NOTIFICATION_SIGN_OUT_TITLE, "");
                     if (cdr != ContentDialogResult.Primary) {
                         return;
                     }
                     ToggleSignInState(false);
 
-                    await _userCredential.RevokeTokenAsync(CancellationToken.None);
+                    try {
+                        await _userCredential.RevokeTokenAsync(CancellationToken.None);
+                    } catch (TokenResponseException) {}
                     await FILE_DATA_STORE.DeleteAsync<TokenResponse>(Environment.UserName);
                     File.Delete(USER_EMAIL_FILE_PATH);
 
-                    SignInBtnTextBlock.Text = "Sign in with Google to Sync Data";
+                    SignInBtnTextBlock.Text = BUTTON_TEXT_NOT_SIGNED_IN;
                 } else {
                     bool isWindowFocused = false;
                     try {
@@ -93,11 +102,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                             CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
                             Title = new TextBlock() {
                                 TextWrapping = TextWrapping.WrapWholeWords,
-                                Text = "Waiting to Sign in on external browser..."
+                                Text = NOTIFICATION_SIGN_IN_TITLE
                             },
                             Content = new TextBlock() {
                                 TextWrapping = TextWrapping.WrapWholeWords,
-                                Text = "To cancel sign in, click the cancel button."
+                                Text = NOTIFICATION_SIGN_IN_CONTENT
                             },
                             XamlRoot = XamlRoot
                         };
@@ -114,6 +123,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                         if (await Task.WhenAny(manualCancelTask, authTask) == authTask) {
                             manualCancelDialog.Hide();
                             _userCredential = await authTask;
+                            _initializer = new() {
+                                HttpClientInitializer = _userCredential,
+                                ApplicationName = APP_DISPLAY_NAME
+                            };
+                            Userinfo userInfo = await new Oauth2Service(_initializer).Userinfo.Get().ExecuteAsync();
+                            SignInBtnTextBlock.Text = string.Format(BUTTON_TEXT_SIGNED_IN, userInfo.Email);
+                            await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH, userInfo.Email);
+                            ToggleSignInState(true);
                         } else {
                             isWindowFocused = true;
                             cts.Cancel();
@@ -131,15 +148,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                             App.MainWindow.Activate();
                         }
                     }
-                    ToggleSignInState(true);
-
-                    _initializer = new() {
-                        HttpClientInitializer = _userCredential,
-                        ApplicationName = APP_DISPLAY_NAME
-                    };
-                    Userinfo userInfo = await new Oauth2Service(_initializer).Userinfo.Get().ExecuteAsync();
-                    SignInBtnTextBlock.Text = "Signed in as " + userInfo.Email;
-                    await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH, userInfo.Email);
                 }
             } finally {
                 SignInBtn.IsEnabled = true;
