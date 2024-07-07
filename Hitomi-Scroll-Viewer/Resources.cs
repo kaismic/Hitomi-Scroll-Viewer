@@ -15,5 +15,6 @@ namespace Hitomi_Scroll_Viewer {
         internal static readonly string EXAMPLE_TAG_FILTER_NAME_1 = ResourceMap.GetValue("ExampleTagFilterName_1").ValueAsString;
         internal static readonly string EXAMPLE_TAG_FILTER_NAME_2 = ResourceMap.GetValue("ExampleTagFilterName_2").ValueAsString;
         internal static readonly string EXAMPLE_TAG_FILTER_NAME_3 = ResourceMap.GetValue("ExampleTagFilterName_3").ValueAsString;
+        internal static readonly string EXAMPLE_TAG_FILTER_NAME_4 = ResourceMap.GetValue("ExampleTagFilterName_4").ValueAsString;
     }
 }

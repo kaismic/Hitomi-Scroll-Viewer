@@ -142,4 +142,7 @@
   <data name="ExampleTagFilterName_3" xml:space="preserve">
     <value>Example: Include Blue Archive, Sole Female and Exclude Chinese</value>
   </data>
+  <data name="ExampleTagFilterName_4" xml:space="preserve">
+    <value>Example: Include Non-H</value>
+  </data>
 </root>

@@ -82,6 +82,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                     { EXAMPLE_TAG_FILTER_NAME_1, new() },
                     { EXAMPLE_TAG_FILTER_NAME_2, new() },
                     { EXAMPLE_TAG_FILTER_NAME_3, new() },
+                    { EXAMPLE_TAG_FILTER_NAME_4, new() },
                 };
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["language"].Add("english");
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["tag"].Add("full_color");
@@ -95,6 +96,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["series"].Add("blue_archive");
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["female"].Add("sole_female");
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].excludeTags["language"].Add("chinese");
+
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_4].excludeTags["tag"].Add("non-h_imageset");
+
                 WriteTagFilterDict();
             }
 
