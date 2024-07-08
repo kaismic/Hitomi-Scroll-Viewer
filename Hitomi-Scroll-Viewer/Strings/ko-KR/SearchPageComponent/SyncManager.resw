@@ -121,7 +121,7 @@
     <value>Google 계정으로 로그인 후 동기화</value>
   </data>
   <data name="ButtonText_SignedIn" xml:space="preserve">
-    <value>{0}로 로그인 됨</value>
+    <value>{0}(으)로 로그인 됨</value>
     <comment>{0}: User email</comment>
   </data>
   <data name="Notification_SignIn_Content" xml:space="preserve">
