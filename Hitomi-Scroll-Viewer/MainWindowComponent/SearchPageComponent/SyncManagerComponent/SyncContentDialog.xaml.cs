@@ -5,6 +5,7 @@ using Google.Apis.Drive.v3.Data;
 using Google.Apis.Upload;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +19,8 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent {
     public sealed partial class SyncContentDialog : ContentDialog {
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SyncContentDialog");
+
         private bool _closeDialog = true;
         private readonly DriveService _driveService;
         private bool _isSyncing = false;
@@ -30,6 +33,16 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             Resources["ContentDialogMaxWidth"] = double.MaxValue;
             PrimaryButtonText = "Sync";
             CloseButtonText = TEXT_CLOSE;
+
+            TagFilterOptionCheckBox.Content = TEXT_TAG_FILTERS;
+            BookmarkOptionCheckBox.Content = TEXT_BOOKMARKS;
+
+            FetchBookmarkOption1.Items.Add(new RadioButton() {
+                Content = TEXT_YES
+            });
+            FetchBookmarkOption1.Items.Add(new RadioButton() {
+                Content = TEXT_NO
+            });
         }
 
         private void ContentDialog_CloseButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
@@ -64,6 +77,16 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 CloseButtonText = TEXT_CLOSE;
             }
         }
+
+        private static readonly string INFOBAR_UPLOAD_SUCCESS_MESSAGE = _resourceMap.GetValue("InfoBar_Upload_Success_Message").ValueAsString;
+        private static readonly string INFOBAR_UPLOAD_CANCELED_MESSAGE = _resourceMap.GetValue("InfoBar_Upload_Canceled_Message").ValueAsString;
+
+        private static readonly string INFOBAR_FETCH_SUCCESS_MESSAGE = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
+        private static readonly string INFOBAR_FETCH_CANCELED_MESSAGE = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
+
+        private static readonly string INFOBAR_ERROR_UNAUTHORIZED_MESSAGE = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+        private static readonly string INFOBAR_ERROR_UNKNOWN_MESSAGE = _resourceMap.GetValue("InfoBar_Unknown_Error_Message").ValueAsString;
+        private static readonly string INFOBAR_ERROR_FILENOTFOUND_MESSAGE = _resourceMap.GetValue("InfoBar_Error_FileNotFound_Message").ValueAsString;
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
             _cts = new();
@@ -100,20 +123,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                             await UpdateFileAsync(tagFiltersFileId, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
                         }
                         TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-                        TagFilterSyncResultInfoBar.Title = "Upload completed";
-                        TagFilterSyncResultInfoBar.Message = "Uploading tag filters have completed successfully.";
+                        TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
+                        TagFilterSyncResultInfoBar.Message = INFOBAR_UPLOAD_SUCCESS_MESSAGE;
                     } catch (TaskCanceledException) {
                         TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-                        TagFilterSyncResultInfoBar.Title = "Upload canceled";
-                        TagFilterSyncResultInfoBar.Message = "Uploading tag filters have been canceled.";
+                        TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
+                        TagFilterSyncResultInfoBar.Message = INFOBAR_UPLOAD_CANCELED_MESSAGE;
                     } catch (Exception e) {
                         TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                        TagFilterSyncResultInfoBar.Title = "Error";
+                        TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
                         if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                            TagFilterSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
-                                + "\nPlease sign out, sign in again and allow access to Google Drive";
+                            TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
                         } else {
-                            TagFilterSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                            TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
                         }
                     } finally {
                         TagFilterSyncResultInfoBar.IsOpen = true;
@@ -128,20 +150,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                             await UpdateFileAsync(bookmarksFileId, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
                         }
                         BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-                        BookmarkSyncResultInfoBar.Title = "Upload completed";
-                        BookmarkSyncResultInfoBar.Message = "Uploading bookmarks have completed successfully.";
+                        BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
+                        BookmarkSyncResultInfoBar.Message = INFOBAR_UPLOAD_SUCCESS_MESSAGE;
                     } catch (TaskCanceledException) {
                         BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-                        BookmarkSyncResultInfoBar.Title = "Upload canceled";
-                        BookmarkSyncResultInfoBar.Message = "Uploading bookmarks have been canceled.";
+                        BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
+                        BookmarkSyncResultInfoBar.Message = INFOBAR_UPLOAD_CANCELED_MESSAGE;
                     } catch (Exception e) {
                         BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                        BookmarkSyncResultInfoBar.Title = "Error";
+                        BookmarkSyncResultInfoBar.Title = TEXT_ERROR;
                         if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                            BookmarkSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
-                                + "\nPlease sign out, sign in again and allow access to Google Drive";
+                            BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
                         } else {
-                            BookmarkSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                            BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
                         }
                     } finally {
                         BookmarkSyncResultInfoBar.IsOpen = true;
@@ -155,8 +176,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                     // file is not uploaded yet
                     if (tagFiltersFileId == null) {
                         TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                        TagFilterSyncResultInfoBar.Title = "File not found";
-                        TagFilterSyncResultInfoBar.Message = "Tag filters have not been uploaded yet.";
+                        TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
+                        TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_FILENOTFOUND_MESSAGE;
                     }
                     // file exists
                     else {
@@ -197,20 +218,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                             MainWindow.SearchPage.WriteTagFilterDict();
 
                             TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-                            TagFilterSyncResultInfoBar.Title = "Fetch completed";
-                            TagFilterSyncResultInfoBar.Message = "Fetching tag filters have completed successfully.";
+                            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
+                            TagFilterSyncResultInfoBar.Message = INFOBAR_FETCH_SUCCESS_MESSAGE;
                         } catch (TaskCanceledException) {
                             TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-                            TagFilterSyncResultInfoBar.Title = "Fetch canceled";
-                            TagFilterSyncResultInfoBar.Message = "Fetching tag filters have been canceled.";
+                            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
+                            TagFilterSyncResultInfoBar.Message = INFOBAR_FETCH_CANCELED_MESSAGE;
                         } catch (Exception e) {
                             TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                            TagFilterSyncResultInfoBar.Title = "Error";
+                            TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
                             if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                                TagFilterSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
-                                    + "\nPlease sign out, sign in again and allow access to Google Drive";
+                                TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
                             } else {
-                                TagFilterSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                                TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
                             }
                         }
                     }
@@ -221,8 +241,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                     // file is not uploaded yet
                     if (tagFiltersFileId == null) {
                         BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                        BookmarkSyncResultInfoBar.Title = "File not found";
-                        BookmarkSyncResultInfoBar.Message = "Bookmarks have not been uploaded yet.";
+                        BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
+                        BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_FILENOTFOUND_MESSAGE;
                     }
                     // file exists
                     else {
@@ -251,20 +271,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                             }
 
                             BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-                            BookmarkSyncResultInfoBar.Title = "Fetch completed";
-                            BookmarkSyncResultInfoBar.Message = "Fetching bookmarks have completed successfully.";
+                            BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
+                            BookmarkSyncResultInfoBar.Message = INFOBAR_FETCH_SUCCESS_MESSAGE;
                         } catch (TaskCanceledException) {
                             TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-                            TagFilterSyncResultInfoBar.Title = "Fetch canceled";
-                            TagFilterSyncResultInfoBar.Message = "Fetching bookmarks have been canceled.";
+                            TagFilterSyncResultInfoBar.Title = TEXT_BOOKMARKS;
+                            TagFilterSyncResultInfoBar.Message = INFOBAR_FETCH_CANCELED_MESSAGE;
                         } catch (Exception e) {
                             BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                            BookmarkSyncResultInfoBar.Title = "Error";
+                            BookmarkSyncResultInfoBar.Title = TEXT_ERROR;
                             if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                                BookmarkSyncResultInfoBar.Message = "This app is not authorized to access Google Drive."
-                                    + "\nPlease sign out, sign in again and allow access to Google Drive";
+                                BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
                             } else {
-                                BookmarkSyncResultInfoBar.Message = "An unknown error has occurred. Please try again after a few seconds.";
+                                BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
                             }
                         }
                     }
@@ -349,6 +368,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             BookmarkOptionCheckBox.IsChecked = false;
             TogglePrimaryButton();
             Border0.Visibility = Visibility.Visible;
+            Border1.Visibility = Visibility.Collapsed;
             TagFilterOptionCheckBox.Visibility = Visibility.Visible;
             BookmarkOptionCheckBox.Visibility = Visibility.Visible;
             switch (radioButtons.SelectedIndex) {
@@ -364,6 +384,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                     UploadWarningInfoBar.IsOpen = false;
                     FetchTagFilterOptionStackPanel.Visibility = (bool)TagFilterOptionCheckBox.IsChecked ? Visibility.Visible : Visibility.Collapsed;
                     FetchBookmarkOptionStackPanel.Visibility = (bool)BookmarkOptionCheckBox.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+                    Border1.Visibility = Visibility.Visible;
                     break;
                 }
             }

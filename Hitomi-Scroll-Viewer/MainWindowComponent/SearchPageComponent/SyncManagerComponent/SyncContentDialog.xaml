@@ -15,63 +15,67 @@
     Closing="ContentDialog_Closing"
     >
     <ContentDialog.Title>
-        <TextBlock TextWrapping="WrapWholeWords">Select sync options</TextBlock>
+        <TextBlock x:Uid="/SyncContentDialog/TitleTextBlock" TextWrapping="WrapWholeWords"/>
     </ContentDialog.Title>
     <StackPanel Spacing="8" MinWidth="600">
         <InfoBar x:Name="UploadWarningInfoBar"
+                 x:Uid="/SyncContentDialog/UploadWarningInfoBar"
                  IsOpen="False"
                  Severity="Warning"
-                 IsClosable="False"
-                 Title="Warning"
-                 Message="Uploading will overwrite the currently synced Tag Filters / Bookmarks in the cloud."/>
-        <RadioButtons x:Name="SyncMethodRadioButtons"
+                 IsClosable="False"/>
+        <RadioButtons x:Name="SyncDirectionRadioButtons"
                       MaxColumns="2"
-                      SelectionChanged="SyncMethodRadioButtons_SelectionChanged">
-            <x:String>Upload</x:String>
-            <x:String>Fetch</x:String>
+                      SelectionChanged="SyncDirectionRadioButtons_SelectionChanged">
+            <RadioButton x:Uid="/SyncContentDialog/SyncDirectionRadioButton1"/>
+            <RadioButton x:Uid="/SyncContentDialog/SyncDirectionRadioButton2"/>
         </RadioButtons>
         <Border x:Name="Border0"
-                BorderThickness="1"
+                BorderThickness="2"
                 BorderBrush="{StaticResource DividerStrokeColorDefaultBrush}"
                 Visibility="Collapsed"/>
         <CheckBox x:Name="TagFilterOptionCheckBox"
                   Checked="TagFilterOptionCheckBox_Checked"
                   Unchecked="TagFilterOptionCheckBox_Unchecked"
-                  Visibility="Collapsed">Tag filters</CheckBox>
+                  Visibility="Collapsed"/>
         <StackPanel x:Name="FetchTagFilterOptionStackPanel"
-                    Visibility="Collapsed">
+                    Visibility="Collapsed"
+                    Spacing="16">
             <StackPanel>
-                <TextBlock Style="{StaticResource BaseTextBlockStyle}">Select how to fetch the tag filters</TextBlock>
+                <TextBlock x:Uid="/SyncContentDialog/FetchTagFilterOption1TextBlock"
+                           Style="{StaticResource BaseTextBlockStyle}"/>
                 <RadioButtons x:Name="FetchTagFilterOption1"
                               MaxColumns="2"
                               SelectionChanged="FetchTagFilterOption1_SelectionChanged">
-                    <RadioButton>Overwrite</RadioButton>
-                    <RadioButton>Append</RadioButton>
+                    <RadioButton x:Uid="/SyncContentDialog/FetchTagFilterOption1RadioButton1"/>
+                    <RadioButton x:Uid="/SyncContentDialog/FetchTagFilterOption1RadioButton2"/>
                 </RadioButtons>
             </StackPanel>
             <StackPanel Visibility="Collapsed">
-                <TextBlock Style="{StaticResource BaseTextBlockStyle}">Select how to handle tag filters with duplicate names:</TextBlock>
+                <TextBlock x:Uid="/SyncContentDialog/FetchTagFilterOption2TextBlock"
+                           Style="{StaticResource BaseTextBlockStyle}"/>
                 <RadioButtons x:Name="FetchTagFilterOption2"
                               MaxColumns="2"
                               SelectionChanged="FetchTagFilterOption2_SelectionChanged">
-                    <RadioButton>Replace them with tag filters from cloud</RadioButton>
-                    <RadioButton>Keep local tag filters</RadioButton>
+                    <RadioButton x:Uid="/SyncContentDialog/FetchTagFilterOption2RadioButton1"/>
+                    <RadioButton x:Uid="/SyncContentDialog/FetchTagFilterOption2RadioButton2"/>
                 </RadioButtons>
             </StackPanel>
         </StackPanel>
+        <Border x:Name="Border1"
+                BorderThickness="1"
+                BorderBrush="{StaticResource DividerStrokeColorDefaultBrush}"
+                Visibility="Collapsed"/>
         <CheckBox x:Name="BookmarkOptionCheckBox"
                   Checked="BookmarkOptionCheckBox_Checked"
                   Unchecked="BookmarkOptionCheckBox_Unchecked"
-                  Visibility="Collapsed">Bookmarks</CheckBox>
+                  Visibility="Collapsed"/>
         <StackPanel x:Name="FetchBookmarkOptionStackPanel"
                     Visibility="Collapsed">
-            <TextBlock Style="{StaticResource BaseTextBlockStyle}">Start downloading all bookmarks after fetching?</TextBlock>
+            <TextBlock x:Uid="/SyncContentDialog/FetchBookmarkOption1TextBlock"
+                       Style="{StaticResource BaseTextBlockStyle}"/>
             <RadioButtons x:Name="FetchBookmarkOption1"
                           MaxColumns="2"
-                          SelectionChanged="FetchBookmarkOption1_SelectionChanged">
-                <RadioButton>Yes</RadioButton>
-                <RadioButton>No</RadioButton>
-            </RadioButtons>
+                          SelectionChanged="FetchBookmarkOption1_SelectionChanged"/>
         </StackPanel>
         <ProgressBar x:Name="SyncProgressBar"
                      IsIndeterminate="True"
