@@ -141,6 +141,9 @@
   <data name="ExampleTagFilterName_4" xml:space="preserve">
     <value>예시: Non-H 포함</value>
   </data>
+  <data name="Text_Error" xml:space="preserve">
+    <value>오류</value>
+  </data>
   <data name="Text_No" xml:space="preserve">
     <value>아니오</value>
   </data>
