@@ -145,10 +145,16 @@
   <data name="ExampleTagFilterName_4" xml:space="preserve">
     <value>Example: Include Non-H</value>
   </data>
+  <data name="Text_Bookmarks" xml:space="preserve">
+    <value>Bookmarks</value>
+  </data>
   <data name="Text_Error" xml:space="preserve">
     <value>Error</value>
   </data>
   <data name="Text_No" xml:space="preserve">
     <value>No</value>
+  </data>
+  <data name="Text_TagFilters" xml:space="preserve">
+    <value>Tag filters</value>
   </data>
 </root>
