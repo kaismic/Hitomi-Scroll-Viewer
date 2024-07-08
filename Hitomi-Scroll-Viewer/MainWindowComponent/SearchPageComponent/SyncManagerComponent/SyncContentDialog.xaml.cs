@@ -29,7 +29,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             // this code is needed because of this bug https://github.com/microsoft/microsoft-ui-xaml/issues/424
             Resources["ContentDialogMaxWidth"] = double.MaxValue;
             PrimaryButtonText = "Sync";
-            CloseButtonText = DIALOG_BUTTON_TEXT_CLOSE;
+            CloseButtonText = TEXT_CLOSE;
         }
 
         private void ContentDialog_CloseButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
@@ -56,12 +56,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             EnableContentControls(Content as StackPanel, !start);
             if (start) {
                 SyncProgressBar.Visibility = Visibility.Visible;
-                CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL;
+                CloseButtonText = TEXT_CANCEL;
                 TagFilterSyncResultInfoBar.IsOpen = false;
                 BookmarkSyncResultInfoBar.IsOpen = false;
             } else {
                 SyncProgressBar.Visibility = Visibility.Collapsed;
-                CloseButtonText = DIALOG_BUTTON_TEXT_CLOSE;
+                CloseButtonText = TEXT_CLOSE;
             }
         }
 

@@ -119,18 +119,18 @@
   </resheader>
   <data name="AppDisplayName" xml:space="preserve">
     <value>Hitomi Scroll Viewer</value>
-    <comment>Do not translate nor add this string resource for other languages. It will cause an error in SyncManager.</comment>
+    <comment>WARNING: Do not translate nor add this string resource for other languages. It will cause an error in SyncManager.</comment>
   </data>
-  <data name="DialogButtonText_Cancel" xml:space="preserve">
+  <data name="Text_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="DialogButtonText_Close" xml:space="preserve">
+  <data name="Text_Close" xml:space="preserve">
     <value>Close</value>
   </data>
-  <data name="DialogButtonText_Exit" xml:space="preserve">
+  <data name="Text_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>
-  <data name="DialogButtonText_Yes" xml:space="preserve">
+  <data name="Text_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
   <data name="ExampleTagFilterName_1" xml:space="preserve">
@@ -144,5 +144,8 @@
   </data>
   <data name="ExampleTagFilterName_4" xml:space="preserve">
     <value>Example: Include Non-H</value>
+  </data>
+  <data name="Text_No" xml:space="preserve">
+    <value>No</value>
   </data>
 </root>

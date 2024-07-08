@@ -33,8 +33,8 @@ namespace Hitomi_Scroll_Viewer {
                 if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
                     ContentDialog dialog = new() {
                         Title = EXIT_CONFIRM_TEXT,
-                        PrimaryButtonText = DIALOG_BUTTON_TEXT_EXIT,
-                        CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
+                        PrimaryButtonText = TEXT_EXIT,
+                        CloseButtonText = TEXT_CANCEL,
                         XamlRoot = Content.XamlRoot
                     };
                     ContentDialogResult cdr = await dialog.ShowAsync();

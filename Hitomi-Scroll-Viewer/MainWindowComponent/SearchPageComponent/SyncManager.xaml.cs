@@ -99,7 +99,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                         // ContentDialog is needed because it is currently not possible to detect when the user has closed the browser
                         // ref https://github.com/googleapis/google-api-dotnet-client/issues/508#issuecomment-290700919
                         ContentDialog manualCancelDialog = new() {
-                            CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
+                            CloseButtonText = TEXT_CANCEL,
                             Title = new TextBlock() {
                                 TextWrapping = TextWrapping.WrapWholeWords,
                                 Text = NOTIFICATION_SIGN_IN_TITLE
