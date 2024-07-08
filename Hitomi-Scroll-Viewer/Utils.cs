@@ -1,14 +1,20 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Text.Json;
 
 namespace Hitomi_Scroll_Viewer {
     public static class Utils {
-        public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "HSV");
+        public static readonly string ROOT_DIR_NAME = "HSV";
+        public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ROOT_DIR_NAME);
         public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
         public static readonly string SETTINGS_PATH = Path.Combine(ROOT_DIR, "settings.json");
         public static readonly string LOGS_PATH = Path.Combine(ROOT_DIR, "logs.txt");
+
+        public static readonly string BOOKMARKS_FILE_NAME = "bookmarks.json";
+        public static readonly string BOOKMARKS_FILE_PATH = Path.Combine(ROOT_DIR, BOOKMARKS_FILE_NAME);
+        public static readonly string TAG_FILTERS_FILE_NAME = "tag_filters.json";
+        public static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, TAG_FILTERS_FILE_NAME);
+
         /*
          * apparently I can't just use Environment.NewLine as separator
          * because of this TextBox bug which somehow converts \r\n to \r and it's still not fixed...
@@ -34,28 +40,6 @@ namespace Hitomi_Scroll_Viewer {
 
         public static void WriteObjectToJson(string path, object obj) {
             File.WriteAllText(path, JsonSerializer.Serialize(obj, DEFAULT_SERIALIZER_OPTIONS));
-        }
-
-        // ref https://stackoverflow.com/a/46666370
-        public static bool TryBindListenerOnFreePort(out HttpListener httpListener, out int port) {
-            // IANA suggested range for dynamic or private ports
-            const int MinPort = 49215;
-            const int MaxPort = 65535;
-
-            for (port = MinPort; port < MaxPort; port++) {
-                httpListener = new HttpListener();
-                httpListener.Prefixes.Add($"http://localhost:{port}/");
-                try {
-                    httpListener.Start();
-                    return true;
-                } catch {
-                    // nothing to do here -- the listener disposes itself when Start throws
-                }
-            }
-
-            port = 0;
-            httpListener = null;
-            return false;
         }
     }
 }

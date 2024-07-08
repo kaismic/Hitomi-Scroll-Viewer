@@ -77,7 +77,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 _bmItem.IsDownloading = false;
                 _bmItem?.EnableRemoveBtn(true);
             }
-            DownloadingGalleries.TryRemove(_id, out _);
+            DownloadingGalleryIds.TryRemove(_id, out _);
             MainWindow.SearchPage.DownloadingItems.Remove(this);
         }
 
@@ -207,14 +207,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
             // sometimes gallery id is different to the id in ltn.hitomi.la/galleries/{id}.js but points to the same gallery
             if (_id != _gallery.id) {
-                DownloadingGalleries.TryAdd(_gallery.id, 0);
-                DownloadingGalleries.TryRemove(_id, out _);
+                DownloadingGalleryIds.TryAdd(_gallery.id, 0);
+                DownloadingGalleryIds.TryRemove(_id, out _);
                 _id = _gallery.id;
                 Description.Text += $"{_gallery.id} - {_gallery.title}";
             }
 
             if (_bmItem == null) {
-                _bmItem = MainWindow.SearchPage.CreateAndAddBookmark(_gallery);
+                _bmItem = MainWindow.SearchPage.AddBookmark(_gallery);
             }
 
             DownloadStatusTextBlock.Text = STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER;

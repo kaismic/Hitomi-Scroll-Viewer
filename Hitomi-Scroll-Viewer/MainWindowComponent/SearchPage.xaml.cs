@@ -22,22 +22,26 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
     public sealed partial class SearchPage : Page {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SearchPage");
 
-        private static readonly string BOOKMARKS_FILE_PATH = Path.Combine(ROOT_DIR, "bookmarks.json");
-        private static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, "tag_filters.json");
-
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
-        private readonly Dictionary<string, TagFilter> _tagFilterDict;
-        private readonly ObservableCollection<string> _tagFilterDictKeys;
-        private readonly ObservableCollection<SearchFilterItem> _searchFilterItems;
+        private Dictionary<string, TagFilter> _tagFilterDict;
+        internal Dictionary<string, TagFilter> TagFilterDict {
+            get => _tagFilterDict;
+            set {
+                _tagFilterDict = value;
+                _tagFilterDictKeys = new(value.Keys);
+                _searchFilterItems = new(value.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
+            }
+        }
+        private ObservableCollection<string> _tagFilterDictKeys;
+        private ObservableCollection<SearchFilterItem> _searchFilterItems;
 
         private static readonly int MAX_BOOKMARK_PER_PAGE = 3;
-
-        public static readonly List<BookmarkItem> BookmarkItems = [];
+        internal static readonly List<BookmarkItem> BookmarkItems = [];
         private static readonly object _bmLock = new();
 
-        public enum BookmarkSwapDirection {
+        internal enum BookmarkSwapDirection {
             Up, Down
         }
 
@@ -47,15 +51,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
         private readonly ObservableCollection<SearchLinkItem> _searchLinkItems = [];
 
-        public readonly ObservableCollection<DownloadItem> DownloadingItems = [];
-        public static readonly ConcurrentDictionary<string, byte> DownloadingGalleries = [];
+        internal readonly ObservableCollection<DownloadItem> DownloadingItems = [];
+        internal static readonly ConcurrentDictionary<string, byte> DownloadingGalleryIds = [];
 
         private string _currTagFilterName;
 
         private readonly ContentDialog _confirmDialog = new() {
-            IsPrimaryButtonEnabled = true,
-            PrimaryButtonText = DIALOG_BUTTON_TEXT_YES,
-            CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
+            PrimaryButtonText = TEXT_YES,
+            CloseButtonText = TEXT_CANCEL,
             Title = new TextBlock() {
                 TextWrapping = TextWrapping.WrapWholeWords
             },
@@ -69,34 +72,35 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             InitLayout();
 
             if (File.Exists(TAG_FILTERS_FILE_PATH)) {
-                _tagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
+                TagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
                     File.ReadAllText(TAG_FILTERS_FILE_PATH),
                     typeof(Dictionary<string, TagFilter>),
                     DEFAULT_SERIALIZER_OPTIONS
                 );
             } else {
-                _tagFilterDict = new() {
+                TagFilterDict = new() {
                     { EXAMPLE_TAG_FILTER_NAME_1, new() },
                     { EXAMPLE_TAG_FILTER_NAME_2, new() },
                     { EXAMPLE_TAG_FILTER_NAME_3, new() },
+                    { EXAMPLE_TAG_FILTER_NAME_4, new() },
                 };
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["language"].Add("english");
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["tag"].Add("full_color");
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].excludeTags["type"].Add("gamecg");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["language"].Add("english");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["tag"].Add("full_color");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].excludeTags["type"].Add("gamecg");
 
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("doujinshi");
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("manga");
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["series"].Add("naruto");
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["language"].Add("korean");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("doujinshi");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("manga");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["series"].Add("naruto");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["language"].Add("korean");
 
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["series"].Add("blue_archive");
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["female"].Add("sole_female");
-                _tagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].excludeTags["language"].Add("chinese");
-                WriteTagFilters();
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["series"].Add("blue_archive");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["female"].Add("sole_female");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].excludeTags["language"].Add("chinese");
+
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_4].excludeTags["tag"].Add("non-h_imageset");
+
+                WriteTagFilterDict();
             }
-
-            _tagFilterDictKeys = new(_tagFilterDict.Keys);
-            _searchFilterItems = new(_tagFilterDict.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
 
             // create bookmarked galleries' info file if it doesn't exist
             if (!File.Exists(BOOKMARKS_FILE_PATH)) {
@@ -116,13 +120,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             if (pages > 0) {
                 BookmarkPageSelector.SelectedIndex = 0;
             }
-            BookmarkPageSelector.SelectionChanged += (_, _) => UpdateBookmark();
+            BookmarkPageSelector.SelectionChanged += (_, _) => UpdateBookmarkLayout();
 
             // fill bookmarks
             foreach (Gallery gallery in galleries) {
                 BookmarkItems.Add(new(gallery, false));
             }
-            UpdateBookmark();
+            UpdateBookmarkLayout();
         }
 
         private void InitLayout() {
@@ -174,7 +178,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             Loaded += SetConfirmDialogXamlRoot;
         }
 
-        private async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
+        public async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
             (_confirmDialog.Title as TextBlock).Text = title;
             (_confirmDialog.Content as TextBlock).Text = content;
             ContentDialogResult result = await _confirmDialog.ShowAsync();
@@ -185,14 +189,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Any(item => (bool)item.IsChecked);
         }
 
-        private void AddToTagsDict(string tagName, TagFilter tagFilter) {
-            _tagFilterDict.Add(tagName, tagFilter);
+        private void AddTagFilterDict(string tagName, TagFilter tagFilter) {
+            TagFilterDict.Add(tagName, tagFilter);
             _tagFilterDictKeys.Add(tagName);
             _searchFilterItems.Add(new(tagName, TagNameCheckBox_StateChanged));
         }
         
-        private void RemoveFromTagsDict(string tagName) {
-            _tagFilterDict.Remove(tagName);
+        private void RemoveTagFilterDict(string tagName) {
+            TagFilterDict.Remove(tagName);
             _tagFilterDictKeys.Remove(tagName);
             _searchFilterItems.Remove(_searchFilterItems.First(item => item.TagName == tagName));
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Count != 0;
@@ -213,7 +217,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE, NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT);
                 return;
             }
-            if (_tagFilterDict.ContainsKey(newTagFilterName)) {
+            if (TagFilterDict.ContainsKey(newTagFilterName)) {
                 MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE, NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT);
                 return;
             }
@@ -227,9 +231,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 return;
             }
             TagNameTextBox.Text = "";
-            AddToTagsDict(newTagFilterName, GetCurrTagFilter());
+            AddTagFilterDict(newTagFilterName, GetCurrTagFilter());
             FilterTagComboBox.SelectedItem = newTagFilterName;
-            WriteTagFilters();
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_CREATE_2_TITLE, newTagFilterName), "");
         }
 
@@ -244,7 +248,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE, NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT);
                 return;
             }
-            if (_tagFilterDict.ContainsKey(newTagFilterName)) {
+            if (TagFilterDict.ContainsKey(newTagFilterName)) {
                 MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE, NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT);
                 return;
             }
@@ -253,10 +257,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 return;
             }
             TagNameTextBox.Text = "";
-            AddToTagsDict(newTagFilterName, _tagFilterDict[oldTagFilterName]);
+            AddTagFilterDict(newTagFilterName, TagFilterDict[oldTagFilterName]);
             FilterTagComboBox.SelectedItem = newTagFilterName;
-            RemoveFromTagsDict(oldTagFilterName);
-            WriteTagFilters();
+            RemoveTagFilterDict(oldTagFilterName);
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_RENAME_2_TITLE, oldTagFilterName, newTagFilterName), "");
         }
 
@@ -278,8 +282,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            _tagFilterDict[_currTagFilterName] = GetCurrTagFilter();
-            WriteTagFilters();
+            TagFilterDict[_currTagFilterName] = GetCurrTagFilter();
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_SAVE_2_TITLE, _currTagFilterName), "");
         }
 
@@ -293,8 +297,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            RemoveFromTagsDict(tagFilterName);
-            WriteTagFilters();
+            RemoveTagFilterDict(tagFilterName);
+            WriteTagFilterDict();
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_DELETE_2_TITLE, tagFilterName), "");
         }
 
@@ -303,8 +307,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             ExcludeTagContainer.Clear();
         }
 
-        public void WriteTagFilters() {
-            WriteObjectToJson(TAG_FILTERS_FILE_PATH, _tagFilterDict);
+        public void WriteTagFilterDict() {
+            WriteObjectToJson(TAG_FILTERS_FILE_PATH, TagFilterDict);
         }
 
         private void FilterTagComboBox_SelectionChanged(object _0, SelectionChangedEventArgs _1) {
@@ -313,9 +317,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 ClearTextBoxesBtn_Clicked(null, null);
                 return;
             }
-            TagFilter tag = _tagFilterDict[_currTagFilterName];
-            IncludeTagContainer.InsertTags(tag.includeTags);
-            ExcludeTagContainer.InsertTags(tag.excludeTags);
+            TagFilter tagFilter = TagFilterDict[_currTagFilterName];
+            IncludeTagContainer.InsertTags(tagFilter.includeTags);
+            ExcludeTagContainer.InsertTags(tagFilter.excludeTags);
         }
 
         private TagFilter GetCurrTagFilter() {
@@ -332,7 +336,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             TagFilter combinedTagFilter = selectedSearchFilterItems.Aggregate(
                 new TagFilter(),
                 (result, item) => {
-                    TagFilter currTagFilter = _tagFilterDict[item.TagName];
+                    TagFilter currTagFilter = TagFilterDict[item.TagName];
                     foreach (string category in CATEGORIES) {
                         result.includeTags[category] = result.includeTags[category].Union(currTagFilter.includeTags[category]).ToHashSet();
                         result.excludeTags[category] = result.excludeTags[category].Union(currTagFilter.excludeTags[category]).ToHashSet();
@@ -417,18 +421,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             }
             GalleryIDTextBox.Text = "";
             
+            // only download if the gallery is not already downloading
             foreach (string extractedId in extractedIds) {
-                // skip if it is already downloading
-                if (DownloadingGalleries.TryGetValue(extractedId, out _)) {
-                    continue;
-                }
-                // Download
-                DownloadingGalleries.TryAdd(extractedId, 0);
-                DownloadingItems.Add(new(extractedId));
+                TryDownload(extractedId);
             }
         }
 
-        public BookmarkItem CreateAndAddBookmark(Gallery gallery) {
+        internal void TryDownload(string id) {
+            if (DownloadingGalleryIds.TryAdd(id, 0)) {
+                DownloadingItems.Add(new(id));
+            }
+        }
+
+        public BookmarkItem AddBookmark(Gallery gallery) {
             lock (_bmLock) {
                 // return the BookmarkItem if it is already bookmarked
                 var bmItem = GetBookmarkItem(gallery.id);
@@ -445,13 +450,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 if (BookmarkItems.Count == 1) {
                     BookmarkPageSelector.SelectedIndex = 0;
                 } else {
-                    UpdateBookmark();
+                    UpdateBookmarkLayout();
                 }
                 return bmItem;
             }
         }
 
-        public void DeleteBookmark(BookmarkItem bmItem) {
+        public void RemoveBookmark(BookmarkItem bmItem) {
             lock (_bmLock) {
                 string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
                 if (Directory.Exists(path)) Directory.Delete(path, true);
@@ -471,14 +476,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
                 // don't call FillBookmarkGrid again if page was changed because BookmarkPageSelector.SelectionChanged event would have called FillBookmarkGrid already
                 if (!pageChanged) {
-                    UpdateBookmark();
+                    UpdateBookmarkLayout();
                 }
             }
         }
 
-        public void SwapBookmarks(BookmarkItem bmItem, BookmarkSwapDirection dir) {
+        internal void SwapBookmarks(BookmarkItem bmItem, BookmarkSwapDirection dir) {
             lock (_bmLock) {
-                int idx = GetBookmarkIndex(bmItem.gallery.id);
+                int idx = GetBookmarkItemIndex(bmItem.gallery.id);
                 switch (dir) {
                     case BookmarkSwapDirection.Up: {
                         if (idx == 0) {
@@ -496,11 +501,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                     }
                 }
                 WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
-                UpdateBookmark();
+                UpdateBookmarkLayout();
             }
         }
 
-        private void UpdateBookmark() {
+        private void UpdateBookmarkLayout() {
             BookmarkPanel.Children.Clear();
             int page = BookmarkPageSelector.SelectedIndex;
             if (page < 0) {
@@ -528,7 +533,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         /**
          * <returns>The bookmark index of the bookmarked gallery. The given id must be from a bookmarked gallery.</returns>
          */
-        public static int GetBookmarkIndex(string id) {
+        public static int GetBookmarkItemIndex(string id) {
             for (int i = 0; i < BookmarkItems.Count; i++) {
                 if (BookmarkItems[i].gallery.id == id) {
                     return i;

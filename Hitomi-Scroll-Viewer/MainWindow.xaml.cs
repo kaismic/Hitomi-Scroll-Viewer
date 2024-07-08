@@ -19,7 +19,7 @@ namespace Hitomi_Scroll_Viewer {
         public MainWindow() {
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             InitializeComponent();
-            Title = MainResourceMap.GetSubtree("Resources").GetValue("AppDisplayName").ValueAsString;
+            Title = APP_DISPLAY_NAME;
             // create directories if they don't exist
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
@@ -30,11 +30,11 @@ namespace Hitomi_Scroll_Viewer {
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
                 e.Cancel = true;
-                if (!SearchPage.DownloadingGalleries.IsEmpty) {
+                if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
                     ContentDialog dialog = new() {
                         Title = EXIT_CONFIRM_TEXT,
-                        PrimaryButtonText = DIALOG_BUTTON_TEXT_EXIT,
-                        CloseButtonText = DIALOG_BUTTON_TEXT_CANCEL,
+                        PrimaryButtonText = TEXT_EXIT,
+                        CloseButtonText = TEXT_CANCEL,
                         XamlRoot = Content.XamlRoot
                     };
                     ContentDialogResult cdr = await dialog.ShowAsync();
@@ -45,7 +45,7 @@ namespace Hitomi_Scroll_Viewer {
                         }
                     }
                 }
-                SearchPage.WriteTagFilters();
+                SearchPage.WriteTagFilterDict();
                 ImageWatchingPage.ToggleAutoScroll(false);
                 ImageWatchingPage.SaveSettings();
                 Close();

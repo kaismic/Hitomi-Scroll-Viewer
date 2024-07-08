@@ -117,16 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AppDisplayName" xml:space="preserve">
-    <value>히토미 스크롤 뷰어</value>
-  </data>
-  <data name="DialogButtonText_Cancel" xml:space="preserve">
+  <data name="Text_Cancel" xml:space="preserve">
     <value>취소</value>
   </data>
-  <data name="DialogButtonText_Exit" xml:space="preserve">
+  <data name="Text_Close" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="Text_Exit" xml:space="preserve">
     <value>종료</value>
   </data>
-  <data name="DialogButtonText_Yes" xml:space="preserve">
+  <data name="Text_Yes" xml:space="preserve">
     <value>예</value>
   </data>
   <data name="ExampleTagFilterName_1" xml:space="preserve">
@@ -137,5 +137,20 @@
   </data>
   <data name="ExampleTagFilterName_3" xml:space="preserve">
     <value>예시: 블루 아카이브, 1인 여성 포함 그리고 중국어 제외</value>
+  </data>
+  <data name="ExampleTagFilterName_4" xml:space="preserve">
+    <value>예시: Non-H 포함</value>
+  </data>
+  <data name="Text_Bookmarks" xml:space="preserve">
+    <value>북마크</value>
+  </data>
+  <data name="Text_Error" xml:space="preserve">
+    <value>오류</value>
+  </data>
+  <data name="Text_No" xml:space="preserve">
+    <value>아니오</value>
+  </data>
+  <data name="Text_TagFilters" xml:space="preserve">
+    <value>태그 필터</value>
   </data>
 </root>

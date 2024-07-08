@@ -117,44 +117,61 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AppDisplayName" xml:space="preserve">
-    <value>Hitomi Scroll Viewer</value>
-    <comment>WARNING: Do not translate nor add this string resource for other languages. It will cause an error in SyncManager.</comment>
+  <data name="FetchBookmarkOption1TextBlock.Text" xml:space="preserve">
+    <value>Start downloading the galleries after fetching?</value>
   </data>
-  <data name="Text_Cancel" xml:space="preserve">
-    <value>Cancel</value>
+  <data name="FetchTagFilterOption1RadioButton1.Content" xml:space="preserve">
+    <value>Overwrite</value>
   </data>
-  <data name="Text_Close" xml:space="preserve">
-    <value>Close</value>
+  <data name="FetchTagFilterOption1RadioButton2.Content" xml:space="preserve">
+    <value>Append</value>
   </data>
-  <data name="Text_Exit" xml:space="preserve">
-    <value>Exit</value>
+  <data name="FetchTagFilterOption1TextBlock.Text" xml:space="preserve">
+    <value>Select how to sync tag filters after fetching them</value>
   </data>
-  <data name="Text_Yes" xml:space="preserve">
-    <value>Yes</value>
+  <data name="FetchTagFilterOption2RadioButton1.Content" xml:space="preserve">
+    <value>Replace locally stored tag filters with tag filters fetched from cloud</value>
   </data>
-  <data name="ExampleTagFilterName_1" xml:space="preserve">
-    <value>Example: Include English, Full Color and Exclude Game CG</value>
+  <data name="FetchTagFilterOption2RadioButton2.Content" xml:space="preserve">
+    <value>Keep locally stored tag filters</value>
   </data>
-  <data name="ExampleTagFilterName_2" xml:space="preserve">
-    <value>Example: Include Doujinshi, Manga, Naruto, Korean</value>
+  <data name="FetchTagFilterOption2TextBlock.Text" xml:space="preserve">
+    <value>Select how to handle tag filters with duplicate names</value>
   </data>
-  <data name="ExampleTagFilterName_3" xml:space="preserve">
-    <value>Example: Include Blue Archive, Sole Female and Exclude Chinese</value>
+  <data name="InfoBar_Fetch_Canceled_Message" xml:space="preserve">
+    <value>File fetch has been canceled.</value>
   </data>
-  <data name="ExampleTagFilterName_4" xml:space="preserve">
-    <value>Example: Include Non-H</value>
+  <data name="InfoBar_Fetch_Success_Message" xml:space="preserve">
+    <value>File has been fetched successfully.</value>
   </data>
-  <data name="Text_Bookmarks" xml:space="preserve">
-    <value>Bookmarks</value>
+  <data name="InfoBar_FileNotFound_Error_Message" xml:space="preserve">
+    <value>File has not been uploaded yet.</value>
   </data>
-  <data name="Text_Error" xml:space="preserve">
-    <value>Error</value>
+  <data name="InfoBar_Unauthorized_Error_Message" xml:space="preserve">
+    <value>This app does not have access to Google Drive. Please sign in again to allow access to Google Drive.</value>
   </data>
-  <data name="Text_No" xml:space="preserve">
-    <value>No</value>
+  <data name="InfoBar_Unknown_Error_Message" xml:space="preserve">
+    <value>An unknown error has occurred. Please try again after a few seconds.</value>
   </data>
-  <data name="Text_TagFilters" xml:space="preserve">
-    <value>Tag filters</value>
+  <data name="InfoBar_Upload_Canceled_Message" xml:space="preserve">
+    <value>File upload has been canceled.</value>
+  </data>
+  <data name="InfoBar_Upload_Success_Message" xml:space="preserve">
+    <value>File has been uploaded successfully.</value>
+  </data>
+  <data name="SyncDirectionRadioButton1.Content" xml:space="preserve">
+    <value>Upload</value>
+  </data>
+  <data name="SyncDirectionRadioButton2.Content" xml:space="preserve">
+    <value>Fetch</value>
+  </data>
+  <data name="TitleTextBlock.Text" xml:space="preserve">
+    <value>Select Sync Options</value>
+  </data>
+  <data name="UploadWarningInfoBar.Message" xml:space="preserve">
+    <value>Uploading files will overwrite the currently synced tag Filters / bookmarks in the cloud.</value>
+  </data>
+  <data name="UploadWarningInfoBar.Title" xml:space="preserve">
+    <value>Warning</value>
   </data>
 </root>
