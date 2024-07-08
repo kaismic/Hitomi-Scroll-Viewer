@@ -32,6 +32,7 @@ namespace Hitomi_Scroll_Viewer {
                 e.Cancel = true;
                 if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
                     ContentDialog dialog = new() {
+                        DefaultButton = ContentDialogButton.Close,
                         Title = EXIT_CONFIRM_TEXT,
                         PrimaryButtonText = TEXT_EXIT,
                         CloseButtonText = TEXT_CANCEL,
