@@ -155,10 +155,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         }
 
         private async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
+            SyncBtn.IsEnabled = false;
             SyncContentDialog dialog = new(new(_initializer)) {
                 XamlRoot = XamlRoot,
             };
             await dialog.ShowAsync();
+            SyncBtn.IsEnabled = true;
         }
 
         private void ToggleSignInState(bool isSignedIn) {
