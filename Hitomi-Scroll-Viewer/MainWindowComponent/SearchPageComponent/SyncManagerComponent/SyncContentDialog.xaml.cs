@@ -90,7 +90,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             } catch (Exception) {}
 
             // Upload
-            if (SyncMethodRadioButtons.SelectedIndex == 0) {
+            if (SyncDirectionRadioButtons.SelectedIndex == 0) {
                 // Upload tag filters
                 if (TagFilterOptionCheckBox.IsChecked == true) {
                     try {
@@ -338,7 +338,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             args.Cancel = !_closeDialog;
         }
 
-        private void SyncMethodRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void SyncDirectionRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             RadioButtons radioButtons = sender as RadioButtons;
             if (radioButtons.SelectedIndex == -1) {
                 return;
@@ -371,26 +371,26 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
 
         private void TagFilterOptionCheckBox_Checked(object _0, RoutedEventArgs _1) {
             TogglePrimaryButton();
-            if (SyncMethodRadioButtons.SelectedIndex == 1) {
+            if (SyncDirectionRadioButtons.SelectedIndex == 1) {
                 FetchTagFilterOptionStackPanel.Visibility = Visibility.Visible;
             }
         }
         private void TagFilterOptionCheckBox_Unchecked(object _0, RoutedEventArgs _1) {
             TogglePrimaryButton();
-            if (SyncMethodRadioButtons.SelectedIndex == 1) {
+            if (SyncDirectionRadioButtons.SelectedIndex == 1) {
                 FetchTagFilterOptionStackPanel.Visibility = Visibility.Collapsed;
             }
         }
 
         private void BookmarkOptionCheckBox_Checked(object _0, RoutedEventArgs _1) {
             TogglePrimaryButton();
-            if (SyncMethodRadioButtons.SelectedIndex == 1) {
+            if (SyncDirectionRadioButtons.SelectedIndex == 1) {
                 FetchBookmarkOptionStackPanel.Visibility = Visibility.Visible;
             }
         }
         private void BookmarkOptionCheckBox_Unchecked(object _0, RoutedEventArgs _1) {
             TogglePrimaryButton();
-            if (SyncMethodRadioButtons.SelectedIndex == 1) {
+            if (SyncDirectionRadioButtons.SelectedIndex == 1) {
                 FetchBookmarkOptionStackPanel.Visibility = Visibility.Collapsed;
             }
         }
@@ -433,7 +433,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
 
         private void TogglePrimaryButton() {
             // Upload option selected
-            if (SyncMethodRadioButtons.SelectedIndex == 0) {
+            if (SyncDirectionRadioButtons.SelectedIndex == 0) {
                 IsPrimaryButtonEnabled = (bool)TagFilterOptionCheckBox.IsChecked || (bool)BookmarkOptionCheckBox.IsChecked;
             }
             // Fetch option selected
