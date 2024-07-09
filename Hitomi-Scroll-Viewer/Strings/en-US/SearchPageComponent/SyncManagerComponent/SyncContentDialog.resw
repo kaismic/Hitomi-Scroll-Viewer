@@ -138,20 +138,20 @@
   <data name="FetchTagFilterOption2TextBlock.Text" xml:space="preserve">
     <value>Select how to handle tag filters with duplicate names</value>
   </data>
+  <data name="InfoBar_Error_FileNotFound_Message" xml:space="preserve">
+    <value>File has not been uploaded yet.</value>
+  </data>
+  <data name="InfoBar_Error_Unauthorized_Message" xml:space="preserve">
+    <value>This app does not have access to Google Drive. Please sign in again to allow access to Google Drive.</value>
+  </data>
+  <data name="InfoBar_Error_Unknown_Message" xml:space="preserve">
+    <value>An unknown error has occurred. Please try again after a few seconds.</value>
+  </data>
   <data name="InfoBar_Fetch_Canceled_Message" xml:space="preserve">
     <value>File fetch has been canceled.</value>
   </data>
   <data name="InfoBar_Fetch_Success_Message" xml:space="preserve">
     <value>File has been fetched successfully.</value>
-  </data>
-  <data name="InfoBar_FileNotFound_Error_Message" xml:space="preserve">
-    <value>File has not been uploaded yet.</value>
-  </data>
-  <data name="InfoBar_Unauthorized_Error_Message" xml:space="preserve">
-    <value>This app does not have access to Google Drive. Please sign in again to allow access to Google Drive.</value>
-  </data>
-  <data name="InfoBar_Unknown_Error_Message" xml:space="preserve">
-    <value>An unknown error has occurred. Please try again after a few seconds.</value>
   </data>
   <data name="InfoBar_Upload_Canceled_Message" xml:space="preserve">
     <value>File upload has been canceled.</value>

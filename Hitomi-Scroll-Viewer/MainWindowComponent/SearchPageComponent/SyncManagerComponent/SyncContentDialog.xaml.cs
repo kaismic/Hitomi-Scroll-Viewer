@@ -85,7 +85,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
         private static readonly string INFOBAR_FETCH_CANCELED_MESSAGE = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
 
         private static readonly string INFOBAR_ERROR_UNAUTHORIZED_MESSAGE = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
-        private static readonly string INFOBAR_ERROR_UNKNOWN_MESSAGE = _resourceMap.GetValue("InfoBar_Unknown_Error_Message").ValueAsString;
+        private static readonly string INFOBAR_ERROR_UNKNOWN_MESSAGE = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
         private static readonly string INFOBAR_ERROR_FILENOTFOUND_MESSAGE = _resourceMap.GetValue("InfoBar_Error_FileNotFound_Message").ValueAsString;
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
