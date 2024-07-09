@@ -91,7 +91,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].excludeTags["type"].Add("gamecg");
 
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("doujinshi");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("manga");
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["series"].Add("naruto");
                 TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["language"].Add("korean");
 
