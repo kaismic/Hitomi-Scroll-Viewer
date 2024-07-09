@@ -39,6 +39,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
         private static readonly int MAX_BOOKMARK_PER_PAGE = 3;
         internal static readonly List<BookmarkItem> BookmarkItems = [];
+        private static readonly Dictionary<string, BookmarkItem> BookmarkDict = [];
         private static readonly object _bmLock = new();
 
         internal enum BookmarkSwapDirection {
@@ -124,8 +125,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             BookmarkPageSelector.SelectionChanged += (_, _) => UpdateBookmarkLayout();
 
             // fill bookmarks
-            foreach (Gallery gallery in galleries) {
-                BookmarkItems.Add(new(gallery, false));
+            for (int i = 0; i < galleries.Count; i++) {
+                BookmarkItem bmItem = new(galleries[i], false);
+                BookmarkItems.Add(bmItem);
+                BookmarkDict.Add(galleries[i].id, bmItem);
             }
             UpdateBookmarkLayout();
         }
@@ -437,12 +440,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         public BookmarkItem AddBookmark(Gallery gallery) {
             lock (_bmLock) {
                 // return the BookmarkItem if it is already bookmarked
-                var bmItem = GetBookmarkItem(gallery.id);
-                if (bmItem != null) {
+                if (BookmarkDict.TryGetValue(gallery.id, out BookmarkItem bmItem)) {
                     return bmItem;
                 }
                 bmItem = new BookmarkItem(gallery, true);
                 BookmarkItems.Add(bmItem);
+                BookmarkDict.Add(gallery.id, bmItem);
                 // new page is needed
                 if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
                     BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
@@ -462,6 +465,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
                 if (Directory.Exists(path)) Directory.Delete(path, true);
                 BookmarkItems.Remove(bmItem);
+                BookmarkDict.Remove(bmItem.gallery.id);
                 WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
 
                 bool pageChanged = false;
@@ -484,7 +488,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
         internal void SwapBookmarks(BookmarkItem bmItem, BookmarkSwapDirection dir) {
             lock (_bmLock) {
-                int idx = GetBookmarkItemIndex(bmItem.gallery.id);
+                int idx = BookmarkItems.FindIndex(item => item.gallery.id == bmItem.gallery.id);
                 switch (dir) {
                     case BookmarkSwapDirection.Up: {
                         if (idx == 0) {
@@ -512,35 +516,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             if (page < 0) {
                 return;
             }
-            for (int i = page * MAX_BOOKMARK_PER_PAGE; i < (page + 1) * MAX_BOOKMARK_PER_PAGE; i++) {
-                if (i < BookmarkItems.Count) {
-                    BookmarkPanel.Children.Add(BookmarkItems[i]);
-                }
+            for (int i = page * MAX_BOOKMARK_PER_PAGE; i < Math.Min((page + 1) * MAX_BOOKMARK_PER_PAGE, BookmarkItems.Count); i++) {
+                BookmarkPanel.Children.Add(BookmarkItems[i]);
             }
-        }
-
-        /**
-         * <returns>The <c>Gallery</c> if the gallery with the given id is bookmarked, otherwise <c>null</c>.</returns>
-         */
-        public static BookmarkItem GetBookmarkItem(string id) {
-            for (int i = 0; i < BookmarkItems.Count; i++) {
-                if (BookmarkItems[i].gallery.id == id) {
-                    return BookmarkItems[i];
-                }
-            }
-            return null;
-        }
-
-        /**
-         * <returns>The bookmark index of the bookmarked gallery. The given id must be from a bookmarked gallery.</returns>
-         */
-        public static int GetBookmarkItemIndex(string id) {
-            for (int i = 0; i < BookmarkItems.Count; i++) {
-                if (BookmarkItems[i].gallery.id == id) {
-                    return i;
-                }
-            }
-            throw new ArgumentException("Id must be from a bookmarked gallery.");
         }
     }
 }
