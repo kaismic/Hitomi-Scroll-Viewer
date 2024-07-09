@@ -6,7 +6,10 @@ namespace Hitomi_Scroll_Viewer {
     public static class Utils {
         public static readonly string ROOT_DIR_NAME = "HSV";
         public static readonly string ROOT_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ROOT_DIR_NAME);
-        public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, "images");
+        public static readonly string NON_VIRTUAL_ROOT_DIR = Path.Combine(Windows.Storage.ApplicationData.Current.LocalCacheFolder.Path, new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)).Name, ROOT_DIR_NAME);
+        public static readonly string IMAGE_DIR_NAME = "images";
+        public static readonly string IMAGE_DIR = Path.Combine(ROOT_DIR, IMAGE_DIR_NAME);
+        public static readonly string NON_VIRTUAL_IMAGE_DIR = Path.Combine(NON_VIRTUAL_ROOT_DIR, IMAGE_DIR_NAME);
         public static readonly string SETTINGS_PATH = Path.Combine(ROOT_DIR, "settings.json");
         public static readonly string LOGS_PATH = Path.Combine(ROOT_DIR, "logs.txt");
 
