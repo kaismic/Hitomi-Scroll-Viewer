@@ -197,22 +197,24 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                                 // Replace locally stored tag filters with duplicate names from the cloud
                                 if (FetchTagFilterOption2.SelectedIndex == 0) {
                                     MainWindow.SearchPage.TagFilterDict =
-                                        (Dictionary<string, TagFilter>)fetchedTagFilterDict
+                                        fetchedTagFilterDict
                                         .Concat(
                                             MainWindow.SearchPage.TagFilterDict.Where(
                                                 pair => !fetchedTagFilterDict.ContainsKey(pair.Key)
                                             )
-                                        );
+                                        )
+                                        .ToDictionary(pair => pair.Key, pair => pair.Value);
                                 }
                                 // Keep locally stored tag filters with duplicate names
                                 else {
                                     MainWindow.SearchPage.TagFilterDict =
-                                        (Dictionary<string, TagFilter>)MainWindow.SearchPage.TagFilterDict
+                                        MainWindow.SearchPage.TagFilterDict
                                         .Concat(
                                             fetchedTagFilterDict.Where(
                                                 pair => !MainWindow.SearchPage.TagFilterDict.ContainsKey(pair.Key)
                                             )
-                                        );
+                                        )
+                                        .ToDictionary(pair => pair.Key, pair => pair.Value);
                                 }
                             }
                             MainWindow.SearchPage.WriteTagFilterDict();
