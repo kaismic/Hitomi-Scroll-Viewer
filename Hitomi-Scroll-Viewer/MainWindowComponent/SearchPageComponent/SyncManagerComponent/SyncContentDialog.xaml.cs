@@ -1,4 +1,5 @@
 using Google;
+using Google.Apis.Auth.OAuth2;
 using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
@@ -8,6 +9,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -93,20 +95,27 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             _closeDialog = false;
             StartStopSync(true);
 
+            //// refresh token if is is stale
+            //UserCredential userCredential = _driveService.HttpClientInitializer as UserCredential;
+            //Trace.WriteLine($"userCredential.Token expiry date = {userCredential.Token.Issued}");
+            //if (userCredential.Token.IsStale) {
+            //    bool refreshed = await userCredential.RefreshTokenAsync(_cts.Token);
+            //}
+
             FilesResource.ListRequest listRequest = _driveService.Files.List();
             listRequest.Spaces = "appDataFolder";
-            listRequest.Fields = "nextPageToken, files(id, name)";
+            listRequest.Fields = "nextPageToken, files(id, name, size)";
             listRequest.PageSize = 2;
-            string tagFiltersFileId = null;
-            string bookmarksFileId = null;
+            Google.Apis.Drive.v3.Data.File tagFiltersFile = null;
+            Google.Apis.Drive.v3.Data.File bookmarksFile = null;
             try {
                 FileList fileList = await listRequest.ExecuteAsync(_cts.Token);
                 if (fileList != null) {
                     foreach (var file in fileList.Files) {
                         if (file.Name == TAG_FILTERS_FILE_NAME) {
-                            tagFiltersFileId = file.Id;
+                            tagFiltersFile = file;
                         } else if (file.Name == BOOKMARKS_FILE_NAME) {
-                            bookmarksFileId = file.Id;
+                            bookmarksFile = file;
                         }
                     }
                 }
@@ -117,10 +126,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 // Upload tag filters
                 if (TagFilterOptionCheckBox.IsChecked == true) {
                     try {
-                        if (tagFiltersFileId == null) {
+                        if (tagFiltersFile == null) {
                             await CreateFileAsync(TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
                         } else {
-                            await UpdateFileAsync(tagFiltersFileId, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
+                            await UpdateFileAsync(tagFiltersFile, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
                         }
                         TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
                         TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
@@ -144,10 +153,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 // Upload bookmarks
                 if (BookmarkOptionCheckBox.IsChecked == true) {
                     try {
-                        if (bookmarksFileId == null) {
+                        if (bookmarksFile == null) {
                             await CreateFileAsync(BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
                         } else {
-                            await UpdateFileAsync(bookmarksFileId, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
+                            await UpdateFileAsync(bookmarksFile, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
                         }
                         BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
                         BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
@@ -174,7 +183,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 // Fetch tag filters
                 if (TagFilterOptionCheckBox.IsChecked == true) {
                     // file is not uploaded yet
-                    if (tagFiltersFileId == null) {
+                    if (tagFiltersFile == null) {
                         TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
                         TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
                         TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_FILENOTFOUND_MESSAGE;
@@ -182,7 +191,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                     // file exists
                     else {
                         try {
-                            string fetchedTagFiltersData = await GetFile(tagFiltersFileId, _cts.Token);
+                            string fetchedTagFiltersData = await GetFile(tagFiltersFile, _cts.Token);
                             Dictionary<string, TagFilter> fetchedTagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
                                 fetchedTagFiltersData,
                                 typeof(Dictionary<string, TagFilter>),
@@ -239,7 +248,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 // Fetch bookmarks
                 if (BookmarkOptionCheckBox.IsChecked == true) {
                     // file is not uploaded yet
-                    if (tagFiltersFileId == null) {
+                    if (tagFiltersFile == null) {
                         BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
                         BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
                         BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_FILENOTFOUND_MESSAGE;
@@ -247,7 +256,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                     // file exists
                     else {
                         try {
-                            string fetchedBookmarksData = await GetFile(bookmarksFileId, _cts.Token);
+                            string fetchedBookmarksData = await GetFile(bookmarksFile, _cts.Token);
                             IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
                                 fetchedBookmarksData,
                                 typeof(IEnumerable<Gallery>),
@@ -259,17 +268,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                                 localBookmarkGalleries.Select(gallery => gallery.id),
                                 gallery => gallery.id
                             );
-                            List<BookmarkItem> appendedBookmarkItems = [];
                             foreach (var gallery in appendingGalleries) {
-                                appendedBookmarkItems.Add(MainWindow.SearchPage.AddBookmark(gallery));
-                            }
-                            // start downloading all appended galleries if the corresponding option is checked
-                            if (FetchBookmarkOption1.SelectedIndex == 0) {
-                                foreach (var gallery in appendingGalleries) {
-                                    MainWindow.SearchPage.TryDownload(gallery.id);
+                                BookmarkItem appendedBookmarkItem = MainWindow.SearchPage.AddBookmark(gallery);
+                                // start downloading all appended galleries if the corresponding option is checked
+                                if (FetchBookmarkOption1.SelectedIndex == 0) {
+                                    MainWindow.SearchPage.TryDownload(gallery.id, appendedBookmarkItem);
                                 }
                             }
-
                             BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
                             BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
                             BookmarkSyncResultInfoBar.Message = INFOBAR_FETCH_SUCCESS_MESSAGE;
@@ -293,6 +298,40 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             StartStopSync(false);
         }
 
+        private void AttachProgressChangedEventHandler(object request, long totalByteSize) {
+            // if totalByteSize is less than 5MB than make SyncProgressBar indeterminate because
+            // ProgressChanged event only fires at the start and completed status because the file
+            // size is so small
+            if (totalByteSize < 5_000_000) {
+                SyncProgressBar.IsIndeterminate = true;
+                return;
+            }
+            SyncProgressBar.IsIndeterminate = false;
+            SyncProgressBar.Value = 0;
+            SyncProgressBar.Maximum = totalByteSize;
+            if (request is ResumableUpload uploadRequest) {
+                uploadRequest.ProgressChanged += (IUploadProgress progress) => {
+                    DispatcherQueue.TryEnqueue(
+                        () => {
+                            lock (SyncProgressBar) {
+                                SyncProgressBar.Value = progress.BytesSent;
+                            }
+                        }
+                    );
+                };
+            } else if (request is FilesResource.GetRequest getRequest) {
+                getRequest.MediaDownloader.ProgressChanged += (IDownloadProgress progress) => {
+                    DispatcherQueue.TryEnqueue(
+                        () => {
+                            lock (SyncProgressBar) {
+                                SyncProgressBar.Value = progress.BytesDownloaded;
+                            }
+                        }
+                    );
+                };
+            }
+        }
+
         /**
          * <exception cref="Exception"/>
          * <exception cref="TaskCanceledException"/>
@@ -309,6 +348,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
                 stream,
                 contentType
             );
+            AttachProgressChangedEventHandler(request, stream.Length);
             IUploadProgress result = await request.UploadAsync(ct);
             if (result.Exception != null) {
                 throw result.Exception;
@@ -320,15 +360,16 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
          * <exception cref="TaskCanceledException"/>
          * <exception cref="GoogleApiException"/>
          */
-        private async Task UpdateFileAsync(string fileId, string filePath, string contentType, CancellationToken ct) {
+        private async Task UpdateFileAsync(Google.Apis.Drive.v3.Data.File file, string filePath, string contentType, CancellationToken ct) {
             using FileStream stream = new(filePath, FileMode.Open);
             Google.Apis.Drive.v3.Data.File fileMetaData = new();
             var request = _driveService.Files.Update(
                 fileMetaData,
-                fileId,
+                file.Id,
                 stream,
                 contentType
             );
+            AttachProgressChangedEventHandler(request, stream.Length);
             IUploadProgress result = await request.UploadAsync(ct);
             if (result.Exception != null) {
                 throw result.Exception;
@@ -341,10 +382,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
          * <exception cref="TaskCanceledException"/>
          * <exception cref="GoogleApiException"/>
          */
-        private async Task<string> GetFile(string fileId, CancellationToken ct) {
+        private async Task<string> GetFile(Google.Apis.Drive.v3.Data.File file, CancellationToken ct) {
             MemoryStream stream = new();
-            FilesResource.GetRequest getRequest = _driveService.Files.Get(fileId);
-            IDownloadProgress result = await getRequest.DownloadAsync(stream, ct);
+            FilesResource.GetRequest request = _driveService.Files.Get(file.Id);
+            AttachProgressChangedEventHandler(request, (long)file.Size);
+            IDownloadProgress result = await request.DownloadAsync(stream, ct);
             if (result.Exception != null) {
                 throw result.Exception;
             }

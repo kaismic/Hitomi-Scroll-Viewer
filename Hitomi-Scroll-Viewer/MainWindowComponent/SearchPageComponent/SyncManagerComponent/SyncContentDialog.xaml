@@ -17,7 +17,7 @@
     <ContentDialog.Title>
         <TextBlock x:Uid="/SyncContentDialog/TitleTextBlock" TextWrapping="WrapWholeWords"/>
     </ContentDialog.Title>
-    <StackPanel Spacing="8" MinWidth="600">
+    <StackPanel Spacing="8" MinWidth="900">
         <InfoBar x:Name="UploadWarningInfoBar"
                  x:Uid="/SyncContentDialog/UploadWarningInfoBar"
                  IsOpen="False"
@@ -78,8 +78,7 @@
                           SelectionChanged="FetchBookmarkOption1_SelectionChanged"/>
         </StackPanel>
         <ProgressBar x:Name="SyncProgressBar"
-                     IsIndeterminate="True"
-                     Visibility="Collapsed"></ProgressBar>
+                     Visibility="Collapsed"/>
         <InfoBar x:Name="TagFilterSyncResultInfoBar"
                  IsOpen="False"
                  IsClosable="False"/>
