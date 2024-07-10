@@ -434,10 +434,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             }
         }
 
-        internal void TryDownload(string id, BookmarkItem bookmarkItem = null) {
+        internal bool TryDownload(string id, BookmarkItem bookmarkItem = null) {
             if (DownloadingGalleryIds.TryAdd(id, 0)) {
                 DownloadingItems.Add(new(id, bookmarkItem));
+                return true;
             }
+            return false;
         }
 
         public BookmarkItem AddBookmark(Gallery gallery) {
