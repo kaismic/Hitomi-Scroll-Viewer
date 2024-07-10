@@ -134,6 +134,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 BookmarkDict.Add(galleries[i].id, bmItem);
             }
             UpdateBookmarkLayout();
+
+            BookmarkHeaderTextBlock.Text = TEXT_BOOKMARKS;
         }
 
         private void InitLayout() {
