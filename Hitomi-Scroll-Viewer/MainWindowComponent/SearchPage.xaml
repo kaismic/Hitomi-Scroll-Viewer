@@ -119,7 +119,7 @@
                                    Grid.Column="0"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Style="{StaticResource BaseTextBlockStyle}"/>
-                        <ComboBox x:Name="FilterTagComboBox" ItemsSource="{x:Bind _tagFilterDictKeys}"
+                        <ComboBox x:Name="FilterTagComboBox" ItemsSource="{x:Bind _tagFilterDictKeys, Mode=OneWay}"
                                   Grid.Column="1"
                                   SelectionChanged="FilterTagComboBox_SelectionChanged"
                                   HorizontalAlignment="Stretch"/>
@@ -142,7 +142,7 @@
                                        HorizontalAlignment="Center"
                                        FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                             <ScrollViewer x:Name="SearchFilterItemsScrollViewer" Grid.Row="1">
-                                <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems}">
+                                <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems, Mode=OneWay}">
                                     <ItemsRepeater.Layout>
                                         <controls:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
                                     </ItemsRepeater.Layout>
