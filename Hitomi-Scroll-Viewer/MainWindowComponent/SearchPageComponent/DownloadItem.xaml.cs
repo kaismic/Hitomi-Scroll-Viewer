@@ -45,13 +45,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
         private Gallery _gallery;
         private string _id;
-        private BookmarkItem _bmItem;
+        internal BookmarkItem BookmarkItem;
 
         private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
 
-        public DownloadItem(string id) {
+        public DownloadItem(string id, BookmarkItem bookmarkItem = null) {
             _id = id;
             _cts = new();
+            BookmarkItem = bookmarkItem;
 
             InitializeComponent();
 
@@ -73,9 +74,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         }
 
         private void RemoveSelf() {
-            if (_bmItem != null) {
-                _bmItem.IsDownloading = false;
-                _bmItem?.EnableRemoveBtn(true);
+            if (BookmarkItem != null) {
+                BookmarkItem.IsDownloading = false;
+                BookmarkItem?.EnableRemoveBtn(true);
             }
             DownloadingGalleryIds.TryRemove(_id, out _);
             MainWindow.SearchPage.DownloadingItems.Remove(this);
@@ -169,7 +170,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
         private async void Download(CancellationToken ct) {
             SetStateAndText(DownloadStatus.Downloading, "");
-            _bmItem?.EnableRemoveBtn(false);
+            BookmarkItem?.EnableRemoveBtn(false);
             if (_gallery == null) {
                 DownloadStatusTextBlock.Text = STATUS_TEXT_FETCHING_GALLERY_INFO;
                 string galleryInfo;
@@ -213,8 +214,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 Description.Text += $"{_gallery.id} - {_gallery.title}";
             }
 
-            if (_bmItem == null) {
-                _bmItem = MainWindow.SearchPage.AddBookmark(_gallery);
+            if (BookmarkItem == null) {
+                BookmarkItem = MainWindow.SearchPage.AddBookmark(_gallery);
             }
 
             DownloadStatusTextBlock.Text = STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER;
@@ -404,7 +405,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                             .ContinueWith(task => {
                                 if (task.IsCompletedSuccessfully) {
                                     MainWindow.SearchPage.DispatcherQueue.TryEnqueue(() => {
-                                        _bmItem.UpdateSingleImage(missingIndexes[idx]);
+                                        BookmarkItem.UpdateSingleImage(missingIndexes[idx]);
                                         lock (DownloadProgressBar) {
                                             DownloadProgressBar.Value++;
                                         }
