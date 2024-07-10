@@ -1,5 +1,4 @@
 using Google;
-using Google.Apis.Auth.OAuth2;
 using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
@@ -9,7 +8,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -94,13 +92,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
             _cts = new();
             _closeDialog = false;
             StartStopSync(true);
-
-            //// refresh token if is is stale
-            //UserCredential userCredential = _driveService.HttpClientInitializer as UserCredential;
-            //Trace.WriteLine($"userCredential.Token expiry date = {userCredential.Token.Issued}");
-            //if (userCredential.Token.IsStale) {
-            //    bool refreshed = await userCredential.RefreshTokenAsync(_cts.Token);
-            //}
 
             FilesResource.ListRequest listRequest = _driveService.Files.List();
             listRequest.Spaces = "appDataFolder";
