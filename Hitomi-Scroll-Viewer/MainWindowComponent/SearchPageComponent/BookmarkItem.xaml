@@ -30,15 +30,19 @@
             </ItemsRepeater>
         </HyperlinkButton>
     </StackPanel>
-    <Grid Grid.Column="1">
+    <Grid Grid.Column="1" RowSpacing="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-            <Button x:Name="RemoveBtn" Grid.Row="0">
-                <SymbolIcon Symbol="Delete"/>
-            </Button>
-            <Grid Grid.Row="1" RowSpacing="16">
+        <Button x:Name="RemoveBtn" Grid.Row="0" Padding="16">
+            <SymbolIcon Symbol="Delete"/>
+        </Button>
+        <Button x:Name="DownloadBtn" Grid.Row="1" Padding="16">
+            <SymbolIcon Symbol="Download"/>
+        </Button>
+        <Grid Grid.Row="2" RowSpacing="16">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition/>

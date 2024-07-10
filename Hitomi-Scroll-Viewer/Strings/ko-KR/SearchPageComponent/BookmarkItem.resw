@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Notification_AlreadyDownloading" xml:space="preserve">
+    <value>이 갤러리는 이미 다운로드 중 입니다.</value>
+  </data>
   <data name="Text_Artist" xml:space="preserve">
     <value>작가</value>
   </data>

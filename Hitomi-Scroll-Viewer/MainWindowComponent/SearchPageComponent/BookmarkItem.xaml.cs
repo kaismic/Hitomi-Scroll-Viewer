@@ -9,8 +9,10 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class BookmarkItem : Grid {
-        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("BookmarkItem");
-        private static readonly string TEXT_ARTIST = ResourceMap.GetValue("Text_Artist").ValueAsString;
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("BookmarkItem");
+        private static readonly string NOTIFICATION_ALREADY_DOWNLOADING = _resourceMap.GetValue("Notification_AlreadyDownloading").ValueAsString;
+
+        private static readonly string TEXT_ARTIST = _resourceMap.GetValue("Text_Artist").ValueAsString;
         private static readonly int THUMBNAIL_IMG_HEIGHT = 256;
         public readonly Gallery gallery;
         private readonly ItemsChangeObservableCollection<Image> _thumbnailImages = [];
@@ -52,6 +54,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
             ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGallery(gallery);
             RemoveBtn.Click += (_, _) => MainWindow.SearchPage.RemoveBookmark(this);
+            DownloadBtn.Click += (_, _) => {
+                if (!MainWindow.SearchPage.TryDownload(gallery.id, this)) {
+                    MainWindow.NotifyUser(NOTIFICATION_ALREADY_DOWNLOADING, "");
+                }
+            };
             MoveUpBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Up);
             MoveDownBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Down);
         }
