@@ -201,4 +201,7 @@
   <data name="TagNameTextBox.PlaceholderText" xml:space="preserve">
     <value>여기에 생성 또는 이름을 바꿀 태그 필터의 이름을 입력하세요.</value>
   </data>
+  <data name="Text_BookmarkNumPerPage" xml:space="preserve">
+    <value>페이지당 북마크 수</value>
+  </data>
 </root>

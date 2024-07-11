@@ -9,7 +9,7 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer Padding="32 16">
-        <StackPanel Orientation="Vertical" Spacing="16">
+        <StackPanel Orientation="Vertical" Spacing="8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -142,7 +142,8 @@
                                        HorizontalAlignment="Center"
                                        FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                             <ScrollViewer x:Name="SearchFilterItemsScrollViewer" Grid.Row="1">
-                                <ItemsRepeater ItemsSource="{x:Bind _searchFilterItems, Mode=OneWay}">
+                                <ItemsRepeater x:Name="SearchFilterItemsRepeater"
+                                               ItemsSource="{x:Bind _searchFilterItems, Mode=OneWay}">
                                     <ItemsRepeater.Layout>
                                         <controls:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
                                     </ItemsRepeater.Layout>
@@ -154,9 +155,26 @@
                 <Grid x:Name="ControlButtonContainer" Grid.Column="3"
                             RowSpacing="16"/>
             </Grid>
-            <Grid Grid.Column="1">
-                <TextBlock x:Name="BookmarkHeaderTextBlock" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Left"/>
-                <ComboBox x:Name="BookmarkPageSelector" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+            <Grid Grid.Column="1" Margin="0 8 0 0">
+                <TextBlock x:Name="BookmarkHeader"
+                           Style="{StaticResource TitleTextBlockStyle}"
+                           VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                            Spacing="8">
+                    <TextBlock x:Name="BookmarkPageSelectorHeader"
+                               VerticalAlignment="Center"/>
+                    <ComboBox x:Name="BookmarkPageSelector"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                            Spacing="8">
+                    <TextBlock x:Name="BookmarkNumPerPageSelectorHeader"
+                               VerticalAlignment="Center"/>
+                    <ComboBox x:Name="BookmarkNumPerPageSelector"
+                              ItemsSource="{x:Bind _bookmarkNumPerPageRange}"
+                              SelectionChanged="BookmarkNumPerPageSelector_SelectionChanged"/>
+                </StackPanel>
             </Grid>
             <StackPanel x:Name="BookmarkPanel" Orientation="Vertical" Spacing="16"/>
         </StackPanel>

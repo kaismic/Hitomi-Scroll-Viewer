@@ -14,13 +14,17 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage;
 using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent {
     public sealed partial class SearchPage : Page {
-        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SearchPage");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SearchPage");
+
+        private static readonly string BOOKMARK_NUM_PER_PAGE_SETTING_KEY = "BookmarkNumPerPage";
+        private readonly ApplicationDataContainer _settings;
 
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
@@ -31,12 +35,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             set {
                 _tagFilterDict = value;
 
-                _tagFilterDictKeys.Clear();
+                _tagFilterDictKeys?.Clear();
                 FilterTagComboBox.ItemsSource = null;
                 _tagFilterDictKeys = new(value.Keys);
                 FilterTagComboBox.ItemsSource = _tagFilterDictKeys;
 
-                _searchFilterItems.Clear();
+                _searchFilterItems?.Clear();
                 SearchFilterItemsRepeater.ItemsSource = null;
                 _searchFilterItems = new(value.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
                 SearchFilterItemsRepeater.ItemsSource = _searchFilterItems;
@@ -45,7 +49,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         private ObservableCollection<string> _tagFilterDictKeys;
         private ObservableCollection<SearchFilterItem> _searchFilterItems;
 
-        private static readonly int MAX_BOOKMARK_PER_PAGE = 3;
+        private readonly IEnumerable<int> _bookmarkNumPerPageRange = Enumerable.Range(1, 8);
         internal static readonly List<BookmarkItem> BookmarkItems = [];
         private static readonly Dictionary<string, BookmarkItem> BookmarkDict = [];
         private static readonly object _bmLock = new();
@@ -80,6 +84,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         public SearchPage() {
             InitializeComponent();
             InitLayout();
+
+            _settings = ApplicationData.Current.LocalSettings;
+            BookmarkNumPerPageSelector.SelectedIndex = (int)(_settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] ?? 2);
 
             if (File.Exists(TAG_FILTERS_FILE_PATH)) {
                 TagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
@@ -122,24 +129,18 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 DEFAULT_SERIALIZER_OPTIONS
                 );
 
-            int pages = galleries.Count / MAX_BOOKMARK_PER_PAGE + (galleries.Count % MAX_BOOKMARK_PER_PAGE > 0 ? 1 : 0);
-            for (int i = 0; i < pages; i++) {
-                BookmarkPageSelector.Items.Add(i);
-            }
-            if (pages > 0) {
-                BookmarkPageSelector.SelectedIndex = 0;
-            }
-            BookmarkPageSelector.SelectionChanged += (_, _) => UpdateBookmarkLayout();
-
-            // fill bookmarks
+            // fill BookmarkItems
             for (int i = 0; i < galleries.Count; i++) {
                 BookmarkItem bmItem = new(galleries[i], false);
                 BookmarkItems.Add(bmItem);
                 BookmarkDict.Add(galleries[i].id, bmItem);
             }
             UpdateBookmarkLayout();
+            BookmarkPageSelector.SelectionChanged += (_, _) => UpdateBookmarkLayout();
 
-            BookmarkHeaderTextBlock.Text = TEXT_BOOKMARKS;
+            BookmarkHeader.Text = TEXT_BOOKMARKS;
+            BookmarkPageSelectorHeader.Text = TEXT_PAGE;
+            BookmarkNumPerPageSelectorHeader.Text = _resourceMap.GetValue("Text_BookmarkNumPerPage").ValueAsString;
         }
 
         private void InitLayout() {
@@ -147,11 +148,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             Button[] controlButtons = new Button[5];
             CornerRadius radius = new(4);
             string[] controlButtonTexts = [
-                ResourceMap.GetValue("ButtonText_CreateTagFilter").ValueAsString,
-                ResourceMap.GetValue("ButtonText_RenameTagFilter").ValueAsString,
-                ResourceMap.GetValue("ButtonText_SaveTagFilter").ValueAsString,
-                ResourceMap.GetValue("ButtonText_DeleteTagFilter").ValueAsString,
-                ResourceMap.GetValue("ButtonText_ClearTextBoxes").ValueAsString
+                _resourceMap.GetValue("ButtonText_CreateTagFilter").ValueAsString,
+                _resourceMap.GetValue("ButtonText_RenameTagFilter").ValueAsString,
+                _resourceMap.GetValue("ButtonText_SaveTagFilter").ValueAsString,
+                _resourceMap.GetValue("ButtonText_DeleteTagFilter").ValueAsString,
+                _resourceMap.GetValue("ButtonText_ClearTextBoxes").ValueAsString
             ];
             SolidColorBrush[] controlButtonBorderColors = [
                 new(Colors.Blue),
@@ -215,14 +216,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Count != 0;
         }
 
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE = ResourceMap.GetValue("Notification_TagFilter_NameEmpty_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT = ResourceMap.GetValue("Notification_TagFilter_NameEmpty_Content").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE = ResourceMap.GetValue("Notification_TagFilter_NameDup_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT = ResourceMap.GetValue("Notification_TagFilter_NameDup_Content").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_OVERLAP_TITLE = ResourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Content").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameDup_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT = _resourceMap.GetValue("Notification_TagFilter_NameDup_Content").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_OVERLAP_TITLE = _resourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString;
         
-        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Create_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Create_2_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_2_Title").ValueAsString;
 
         private async void CreateTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
             string newTagFilterName = TagNameTextBox.Text.Trim();
@@ -250,8 +251,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_CREATE_2_TITLE, newTagFilterName), "");
         }
 
-        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Rename_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Rename_2_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Rename_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Rename_2_Title").ValueAsString;
 
         private async void RenameTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (_currTagFilterName == null) return;
@@ -277,9 +278,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_RENAME_2_TITLE, oldTagFilterName, newTagFilterName), "");
         }
 
-        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Save_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_CONTENT = ResourceMap.GetValue("Notification_TagFilter_Save_1_Content").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Save_2_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Save_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_CONTENT = _resourceMap.GetValue("Notification_TagFilter_Save_1_Content").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Save_2_Title").ValueAsString;
 
         private async void SaveTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (_currTagFilterName == null) return;
@@ -300,8 +301,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_SAVE_2_TITLE, _currTagFilterName), "");
         }
 
-        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_1_TITLE = ResourceMap.GetValue("Notification_TagFilter_Delete_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_2_TITLE = ResourceMap.GetValue("Notification_TagFilter_Delete_2_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_1_Title").ValueAsString;
+        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_2_Title").ValueAsString;
 
         private async void DeleteTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
             if (_currTagFilterName == null) return;
@@ -342,7 +343,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             };
         }
 
-        private static readonly string NOTIFICATION_SEARCH_LINK_CONTENT_EMPTY_TITLE = ResourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString;
+        private static readonly string NOTIFICATION_SEARCH_LINK_CONTENT_EMPTY_TITLE = _resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString;
 
         private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
             var selectedSearchFilterItems = _searchFilterItems.Where(item => (bool)item.IsChecked);
@@ -407,9 +408,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             Clipboard.SetContent(_myDataPackage);
         }
 
-        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE = ResourceMap.GetValue("Notification_GalleryIDTextBox_ContentEmpty_Title").ValueAsString;
-        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_TITLE = ResourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Title").ValueAsString;
-        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_CONTENT = ResourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Content").ValueAsString;
+        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE = _resourceMap.GetValue("Notification_GalleryIDTextBox_ContentEmpty_Title").ValueAsString;
+        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_TITLE = _resourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Title").ValueAsString;
+        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_CONTENT = _resourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Content").ValueAsString;
 
         private void DownloadBtn_Clicked(object _0, RoutedEventArgs _1) {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
@@ -458,7 +459,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 BookmarkItems.Add(bmItem);
                 BookmarkDict.Add(gallery.id, bmItem);
                 // new page is needed
-                if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 1) {
+                if (BookmarkItems.Count % (BookmarkNumPerPageSelector.SelectedIndex + 1) == 1) {
                     BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
                 }
                 WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
@@ -480,8 +481,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
 
                 bool pageChanged = false;
-                // a page needs to be deleted
-                if (BookmarkItems.Count % MAX_BOOKMARK_PER_PAGE == 0) {
+                // a page needs to be removed
+                if (BookmarkItems.Count % (BookmarkNumPerPageSelector.SelectedIndex + 1) == 0) {
                     // if current page is the last page
                     if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
                         pageChanged = true;
@@ -489,8 +490,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                     }
                     BookmarkPageSelector.Items.Remove(BookmarkPageSelector.Items.Count - 1);
                 }
-
-                // don't call FillBookmarkGrid again if page was changed because BookmarkPageSelector.SelectionChanged event would have called FillBookmarkGrid already
+                // don't call UpdateBookmarkLayout again if BookmarkPageSelector.SelectedIndex is set to 0 because UpdateBookmarkLayout is already called by SelectionChanged event
                 if (!pageChanged) {
                     UpdateBookmarkLayout();
                 }
@@ -527,9 +527,26 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             if (page < 0) {
                 return;
             }
-            for (int i = page * MAX_BOOKMARK_PER_PAGE; i < Math.Min((page + 1) * MAX_BOOKMARK_PER_PAGE, BookmarkItems.Count); i++) {
+            int bookmarkNumPerPage = BookmarkNumPerPageSelector.SelectedIndex + 1;
+            for (int i = page * bookmarkNumPerPage; i < Math.Min((page + 1) * bookmarkNumPerPage, BookmarkItems.Count); i++) {
                 BookmarkPanel.Children.Add(BookmarkItems[i]);
             }
+        }
+
+        private void BookmarkNumPerPageSelector_SelectionChanged(object _0, SelectionChangedEventArgs arg) {
+            if (arg.AddedItems.Count == 0 || BookmarkItems.Count == 0) {
+                return;
+            }
+            BookmarkPageSelector.Items.Clear();
+            int numOfPages = (int)Math.Ceiling((double)BookmarkItems.Count / (BookmarkNumPerPageSelector.SelectedIndex + 1));
+            for (int i = 0; i < numOfPages; i++) {
+                BookmarkPageSelector.Items.Add(i + 1);
+            }
+            BookmarkPageSelector.SelectedIndex = 0;
+        }
+
+        internal void SaveSettings() {
+            _settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] = BookmarkNumPerPageSelector.SelectedIndex;
         }
     }
 }

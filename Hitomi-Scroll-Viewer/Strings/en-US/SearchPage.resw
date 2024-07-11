@@ -201,4 +201,7 @@
   <data name="TagNameTextBox.PlaceholderText" xml:space="preserve">
     <value>Enter a tag filter name here to create or rename one.</value>
   </data>
+  <data name="Text_BookmarkNumPerPage" xml:space="preserve">
+    <value>Bookmark per page</value>
+  </data>
 </root>
