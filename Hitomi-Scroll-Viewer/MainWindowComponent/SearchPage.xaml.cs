@@ -30,16 +30,20 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             get => _tagFilterDict;
             set {
                 _tagFilterDict = value;
+
                 _tagFilterDictKeys.Clear();
+                FilterTagComboBox.ItemsSource = null;
+                _tagFilterDictKeys = new(value.Keys);
+                FilterTagComboBox.ItemsSource = _tagFilterDictKeys;
+
                 _searchFilterItems.Clear();
-                foreach (var key in value.Keys) {
-                    _tagFilterDictKeys.Add(key);
-                    _searchFilterItems.Add(new SearchFilterItem(key, TagNameCheckBox_StateChanged));
-                }
+                SearchFilterItemsRepeater.ItemsSource = null;
+                _searchFilterItems = new(value.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
+                SearchFilterItemsRepeater.ItemsSource = _searchFilterItems;
             }
         }
-        private readonly ObservableCollection<string> _tagFilterDictKeys = [];
-        private readonly ObservableCollection<SearchFilterItem> _searchFilterItems = [];
+        private ObservableCollection<string> _tagFilterDictKeys = [];
+        private ObservableCollection<SearchFilterItem> _searchFilterItems = [];
 
         private static readonly int MAX_BOOKMARK_PER_PAGE = 3;
         internal static readonly List<BookmarkItem> BookmarkItems = [];
