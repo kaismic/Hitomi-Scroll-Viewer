@@ -153,4 +153,7 @@
   <data name="Text_TagFilters" xml:space="preserve">
     <value>태그 필터</value>
   </data>
+  <data name="Text_Page" xml:space="preserve">
+    <value>페이지</value>
+  </data>
 </root>
