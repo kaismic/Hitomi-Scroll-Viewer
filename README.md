@@ -33,9 +33,10 @@ If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2
 4. Also, if a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Usage / Controls
-- In the search page:
-    - Enter each tag in the text boxes at each new line.
-- In the view page:
+- In Search page:
+    - Enter one tag filter term at each new line in text boxes using the enter key.
+    - You must save tag filters before using them to generate search links.
+- In View page:
     - Move the mouse to the top of the screen to show the settings menu.
     - Press the Spacebar to start/stop auto scrolling.
     - Press the `L` key to enable/disable the loop when auto-scrolling.
