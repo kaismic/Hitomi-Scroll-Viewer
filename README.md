@@ -11,7 +11,7 @@ A viewer for hitomi.la (18+) with various features.
 
 Built using WinUI 3 with C#.
 
-Currently supported languages: English and Korean
+Currently supported languages: English, Korean
 
 ## Preview
 <div align="center">
@@ -24,7 +24,7 @@ Currently supported languages: English and Korean
 - Download galleries
 - Auto scrolling
 - Change view direction
-- Sync data on Google Drive using your Google Account
+- Sync data on Google Drive with Google Account
 
 ## How to install
 If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2. Otherwise, follow all the steps.
