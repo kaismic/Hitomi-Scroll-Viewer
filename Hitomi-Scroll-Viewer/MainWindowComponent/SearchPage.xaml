@@ -8,8 +8,10 @@
     xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <ScrollViewer Padding="32 16">
-        <StackPanel Orientation="Vertical" Spacing="8">
+    <ScrollViewer>
+        <StackPanel Orientation="Vertical"
+                    Spacing="8"
+                    Padding="16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
