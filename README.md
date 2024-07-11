@@ -5,6 +5,8 @@
 
 *Read this in other languages:* [한국어](README-ko-KR.md)
 
+### Supported OS: Windows 10 and 11
+
 A viewer for hitomi.la (18+) with various features.
 
 Built using WinUI 3 with C#.
@@ -27,7 +29,7 @@ Currently supported languages: English and Korean
 If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2. Otherwise, follow all the steps.
 1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) `Hitomi-Scroll-Viewer.cer` and `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle`.
 2. Open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
-3. Open `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` and install.
+3. Open `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` and install. (Note: The installation might seem stuck at around 15% but it is just taking a long time to install and should normally take no more than 5 minutes.)
 4. Also, if a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Usage / Controls
