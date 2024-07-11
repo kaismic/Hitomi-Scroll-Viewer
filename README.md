@@ -5,7 +5,7 @@
 
 *Read this in other languages:* [한국어](README-ko-KR.md)
 
-### Supported OS: Windows 10 and 11
+### Supported OS: Windows 10, 11
 
 A viewer for hitomi.la (18+) with various features.
 
