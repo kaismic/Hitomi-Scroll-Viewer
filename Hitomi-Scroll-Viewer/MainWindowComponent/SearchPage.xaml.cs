@@ -42,8 +42,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 SearchFilterItemsRepeater.ItemsSource = _searchFilterItems;
             }
         }
-        private ObservableCollection<string> _tagFilterDictKeys = [];
-        private ObservableCollection<SearchFilterItem> _searchFilterItems = [];
+        private ObservableCollection<string> _tagFilterDictKeys;
+        private ObservableCollection<SearchFilterItem> _searchFilterItems;
 
         private static readonly int MAX_BOOKMARK_PER_PAGE = 3;
         internal static readonly List<BookmarkItem> BookmarkItems = [];
