@@ -5,11 +5,13 @@
 
 *Read this in other languages:* [한국어](README-ko-KR.md)
 
+### Supported OS: Windows 10, 11
+
 A viewer for hitomi.la (18+) with various features.
 
 Built using WinUI 3 with C#.
 
-Currently supported languages: English and Korean
+Currently supported languages: English, Korean
 
 ## Preview
 <div align="center">
@@ -22,19 +24,21 @@ Currently supported languages: English and Korean
 - Download galleries
 - Auto scrolling
 - Change view direction
+- Sync data on Google Drive with Google Account
 
 ## How to install
 If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2. Otherwise, follow all the steps.
 1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) `Hitomi-Scroll-Viewer.cer` and `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle`.
 2. Open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
-3. Open `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` and install.
+3. Open `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` and install. (Note: The installation might seem stuck at around 15% but it is in progress and should normally take no more than 5 minutes.)
 4. Also, if a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Usage / Controls
-- In the search page:
-    - Enter each tag in the text boxes at each new line.
-- In the view page:
+- In Search page:
+    - Enter one tag filter term at each new line in text boxes using the enter key.
+    - After editing a tag filter, you must save it to apply the changes before using it to generate search links.
+- In View page:
     - Move the mouse to the top of the screen to show the settings menu.
-    - Press the Spacebar to start/stop auto scrolling.
+    - Use the spacebar to start/stop auto-scrolling.
     - Press the `L` key to enable/disable the loop when auto-scrolling.
     - Use the left/up and right/down arrow keys or mouse wheel to switch between pages.
