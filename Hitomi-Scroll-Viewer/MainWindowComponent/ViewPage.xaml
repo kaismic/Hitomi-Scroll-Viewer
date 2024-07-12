@@ -8,7 +8,7 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     PreviewKeyDown="ImageWatchingPage_PreviewKeyDown">
     <Grid>
-        <FlipView x:Name="ImageFlipView"
+        <FlipView x:Name="ImageFlipView" UseTouchAnimationsForAllNavigation="False"
                   FocusVisualPrimaryThickness="0" IsTabStop="True"
                   SelectionChanged="ImageFlipView_SelectionChanged">
         </FlipView>
@@ -54,29 +54,6 @@
                                 MinWidth="90"
                                 IsTabStop="False"/>
             <AppBarSeparator MinWidth="30"/>
-            <AppBarElementContainer Margin="0 0 16 0">
-                <ComboBox x:Name="ScrollDirectionSelector" ItemsSource="{x:Bind ORIENTATION_NAMES}"
-                          SelectionChanged="ScrollDirectionSelector_SelectionChanged"
-                          MinWidth="150"
-                          IsTabStop="False">
-                    <ComboBox.Header>
-                        <TextBlock x:Uid="/ViewPage/ScrollDirectionSelectorTextBlock"
-                                   HorizontalAlignment="Center"/>
-                    </ComboBox.Header>
-                </ComboBox>
-            </AppBarElementContainer>
-            <AppBarElementContainer>
-                <ComboBox x:Name="ViewDirectionSelector" ItemsSource="{x:Bind VIEW_DIRECTION_NAMES}"
-                          SelectionChanged="ViewDirectionSelector_SelectionChanged"
-                          MinWidth="200"
-                          IsTabStop="False">
-                    <ComboBox.Header>
-                        <TextBlock x:Uid="/ViewPage/ViewDirectionSelectorTextBlock"
-                                   HorizontalAlignment="Center"/>
-                    </ComboBox.Header>
-                </ComboBox>
-            </AppBarElementContainer>
-            <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="PageNavigator"
                           SelectionChanged="PageNavigator_SelectionChanged"
@@ -88,6 +65,12 @@
                     </ComboBox.Header>
                 </ComboBox>
             </AppBarElementContainer>
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarButton x:Name="MoreSettingsBtn"
+                          Icon="More"
+                          IsTabStop="False"
+                          LabelPosition="Collapsed"
+                          VerticalAlignment="Center"/>
         </CommandBar>
         <Border x:Name="PageNumDisplay"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -127,5 +110,35 @@
                           FontSize="32"/>
             </Grid>
         </Viewbox>
+        <ContentDialog x:Name="MoreSettingsContentDialog"
+                       x:Uid="/ViewPage/MoreSettingsContentDialog"
+                       Style="{StaticResource DefaultContentDialogStyle}"
+                       DefaultButton="Close">
+            <StackPanel Spacing="16">
+                <ComboBox x:Name="ScrollDirectionSelector" ItemsSource="{x:Bind ORIENTATION_NAMES}"
+                          SelectionChanged="ScrollDirectionSelector_SelectionChanged"
+                          MinWidth="200"
+                          IsTabStop="False"
+                          HorizontalAlignment="Center">
+                    <ComboBox.Header>
+                        <TextBlock x:Uid="/ViewPage/ScrollDirectionSelectorTextBlock"
+                                   HorizontalAlignment="Center"/>
+                    </ComboBox.Header>
+                </ComboBox>
+                <ComboBox x:Name="ViewDirectionSelector" ItemsSource="{x:Bind VIEW_DIRECTION_NAMES}"
+                          SelectionChanged="ViewDirectionSelector_SelectionChanged"
+                          MinWidth="200"
+                          IsTabStop="False"
+                          HorizontalAlignment="Center">
+                    <ComboBox.Header>
+                        <TextBlock x:Uid="/ViewPage/ViewDirectionSelectorTextBlock"
+                                   HorizontalAlignment="Center"/>
+                    </ComboBox.Header>
+                </ComboBox>
+                <CheckBox x:Name="UsePageFlipEffectCheckBox"
+                          x:Uid="/ViewPage/UsePageFlipEffectCheckBox"
+                          HorizontalAlignment="Center"/>
+            </StackPanel>
+        </ContentDialog>
     </Grid>
 </Page>

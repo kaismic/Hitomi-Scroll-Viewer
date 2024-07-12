@@ -27,6 +27,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         private static readonly string VIEW_DIRECTION_SETTING_KEY = "ViewDirection";
         private static readonly string AUTO_SCROLL_INTERVAL_SETTING_KEY = "AutoScrollInterval";
         private static readonly string IS_LOOPING_SETTING_KEY = "IsLooping";
+        private static readonly string USE_PAGE_FLIP_EFFECT_SETTING_KEY = "UsePageFlipEffect";
         private readonly ApplicationDataContainer _settings;
 
         private static readonly string GLYPH_CANCEL = "\xE711";
@@ -58,6 +59,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             _viewDirection = (ViewDirection)(_settings.Values[VIEW_DIRECTION_SETTING_KEY] ?? ViewDirection.LeftToRight);
             _autoScrollInterval = (double)(_settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] ?? AutoScrollIntervalSlider.Minimum);
             LoopBtn.IsChecked = (bool)(_settings.Values[IS_LOOPING_SETTING_KEY] ?? true);
+            UsePageFlipEffectCheckBox.IsChecked = ImageFlipView.UseTouchAnimationsForAllNavigation = (bool)(_settings.Values[USE_PAGE_FLIP_EFFECT_SETTING_KEY] ?? false);
 
             AutoScrollIntervalSlider.Value = _autoScrollInterval;
             ViewDirectionSelector.SelectedIndex = (int)_viewDirection;
@@ -65,9 +67,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
             AutoScrollBtn.Label = TEXT_AUTO_SCROLL_BTN_OFF;
             LoopBtn.Label = (bool)LoopBtn.IsChecked ? TEXT_LOOP_BTN_ON : TEXT_LOOP_BTN_OFF;
+            MoreSettingsContentDialog.CloseButtonText = TEXT_CLOSE;
 
-            foreach (var elem in TopCommandBar.PrimaryCommands.Cast<Control>()) {
-                elem.VerticalAlignment = VerticalAlignment.Stretch;
+            foreach (var control in TopCommandBar.PrimaryCommands.Cast<Control>()) {
+                if (control != MoreSettingsBtn) {
+                    control.VerticalAlignment = VerticalAlignment.Stretch;
+                }
             }
 
             TopCommandBar.PointerEntered += (_, _) => {
@@ -87,6 +92,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             AutoScrollIntervalSlider.ValueChanged += (object sender, RangeBaseValueChangedEventArgs e) => { _autoScrollInterval = e.NewValue; };
             AutoScrollBtn.Click += (_, _) => ToggleAutoScroll((bool)AutoScrollBtn.IsChecked);
             LoopBtn.Click += (_, _) => SetLoopBtnStatus((bool)LoopBtn.IsChecked);
+            UsePageFlipEffectCheckBox.Checked += (_, _) => ImageFlipView.UseTouchAnimationsForAllNavigation = true;
+            UsePageFlipEffectCheckBox.Unchecked += (_, _) => ImageFlipView.UseTouchAnimationsForAllNavigation = false;
+            MoreSettingsBtn.Click += async (_, _) => await MoreSettingsContentDialog.ShowAsync();
 
             // remove _flipview navigation buttons
             void FlipView_Loaded(object sender, RoutedEventArgs e) {
@@ -107,6 +115,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             _settings.Values[VIEW_DIRECTION_SETTING_KEY] = (int)_viewDirection;
             _settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] = _autoScrollInterval;
             _settings.Values[IS_LOOPING_SETTING_KEY] = LoopBtn.IsChecked;
+            _settings.Values[USE_PAGE_FLIP_EFFECT_SETTING_KEY] = ImageFlipView.UseTouchAnimationsForAllNavigation;
         }
 
         public async void LoadGallery(Gallery gallery) {
@@ -403,9 +412,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         private async void ScrollDirectionSelector_SelectionChanged(object _0, SelectionChangedEventArgs e) {
             _scrollDirection = (Orientation)ScrollDirectionSelector.SelectedIndex;
             if (ImageFlipView.ItemsPanelRoot != null) {
-                await AttachPageEventHandlers(false);
                 int temp = ImageFlipView.SelectedIndex;
+                await AttachPageEventHandlers(false);
                 (ImageFlipView.ItemsPanelRoot as VirtualizingStackPanel).Orientation = _scrollDirection;
+                await Task.Delay(100);
                 ImageFlipView.SelectedIndex = temp;
                 await AttachPageEventHandlers(true);
             }
@@ -416,8 +426,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 return;
             }
             _viewDirection = (ViewDirection)ViewDirectionSelector.SelectedIndex;
-            await AttachPageEventHandlers(false);
             int temp = ImageFlipView.SelectedIndex;
+            await AttachPageEventHandlers(false);
             foreach (var panel in _groupedImagePanels) {
                 panel.UpdateViewDirection(_viewDirection);
             }

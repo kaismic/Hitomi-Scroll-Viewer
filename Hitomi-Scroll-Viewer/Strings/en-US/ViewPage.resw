@@ -123,6 +123,9 @@
   <data name="GoBackBtn.Label" xml:space="preserve">
     <value>Go back</value>
   </data>
+  <data name="MoreSettingsContentDialog.Title" xml:space="preserve">
+    <value>Additional settings</value>
+  </data>
   <data name="PageNavigatorTextBlock.Text" xml:space="preserve">
     <value>Go to page</value>
   </data>
@@ -149,6 +152,9 @@
   </data>
   <data name="Text_StringArray_ViewDirection" xml:space="preserve">
     <value>Left to right, Right to left</value>
+  </data>
+  <data name="UsePageFlipEffectCheckBox.Content" xml:space="preserve">
+    <value>Use page flip effect</value>
   </data>
   <data name="ViewDirectionSelectorTextBlock.Text" xml:space="preserve">
     <value>View direction</value>
