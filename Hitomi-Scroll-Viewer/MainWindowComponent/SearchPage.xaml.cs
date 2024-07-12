@@ -42,7 +42,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
                 _searchFilterItems?.Clear();
                 SearchFilterItemsRepeater.ItemsSource = null;
-                _searchFilterItems = new(value.Keys.Select(key => new SearchFilterItem(key, TagNameCheckBox_StateChanged)));
+                _searchFilterItems = new(value.Keys.Select(key => new SearchFilterItem(key, SearchFilterItem_CheckStateToggled)));
                 SearchFilterItemsRepeater.ItemsSource = _searchFilterItems;
             }
         }
@@ -199,14 +199,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             return result;
         }
 
-        private void TagNameCheckBox_StateChanged(object sender, RoutedEventArgs e) {
+        private void SearchFilterItem_CheckStateToggled(object sender, RoutedEventArgs e) {
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Any(item => (bool)item.IsChecked);
         }
 
         private void AddTagFilterDict(string tagName, TagFilter tagFilter) {
             TagFilterDict.Add(tagName, tagFilter);
             _tagFilterDictKeys.Add(tagName);
-            _searchFilterItems.Add(new(tagName, TagNameCheckBox_StateChanged));
+            _searchFilterItems.Add(new(tagName, SearchFilterItem_CheckStateToggled));
         }
         
         private void RemoveTagFilterDict(string tagName) {
