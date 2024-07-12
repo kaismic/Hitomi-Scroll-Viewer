@@ -436,7 +436,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         }
 
         public async void Window_SizeChanged() {
-            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.Now;
+            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.UtcNow;
             // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
             await Task.Delay(200);
             if (_lastWindowSizeChangeTime != thisDateTime) {
