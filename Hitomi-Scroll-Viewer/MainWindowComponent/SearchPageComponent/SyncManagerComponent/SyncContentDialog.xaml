@@ -24,7 +24,7 @@
     <ContentDialog.Title>
         <TextBlock x:Uid="/SyncContentDialog/TitleTextBlock" TextWrapping="WrapWholeWords"/>
     </ContentDialog.Title>
-    <StackPanel Spacing="8" MinWidth="900">
+    <StackPanel Spacing="8" MinWidth="700">
         <InfoBar x:Name="UploadWarningInfoBar"
                  x:Uid="/SyncContentDialog/UploadWarningInfoBar"
                  IsOpen="False"
