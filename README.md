@@ -15,8 +15,9 @@ Currently supported languages: English, Korean
 
 ## Preview
 <div align="center">
-    <img src="images/preview1.png" style="width: 50%;">
-    <img src="images/preview2.png" style="width: 50%;">
+    <img src="./readme_resources/preview_image_1.png" style="width: 30%;">
+    <img src="./readme_resources/preview_image_2.png" style="width: 30%;">
+    <img src="./readme_resources/preview_image_3.png" style="width: 30%;">
 </div>
 
 ## Features
