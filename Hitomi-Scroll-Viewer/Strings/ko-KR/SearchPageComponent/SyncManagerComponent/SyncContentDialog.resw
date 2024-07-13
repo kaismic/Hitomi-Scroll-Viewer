@@ -159,6 +159,9 @@
   <data name="InfoBar_Upload_Success_Message" xml:space="preserve">
     <value>파일이 성공적으로 업로드 되었습니다.</value>
   </data>
+  <data name="SyncContentDialog.PrimaryButtonText" xml:space="preserve">
+    <value>동기화</value>
+  </data>
   <data name="SyncDirectionRadioButton1.Content" xml:space="preserve">
     <value>업로드</value>
   </data>

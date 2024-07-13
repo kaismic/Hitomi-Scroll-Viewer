@@ -29,9 +29,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManag
         public SyncContentDialog(DriveService driveService) {
             _driveService = driveService;
             InitializeComponent();
-            // this code is needed because of this bug https://github.com/microsoft/microsoft-ui-xaml/issues/424
-            Resources["ContentDialogMaxWidth"] = double.MaxValue;
-            PrimaryButtonText = "Sync";
             CloseButtonText = TEXT_CLOSE;
 
             TagFilterOptionCheckBox.Content = TEXT_TAG_FILTERS;
