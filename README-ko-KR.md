@@ -29,7 +29,7 @@ WinUI 3와 C#으로 개발했습니다.
 만약에 앱 버전을 2.x.x.x 에서 2.x.x.x로 업그레이드 하는 경우라면 2번을 건너뛰어주세요. 그 외 경우에는 모든 순서를 따라서 설치하면 됩니다.
 1. `Hitomi-Scroll-Viewer.cer`와 `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` 파일을 [다운로드](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) 해주세요.
 2. `Hitomi-Scroll-Viewer.cer` 파일을 연 후 -> 인증서 설치 -> 로컬 컴퓨터 -> 모든 인증서를 다음 인증소에 저장 -> 찾아보기 -> 신뢰할 수 있는 사용자 -> 다음 -> 마침.
-3. `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` 파일을 실행 후 설치해주세요. (주의: 설치 과정에서 진행률이 15% 정도가 되었을때 설치가 멈춘 것 처럼 보일 수 있으나 멈춘 것이 아니며 보통은 5분 이내로 완료됩니다.)
+3. `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` 파일을 실행 후 설치해주세요. (주의: 설치 과정에서 진행률이 15% 정도가 되었을때 설치가 멈춘 것 처럼 보일 수 있으나 멈춘 것이 아니며 보통은 10분 이내로 완료됩니다.)
 4. 만약에 "You must install .NET Desktop Runtime...", 라는 창이 나오면 그대로 따라서 설치해주세요.
 
 ## 사용법 / 조작법
