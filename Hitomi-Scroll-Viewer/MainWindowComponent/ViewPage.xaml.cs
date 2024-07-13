@@ -19,9 +19,9 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent {
     public sealed partial class ViewPage : Page {
-        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("ViewPage");
-        private readonly string[] ORIENTATION_NAMES = ResourceMap.GetValue("Text_StringArray_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
-        private readonly string[] VIEW_DIRECTION_NAMES = ResourceMap.GetValue("Text_StringArray_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ViewPage");
+        private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Text_StringArray_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
+        private readonly string[] VIEW_DIRECTION_NAMES = _resourceMap.GetValue("Text_StringArray_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
 
         private static readonly string SCROLL_DIRECTION_SETTING_KEY = "ScrollDirection";
         private static readonly string VIEW_DIRECTION_SETTING_KEY = "ViewDirection";
@@ -116,7 +116,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             _settings.Values[USE_PAGE_FLIP_EFFECT_SETTING_KEY] = ImageFlipView.UseTouchAnimationsForAllNavigation;
         }
 
+        private static readonly string Text_Notification_NoImagesToLoad_Title = _resourceMap.GetValue("Text_Notification_NoImagesToLoad_Title").ValueAsString;
+
         public async void LoadGallery(Gallery gallery) {
+            if (!Directory.Exists(Path.Combine(IMAGE_DIR, gallery.id))) {
+                MainWindow.NotifyUser(Text_Notification_NoImagesToLoad_Title, "");
+                return;
+            }
             App.MainWindow.SwitchPage();
             if (ToggleAction(true)) {
                 try {
@@ -124,12 +130,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                         await SetImageOrientationAndSize();
                         return;
                     }
-                    string imageDir = Path.Combine(IMAGE_DIR, gallery.id);
-                    if (!Directory.Exists(imageDir)) {
-                        return;
-                    }
                     CurrLoadedGallery = gallery;
-
                     await AddGroupedImagePanels(0);
                 } finally {
                     ToggleAction(false);
@@ -266,8 +267,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             FadeOutStoryboard.Begin();
         }
 
-        private static readonly string TEXT_AUTO_SCROLL_BTN_ON = ResourceMap.GetValue("Text_AutoScrollBtn_On").ValueAsString;
-        private static readonly string TEXT_AUTO_SCROLL_BTN_OFF = ResourceMap.GetValue("Text_AutoScrollBtn_Off").ValueAsString;
+        private static readonly string TEXT_AUTO_SCROLL_BTN_ON = _resourceMap.GetValue("Text_AutoScrollBtn_On").ValueAsString;
+        private static readonly string TEXT_AUTO_SCROLL_BTN_OFF = _resourceMap.GetValue("Text_AutoScrollBtn_Off").ValueAsString;
 
         private CancellationTokenSource _autoScrollCts = new();
         public void ToggleAutoScroll(bool starting) {
@@ -316,8 +317,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             }
         }
 
-        private static readonly string TEXT_LOOP_BTN_ON = ResourceMap.GetValue("Text_LoopBtn_On").ValueAsString;
-        private static readonly string TEXT_LOOP_BTN_OFF = ResourceMap.GetValue("Text_LoopBtn_Off").ValueAsString;
+        private static readonly string TEXT_LOOP_BTN_ON = _resourceMap.GetValue("Text_LoopBtn_On").ValueAsString;
+        private static readonly string TEXT_LOOP_BTN_OFF = _resourceMap.GetValue("Text_LoopBtn_Off").ValueAsString;
 
         private void SetLoopBtnStatus(bool on) {
             LoopBtn.IsChecked = on;

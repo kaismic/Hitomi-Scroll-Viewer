@@ -147,6 +147,9 @@
   <data name="Text_LoopBtn_On" xml:space="preserve">
     <value>루프: 켜짐</value>
   </data>
+  <data name="Text_Notification_NoImagesToLoad_Title" xml:space="preserve">
+    <value>다운로드된 이미지가 없습니다.</value>
+  </data>
   <data name="Text_StringArray_Orientation" xml:space="preserve">
     <value>세로, 가로</value>
   </data>

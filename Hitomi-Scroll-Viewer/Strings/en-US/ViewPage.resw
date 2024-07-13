@@ -147,6 +147,9 @@
   <data name="Text_LoopBtn_On" xml:space="preserve">
     <value>Loop: On</value>
   </data>
+  <data name="Text_Notification_NoImagesToLoad_Title" xml:space="preserve">
+    <value>There are no downloaded images.</value>
+  </data>
   <data name="Text_StringArray_Orientation" xml:space="preserve">
     <value>Vertical, Horizontal</value>
   </data>
