@@ -59,7 +59,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             _viewDirection = (ViewDirection)(_settings.Values[VIEW_DIRECTION_SETTING_KEY] ?? ViewDirection.LeftToRight);
             _autoScrollInterval = (double)(_settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] ?? AutoScrollIntervalSlider.Minimum);
             LoopBtn.IsChecked = (bool)(_settings.Values[IS_LOOPING_SETTING_KEY] ?? true);
-            UsePageFlipEffectCheckBox.IsChecked = ImageFlipView.UseTouchAnimationsForAllNavigation = (bool)(_settings.Values[USE_PAGE_FLIP_EFFECT_SETTING_KEY] ?? false);
+            UsePageFlipEffectCheckBox.IsChecked = ImageFlipView.UseTouchAnimationsForAllNavigation = ScrollDirectionSelector.IsEnabled = (bool)(_settings.Values[USE_PAGE_FLIP_EFFECT_SETTING_KEY] ?? true);
 
             AutoScrollIntervalSlider.Value = _autoScrollInterval;
             ViewDirectionSelector.SelectedIndex = (int)_viewDirection;
@@ -70,9 +70,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             MoreSettingsContentDialog.CloseButtonText = TEXT_CLOSE;
 
             foreach (var control in TopCommandBar.PrimaryCommands.Cast<Control>()) {
-                if (control != MoreSettingsBtn) {
-                    control.VerticalAlignment = VerticalAlignment.Stretch;
-                }
+                control.VerticalAlignment = VerticalAlignment.Stretch;
             }
 
             TopCommandBar.PointerEntered += (_, _) => {
@@ -92,8 +90,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             AutoScrollIntervalSlider.ValueChanged += (object sender, RangeBaseValueChangedEventArgs e) => { _autoScrollInterval = e.NewValue; };
             AutoScrollBtn.Click += (_, _) => ToggleAutoScroll((bool)AutoScrollBtn.IsChecked);
             LoopBtn.Click += (_, _) => SetLoopBtnStatus((bool)LoopBtn.IsChecked);
-            UsePageFlipEffectCheckBox.Checked += (_, _) => ImageFlipView.UseTouchAnimationsForAllNavigation = true;
-            UsePageFlipEffectCheckBox.Unchecked += (_, _) => ImageFlipView.UseTouchAnimationsForAllNavigation = false;
+            UsePageFlipEffectCheckBox.Checked += (_, _) => ImageFlipView.UseTouchAnimationsForAllNavigation = ScrollDirectionSelector.IsEnabled = true;
+            UsePageFlipEffectCheckBox.Unchecked += (_, _) => ImageFlipView.UseTouchAnimationsForAllNavigation = ScrollDirectionSelector.IsEnabled = false;
             MoreSettingsBtn.Click += async (_, _) => await MoreSettingsContentDialog.ShowAsync();
 
             // remove _flipview navigation buttons
@@ -235,9 +233,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             AutoScrollIntervalSlider.IsEnabled = enable;
             AutoScrollBtn.IsEnabled = enable;
             LoopBtn.IsEnabled = enable;
-            ScrollDirectionSelector.IsEnabled = enable;
-            ViewDirectionSelector.IsEnabled = enable;
             PageNavigator.IsEnabled = enable;
+            MoreSettingsBtn.IsEnabled = enable;
             if (IsAutoScrolling) ToggleAutoScroll(false);
         }
 
