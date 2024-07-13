@@ -130,13 +130,13 @@
     <value>Select how to sync tag filters after fetching them</value>
   </data>
   <data name="FetchTagFilterOption2RadioButton1.Content" xml:space="preserve">
-    <value>Replace locally stored tag filters with tag filters fetched from cloud</value>
+    <value>Replace local tag filters</value>
   </data>
   <data name="FetchTagFilterOption2RadioButton2.Content" xml:space="preserve">
-    <value>Keep locally stored tag filters</value>
+    <value>Keep local tag filters</value>
   </data>
   <data name="FetchTagFilterOption2TextBlock.Text" xml:space="preserve">
-    <value>Select how to handle tag filters with duplicate names</value>
+    <value>Select how to sync tag filters with duplicate names</value>
   </data>
   <data name="InfoBar_Error_FileNotFound_Message" xml:space="preserve">
     <value>File has not been uploaded yet.</value>
