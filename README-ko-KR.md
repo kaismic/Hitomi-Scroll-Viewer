@@ -42,3 +42,6 @@ WinUI 3와 C#으로 개발했습니다.
     - 스페이스바로 자동 스크롤 시작/정지.
     - `L` 키로 자동 스크롤 중일때 루프 켜기/끄기.
     - 왼쪽/위쪽 화살표와 오른쪽/아래쪽 화살표 또는 마우스 휠로 페이지 바꾸기.
+
+### 앱 데이터 저장 위치
+`C:\%USERPROFILE%\AppData\Local\Packages\Hitomi-Scroll-Viewer_s0425mpvxwf9w\LocalCache\Roaming\HSV`
