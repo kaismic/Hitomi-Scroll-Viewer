@@ -43,3 +43,6 @@ If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2
     - Use the spacebar to start/stop auto-scrolling.
     - Press the `L` key to enable/disable the loop when auto-scrolling.
     - Use the left/up and right/down arrow keys or mouse wheel to switch between pages.
+
+### App data storage location
+`C:\%USERPROFILE%\AppData\Local\Packages\Hitomi-Scroll-Viewer_s0425mpvxwf9w\LocalCache\Roaming\HSV`
