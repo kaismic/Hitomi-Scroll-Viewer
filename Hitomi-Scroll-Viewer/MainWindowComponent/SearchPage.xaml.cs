@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -460,7 +461,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 BookmarkDict.Add(gallery.id, bmItem);
                 // new page is needed
                 if (BookmarkItems.Count % (BookmarkNumPerPageSelector.SelectedIndex + 1) == 1) {
-                    BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count);
+                    BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count + 1);
                 }
                 WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
                 if (BookmarkItems.Count == 1) {
@@ -488,7 +489,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                         pageChanged = true;
                         BookmarkPageSelector.SelectedIndex = 0;
                     }
-                    BookmarkPageSelector.Items.Remove(BookmarkPageSelector.Items.Count - 1);
+                    BookmarkPageSelector.Items.RemoveAt(BookmarkPageSelector.Items.Count - 1);
                 }
                 // don't call UpdateBookmarkLayout again if BookmarkPageSelector.SelectedIndex is set to 0 because UpdateBookmarkLayout is already called by SelectionChanged event
                 if (!pageChanged) {
