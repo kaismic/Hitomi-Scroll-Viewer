@@ -28,11 +28,12 @@ Currently supported languages: English, Korean
 - Sync data on Google Drive with Google Account
 
 ## How to install
-If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2. Otherwise, follow all the steps.
-1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) `Hitomi-Scroll-Viewer.cer` and `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle`.
-2. Open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
-3. Open `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` and install. (Note: The installation might seem stuck at around 15% but it is in progress and should normally take no more than 10 minutes.)
-4. Also, if a window pops up saying "You must install .NET Desktop Runtime...", install it.
+If you are upgrading the app from version 2.x.x.x onwards, please skip step 1. Otherwise, follow all the steps.
+
+[Download link](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
+1. Download and open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
+2. Download and install `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle`. (Note: The installation might seem stuck at around 15% but it is in progress and should normally take no more than 10 minutes.)
+3. If a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Usage / Controls
 - In Search page:
