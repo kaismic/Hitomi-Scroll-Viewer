@@ -28,7 +28,7 @@ Currently supported languages: English, Korean
 - Sync data on Google Drive with Google Account
 
 ## How to install
-If you are upgrading the app from version 2.x.x.x onwards, please skip step 1. Otherwise, follow all the steps.
+If you are updating the app from version 2.0.0 or onwards, please skip step 1. Otherwise, follow all the steps.
 
 [Download link](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
 1. Download and open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
