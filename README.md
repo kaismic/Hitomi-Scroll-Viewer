@@ -1,6 +1,7 @@
 # Hitomi Scroll Viewer
 [![GitHub latest release](https://img.shields.io/github/release/kaismic/Hitomi-Scroll-Viewer.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
-[![GitHub downloads count latest release](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/latest/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
+[![GitHub downloads count latest release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fkaismic%2FHitomi-Scroll-Viewer%2Freleases%2Flatest&query=%24.assets%5B%3F(%2Fmsixbundle%2F.test(%40.name))%5D.download_count&label=downloads%40latest&color=9BC913
+)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
 [![GitHub downloads count total](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases)
 
 *Read this in other languages:* [한국어](README-ko-KR.md)
@@ -28,11 +29,12 @@ Currently supported languages: English, Korean
 - Sync data on Google Drive with Google Account
 
 ## How to install
-If you are upgrading the app from version 2.x.x.x to 2.x.x.x, please skip step 2. Otherwise, follow all the steps.
-1. [Download](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest) `Hitomi-Scroll-Viewer.cer` and `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle`.
-2. Open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
-3. Open `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle` and install. (Note: The installation might seem stuck at around 15% but it is in progress and should normally take no more than 10 minutes.)
-4. Also, if a window pops up saying "You must install .NET Desktop Runtime...", install it.
+If you are updating the app from version 2.0.0 onwards, please skip step 1. Otherwise, follow all the steps.
+
+[Download link](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
+1. Download and open `Hitomi-Scroll-Viewer.cer` -> Install Certificate-> Local Machine -> Place all certificates in the following store -> Browse -> Trusted People -> Next -> Finish.
+2. Download and install `Hitomi-Scroll-Viewer_x.x.x.x.msixbundle`. (Note: The installation might seem stuck at around 15% but it is in progress and should normally take no more than 10 minutes.)
+3. If a window pops up saying "You must install .NET Desktop Runtime...", install it.
 
 ## Usage / Controls
 - In Search page:
