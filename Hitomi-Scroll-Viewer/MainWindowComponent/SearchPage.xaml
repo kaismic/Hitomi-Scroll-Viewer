@@ -12,27 +12,53 @@
         <StackPanel Orientation="Vertical"
                     Spacing="8"
                     Padding="16">
-            <Grid>
+            <Grid ColumnSpacing="32" Height="800">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <spc:TagContainer x:Name="IncludeTagContainer" Grid.Column="0" IsInclude="True"></spc:TagContainer>
-                <spc:TagContainer x:Name="ExcludeTagContainer" Grid.Column="1" IsInclude="False"></spc:TagContainer>
-            </Grid>
-            <Grid ColumnSpacing="32" Height="512">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="4*"/>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0" RowSpacing="16">
+                <Grid Grid.Column="0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <Button x:Name="CreateHyperlinkBtn" Grid.Row="0"
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Row="0" ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Uid="/SearchPage/TagFilterEditDescTextBlock"
+                                   Grid.Column="0"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Style="{StaticResource BaseTextBlockStyle}"/>
+                        <ComboBox x:Name="FilterTagComboBox" ItemsSource="{x:Bind _tagFilterDictKeys, Mode=OneWay}"
+                                  Grid.Column="1"
+                                  SelectionChanged="FilterTagComboBox_SelectionChanged"
+                                  HorizontalAlignment="Stretch"/>
+                    </Grid>
+                    <spc:TagFilterEditControl x:Name="TagFilterEditControl"
+                                              Grid.Row="1"
+                                              Grid.Column="0" Grid.ColumnSpan="2"/>
+                    <TextBlock x:Uid="/SearchPage/TagFilterSelectionDescTextBlock"
+                               TextWrapping="Wrap"
+                               Grid.Row="2"
+                               Grid.Column="0" Grid.ColumnSpan="2"
+                               HorizontalAlignment="Center"
+                               FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
+                    <!-- Include TagFilterSelectorControl Grid.Row="3" Grid.Column="0" -->
+                    <!-- Exclude TagFilterSelectorControl Grid.Row="3" Grid.Column="1" -->
+                </Grid>
+                <StackPanel Grid.Column="1"
+                            Orientation="Vertical">
+                    <spc:SyncManager></spc:SyncManager>
+                    <Button x:Name="CreateHyperlinkBtn"
                             Click="CreateHyperlinkBtn_Clicked"
                             MinHeight="80"
                             BorderBrush="DeepPink"
@@ -41,7 +67,7 @@
                         <TextBlock x:Uid="/SearchPage/CreateHyperlinkBtnTextBlock"
                                    FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                     </Button>
-                    <ListView x:Name="SearchLinkItemsListView" Grid.Row="1"
+                    <ListView x:Name="SearchLinkItemsListView"
                               ItemsSource="{x:Bind _searchLinkItems}"
                               SelectionMode="None" IsItemClickEnabled="False">
                         <ListView.ItemsPanel>
@@ -58,13 +84,10 @@
                             </Style>
                         </ListView.ItemContainerStyle>
                     </ListView>
-                </Grid>
-                <Grid Grid.Column="1" RowSpacing="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid ColumnSpacing="10" Grid.Row="0">
+                </StackPanel>
+                <StackPanel Grid.Column="2"
+                            Orientation="Vertical">
+                    <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -82,7 +105,7 @@
                         </Button>
                     </Grid>
                     <ListView x:Name="DownloadItemsListView" ItemsSource="{x:Bind DownloadingItems}"
-                              SelectionMode="None" IsItemClickEnabled="False" Grid.Row="1">
+                              SelectionMode="None" IsItemClickEnabled="False">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Spacing="4"></StackPanel>
@@ -97,67 +120,9 @@
                             </Style>
                         </ListView.ItemContainerStyle>
                     </ListView>
-                </Grid>
-                <Grid Grid.Column="2" RowSpacing="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <spc:SyncManager Grid.Row="0"></spc:SyncManager>
-                    <TextBox x:Name="TagNameTextBox" x:Uid="/SearchPage/TagNameTextBox"
-                             Grid.Row="1"
-                             TextWrapping="Wrap"
-                             FontSize="16"
-                             MaxLength="100"
-                             />
-                    <Grid Grid.Row="2" ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="/SearchPage/TagFilterEditDescTextBlock"
-                                   Grid.Column="0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   Style="{StaticResource BaseTextBlockStyle}"/>
-                        <ComboBox x:Name="FilterTagComboBox" ItemsSource="{x:Bind _tagFilterDictKeys, Mode=OneWay}"
-                                  Grid.Column="1"
-                                  SelectionChanged="FilterTagComboBox_SelectionChanged"
-                                  HorizontalAlignment="Stretch"/>
-                    </Grid>
-                    <controls:DockPanel LastChildFill="False" Grid.Row="3">
-                        <Grid controls:DockPanel.Dock="Top"
-                              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                              CornerRadius="{StaticResource OverlayCornerRadius}"
-                              BorderThickness="1"
-                              Padding="16"
-                              RowSpacing="16">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock x:Uid="/SearchPage/TagFilterSelectionDescTextBlock"
-                                       TextWrapping="Wrap"
-                                       Grid.Row="0"
-                                       HorizontalAlignment="Center"
-                                       FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
-                            <ScrollViewer x:Name="SearchFilterItemsScrollViewer" Grid.Row="1">
-                                <ItemsRepeater x:Name="SearchFilterItemsRepeater"
-                                               ItemsSource="{x:Bind _searchFilterItems, Mode=OneWay}">
-                                    <ItemsRepeater.Layout>
-                                        <controls:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
-                                    </ItemsRepeater.Layout>
-                                </ItemsRepeater>
-                            </ScrollViewer>
-                        </Grid>
-                    </controls:DockPanel>
-                </Grid>
-                <Grid x:Name="ControlButtonContainer" Grid.Column="3"
-                            RowSpacing="16"/>
+                </StackPanel>
             </Grid>
-            <Grid Grid.Column="1" Margin="0 8 0 0">
+            <Grid>
                 <TextBlock x:Name="BookmarkHeader"
                            Style="{StaticResource TitleTextBlockStyle}"
                            VerticalAlignment="Center" HorizontalAlignment="Left"/>

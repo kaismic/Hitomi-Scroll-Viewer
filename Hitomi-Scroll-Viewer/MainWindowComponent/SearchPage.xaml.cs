@@ -39,15 +39,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 FilterTagComboBox.ItemsSource = null;
                 _tagFilterDictKeys = new(value.Keys);
                 FilterTagComboBox.ItemsSource = _tagFilterDictKeys;
-
-                _searchFilterItems?.Clear();
-                SearchFilterItemsRepeater.ItemsSource = null;
-                _searchFilterItems = new(value.Keys.Select(key => new SearchFilterItem(key, SearchFilterItem_CheckStateToggled)));
-                SearchFilterItemsRepeater.ItemsSource = _searchFilterItems;
             }
         }
         private ObservableCollection<string> _tagFilterDictKeys;
-        private ObservableCollection<SearchFilterItem> _searchFilterItems;
+        private TagFilterSelectorControl _includeTagFilterSelectorControl;
+        private TagFilterSelectorControl _excludeTagFilterSelectorControl;
 
         private readonly IEnumerable<int> _bookmarkNumPerPageRange = Enumerable.Range(1, 8);
         internal static readonly List<BookmarkItem> BookmarkItems = [];
@@ -101,19 +97,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                     { EXAMPLE_TAG_FILTER_NAME_3, new() },
                     { EXAMPLE_TAG_FILTER_NAME_4, new() },
                 };
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["language"].Add("english");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].includeTags["tag"].Add("full_color");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].excludeTags["type"].Add("gamecg");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["language"].Add("english");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["tag"].Add("full_color");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].ExcludeTagFilters["type"].Add("gamecg");
 
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["type"].Add("doujinshi");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["series"].Add("naruto");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].includeTags["language"].Add("korean");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["type"].Add("doujinshi");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["series"].Add("naruto");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["language"].Add("korean");
 
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["series"].Add("blue_archive");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].includeTags["female"].Add("sole_female");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].excludeTags["language"].Add("chinese");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["series"].Add("blue_archive");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["female"].Add("sole_female");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].ExcludeTagFilters["language"].Add("chinese");
 
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_4].excludeTags["tag"].Add("non-h_imageset");
+                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_4].ExcludeTagFilters["tag"].Add("non-h_imageset");
 
                 WriteTagFilterDict();
             }
@@ -212,7 +208,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
         private void RemoveTagFilterDict(string tagName) {
             TagFilterDict.Remove(tagName);
             _tagFilterDictKeys.Remove(tagName);
-            _searchFilterItems.Remove(_searchFilterItems.First(item => item.TagName == tagName));
+            _searchFilterItems.Remove(_searchFilterItems.First(item => item.TagFilterName == tagName));
             CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Count != 0;
         }
 
@@ -332,14 +328,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 return;
             }
             TagFilter tagFilter = TagFilterDict[_currTagFilterName];
-            IncludeTagContainer.InsertTags(tagFilter.includeTags);
-            ExcludeTagContainer.InsertTags(tagFilter.excludeTags);
+            IncludeTagContainer.InsertTags(tagFilter.IncludeTagFilters);
+            ExcludeTagContainer.InsertTags(tagFilter.ExcludeTagFilters);
         }
 
         private TagFilter GetCurrTagFilter() {
             return new TagFilter() {
-                includeTags = IncludeTagContainer.GetTags(),
-                excludeTags = ExcludeTagContainer.GetTags()
+                IncludeTagFilters = IncludeTagContainer.GetTags(),
+                ExcludeTagFilters = ExcludeTagContainer.GetTags()
             };
         }
 
@@ -350,10 +346,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
             TagFilter combinedTagFilter = selectedSearchFilterItems.Aggregate(
                 new TagFilter(),
                 (result, item) => {
-                    TagFilter currTagFilter = TagFilterDict[item.TagName];
+                    TagFilter currTagFilter = TagFilterDict[item.TagFilterName];
                     foreach (string category in CATEGORIES) {
-                        result.includeTags[category] = result.includeTags[category].Union(currTagFilter.includeTags[category]).ToHashSet();
-                        result.excludeTags[category] = result.excludeTags[category].Union(currTagFilter.excludeTags[category]).ToHashSet();
+                        result.IncludeTagFilters[category] = result.IncludeTagFilters[category].Union(currTagFilter.IncludeTagFilters[category]).ToHashSet();
+                        result.ExcludeTagFilters[category] = result.ExcludeTagFilters[category].Union(currTagFilter.ExcludeTagFilters[category]).ToHashSet();
                     }
                     return result;
                 }
@@ -369,9 +365,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 ' ',
                 CATEGORIES.Select(category =>
                     (
-                        string.Join(' ', combinedTagFilter.includeTags[category].Select(tag => category + ':' + tag.Replace(' ', '_')))
+                        string.Join(' ', combinedTagFilter.IncludeTagFilters[category].Select(tag => category + ':' + tag.Replace(' ', '_')))
                             + ' ' +
-                        string.Join(' ', combinedTagFilter.excludeTags[category].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
+                        string.Join(' ', combinedTagFilter.ExcludeTagFilters[category].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
                     ).Trim()
                 ).Where(searchParam => searchParam != "")
             );
@@ -386,9 +382,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
                 CATEGORIES.Select(category => {
                     string displayTextPart =
                         (
-                            string.Join(' ', combinedTagFilter.includeTags[category].Select(tag => tag.Replace(' ', '_')))
+                            string.Join(' ', combinedTagFilter.IncludeTagFilters[category].Select(tag => tag.Replace(' ', '_')))
                             + ' ' +
-                            string.Join(' ', combinedTagFilter.excludeTags[category].Select(tag => '-' + tag.Replace(' ', '_')))
+                            string.Join(' ', combinedTagFilter.ExcludeTagFilters[category].Select(tag => '-' + tag.Replace(' ', '_')))
                         ).Trim();
                     if (displayTextPart != "") {
                         return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
