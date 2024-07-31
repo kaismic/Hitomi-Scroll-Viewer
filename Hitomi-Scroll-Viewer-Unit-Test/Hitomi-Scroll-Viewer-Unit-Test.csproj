@@ -11,6 +11,7 @@
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
+	<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,11 +31,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240607001" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.7.2">
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.5.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.5.0" />
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.10.0">
       <ExcludeAssets>build</ExcludeAssets>
     </PackageReference>
     <Manifest Include="$(ApplicationManifest)" />
@@ -47,6 +48,9 @@
   -->
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <ProjectCapability Include="Msix" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hitomi-Scroll-Viewer\Hitomi-Scroll-Viewer.csproj" />
   </ItemGroup>
 
   <!-- 

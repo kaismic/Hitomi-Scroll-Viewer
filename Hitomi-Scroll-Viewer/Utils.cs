@@ -18,6 +18,11 @@ namespace Hitomi_Scroll_Viewer {
         public static readonly string TAG_FILTERS_FILE_NAME = "tag_filters.json";
         public static readonly string TAG_FILTERS_FILE_PATH = Path.Combine(ROOT_DIR, TAG_FILTERS_FILE_NAME);
 
+        public static readonly string TAG_FILTER_SETS_FILE_NAME = "tag_filter_sets.db";
+        public static readonly string TAG_FILTER_SETS_FILE_PATH = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, TAG_FILTER_SETS_FILE_NAME);
+        public static readonly string GALLERIES_FILE_NAME = "galleries.db";
+        public static readonly string GALLERIES_FILE_PATH = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, GALLERIES_FILE_NAME);
+
         /*
          * apparently I can't just use Environment.NewLine as separator
          * because of this TextBox bug which somehow converts \r\n to \r and it's still not fixed...
@@ -25,7 +30,9 @@ namespace Hitomi_Scroll_Viewer {
          * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
         */
         public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
-        public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new() { IncludeFields = true, WriteIndented = true };
+        public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        };
         public static readonly StringSplitOptions DEFAULT_STR_SPLIT_OPTIONS = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 
         public static string GetExceptionDetails(Exception e) {
@@ -39,10 +46,6 @@ namespace Hitomi_Scroll_Viewer {
             output += stacktrace;
 
             return output;
-        }
-
-        public static void WriteObjectToJson(string path, object obj) {
-            File.WriteAllText(path, JsonSerializer.Serialize(obj, DEFAULT_SERIALIZER_OPTIONS));
         }
     }
 }

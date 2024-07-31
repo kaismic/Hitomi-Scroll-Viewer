@@ -1,4 +1,5 @@
 using CommunityToolkit.WinUI.UI.Controls;
+using Hitomi_Scroll_Viewer.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -10,7 +11,8 @@ using Windows.Foundation;
 using static Hitomi_Scroll_Viewer.MainWindowComponent.ViewPage;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent
+{
     public sealed partial class GroupedImagePanel : DockPanel {
         private static readonly string VIRTUAL_HOST_NAME = "images.example";
         // {0} = file name

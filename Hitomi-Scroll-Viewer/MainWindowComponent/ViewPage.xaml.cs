@@ -1,4 +1,5 @@
-﻿using Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent;
+﻿using Hitomi_Scroll_Viewer.Entities;
+using Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -17,7 +18,8 @@ using Windows.System;
 using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent
+{
     public sealed partial class ViewPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ViewPage");
         private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Text_StringArray_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);

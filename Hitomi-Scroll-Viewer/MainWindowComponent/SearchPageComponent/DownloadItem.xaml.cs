@@ -15,8 +15,10 @@ using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
+using Hitomi_Scroll_Viewer.Entities;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
+{
     public sealed partial class DownloadItem : Grid {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("DownloadItem");
 
@@ -196,7 +198,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
                 DownloadStatusTextBlock.Text = STATUS_TEXT_READING_GALLERY_INFO;
                 try {
-                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS);
+                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS,);
                     DownloadProgressBar.Maximum = _gallery.files.Length;
                     Description.Text += $" - {_gallery.title}"; // add title to description
                 }

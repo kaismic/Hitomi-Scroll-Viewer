@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:spc="using:Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent"
-    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <ScrollViewer>
@@ -18,43 +18,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Row="0" ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock x:Uid="/SearchPage/TagFilterEditDescTextBlock"
-                                   Grid.Column="0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   Style="{StaticResource BaseTextBlockStyle}"/>
-                        <ComboBox x:Name="FilterTagComboBox" ItemsSource="{x:Bind _tagFilterDictKeys, Mode=OneWay}"
-                                  Grid.Column="1"
-                                  SelectionChanged="FilterTagComboBox_SelectionChanged"
-                                  HorizontalAlignment="Stretch"/>
-                    </Grid>
-                    <spc:TagFilterEditControl x:Name="TagFilterEditControl"
-                                              Grid.Row="1"
-                                              Grid.Column="0" Grid.ColumnSpan="2"/>
-                    <TextBlock x:Uid="/SearchPage/TagFilterSelectionDescTextBlock"
-                               TextWrapping="Wrap"
-                               Grid.Row="2"
-                               Grid.Column="0" Grid.ColumnSpan="2"
-                               HorizontalAlignment="Center"
-                               FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
-                    <!-- Include TagFilterSelectorControl Grid.Row="3" Grid.Column="0" -->
-                    <!-- Exclude TagFilterSelectorControl Grid.Row="3" Grid.Column="1" -->
-                </Grid>
+                <spc:TagFilterSetControl Grid.Column="0"/>
                 <StackPanel Grid.Column="1"
                             Orientation="Vertical">
                     <spc:SyncManager></spc:SyncManager>
@@ -122,18 +86,26 @@
                     </ListView>
                 </StackPanel>
             </Grid>
-            <Grid>
+            <!--<Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock x:Name="BookmarkHeader"
+                           Grid.Column="0"
                            Style="{StaticResource TitleTextBlockStyle}"
                            VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                <StackPanel Orientation="Horizontal"
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
                             VerticalAlignment="Bottom" HorizontalAlignment="Center"
                             Spacing="8">
                     <TextBlock x:Name="BookmarkPageSelectorHeader"
                                VerticalAlignment="Center"/>
                     <ComboBox x:Name="BookmarkPageSelector"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal"
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
                             VerticalAlignment="Bottom" HorizontalAlignment="Right"
                             Spacing="8">
                     <TextBlock x:Name="BookmarkNumPerPageSelectorHeader"
@@ -143,7 +115,7 @@
                               SelectionChanged="BookmarkNumPerPageSelector_SelectionChanged"/>
                 </StackPanel>
             </Grid>
-            <StackPanel x:Name="BookmarkPanel" Orientation="Vertical" Spacing="16"/>
+            <StackPanel x:Name="BookmarkPanel" Orientation="Vertical" Spacing="16"/>-->
         </StackPanel>
     </ScrollViewer>
 </Page>

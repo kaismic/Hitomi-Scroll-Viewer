@@ -10,16 +10,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using static Hitomi_Scroll_Viewer.Resources;
-using static Hitomi_Scroll_Viewer.TagFilter;
+using static Hitomi_Scroll_Viewer.Entities.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
+using Hitomi_Scroll_Viewer.Entities;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent
+{
     public sealed partial class SearchPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SearchPage");
 
@@ -28,22 +29,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
-
-        private Dictionary<string, TagFilter> _tagFilterDict;
-        internal Dictionary<string, TagFilter> TagFilterDict {
-            get => _tagFilterDict;
-            set {
-                _tagFilterDict = value;
-
-                _tagFilterDictKeys?.Clear();
-                FilterTagComboBox.ItemsSource = null;
-                _tagFilterDictKeys = new(value.Keys);
-                FilterTagComboBox.ItemsSource = _tagFilterDictKeys;
-            }
-        }
-        private ObservableCollection<string> _tagFilterDictKeys;
-        private TagFilterSelectorControl _includeTagFilterSelectorControl;
-        private TagFilterSelectorControl _excludeTagFilterSelectorControl;
 
         private readonly IEnumerable<int> _bookmarkNumPerPageRange = Enumerable.Range(1, 8);
         internal static readonly List<BookmarkItem> BookmarkItems = [];
@@ -79,107 +64,41 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent {
 
         public SearchPage() {
             InitializeComponent();
-            InitLayout();
 
-            _settings = ApplicationData.Current.LocalSettings;
-            BookmarkNumPerPageSelector.SelectedIndex = (int)(_settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] ?? 2);
+            //_settings = ApplicationData.Current.LocalSettings;
+            //BookmarkNumPerPageSelector.SelectedIndex = (int)(_settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] ?? 2);
 
-            if (File.Exists(TAG_FILTERS_FILE_PATH)) {
-                TagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
-                    File.ReadAllText(TAG_FILTERS_FILE_PATH),
-                    typeof(Dictionary<string, TagFilter>),
-                    DEFAULT_SERIALIZER_OPTIONS
-                );
-            } else {
-                TagFilterDict = new() {
-                    { EXAMPLE_TAG_FILTER_NAME_1, new() },
-                    { EXAMPLE_TAG_FILTER_NAME_2, new() },
-                    { EXAMPLE_TAG_FILTER_NAME_3, new() },
-                    { EXAMPLE_TAG_FILTER_NAME_4, new() },
-                };
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["language"].Add("english");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["tag"].Add("full_color");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].ExcludeTagFilters["type"].Add("gamecg");
+            //if (File.Exists(TAG_FILTERS_FILE_PATH)) {
+            //    TagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
+            //        File.ReadAllText(TAG_FILTERS_FILE_PATH),
+            //        typeof(Dictionary<string, TagFilter>),
+            //        DEFAULT_SERIALIZER_OPTIONS
+            //    );
+            //} else {
+            //    TagFilterDict = new() {
+            //        { EXAMPLE_TAG_FILTER_NAME_1, new() },
+            //        { EXAMPLE_TAG_FILTER_NAME_2, new() },
+            //        { EXAMPLE_TAG_FILTER_NAME_3, new() },
+            //        { EXAMPLE_TAG_FILTER_NAME_4, new() },
+            //    };
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["language"].Add("english");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["tag"].Add("full_color");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].ExcludeTagFilters["type"].Add("gamecg");
 
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["type"].Add("doujinshi");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["series"].Add("naruto");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["language"].Add("korean");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["type"].Add("doujinshi");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["series"].Add("naruto");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["language"].Add("korean");
 
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["series"].Add("blue_archive");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["female"].Add("sole_female");
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].ExcludeTagFilters["language"].Add("chinese");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["series"].Add("blue_archive");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["female"].Add("sole_female");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].ExcludeTagFilters["language"].Add("chinese");
 
-                TagFilterDict[EXAMPLE_TAG_FILTER_NAME_4].ExcludeTagFilters["tag"].Add("non-h_imageset");
+            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_4].ExcludeTagFilters["tag"].Add("non-h_imageset");
 
-                WriteTagFilterDict();
-            }
+            //    WriteTagFilterDict();
+            //}
 
-            // create bookmarked galleries' info file if it doesn't exist
-            if (!File.Exists(BOOKMARKS_FILE_PATH)) {
-                WriteObjectToJson(BOOKMARKS_FILE_PATH, new List<Gallery>());
-            }
-            // read bookmarked galleries' info from file
-            List<Gallery> galleries = (List<Gallery>)JsonSerializer.Deserialize(
-                File.ReadAllText(BOOKMARKS_FILE_PATH),
-                typeof(List<Gallery>),
-                DEFAULT_SERIALIZER_OPTIONS
-                );
 
-            // fill BookmarkItems
-            for (int i = 0; i < galleries.Count; i++) {
-                BookmarkItem bmItem = new(galleries[i], false);
-                BookmarkItems.Add(bmItem);
-                BookmarkDict.Add(galleries[i].id, bmItem);
-            }
-            UpdateBookmarkLayout();
-            BookmarkPageSelector.SelectionChanged += (_, _) => UpdateBookmarkLayout();
-
-            BookmarkHeader.Text = TEXT_BOOKMARKS;
-            BookmarkPageSelectorHeader.Text = TEXT_PAGE;
-            BookmarkNumPerPageSelectorHeader.Text = _resourceMap.GetValue("Text_BookmarkNumPerPage").ValueAsString;
-        }
-
-        private void InitLayout() {
-            // Create Tag Control Buttons
-            Button[] controlButtons = new Button[5];
-            CornerRadius radius = new(4);
-            string[] controlButtonTexts = [
-                _resourceMap.GetValue("ButtonText_CreateTagFilter").ValueAsString,
-                _resourceMap.GetValue("ButtonText_RenameTagFilter").ValueAsString,
-                _resourceMap.GetValue("ButtonText_SaveTagFilter").ValueAsString,
-                _resourceMap.GetValue("ButtonText_DeleteTagFilter").ValueAsString,
-                _resourceMap.GetValue("ButtonText_ClearTextBoxes").ValueAsString
-            ];
-            SolidColorBrush[] controlButtonBorderColors = [
-                new(Colors.Blue),
-                new(Colors.Orange),
-                new(Colors.Green),
-                new(Colors.Red),
-                new(Colors.Black)
-            ];
-            RoutedEventHandler[] controlButtonEventHandlers = [
-                CreateTagFilterBtn_Clicked,
-                RenameTagFilterBtn_Clicked,
-                SaveTagFilterBtn_Clicked,
-                DeleteTagFilterBtn_Clicked,
-                ClearTextBoxesBtn_Clicked
-            ];
-            for (int i = 0; i < controlButtons.Length; i++) {
-                controlButtons[i] = new() {
-                    CornerRadius = radius,
-                    HorizontalAlignment = HorizontalAlignment.Stretch,
-                    VerticalAlignment = VerticalAlignment.Stretch,
-                    BorderBrush = controlButtonBorderColors[i],
-                    Content = new TextBlock() {
-                        Text = controlButtonTexts[i],
-                        TextWrapping = TextWrapping.WrapWholeWords
-                    }
-                };
-                controlButtons[i].Click += controlButtonEventHandlers[i];
-                Grid.SetRow(controlButtons[i], i);
-                ControlButtonContainer.RowDefinitions.Add(new());
-                ControlButtonContainer.Children.Add(controlButtons[i]);
-            }
 
             void SetConfirmDialogXamlRoot(object _0, RoutedEventArgs _1) {
                 _confirmDialog.XamlRoot = XamlRoot;

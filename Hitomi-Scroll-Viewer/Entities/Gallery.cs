@@ -1,17 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Hitomi_Scroll_Viewer.Entities
 {
-    [Index(nameof(PageIndex))]
+    [Index(nameof(Title))]
+    [Index(nameof(DownloadTime))]
+    // TODO think about which one to index
     public class Gallery
     {
-        public int PageIndex { get; set; }
         public int Id { get; set; }
         public string Title { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime DownloadTime { get; set; }
 
         public IEnumerable<int> SceneIndexes { get; set; }
 
@@ -49,17 +54,17 @@ namespace Hitomi_Scroll_Viewer.Entities
         // Example: "artists":[{"artist":"hsd","url":"/artist/hsd-all.html"}, {"artist":"nora_higuma","url":"/artist/nora%20higuma-all.html"}]
         [JsonConverter(typeof(ArtistsDictionaryConverter))]
         public IEnumerable<string> Artists { get; set; }
-        public ImageInfo[] Files { get; set; }
+        public virtual ICollection<ImageInfo> Files { get; private set; } = new ObservableCollection<ImageInfo>();
 
-        public struct ImageInfo
+        public class ImageInfo
         {
-            public string Name { get; set; }
+            public virtual Gallery Gallery { get; set; }
             public int Height { get; set; }
             public int Width { get; set; }
             public int HasWebp { get; set; }
 
             public int HasAvif { get; set; }
-            public int HasKxl { get; set; }
+            public int HasJxl { get; set; }
             public string Hash { get; set; }
         }
     }

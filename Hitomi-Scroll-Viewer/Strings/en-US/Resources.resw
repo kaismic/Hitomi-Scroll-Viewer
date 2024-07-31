@@ -133,18 +133,6 @@
   <data name="Text_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="ExampleTagFilterName_1" xml:space="preserve">
-    <value>Example: Include English, Full Color and Exclude Game CG</value>
-  </data>
-  <data name="ExampleTagFilterName_2" xml:space="preserve">
-    <value>Example: Include Doujinshi, Naruto, Korean</value>
-  </data>
-  <data name="ExampleTagFilterName_3" xml:space="preserve">
-    <value>Example: Include Blue Archive, Sole Female and Exclude Chinese</value>
-  </data>
-  <data name="ExampleTagFilterName_4" xml:space="preserve">
-    <value>Example: Include Non-H</value>
-  </data>
   <data name="Text_Bookmarks" xml:space="preserve">
     <value>Bookmarks</value>
   </data>
@@ -159,5 +147,17 @@
   </data>
   <data name="Text_Page" xml:space="preserve">
     <value>Page</value>
+  </data>
+  <data name="ExampleTagFilterSet_1" xml:space="preserve">
+    <value>English, Full Color</value>
+  </data>
+  <data name="ExampleTagFilterSet_2" xml:space="preserve">
+    <value>Doujinshi, Naruto, Korean</value>
+  </data>
+  <data name="ExampleTagFilterSet_3" xml:space="preserve">
+    <value>Blue Archive, Sole Female</value>
+  </data>
+  <data name="ExampleTagFilterSet_4" xml:space="preserve">
+    <value>Non-H</value>
   </data>
 </root>

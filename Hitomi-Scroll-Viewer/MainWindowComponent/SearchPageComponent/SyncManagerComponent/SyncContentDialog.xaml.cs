@@ -3,6 +3,7 @@ using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
 using Google.Apis.Upload;
+using Hitomi_Scroll_Viewer.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -17,7 +18,8 @@ using System.Threading.Tasks;
 using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.Utils;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.SyncManagerComponent
+{
     public sealed partial class SyncContentDialog : ContentDialog {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SyncContentDialog");
 

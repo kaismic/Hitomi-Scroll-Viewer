@@ -6,8 +6,10 @@ using System.IO;
 using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.MainWindowComponent.SearchPage;
 using static Hitomi_Scroll_Viewer.Utils;
+using Hitomi_Scroll_Viewer.Entities;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
+{
     public sealed partial class BookmarkItem : Grid {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("BookmarkItem");
         private static readonly string NOTIFICATION_ALREADY_DOWNLOADING = _resourceMap.GetValue("Notification_AlreadyDownloading").ValueAsString;

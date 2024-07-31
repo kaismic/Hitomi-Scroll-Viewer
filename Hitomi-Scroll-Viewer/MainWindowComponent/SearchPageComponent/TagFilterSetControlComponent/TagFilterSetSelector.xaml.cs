@@ -1,4 +1,4 @@
-using CommunityToolkit.WinUI.UI.Controls;
+using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -9,9 +9,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using static Hitomi_Scroll_Viewer.Resources;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
-    public sealed partial class TagFilterSelectorControl : DockPanel {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSelector");
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetControlComponent {
+    public sealed partial class TagFilterSetSelector : DockPanel {
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetSelector");
 
         internal ObservableCollection<string> TagFilterNames {
             set {
@@ -23,24 +23,27 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             }
         }
         private ObservableCollection<TagFilterCheckBox> _tagFilterCheckBoxes;
-        private readonly TagFilterSelectorControl _pairTagFilterSelector;
-        internal bool IsInclude { get; private set; }
-
-        public TagFilterSelectorControl(ObservableCollection<string> tagFilterNames, TagFilterSelectorControl pairTagFilterSelector, bool isInclude) {
-            InitializeComponent();
-            
-            TagFilterNames = tagFilterNames;
-
-            _pairTagFilterSelector = pairTagFilterSelector;
-
-            IsInclude = isInclude;
-            if (isInclude) {
-                HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Include").ValueAsString;
-                HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Green);
-            } else {
-                HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Exclude").ValueAsString;
-                HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+        internal TagFilterSetSelector PairTagFilterSelector { get; set; }
+        
+        private bool _isInclude;
+        internal bool IsInclude {
+            get => _isInclude;
+            set {
+                _isInclude = value;
+                if (value) {
+                    //HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Include").ValueAsString; TODO
+                    HeaderTextBlock.Text = "HeaderText_Include"; 
+                    HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Green);
+                } else {
+                    //HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Exclude").ValueAsString; TODO
+                    HeaderTextBlock.Text = "HeaderText_Exclude"; 
+                    HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+                }
             }
+        }
+
+        public TagFilterSetSelector() {
+            InitializeComponent();
         }
 
         private void TagFilterNames_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
@@ -67,12 +70,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e) {
             int idx = _tagFilterCheckBoxes.IndexOf(sender as TagFilterCheckBox);
-            _pairTagFilterSelector.EnableCheckBox(idx, false);
+            PairTagFilterSelector.EnableCheckBox(idx, false);
         }
 
         private void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
             int idx = _tagFilterCheckBoxes.IndexOf(sender as TagFilterCheckBox);
-            _pairTagFilterSelector.EnableCheckBox(idx, true);
+            PairTagFilterSelector.EnableCheckBox(idx, true);
         }
 
         internal List<int> GetCheckedTagFilterIndexes() {

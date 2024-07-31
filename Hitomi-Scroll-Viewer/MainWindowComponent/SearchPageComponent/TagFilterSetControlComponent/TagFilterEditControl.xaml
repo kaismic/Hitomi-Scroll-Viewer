@@ -1,0 +1,41 @@
+<StackPanel
+    x:Class="Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetControlComponent.TagFilterSetEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Orientation="Vertical"
+    >
+    <Grid x:Name="TagFilterSetControlGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Button>
+            <SymbolIcon Symbol="Add"/>
+        </Button>
+        <Button>
+            <SymbolIcon Symbol="Edit"/>
+        </Button>
+        <ComboBox x:Name="TagFilterSetComboBox"
+                  SelectionChanged="TagFilterSetComboBox_SelectionChanged"></ComboBox>
+        <Button>
+            <SymbolIcon Symbol="Save"/>
+        </Button>
+        <Button>
+            <SymbolIcon Symbol="Delete"/>
+        </Button>
+    </Grid>
+    <Grid x:Name="TextBoxesGrid"
+          BorderThickness="1"
+          BorderBrush="Black">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+    </Grid>
+</StackPanel>

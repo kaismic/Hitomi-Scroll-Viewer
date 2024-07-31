@@ -11,7 +11,7 @@ namespace Hitomi_Scroll_Viewer.DbContexts
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder.UseSqlite($"Data Source={BOOKMARK_GALLERIES_FILE_NAME}");
+            optionsBuilder.UseSqlite($"Data Source={GALLERIES_FILE_NAME}");
         }
     }
 }
