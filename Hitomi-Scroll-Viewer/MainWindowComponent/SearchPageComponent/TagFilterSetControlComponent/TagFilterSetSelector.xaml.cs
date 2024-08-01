@@ -78,11 +78,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
             PairTagFilterSelector.EnableCheckBox(idx, true);
         }
 
-        internal List<int> GetCheckedTagFilterIndexes() {
-            List<int> result = [];
-            for (int i = 0; i < _tagFilterCheckBoxes.Count; i++) {
-                if (_tagFilterCheckBoxes[i].IsChecked == true) {
-                    result.Add(i);
+        internal List<string> GetCheckedTagFilterSetNames() {
+            List<string> result = [];
+            foreach (TagFilterCheckBox tagFilterCheckBox in _tagFilterCheckBoxes) {
+                if (tagFilterCheckBox.IsChecked == true) {
+                    result.Add(tagFilterCheckBox.TagFilterSetName);
                 }
             }
             return result;

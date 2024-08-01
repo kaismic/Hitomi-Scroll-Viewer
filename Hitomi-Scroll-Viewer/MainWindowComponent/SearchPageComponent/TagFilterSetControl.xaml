@@ -7,22 +7,18 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:tfscc="using:Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetControlComponent"
     mc:Ignorable="d">
-    <tfscc:TagFilterSetEditor x:Name="TagFilterSetEditor"/>
-    <!--<TextBlock x:Uid="/SearchPage/TagFilterSelectionDescTextBlock"
-               TextWrapping="Wrap"
-               HorizontalAlignment="Center"
-               FontSize="{StaticResource SubtitleTextBlockFontSize}"/>-->
+    <tfscc:TagFilterSetEditor x:Name="TagFilterSetEditor" x:FieldModifier="internal"/>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <tfscc:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector"
+        <tfscc:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector" x:FieldModifier="internal"
                                     IsInclude="True"
                                     PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
                                     Grid.Column="0"
                                     />
-        <tfscc:TagFilterSetSelector x:Name="ExcludeTagFilterSetSelector"
+        <tfscc:TagFilterSetSelector x:Name="ExcludeTagFilterSetSelector" x:FieldModifier="internal"
                                     IsInclude="False"
                                     PairTagFilterSelector="{x:Bind IncludeTagFilterSetSelector}"
                                     Grid.Column="1"

@@ -15,18 +15,24 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Button>
+        <Button Click="CreateButton_Click">
             <SymbolIcon Symbol="Add"/>
         </Button>
-        <Button>
+        <Button x:Name="RenameButton"
+                Click="RenameButton_Click"
+                IsEnabled="False">
             <SymbolIcon Symbol="Edit"/>
         </Button>
         <ComboBox x:Name="TagFilterSetComboBox"
-                  SelectionChanged="TagFilterSetComboBox_SelectionChanged"></ComboBox>
-        <Button>
+                  SelectionChanged="TagFilterSetComboBox_SelectionChanged"/>
+        <Button x:Name="SaveButton"
+                Click="SaveButton_Click"
+                IsEnabled="False">
             <SymbolIcon Symbol="Save"/>
         </Button>
-        <Button>
+        <Button x:Name="DeleteButton"
+                Click="DeleteButton_Click"
+                IsEnabled="False">
             <SymbolIcon Symbol="Delete"/>
         </Button>
     </Grid>

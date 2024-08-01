@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using static Hitomi_Scroll_Viewer.Entities.TagFilter;
 
 namespace Hitomi_Scroll_Viewer.Entities
 {
@@ -13,6 +15,9 @@ namespace Hitomi_Scroll_Viewer.Entities
         public string Name { get; set; }
 
         [MaxLength(7)] // TagFilter.CATEGORIES.Length
-        public ICollection<TagFilter> TagFilters { get; set; } = [];
+        public TagFilter[] TagFilters { get; set; } =
+            CATEGORIES
+            .Select(category => new TagFilter() { Category = category })
+            .ToArray();
     }
 }

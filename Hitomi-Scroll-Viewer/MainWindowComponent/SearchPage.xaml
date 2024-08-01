@@ -18,7 +18,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <spc:TagFilterSetControl Grid.Column="0"/>
+                <spc:TagFilterSetControl x:Name="TagFilterSetControl" Grid.Column="0"/>
                 <StackPanel Grid.Column="1"
                             Orientation="Vertical">
                     <spc:SyncManager></spc:SyncManager>
@@ -62,7 +62,8 @@
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  />
-                        <Button Grid.Column="1" Padding="32"
+                        <Button x:Name="DownloadButton"
+                                Grid.Column="1" Padding="32"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                 Click="DownloadBtn_Clicked">
                             <SymbolIcon Symbol="Download"></SymbolIcon>

@@ -7,8 +7,6 @@ namespace Hitomi_Scroll_Viewer.DbContexts
     internal class TagFilterSetContext : DbContext
     {
         public DbSet<TagFilterSet> TagFilterSets { get; set; }
-        public DbSet<TagFilter> TagFilters { get; set; }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path

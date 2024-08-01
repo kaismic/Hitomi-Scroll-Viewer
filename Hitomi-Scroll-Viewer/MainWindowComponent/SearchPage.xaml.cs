@@ -97,7 +97,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
 
             //    WriteTagFilterDict();
             //}
-
+            GalleryIDTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = GalleryIDTextBox.Text.Length != 0; };
 
 
             void SetConfirmDialogXamlRoot(object _0, RoutedEventArgs _1) {
@@ -114,23 +114,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             return result;
         }
 
-        private void SearchFilterItem_CheckStateToggled(object sender, RoutedEventArgs e) {
-            CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Any(item => (bool)item.IsChecked);
-        }
-
-        private void AddTagFilterDict(string tagName, TagFilter tagFilter) {
-            TagFilterDict.Add(tagName, tagFilter);
-            _tagFilterDictKeys.Add(tagName);
-            _searchFilterItems.Add(new(tagName, SearchFilterItem_CheckStateToggled));
-        }
-        
-        private void RemoveTagFilterDict(string tagName) {
-            TagFilterDict.Remove(tagName);
-            _tagFilterDictKeys.Remove(tagName);
-            _searchFilterItems.Remove(_searchFilterItems.First(item => item.TagFilterName == tagName));
-            CreateHyperlinkBtn.IsEnabled = _searchFilterItems.Count != 0;
-        }
-
         private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Content").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameDup_Title").ValueAsString;
@@ -140,127 +123,31 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         private static readonly string NOTIFICATION_TAG_FILTER_CREATE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_1_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_CREATE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_2_Title").ValueAsString;
 
-        private async void CreateTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
-            string newTagFilterName = TagNameTextBox.Text.Trim();
-            if (newTagFilterName.Length == 0) {
-                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE, NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT);
-                return;
-            }
-            if (TagFilterDict.ContainsKey(newTagFilterName)) {
-                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE, NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT);
-                return;
-            }
-            string overlappingTagFiltersText = GetCurrTagFilter().GetIncludeExcludeOverlap();
-            if (overlappingTagFiltersText != "") {
-                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_OVERLAP_TITLE, overlappingTagFiltersText);
-                return;
-            }
-            ContentDialogResult cdr = await ShowConfirmDialogAsync(string.Format(NOTIFICATION_TAG_FILTER_CREATE_1_TITLE, newTagFilterName), "");
-            if (cdr != ContentDialogResult.Primary) {
-                return;
-            }
-            TagNameTextBox.Text = "";
-            AddTagFilterDict(newTagFilterName, GetCurrTagFilter());
-            FilterTagComboBox.SelectedItem = newTagFilterName;
-            WriteTagFilterDict();
-            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_CREATE_2_TITLE, newTagFilterName), "");
-        }
 
         private static readonly string NOTIFICATION_TAG_FILTER_RENAME_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Rename_1_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_RENAME_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Rename_2_Title").ValueAsString;
 
-        private async void RenameTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if (_currTagFilterName == null) return;
-            string oldTagFilterName = _currTagFilterName;
-            string newTagFilterName = TagNameTextBox.Text.Trim();
-            if (newTagFilterName.Length == 0) {
-                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE, NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT);
-                return;
-            }
-            if (TagFilterDict.ContainsKey(newTagFilterName)) {
-                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE, NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT);
-                return;
-            }
-            ContentDialogResult cdr = await ShowConfirmDialogAsync(string.Format(NOTIFICATION_TAG_FILTER_RENAME_1_TITLE, oldTagFilterName, newTagFilterName), "");
-            if (cdr != ContentDialogResult.Primary) {
-                return;
-            }
-            TagNameTextBox.Text = "";
-            AddTagFilterDict(newTagFilterName, TagFilterDict[oldTagFilterName]);
-            FilterTagComboBox.SelectedItem = newTagFilterName;
-            RemoveTagFilterDict(oldTagFilterName);
-            WriteTagFilterDict();
-            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_RENAME_2_TITLE, oldTagFilterName, newTagFilterName), "");
-        }
 
         private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Save_1_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_CONTENT = _resourceMap.GetValue("Notification_TagFilter_Save_1_Content").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_SAVE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Save_2_Title").ValueAsString;
 
-        private async void SaveTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if (_currTagFilterName == null) return;
-            string overlappingTagFiltersText = GetCurrTagFilter().GetIncludeExcludeOverlap();
-            if (overlappingTagFiltersText != "") {
-                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_OVERLAP_TITLE, overlappingTagFiltersText);
-                return;
-            }
-            ContentDialogResult cdr = await ShowConfirmDialogAsync(
-                string.Format(NOTIFICATION_TAG_FILTER_SAVE_1_TITLE, _currTagFilterName),
-                string.Format(NOTIFICATION_TAG_FILTER_SAVE_1_CONTENT, _currTagFilterName)
-            );
-            if (cdr != ContentDialogResult.Primary) {
-                return;
-            }
-            TagFilterDict[_currTagFilterName] = GetCurrTagFilter();
-            WriteTagFilterDict();
-            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_SAVE_2_TITLE, _currTagFilterName), "");
-        }
-
         private static readonly string NOTIFICATION_TAG_FILTER_DELETE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_1_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_DELETE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_2_Title").ValueAsString;
 
-        private async void DeleteTagFilterBtn_Clicked(object _0, RoutedEventArgs _1) {
-            if (_currTagFilterName == null) return;
-            string tagFilterName = _currTagFilterName;
-            ContentDialogResult cdr = await ShowConfirmDialogAsync(string.Format(NOTIFICATION_TAG_FILTER_DELETE_1_TITLE, tagFilterName), "");
-            if (cdr != ContentDialogResult.Primary) {
-                return;
-            }
-            RemoveTagFilterDict(tagFilterName);
-            WriteTagFilterDict();
-            MainWindow.NotifyUser(string.Format(NOTIFICATION_TAG_FILTER_DELETE_2_TITLE, tagFilterName), "");
-        }
 
-        private void ClearTextBoxesBtn_Clicked(object _0, RoutedEventArgs _1) {
-            IncludeTagContainer.Clear();
-            ExcludeTagContainer.Clear();
-        }
-
-        public void WriteTagFilterDict() {
-            WriteObjectToJson(TAG_FILTERS_FILE_PATH, TagFilterDict);
-        }
-
-        private void FilterTagComboBox_SelectionChanged(object _0, SelectionChangedEventArgs _1) {
-            _currTagFilterName = (string)FilterTagComboBox.SelectedItem;
-            if (_currTagFilterName == null) {
-                ClearTextBoxesBtn_Clicked(null, null);
-                return;
-            }
-            TagFilter tagFilter = TagFilterDict[_currTagFilterName];
-            IncludeTagContainer.InsertTags(tagFilter.IncludeTagFilters);
-            ExcludeTagContainer.InsertTags(tagFilter.ExcludeTagFilters);
-        }
-
-        private TagFilter GetCurrTagFilter() {
-            return new TagFilter() {
-                IncludeTagFilters = IncludeTagContainer.GetTags(),
-                ExcludeTagFilters = ExcludeTagContainer.GetTags()
-            };
-        }
 
         private static readonly string NOTIFICATION_SEARCH_LINK_CONTENT_EMPTY_TITLE = _resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString;
 
         private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
+            string selectedTagFilterSetName = TagFilterSetControl.TagFilterSetEditor.GetSelectedTagFilterSetName();
+            List<string> includeTagFilterSetNames = TagFilterSetControl.IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
+            List<string> excludeTagFilterSetNames = TagFilterSetControl.IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
+            if (selectedTagFilterSetName == null) {
+
+            } else {
+
+            }
             var selectedSearchFilterItems = _searchFilterItems.Where(item => (bool)item.IsChecked);
             TagFilter combinedTagFilter = selectedSearchFilterItems.Aggregate(
                 new TagFilter(),
@@ -364,104 +251,104 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             return false;
         }
 
-        public BookmarkItem AddBookmark(Gallery gallery) {
-            lock (_bmLock) {
-                // return the BookmarkItem if it is already bookmarked
-                if (BookmarkDict.TryGetValue(gallery.id, out BookmarkItem bmItem)) {
-                    return bmItem;
-                }
-                bmItem = new BookmarkItem(gallery, true);
-                BookmarkItems.Add(bmItem);
-                BookmarkDict.Add(gallery.id, bmItem);
-                // new page is needed
-                if (BookmarkItems.Count % (BookmarkNumPerPageSelector.SelectedIndex + 1) == 1) {
-                    BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count + 1);
-                }
-                WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
-                if (BookmarkItems.Count == 1) {
-                    BookmarkPageSelector.SelectedIndex = 0;
-                } else {
-                    UpdateBookmarkLayout();
-                }
-                return bmItem;
-            }
-        }
+        //public BookmarkItem AddBookmark(Gallery gallery) {
+        //    lock (_bmLock) {
+        //        // return the BookmarkItem if it is already bookmarked
+        //        if (BookmarkDict.TryGetValue(gallery.id, out BookmarkItem bmItem)) {
+        //            return bmItem;
+        //        }
+        //        bmItem = new BookmarkItem(gallery, true);
+        //        BookmarkItems.Add(bmItem);
+        //        BookmarkDict.Add(gallery.id, bmItem);
+        //        // new page is needed
+        //        if (BookmarkItems.Count % (BookmarkNumPerPageSelector.SelectedIndex + 1) == 1) {
+        //            BookmarkPageSelector.Items.Add(BookmarkPageSelector.Items.Count + 1);
+        //        }
+        //        WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+        //        if (BookmarkItems.Count == 1) {
+        //            BookmarkPageSelector.SelectedIndex = 0;
+        //        } else {
+        //            UpdateBookmarkLayout();
+        //        }
+        //        return bmItem;
+        //    }
+        //}
 
-        public void RemoveBookmark(BookmarkItem bmItem) {
-            lock (_bmLock) {
-                string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
-                if (Directory.Exists(path)) Directory.Delete(path, true);
-                BookmarkItems.Remove(bmItem);
-                BookmarkDict.Remove(bmItem.gallery.id);
-                WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+        //public void RemoveBookmark(BookmarkItem bmItem) {
+        //    lock (_bmLock) {
+        //        string path = Path.Combine(IMAGE_DIR, bmItem.gallery.id);
+        //        if (Directory.Exists(path)) Directory.Delete(path, true);
+        //        BookmarkItems.Remove(bmItem);
+        //        BookmarkDict.Remove(bmItem.gallery.id);
+        //        WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
 
-                bool pageChanged = false;
-                // a page needs to be removed
-                if (BookmarkItems.Count % (BookmarkNumPerPageSelector.SelectedIndex + 1) == 0) {
-                    // if current page is the last page
-                    if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
-                        pageChanged = true;
-                        BookmarkPageSelector.SelectedIndex = 0;
-                    }
-                    BookmarkPageSelector.Items.RemoveAt(BookmarkPageSelector.Items.Count - 1);
-                }
-                // don't call UpdateBookmarkLayout again if BookmarkPageSelector.SelectedIndex is set to 0 because UpdateBookmarkLayout is already called by SelectionChanged event
-                if (!pageChanged) {
-                    UpdateBookmarkLayout();
-                }
-            }
-        }
+        //        bool pageChanged = false;
+        //        // a page needs to be removed
+        //        if (BookmarkItems.Count % (BookmarkNumPerPageSelector.SelectedIndex + 1) == 0) {
+        //            // if current page is the last page
+        //            if (BookmarkPageSelector.SelectedIndex == BookmarkPageSelector.Items.Count - 1) {
+        //                pageChanged = true;
+        //                BookmarkPageSelector.SelectedIndex = 0;
+        //            }
+        //            BookmarkPageSelector.Items.RemoveAt(BookmarkPageSelector.Items.Count - 1);
+        //        }
+        //        // don't call UpdateBookmarkLayout again if BookmarkPageSelector.SelectedIndex is set to 0 because UpdateBookmarkLayout is already called by SelectionChanged event
+        //        if (!pageChanged) {
+        //            UpdateBookmarkLayout();
+        //        }
+        //    }
+        //}
 
-        internal void SwapBookmarks(BookmarkItem bmItem, BookmarkSwapDirection dir) {
-            lock (_bmLock) {
-                int idx = BookmarkItems.FindIndex(item => item.gallery.id == bmItem.gallery.id);
-                switch (dir) {
-                    case BookmarkSwapDirection.Up: {
-                        if (idx == 0) {
-                            return;
-                        }
-                        (BookmarkItems[idx], BookmarkItems[idx - 1]) = (BookmarkItems[idx - 1], BookmarkItems[idx]);
-                        break;
-                    }
-                    case BookmarkSwapDirection.Down: {
-                        if (idx == BookmarkItems.Count - 1) {
-                            return;
-                        }
-                        (BookmarkItems[idx], BookmarkItems[idx + 1]) = (BookmarkItems[idx + 1], BookmarkItems[idx]);
-                        break;
-                    }
-                }
-                WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
-                UpdateBookmarkLayout();
-            }
-        }
+        //internal void SwapBookmarks(BookmarkItem bmItem, BookmarkSwapDirection dir) {
+        //    lock (_bmLock) {
+        //        int idx = BookmarkItems.FindIndex(item => item.gallery.id == bmItem.gallery.id);
+        //        switch (dir) {
+        //            case BookmarkSwapDirection.Up: {
+        //                if (idx == 0) {
+        //                    return;
+        //                }
+        //                (BookmarkItems[idx], BookmarkItems[idx - 1]) = (BookmarkItems[idx - 1], BookmarkItems[idx]);
+        //                break;
+        //            }
+        //            case BookmarkSwapDirection.Down: {
+        //                if (idx == BookmarkItems.Count - 1) {
+        //                    return;
+        //                }
+        //                (BookmarkItems[idx], BookmarkItems[idx + 1]) = (BookmarkItems[idx + 1], BookmarkItems[idx]);
+        //                break;
+        //            }
+        //        }
+        //        WriteObjectToJson(BOOKMARKS_FILE_PATH, BookmarkItems.Select(bmItem => bmItem.gallery));
+        //        UpdateBookmarkLayout();
+        //    }
+        //}
 
-        private void UpdateBookmarkLayout() {
-            BookmarkPanel.Children.Clear();
-            int page = BookmarkPageSelector.SelectedIndex;
-            if (page < 0) {
-                return;
-            }
-            int bookmarkNumPerPage = BookmarkNumPerPageSelector.SelectedIndex + 1;
-            for (int i = page * bookmarkNumPerPage; i < Math.Min((page + 1) * bookmarkNumPerPage, BookmarkItems.Count); i++) {
-                BookmarkPanel.Children.Add(BookmarkItems[i]);
-            }
-        }
+        //private void UpdateBookmarkLayout() {
+        //    BookmarkPanel.Children.Clear();
+        //    int page = BookmarkPageSelector.SelectedIndex;
+        //    if (page < 0) {
+        //        return;
+        //    }
+        //    int bookmarkNumPerPage = BookmarkNumPerPageSelector.SelectedIndex + 1;
+        //    for (int i = page * bookmarkNumPerPage; i < Math.Min((page + 1) * bookmarkNumPerPage, BookmarkItems.Count); i++) {
+        //        BookmarkPanel.Children.Add(BookmarkItems[i]);
+        //    }
+        //}
 
-        private void BookmarkNumPerPageSelector_SelectionChanged(object _0, SelectionChangedEventArgs arg) {
-            if (arg.AddedItems.Count == 0 || BookmarkItems.Count == 0) {
-                return;
-            }
-            BookmarkPageSelector.Items.Clear();
-            int numOfPages = (int)Math.Ceiling((double)BookmarkItems.Count / (BookmarkNumPerPageSelector.SelectedIndex + 1));
-            for (int i = 0; i < numOfPages; i++) {
-                BookmarkPageSelector.Items.Add(i + 1);
-            }
-            BookmarkPageSelector.SelectedIndex = 0;
-        }
+        //private void BookmarkNumPerPageSelector_SelectionChanged(object _0, SelectionChangedEventArgs arg) {
+        //    if (arg.AddedItems.Count == 0 || BookmarkItems.Count == 0) {
+        //        return;
+        //    }
+        //    BookmarkPageSelector.Items.Clear();
+        //    int numOfPages = (int)Math.Ceiling((double)BookmarkItems.Count / (BookmarkNumPerPageSelector.SelectedIndex + 1));
+        //    for (int i = 0; i < numOfPages; i++) {
+        //        BookmarkPageSelector.Items.Add(i + 1);
+        //    }
+        //    BookmarkPageSelector.SelectedIndex = 0;
+        //}
 
-        internal void SaveSettings() {
-            _settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] = BookmarkNumPerPageSelector.SelectedIndex;
-        }
+        //internal void SaveSettings() {
+        //    _settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] = BookmarkNumPerPageSelector.SelectedIndex;
+        //}
     }
 }
