@@ -18,6 +18,7 @@ using static Hitomi_Scroll_Viewer.Resources;
 using static Hitomi_Scroll_Viewer.Entities.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
 using Hitomi_Scroll_Viewer.Entities;
+using Hitomi_Scroll_Viewer.DbContexts;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent
 {
@@ -46,7 +47,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         private readonly ObservableCollection<SearchLinkItem> _searchLinkItems = [];
 
         internal readonly ObservableCollection<DownloadItem> DownloadingItems = [];
-        internal static readonly ConcurrentDictionary<string, byte> DownloadingGalleryIds = [];
+        internal static readonly ConcurrentDictionary<int, byte> DownloadingGalleryIds = [];
 
         private string _currTagFilterName;
 
@@ -118,7 +119,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Content").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameDup_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT = _resourceMap.GetValue("Notification_TagFilter_NameDup_Content").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_OVERLAP_TITLE = _resourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString;
         
         private static readonly string NOTIFICATION_TAG_FILTER_CREATE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_1_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_CREATE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_2_Title").ValueAsString;
@@ -135,69 +135,96 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         private static readonly string NOTIFICATION_TAG_FILTER_DELETE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_1_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_DELETE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_2_Title").ValueAsString;
 
-
-
-        private static readonly string NOTIFICATION_SEARCH_LINK_CONTENT_EMPTY_TITLE = _resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString;
-
         private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
-            string selectedTagFilterSetName = TagFilterSetControl.TagFilterSetEditor.GetSelectedTagFilterSetName();
-            List<string> includeTagFilterSetNames = TagFilterSetControl.IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
-            List<string> excludeTagFilterSetNames = TagFilterSetControl.IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
-            if (selectedTagFilterSetName == null) {
+            string selectedTagFilterSetName = TagFilterSetEditor.GetSelectedTagFilterSetName();
 
-            } else {
+            IEnumerable<string> includeTagFilterSetNames = IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
+            IEnumerable<string> excludeTagFilterSetNames = ExcludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
+            IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
+            IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
 
-            }
-            var selectedSearchFilterItems = _searchFilterItems.Where(item => (bool)item.IsChecked);
-            TagFilter combinedTagFilter = selectedSearchFilterItems.Aggregate(
-                new TagFilter(),
-                (result, item) => {
-                    TagFilter currTagFilter = TagFilterDict[item.TagFilterName];
-                    foreach (string category in CATEGORIES) {
-                        result.IncludeTagFilters[category] = result.IncludeTagFilters[category].Union(currTagFilter.IncludeTagFilters[category]).ToHashSet();
-                        result.ExcludeTagFilters[category] = result.ExcludeTagFilters[category].Union(currTagFilter.ExcludeTagFilters[category]).ToHashSet();
+            KeyValuePair<string, IEnumerable<string>>[] dupTagFiltersDict = new KeyValuePair<string, IEnumerable<string>>[CATEGORIES.Length];
+            IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(TagFilterSetEditor.GetTags).ToArray();
+            using TagFilterSetContext context = new();
+
+            void TakeTagFilterSetsUnion(IEnumerable<string> tagFilterSetNames, IEnumerable<string>[] tagFilters) {
+                foreach (string tagFilterSetName in tagFilterSetNames) {
+                    IEnumerable<string>[] tagsArray =
+                        tagFilterSetName == selectedTagFilterSetName
+                        ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
+                        : context.TagFilterSets
+                            .First(tfs => tfs.Name == tagFilterSetName)
+                            .TagFilters
+                            .Select(tagFilter => tagFilter.Tags)
+                            .ToArray();
+                    for (int i = 0; i < CATEGORIES.Length; i++) {
+                        tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
                     }
-                    return result;
                 }
-            );
+            }
+            TakeTagFilterSetsUnion(includeTagFilterSetNames, includeTagFilters);
+            TakeTagFilterSetsUnion(excludeTagFilterSetNames, excludeTagFilters);
 
-            string overlappingTagFiltersText = combinedTagFilter.GetIncludeExcludeOverlap();
+            for (int i = 0; i < CATEGORIES.Length; i++) {
+                dupTagFiltersDict[i] = new(CATEGORIES[i], includeTagFilters[i].Intersect(excludeTagFilters[i]));
+            }
+
+            string overlappingTagFiltersText =
+                dupTagFiltersDict.Aggregate(
+                    "",
+                    (result, dupTagFiltersPair) => 
+                        dupTagFiltersPair.Value.Any()
+                            ? (
+                                result +=
+                                    dupTagFiltersPair.Key + ": " +
+                                    string.Join(", ", dupTagFiltersPair.Value) +
+                                    Environment.NewLine
+                            )
+                            : result
+                    
+                );
             if (overlappingTagFiltersText != "") {
-                MainWindow.NotifyUser(NOTIFICATION_TAG_FILTER_OVERLAP_TITLE, overlappingTagFiltersText);
+                MainWindow.NotifyUser(
+                    _resourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString,
+                    overlappingTagFiltersText
+                );
                 return;
             }
 
             string searchParams = string.Join(
                 ' ',
-                CATEGORIES.Select(category =>
-                    (
-                        string.Join(' ', combinedTagFilter.IncludeTagFilters[category].Select(tag => category + ':' + tag.Replace(' ', '_')))
+                CATEGORIES.Select(
+                    (category, i) =>
+                        (
+                            string.Join(' ', includeTagFilters[i].Select(tag => category + ':' + tag.Replace(' ', '_')))
                             + ' ' +
-                        string.Join(' ', combinedTagFilter.ExcludeTagFilters[category].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
-                    ).Trim()
+                            string.Join(' ', excludeTagFilters[i].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
+                        ).Trim()
                 ).Where(searchParam => searchParam != "")
             );
             if (searchParams == "") {
-                MainWindow.NotifyUser(NOTIFICATION_SEARCH_LINK_CONTENT_EMPTY_TITLE, "");
+                MainWindow.NotifyUser(_resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString, "");
                 return;
             }
             string searchLink = SEARCH_ADDRESS + searchParams;
 
             string displayText = string.Join(
                 Environment.NewLine,
-                CATEGORIES.Select(category => {
-                    string displayTextPart =
-                        (
-                            string.Join(' ', combinedTagFilter.IncludeTagFilters[category].Select(tag => tag.Replace(' ', '_')))
-                            + ' ' +
-                            string.Join(' ', combinedTagFilter.ExcludeTagFilters[category].Select(tag => '-' + tag.Replace(' ', '_')))
-                        ).Trim();
-                    if (displayTextPart != "") {
-                        return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
-                    } else {
-                        return "";
+                CATEGORIES.Select(
+                    (category, i) => {
+                        string displayTextPart =
+                            (
+                                string.Join(' ', includeTagFilters[i].Select(tag => tag.Replace(' ', '_')))
+                                + ' ' +
+                                string.Join(' ', excludeTagFilters[i].Select(tag => '-' + tag.Replace(' ', '_')))
+                            ).Trim();
+                        if (displayTextPart != "") {
+                            return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
+                        } else {
+                            return "";
+                        }
                     }
-                }).Where(displayTagTexts => displayTagTexts != "")
+                ).Where(displayTagTexts => displayTagTexts != "")
             );
             
             _searchLinkItems.Add(new(
@@ -221,11 +248,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
                 MainWindow.NotifyUser(NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE, "");
                 return;
             }
-            List<string> extractedIds = [];
+            List<int> extractedIds = [];
             foreach (string urlOrId in urlOrIds) {
                 MatchCollection matches = Regex.Matches(urlOrId, idPattern);
                 if (matches.Count > 0) {
-                    extractedIds.Add(matches.Last().Value);
+                    extractedIds.Add(int.Parse(matches.Last().Value));
                 }
             }
             if (extractedIds.Count == 0) {
@@ -238,12 +265,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             GalleryIDTextBox.Text = "";
             
             // only download if the gallery is not already downloading
-            foreach (string extractedId in extractedIds) {
-                TryDownload(extractedId);
+            foreach (int id in extractedIds) {
+                TryDownload(id);
             }
         }
 
-        internal bool TryDownload(string id, BookmarkItem bookmarkItem = null) {
+        internal bool TryDownload(int id, BookmarkItem bookmarkItem = null) {
             if (DownloadingGalleryIds.TryAdd(id, 0)) {
                 DownloadingItems.Add(new(id, bookmarkItem));
                 return true;

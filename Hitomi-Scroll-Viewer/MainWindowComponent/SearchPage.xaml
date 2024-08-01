@@ -12,45 +12,93 @@
         <StackPanel Orientation="Vertical"
                     Spacing="8"
                     Padding="16">
-            <Grid ColumnSpacing="32" Height="800">
+            <Grid ColumnSpacing="8" RowSpacing="8"
+                  Height="864">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <spc:TagFilterSetControl x:Name="TagFilterSetControl" Grid.Column="0"/>
-                <StackPanel Grid.Column="1"
-                            Orientation="Vertical">
-                    <spc:SyncManager></spc:SyncManager>
-                    <Button x:Name="CreateHyperlinkBtn"
-                            Click="CreateHyperlinkBtn_Clicked"
-                            MinHeight="80"
-                            BorderBrush="DeepPink"
-                            HorizontalAlignment="Center"
-                            IsEnabled="False">
-                        <TextBlock x:Uid="/SearchPage/CreateHyperlinkBtnTextBlock"
-                                   FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
-                    </Button>
-                    <ListView x:Name="SearchLinkItemsListView"
-                              ItemsSource="{x:Bind _searchLinkItems}"
-                              SelectionMode="None" IsItemClickEnabled="False">
-                        <ListView.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Spacing="4" Padding="8"></StackPanel>
-                            </ItemsPanelTemplate>
-                        </ListView.ItemsPanel>
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
-                                <!--see https://github.com/dotnet/maui/issues/8564
-                                        https://github.com/dotnet/maui/pull/10250
-                                        https://github.com/dotnet/maui/pull/10250/commits/ca8a76576ee3b4f692bd3a3182972120c6c8e071-->
-                                <Setter Property="Padding" Value="0"/>
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                    </ListView>
-                </StackPanel>
-                <StackPanel Grid.Column="2"
-                            Orientation="Vertical">
+                <spc:TagFilterSetEditor x:Name="TagFilterSetEditor"
+                                        Grid.Row="0" Grid.Column="0"
+                                        />
+                <Grid Grid.Row="1" Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <spc:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector"
+                                    IsInclude="True"
+                                    PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
+                                    Grid.Column="0"
+                                    />
+                    <spc:TagFilterSetSelector x:Name="ExcludeTagFilterSetSelector"
+                                    IsInclude="False"
+                                    PairTagFilterSelector="{x:Bind IncludeTagFilterSetSelector}"
+                                    Grid.Column="1"
+                                    />
+                </Grid>
+                <Grid Grid.Row="0" Grid.Column="1"
+                            VerticalAlignment="Stretch"
+                            RowSpacing="16"
+                            >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <spc:SyncManager Grid.Row="0"/>
+                    <Grid Grid.Row="1"
+                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                          CornerRadius="{StaticResource OverlayCornerRadius}"
+                          BorderThickness="1"
+                          RowSpacing="16"
+                          Padding="16"
+                          VerticalAlignment="Stretch">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button x:Name="CreateHyperlinkBtn"
+                                Grid.Row="0"
+                                Click="CreateHyperlinkBtn_Clicked"
+                                MinHeight="80"
+                                BorderBrush="DeepPink"
+                                HorizontalAlignment="Stretch"
+                                IsEnabled="False">
+                            <TextBlock x:Uid="/SearchPage/CreateHyperlinkBtnTextBlock"
+                                       FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
+                        </Button>
+                        <ListView x:Name="SearchLinkItemsListView"
+                                  Grid.Row="1"
+                                  ItemsSource="{x:Bind _searchLinkItems}"
+                                  SelectionMode="None" IsItemClickEnabled="False">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="4" Padding="8"></StackPanel>
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                                    <!--see https://github.com/dotnet/maui/issues/8564
+                                            https://github.com/dotnet/maui/pull/10250
+                                            https://github.com/dotnet/maui/pull/10250/commits/ca8a76576ee3b4f692bd3a3182972120c6c8e071-->
+                                    <Setter Property="Padding" Value="0"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </Grid>
+                </Grid>
+                <StackPanel Grid.Row="1" Grid.Column="1"
+                            Orientation="Vertical"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            CornerRadius="{StaticResource OverlayCornerRadius}"
+                            BorderThickness="1"
+                            Padding="16">
                     <Grid ColumnSpacing="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -58,14 +106,15 @@
                         </Grid.ColumnDefinitions>
                         <TextBox x:Name="GalleryIDTextBox" x:Uid="/SearchPage/GalleryIDTextBox"
                                  Grid.Column="0"
-                                 Height="160"
+                                 Height="120"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  />
                         <Button x:Name="DownloadButton"
                                 Grid.Column="1" Padding="32"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Click="DownloadBtn_Clicked">
+                                Click="DownloadBtn_Clicked"
+                                IsEnabled="False">
                             <SymbolIcon Symbol="Download"></SymbolIcon>
                         </Button>
                     </Grid>

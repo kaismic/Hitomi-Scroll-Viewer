@@ -1,4 +1,4 @@
-using CommunityToolkit.WinUI.UI.Controls;
+using CommunityToolkit.WinUI.Controls;
 using Hitomi_Scroll_Viewer.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -30,13 +30,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent
 
         public GroupedImagePanel(ViewDirection viewDirection, Range range, Gallery gallery) {
             InitializeComponent();
-            _imageDir = Path.Combine(IMAGE_DIR, gallery.id);
-            _nonVirtualImageDir = Path.Combine(NON_VIRTUAL_IMAGE_DIR, gallery.id);
+            _imageDir = Path.Combine(IMAGE_DIR, gallery.Id.ToString());
+            _nonVirtualImageDir = Path.Combine(NON_VIRTUAL_IMAGE_DIR, gallery.Id.ToString());
             for (int i = range.Start.Value; i < range.End.Value; i++) {
                 string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
                 FrameworkElement imageContainer;
                 // playable image
-                if (gallery.files[i].name.Contains(".gif")) {
+                if (gallery.Files[i].Name.Contains(".gif")) {
                     WebView2 webView2 = new() {
                         IsHitTestVisible = false
                     };
@@ -58,7 +58,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent
                     imageContainer = image;
                 }
                 _imageContainers.Add(imageContainer);
-                _imageInfos.Add(gallery.files[i]);
+                _imageInfos.Add(gallery.Files[i]);
             }
             foreach (var image in _imageContainers) {
                 Children.Add(image);
@@ -82,7 +82,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.ImageWatchingPageComponent
             double maxImgHeight = viewportSize.Height;
             double idealAspectRatio = maxImgWidth / maxImgHeight;
             for (int i = 0; i < _imageContainers.Count; i++) {
-                double imgAspectRatio = (double)_imageInfos[i].width / _imageInfos[i].height;
+                double imgAspectRatio = (double)_imageInfos[i].Width / _imageInfos[i].Height;
                 _imageContainers[i].Width = imgAspectRatio >= idealAspectRatio ? maxImgWidth : maxImgHeight * imgAspectRatio;
                 _imageContainers[i].Height = imgAspectRatio < idealAspectRatio ? maxImgHeight : maxImgWidth / imgAspectRatio;
                 if (_imageContainers[i] is Image img && img.Source != null) {

@@ -1,4 +1,5 @@
 using CommunityToolkit.WinUI.Controls;
+using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetSelectorComponent;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -9,12 +10,16 @@ using System.Collections.Specialized;
 using System.Linq;
 using static Hitomi_Scroll_Viewer.Resources;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetControlComponent {
-    public sealed partial class TagFilterSetSelector : DockPanel {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
+{
+    public sealed partial class TagFilterSetSelector : DockPanel
+    {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetSelector");
 
-        internal ObservableCollection<string> TagFilterNames {
-            set {
+        internal ObservableCollection<string> TagFilterNames
+        {
+            set
+            {
                 value.CollectionChanged += TagFilterNames_CollectionChanged;
                 _tagFilterCheckBoxes?.Clear();
                 SearchFilterItemsRepeater.ItemsSource = null;
@@ -24,30 +29,38 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
         }
         private ObservableCollection<TagFilterCheckBox> _tagFilterCheckBoxes;
         internal TagFilterSetSelector PairTagFilterSelector { get; set; }
-        
+
         private bool _isInclude;
-        internal bool IsInclude {
+        public bool IsInclude
+        {
             get => _isInclude;
-            set {
+            set
+            {
                 _isInclude = value;
-                if (value) {
+                if (value)
+                {
                     //HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Include").ValueAsString; TODO
-                    HeaderTextBlock.Text = "HeaderText_Include"; 
+                    HeaderTextBlock.Text = "HeaderText_Include";
                     HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Green);
-                } else {
+                }
+                else
+                {
                     //HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Exclude").ValueAsString; TODO
-                    HeaderTextBlock.Text = "HeaderText_Exclude"; 
+                    HeaderTextBlock.Text = "HeaderText_Exclude";
                     HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                 }
             }
         }
 
-        public TagFilterSetSelector() {
+        public TagFilterSetSelector()
+        {
             InitializeComponent();
         }
 
-        private void TagFilterNames_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-            switch (e.Action) {
+        private void TagFilterNames_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
                 case NotifyCollectionChangedAction.Add:
                     _tagFilterCheckBoxes.Add(new(e.NewItems[0].ToString(), CheckBox_Checked, CheckBox_Unchecked));
                     break;
@@ -64,28 +77,28 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
             }
         }
 
-        internal void EnableCheckBox(int idx, bool enable) {
+        internal void EnableCheckBox(int idx, bool enable)
+        {
             _tagFilterCheckBoxes[idx].IsEnabled = enable;
         }
 
-        private void CheckBox_Checked(object sender, RoutedEventArgs e) {
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
             int idx = _tagFilterCheckBoxes.IndexOf(sender as TagFilterCheckBox);
             PairTagFilterSelector.EnableCheckBox(idx, false);
         }
 
-        private void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
             int idx = _tagFilterCheckBoxes.IndexOf(sender as TagFilterCheckBox);
             PairTagFilterSelector.EnableCheckBox(idx, true);
         }
 
-        internal List<string> GetCheckedTagFilterSetNames() {
-            List<string> result = [];
-            foreach (TagFilterCheckBox tagFilterCheckBox in _tagFilterCheckBoxes) {
-                if (tagFilterCheckBox.IsChecked == true) {
-                    result.Add(tagFilterCheckBox.TagFilterSetName);
-                }
-            }
-            return result;
+        internal IEnumerable<string> GetCheckedTagFilterSetNames()
+        {
+            return _tagFilterCheckBoxes
+                .Where(tagFilterCheckBox => tagFilterCheckBox.IsChecked == true)
+                .Select(tagFilterCheckBox => tagFilterCheckBox.TagFilterSetName);
         }
     }
 }

@@ -121,14 +121,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         private static readonly string Text_Notification_NoImagesToLoad_Title = _resourceMap.GetValue("Text_Notification_NoImagesToLoad_Title").ValueAsString;
 
         public async void LoadGallery(Gallery gallery) {
-            if (!Directory.Exists(Path.Combine(IMAGE_DIR, gallery.id))) {
+            if (!Directory.Exists(Path.Combine(IMAGE_DIR, gallery.Id.ToString()))) {
                 MainWindow.NotifyUser(Text_Notification_NoImagesToLoad_Title, "");
                 return;
             }
             App.MainWindow.SwitchPage();
             if (ToggleAction(true)) {
                 try {
-                    if (CurrLoadedGallery != null && gallery.id == CurrLoadedGallery.id) {
+                    if (CurrLoadedGallery != null && gallery.Id == CurrLoadedGallery.Id) {
                         await SetImageOrientationAndSize();
                         return;
                     }
@@ -156,10 +156,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             int? rangeIndexIncludingPageIndex = null;
             // create _groupedImagePanels with size-adaptative image number allocation per page
             double viewportAspectRatio = ImageFlipView.ActualWidth / ImageFlipView.ActualHeight;
-            double currRemainingAspectRatio = viewportAspectRatio - (double)CurrLoadedGallery.files[0].width / CurrLoadedGallery.files[0].height;
+            double currRemainingAspectRatio = viewportAspectRatio - (double)CurrLoadedGallery.Files[0].Width / CurrLoadedGallery.Files[0].Height;
             (int start, int end) currRange = (0, 1);
-            for (int i = 1; i < CurrLoadedGallery.files.Length; i++) {
-                double imgAspectRatio = (double)CurrLoadedGallery.files[i].width / CurrLoadedGallery.files[i].height;
+            for (int i = 1; i < CurrLoadedGallery.Files.Length; i++) {
+                double imgAspectRatio = (double)CurrLoadedGallery.Files[i].Width / CurrLoadedGallery.Files[i].Height;
                 if (imgAspectRatio >= currRemainingAspectRatio) {
                     if (currRange.start <= pageIndex && pageIndex < currRange.end) {
                         rangeIndexIncludingPageIndex = _imgIndexRangesPerPage.Count;
@@ -250,7 +250,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         }
 
         private void SetCurrPageText(Range range) {
-            PageNumTextBlock.Text = $"{GetPageIndexText(range)} / {CurrLoadedGallery.files.Length}";
+            PageNumTextBlock.Text = $"{GetPageIndexText(range)} / {CurrLoadedGallery.Files.Length}";
         }
 
         private void ShowActionIndicator(Symbol? symbol, string glyph) {
@@ -395,7 +395,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             ShowActionIndicator(Symbol.Refresh, null);
             if (ToggleAction(true)) {
                 try {
-                    string imageDir = Path.Combine(IMAGE_DIR, CurrLoadedGallery.id);
+                    string imageDir = Path.Combine(IMAGE_DIR, CurrLoadedGallery.Id.ToString());
                     if (!Directory.Exists(imageDir)) {
                         return;
                     }

@@ -25,7 +25,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
             InitializeComponent();
 
             gallery = newGallery;
-            _imageDir = Path.Combine(IMAGE_DIR, gallery.id);
+            _imageDir = Path.Combine(IMAGE_DIR, gallery.Id.ToString());
             IsDownloading = initIsDownloading;
 
             Loaded += InitThumbnailImagesOnLoad;
@@ -49,40 +49,40 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
                 _thumbnailImages.NotifyItemChange();
             }
 
-            TitleTextBlock.Text = gallery.title;
-            string artistsText = gallery.GetArtists();
-            ArtistTextBlock.Text = artistsText == null ? TEXT_ARTIST + ": N/A" : TEXT_ARTIST + ": " + artistsText;
-            IdTextBlock.Text = "ID: " + gallery.id;
+            //TitleTextBlock.Text = gallery.Title;
+            //string artistsText = string.Join(", ", gallery.Artists);
+            //ArtistTextBlock.Text = artistsText == null ? TEXT_ARTIST + ": N/A" : TEXT_ARTIST + ": " + artistsText;
+            //IdTextBlock.Text = "ID: " + gallery.Id;
 
-            ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGallery(gallery);
-            RemoveBtn.Click += (_, _) => MainWindow.SearchPage.RemoveBookmark(this);
-            DownloadBtn.Click += (_, _) => {
-                if (!MainWindow.SearchPage.TryDownload(gallery.id, this)) {
-                    MainWindow.NotifyUser(NOTIFICATION_ALREADY_DOWNLOADING, "");
-                }
-            };
-            MoveUpBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Up);
-            MoveDownBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Down);
+            //ImageContainerWrapper.Click += (_, _) => MainWindow.ImageWatchingPage.LoadGallery(gallery);
+            //RemoveBtn.Click += (_, _) => MainWindow.SearchPage.RemoveBookmark(this);
+            //DownloadBtn.Click += (_, _) => {
+            //    if (!MainWindow.SearchPage.TryDownload(gallery.id, this)) {
+            //        MainWindow.NotifyUser(NOTIFICATION_ALREADY_DOWNLOADING, "");
+            //    }
+            //};
+            //MoveUpBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Up);
+            //MoveDownBtn.Click += (_, _) => MainWindow.SearchPage.SwapBookmarks(this, BookmarkSwapDirection.Down);
         }
 
         private void CreateThumbnailImages() {
-            // Determine the number of thumbnail images which fit into ImageContainerWrapper.ActualWidth
-            double totalWidthSum = 0;
-            double imageWrapperWidth = ImageContainerWrapper.ActualWidth;
-            for (int i = 0; i < gallery.files.Length; i++) {
-                double width = THUMBNAIL_IMG_HEIGHT * gallery.files[i].width / gallery.files[i].height;
-                totalWidthSum += width;
-                if (i > 0) {
-                    totalWidthSum += ImageContainer.Spacing;
-                }
-                if (totalWidthSum > imageWrapperWidth) {
-                    break;
-                }
-                _thumbnailImages.Add(new() {
-                    Height = THUMBNAIL_IMG_HEIGHT,
-                    Width = width
-                });
-            }
+            //// Determine the number of thumbnail images which fit into ImageContainerWrapper.ActualWidth
+            //double totalWidthSum = 0;
+            //double imageWrapperWidth = ImageContainerWrapper.ActualWidth;
+            //for (int i = 0; i < gallery.files.Length; i++) {
+            //    double width = THUMBNAIL_IMG_HEIGHT * gallery.files[i].width / gallery.files[i].height;
+            //    totalWidthSum += width;
+            //    if (i > 0) {
+            //        totalWidthSum += ImageContainer.Spacing;
+            //    }
+            //    if (totalWidthSum > imageWrapperWidth) {
+            //        break;
+            //    }
+            //    _thumbnailImages.Add(new() {
+            //        Height = THUMBNAIL_IMG_HEIGHT,
+            //        Width = width
+            //    });
+            //}
         }
 
         public void UpdateSingleImage(int i) {

@@ -46,19 +46,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
         private CancellationTokenSource _cts;
 
         private Gallery _gallery;
-        private string _id;
+        private int _id;
         internal BookmarkItem BookmarkItem;
 
         private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
 
-        public DownloadItem(string id, BookmarkItem bookmarkItem = null) {
+        public DownloadItem(int id, BookmarkItem bookmarkItem = null) {
             _id = id;
             _cts = new();
             BookmarkItem = bookmarkItem;
 
             InitializeComponent();
 
-            Description.Text = id;
+            Description.Text = id.ToString();
 
             CancelBtn.Click += (_, _) => {
                 _cts.Cancel();
@@ -198,9 +198,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
 
                 DownloadStatusTextBlock.Text = STATUS_TEXT_READING_GALLERY_INFO;
                 try {
-                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS,);
-                    DownloadProgressBar.Maximum = _gallery.files.Length;
-                    Description.Text += $" - {_gallery.title}"; // add title to description
+                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS);
+                    DownloadProgressBar.Maximum = _gallery.Files.Length;
+                    Description.Text += $" - {_gallery.Title}"; // add title to description
                 }
                 catch (JsonException e) {
                     SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_READING_GALLERY_INFO_ERROR + Environment.NewLine + e.Message);
@@ -209,16 +209,16 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
             }
 
             // sometimes gallery id is different to the id in ltn.hitomi.la/galleries/{id}.js but points to the same gallery
-            if (_id != _gallery.id) {
-                DownloadingGalleryIds.TryAdd(_gallery.id, 0);
+            if (_id != _gallery.Id) {
+                DownloadingGalleryIds.TryAdd(_gallery.Id, 0);
                 DownloadingGalleryIds.TryRemove(_id, out _);
-                _id = _gallery.id;
-                Description.Text += $"{_gallery.id} - {_gallery.title}";
+                _id = _gallery.Id;
+                Description.Text += $"{_gallery.Id} - {_gallery.Title}";
             }
 
-            if (BookmarkItem == null) {
-                BookmarkItem = MainWindow.SearchPage.AddBookmark(_gallery);
-            }
+            //if (BookmarkItem == null) {
+            //    BookmarkItem = MainWindow.SearchPage.AddBookmark(_gallery);
+            //}
 
             DownloadStatusTextBlock.Text = STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER;
             List<int> missingIndexes;
@@ -231,9 +231,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
                 }
             } catch (DirectoryNotFoundException) {
                 // need to download all images
-                missingIndexes = Enumerable.Range(0, _gallery.files.Length).ToList();
+                missingIndexes = Enumerable.Range(0, _gallery.Files.Length).ToList();
             }
-            DownloadProgressBar.Value = _gallery.files.Length - missingIndexes.Count;
+            DownloadProgressBar.Value = _gallery.Files.Length - missingIndexes.Count;
 
             DownloadStatusTextBlock.Text = STATUS_TEXT_FETCHING_SERVER_TIME;
 
@@ -250,7 +250,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
 
             ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
             for (int i = 0; i < missingIndexes.Count; i++) {
-                imageInfos[i] = _gallery.files[missingIndexes[i]];
+                imageInfos[i] = _gallery.Files[missingIndexes[i]];
             }
             string[] imgFormats = GetImageFormats(imageInfos);
             string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, ggjs);
@@ -325,7 +325,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
 
             string[] result = new string[imageInfos.Length];
             for (int i = 0; i < imageInfos.Length; i++) {
-                string hash = imageInfos[i].hash;
+                string hash = imageInfos[i].Hash;
                 string subdomainAndAddressValue = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
                 string subdomain = subdomainFilterSet.Contains(subdomainAndAddressValue) ? contains : notContains;
                 result[i] = $"https://{subdomain}.{BASE_DOMAIN}/{imgFormats[i]}/{serverTime}/{subdomainAndAddressValue}/{hash}.{imgFormats[i]}";
@@ -336,11 +336,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
         private static string[] GetImageFormats(ImageInfo[] imageInfos) {
             string[] imgFormats = new string[imageInfos.Length];
             for (int i = 0; i < imgFormats.Length; i++) {
-                if (imageInfos[i].haswebp == 1) {
+                if (imageInfos[i].HasWebp == 1) {
                     imgFormats[i] = "webp";
-                } else if (imageInfos[i].hasavif == 1) {
+                } else if (imageInfos[i].HasAvif == 1) {
                     imgFormats[i] = "avif";
-                } else if (imageInfos[i].hasjxl == 1) {
+                } else if (imageInfos[i].HasJxl == 1) {
                     imgFormats[i] = "jxl";
                 }
             }
@@ -363,7 +363,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
                 }
                 try {
                     byte[] imageBytes = await response.Content.ReadAsByteArrayAsync(ct);
-                    await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, _id, idx.ToString()) + '.' + imgFormat, imageBytes, ct);
+                    await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR, _id.ToString(), idx.ToString()) + '.' + imgFormat, imageBytes, ct);
                 } catch (DirectoryNotFoundException) {
                     return;
                 } catch (IOException) {
@@ -378,7 +378,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
          * <exception cref="TaskCanceledException"></exception>
         */
         private Task DownloadImages(string[] imgAddresses, string[] imgFormats, List<int> missingIndexes, CancellationToken ct) {
-            Directory.CreateDirectory(Path.Combine(IMAGE_DIR, _id));
+            Directory.CreateDirectory(Path.Combine(IMAGE_DIR, _id.ToString()));
 
             /*
                 example:
@@ -427,9 +427,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
          * <exception cref="DirectoryNotFoundException"></exception>
          */
         private List<int> GetMissingIndexes() {
-            string imageDir = Path.Combine(IMAGE_DIR, _id);
+            string imageDir = Path.Combine(IMAGE_DIR, _id.ToString());
             List<int> missingIndexes = [];
-            for (int i = 0; i < _gallery.files.Length; i++) {
+            for (int i = 0; i < _gallery.Files.Length; i++) {
                 string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
                 if (file.Length == 0) {
                     missingIndexes.Add(i);
