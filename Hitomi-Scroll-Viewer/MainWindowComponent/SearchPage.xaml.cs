@@ -183,7 +183,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
                             : result
                     
                 );
-            if (overlappingTagFiltersText != "") {
+            if (overlappingTagFiltersText.Length != 0) {
                 MainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString,
                     overlappingTagFiltersText
@@ -200,9 +200,9 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
                             + ' ' +
                             string.Join(' ', excludeTagFilters[i].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
                         ).Trim()
-                ).Where(searchParam => searchParam != "")
+                ).Where(searchParam => searchParam.Length != 0)
             );
-            if (searchParams == "") {
+            if (searchParams.Length == 0) {
                 MainWindow.NotifyUser(_resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString, "");
                 return;
             }
@@ -218,13 +218,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
                                 + ' ' +
                                 string.Join(' ', excludeTagFilters[i].Select(tag => '-' + tag.Replace(' ', '_')))
                             ).Trim();
-                        if (displayTextPart != "") {
+                        if (displayTextPart.Length != 0) {
                             return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
                         } else {
                             return "";
                         }
                     }
-                ).Where(displayTagTexts => displayTagTexts != "")
+                ).Where(displayTagTexts => displayTagTexts.Length != 0)
             );
             
             _searchLinkItems.Add(new(
