@@ -6,6 +6,7 @@ namespace Hitomi_Scroll_Viewer.Entities
 {
     internal class TagFilter
     {
+        public long Id { get; set; }
         public static readonly string[] CATEGORIES = [
             "language", "female", "male", "artist", "character", "group", "series", "type", "tag"
         ];
@@ -16,6 +17,6 @@ namespace Hitomi_Scroll_Viewer.Entities
 
         [MaxLength(9)]
         public string Category { get; set; }
-        public IEnumerable<string> Tags { get; set; } = [];
+        public IEnumerable<string> Tags { get; set; }
     }
 }

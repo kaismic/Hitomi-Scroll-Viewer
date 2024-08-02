@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:entities="using:Hitomi_Scroll_Viewer.Entities"
     mc:Ignorable="d"
     RowSpacing="8"
     >
@@ -12,43 +13,46 @@
         <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
     <Grid x:Name="TagFilterSetControlGrid"
-          Grid.Row="0">
+          Grid.Row="0"
+          ColumnSpacing="8"
+          >
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="4*"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
-        <Button Click="CreateButton_Click"
-                Margin="0 0 128 0"
-                Width="64" Height="64">
+        <Border/>
+        <Button Click="CreateButton_Click">
             <SymbolIcon Symbol="Add"/>
         </Button>
         <Button x:Name="RenameButton"
                 Click="RenameButton_Click"
                 IsEnabled="False"
-                Width="64" Height="64">
+                >
             <SymbolIcon Symbol="Edit"/>
         </Button>
         <ComboBox x:Name="TagFilterSetComboBox"
+                  x:DefaultBindMode="OneWay"
+                  DisplayMemberPath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  Margin="8 0"/>
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Button x:Name="SaveButton"
                 Click="SaveButton_Click"
                 IsEnabled="False"
-                Width="64" Height="64">
+                >
             <SymbolIcon Symbol="Save"/>
         </Button>
         <Button x:Name="DeleteButton"
                 Click="DeleteButton_Click"
                 IsEnabled="False"
-                HorizontalAlignment="Right"
-                Margin="128 0 0 0"
-                Width="64" Height="64">
+                >
             <SymbolIcon Symbol="Delete"/>
         </Button>
+        <Border/>
     </Grid>
     <Grid x:Name="TextBoxesGrid"
           Grid.Row="1"

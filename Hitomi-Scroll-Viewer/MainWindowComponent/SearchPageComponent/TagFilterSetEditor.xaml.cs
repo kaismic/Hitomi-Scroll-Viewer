@@ -23,7 +23,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
 
             for (int i = 0; i < TagFilterSetControlGrid.Children.Count; i++)
             {
-                SetColumn((FrameworkElement)TagFilterSetControlGrid.Children[i], i);
+                FrameworkElement elem = TagFilterSetControlGrid.Children[i] as FrameworkElement;
+                SetColumn(elem, i);
+                if (elem is Button button) {
+                    button.Width = 64;
+                    button.Height = 64;
+                }
             }
 
             for (int i = 0; i < CATEGORIES.Length; i++)
@@ -63,6 +68,15 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
                 SetColumn(_tagFilterTextBoxes[i], i);
                 TextBoxesGrid.Children.Add(_tagFilterTextBoxes[i]);
             }
+
+            using TagFilterSetContext context = new();
+            // TODO figure out why combobox doesn't update
+            TagFilterSetComboBox.ItemsSource = context.TagFilterSets.Local.ToObservableCollection();
+            Trace.WriteLine("TagFilterSets:");
+            foreach (var item in context.TagFilterSets)
+            {
+                Trace.WriteLine(item.Name);
+            }
         }
 
         internal void InsertTagFilters(ICollection<TagFilter> tagFilters)
@@ -73,27 +87,29 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
             }
         }
 
-        internal IEnumerable<string> GetTags(string category)
+        internal List<string> GetTags(string category)
         {
             return
                 _tagFilterTextBoxes[CATEGORY_INDEX_MAP[category]]
                 .Text
                 .Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS)
-                .Distinct();
+                .Distinct()
+                .ToList();
         }
 
-        internal IEnumerable<string> GetTags(int idx)
+        internal List<string> GetTags(int idx)
         {
             return
                 _tagFilterTextBoxes[idx]
                 .Text
                 .Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS)
-                .Distinct();
+                .Distinct()
+                .ToList();
         }
 
         internal string GetSelectedTagFilterSetName()
         {
-            return (string)TagFilterSetComboBox.SelectedItem;
+            return ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
         }
 
         private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -115,17 +131,23 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
             InsertTagFilters(
                 context
                 .TagFilterSets
-                .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedItem)
+                .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name)
                 .TagFilters
             );
         }
 
         private async void CreateButton_Click(object _0, RoutedEventArgs _1)
         {
-            TextBox textBox = new()
-            {
-                // TODO
+            TextBox textBox = new();
+            TextBlock errorMsgTextBlock = new() {
+                Foreground = new SolidColorBrush(Colors.Red)
             };
+            StackPanel contentPanel = new() {
+                Orientation = Orientation.Vertical
+            };
+            contentPanel.Children.Add(textBox);
+            contentPanel.Children.Add(errorMsgTextBlock);
+
             ContentDialog contentDialog = new()
             {
                 XamlRoot = MainWindow.SearchPage.XamlRoot,
@@ -137,25 +159,40 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
                     TextWrapping = TextWrapping.WrapWholeWords,
                     Text = "Enter a name for the new tag filter set" // TODO
                 },
-                Content = textBox,
+                Content = contentPanel,
                 IsPrimaryButtonEnabled = false
             };
-            textBox.TextChanged += (_, _) => { contentDialog.IsPrimaryButtonEnabled = textBox.Text.Length != 0; };
+            textBox.TextChanged += (_, _) => {
+                contentDialog.IsPrimaryButtonEnabled = textBox.Text.Length != 0;
+                errorMsgTextBlock.Text = "";
+            };
+            using TagFilterSetContext context = new();
+            contentDialog.PrimaryButtonClick += (ContentDialog sender, ContentDialogButtonClickEventArgs args) => {
+                string name = textBox.Text;
+                if (context.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == name)) {
+                    errorMsgTextBlock.Text = $"\"{name}\" already exists."; // TODO
+                    args.Cancel = true;
+                    return;
+                }
+            };
             ContentDialogResult cdr = await contentDialog.ShowAsync();
-            if (cdr != ContentDialogResult.Primary)
-            {
+            if (cdr != ContentDialogResult.Primary) {
                 return;
             }
             string name = textBox.Text;
-            // TODO implementation
-
+            TagFilterSet tagFilterSet = new() { Name = name };
+            for (int i = 0; i < CATEGORIES.Length; i++) {
+                tagFilterSet.TagFilters[i].Tags = GetTags(i);
+            }
+            context.TagFilterSets.Add(tagFilterSet);
+            context.SaveChanges();
             // TODO show infobar
             Trace.WriteLine($"{name} has been created.");
         }
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1)
         {
-            string oldName = (string)TagFilterSetComboBox.SelectedItem;
+            string oldName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
             TextBox textBox = new()
             {
                 Text = oldName,
@@ -189,13 +226,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1)
         {
-            string name = (string)TagFilterSetComboBox.SelectedItem;
             using TagFilterSetContext context = new();
             TagFilterSet tagFilterSet =
                 context
                 .TagFilterSets
-                .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedItem);
-            for (int i = 0; i < tagFilterSet.TagFilters.Length; i++)
+                .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name);
+            for (int i = 0; i < tagFilterSet.TagFilters.Count; i++)
             {
                 tagFilterSet.TagFilters[i].Tags = GetTags(i);
             }
@@ -206,7 +242,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent
 
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1)
         {
-            string name = (string)TagFilterSetComboBox.SelectedItem;
+            string name = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
             ContentDialog contentDialog = new()
             {
                 XamlRoot = MainWindow.SearchPage.XamlRoot,
