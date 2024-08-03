@@ -38,6 +38,7 @@
         <ComboBox x:Name="TagFilterSetComboBox"
                   x:DefaultBindMode="OneWay"
                   DisplayMemberPath="Name"
+                  SelectedValuePath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Button x:Name="SaveButton"

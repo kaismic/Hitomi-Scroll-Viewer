@@ -145,6 +145,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
 
             KeyValuePair<string, IEnumerable<string>>[] dupTagFiltersDict = new KeyValuePair<string, IEnumerable<string>>[CATEGORIES.Length];
             IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(TagFilterSetEditor.GetTags).ToArray();
+            //IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(TagFilterSetEditor.GetTags).Select(tagList => tagList.Select(tag => tag.Value)).ToArray();
             using TagFilterSetContext context = new();
 
             void TakeTagFilterSetsUnion(IEnumerable<string> tagFilterSetNames, IEnumerable<string>[] tagFilters) {
@@ -156,6 +157,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
                             .First(tfs => tfs.Name == tagFilterSetName)
                             .TagFilters
                             .Select(tagFilter => tagFilter.Tags)
+                            //.Select(tagList => tagList.Select(tag => tag.Value))
                             .ToArray();
                     for (int i = 0; i < CATEGORIES.Length; i++) {
                         tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
