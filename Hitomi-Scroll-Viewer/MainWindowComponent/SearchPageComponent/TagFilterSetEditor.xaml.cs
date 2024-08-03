@@ -15,9 +15,9 @@ using System.Diagnostics;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class TagFilterSetEditor : Grid {
+        public static readonly TagFilterSetContext TagFilterSetContext = new();
         private readonly TextBox[] _tagFilterTextBoxes = new TextBox[CATEGORIES.Length];
-
-        private readonly TagFilterSetContext _tagFilterSetContext = new();
+        private readonly TagFilterSetEditorContentDialog _contentDialog = new(TagFilterSetContext);
 
         public TagFilterSetEditor() {
             InitializeComponent();
@@ -65,9 +65,16 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             }
 
             //_tagFilterSetContext.Database.EnsureDeleted();
-            //_tagFilterSetContext.Database.EnsureCreated();
-            _tagFilterSetContext.TagFilterSets.Load();
-            TagFilterSetComboBox.ItemsSource = _tagFilterSetContext.TagFilterSets.Local.ToObservableCollection();
+            TagFilterSetContext.Database.EnsureCreated();
+            TagFilterSetContext.TagFilterSets.Load();
+            TagFilterSetComboBox.ItemsSource = TagFilterSetContext.TagFilterSets.Local.ToObservableCollection();
+
+            Loaded += TagFilterSetEditor_Loaded;
+        }
+
+        private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
+            _contentDialog.XamlRoot = MainWindow.SearchPage.XamlRoot;
+            Loaded -= TagFilterSetEditor_Loaded;
         }
 
         internal void InsertTagFilters(ICollection<TagFilter> tagFilters) {
@@ -105,65 +112,116 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             }
             RenameButton.IsEnabled = SaveButton.IsEnabled = DeleteButton.IsEnabled = true;
             InsertTagFilters(
-                _tagFilterSetContext
+                TagFilterSetContext
                 .TagFilterSets
                 .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedValue)
                 .TagFilters
             );
         }
 
-        private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
-            TextBox textBox = new();
-            TextBlock errorMsgTextBlock = new() {
+        private class TagFilterSetEditorContentDialog : ContentDialog {
+            private readonly TextBlock _titleTextBlock = new() {
+                TextWrapping = TextWrapping.WrapWholeWords
+            };
+            private readonly TextBox _textBox = new();
+            private readonly TextBlock _errorMsgTextBlock = new() {
                 Foreground = new SolidColorBrush(Colors.Red)
             };
-            StackPanel contentPanel = new() {
+            private readonly StackPanel _contentPanel = new() {
                 Orientation = Orientation.Vertical
             };
-            contentPanel.Children.Add(textBox);
-            contentPanel.Children.Add(errorMsgTextBlock);
+            internal enum DialogType {
+                Create, Rename, Delete
+            }
+            private string _oldName;
 
-            ContentDialog contentDialog = new() {
-                XamlRoot = MainWindow.SearchPage.XamlRoot,
-                DefaultButton = ContentDialogButton.Primary,
-                PrimaryButtonText = "Create", // TODO
-                CloseButtonText = TEXT_CANCEL,
-                Title = new TextBlock() {
-                    TextWrapping = TextWrapping.WrapWholeWords,
-                    Text = "Enter a name for the new tag filter set" // TODO
-                },
-                Content = contentPanel,
-                IsPrimaryButtonEnabled = false
-            };
-            textBox.TextChanged += (_, _) => {
-                contentDialog.IsPrimaryButtonEnabled = textBox.Text.Length != 0;
-                errorMsgTextBlock.Text = "";
-            };
-            contentDialog.PrimaryButtonClick += (ContentDialog sender, ContentDialogButtonClickEventArgs args) => {
-                string name = textBox.Text;
-                if (_tagFilterSetContext.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == name)) {
-                    errorMsgTextBlock.Text = $"\"{name}\" already exists."; // TODO
-                    args.Cancel = true;
+            public TagFilterSetEditorContentDialog(TagFilterSetContext tagFilterSetContext) {
+                DefaultButton = ContentDialogButton.Primary;
+                CloseButtonText = TEXT_CANCEL;
+                Title = _titleTextBlock;
+                _contentPanel.Children.Add(_textBox);
+                _contentPanel.Children.Add(_errorMsgTextBlock);
+                _textBox.TextChanged += (_, _) => {
+                    IsPrimaryButtonEnabled = _textBox.Text.Length != 0;
+                    _errorMsgTextBlock.Text = "";
+                };
+                PrimaryButtonClick += (ContentDialog _, ContentDialogButtonClickEventArgs args) => {
+                    // Delete
+                    if (Content == null) {
+                        return;
+                    }
+                    string newName = _textBox.Text;
+                    // Rename or Create
+                    if (_oldName == newName) {
+                        _errorMsgTextBlock.Text = "Cannot rename to the same name."; // TODO
+                        args.Cancel = true;
+                        return;
+                    }
+                    // Create
+                    if (tagFilterSetContext.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == newName)) {
+                        _errorMsgTextBlock.Text = $"\"{newName}\" already exists."; // TODO
+                        args.Cancel = true;
+                        return;
+                    }
+                };
+            }
+
+            internal void SetDialogType(DialogType dialogType, string title, string primaryButtonText, string oldName = null) {
+                _errorMsgTextBlock.Text = "";
+                _titleTextBlock.Text = title;
+                PrimaryButtonText = primaryButtonText;
+                _oldName = oldName;
+                if (dialogType == DialogType.Delete) {
+                    IsPrimaryButtonEnabled = true;
+                    Content = null;
                     return;
+                } else {
+                    Content = _contentPanel;
                 }
-            };
-            ContentDialogResult cdr = await contentDialog.ShowAsync();
+                switch (dialogType) {
+                    case DialogType.Create:
+                        IsPrimaryButtonEnabled = false;
+                        _textBox.Text = "";
+                        break;
+                    case DialogType.Rename:
+                        IsPrimaryButtonEnabled = true;
+                        ArgumentNullException.ThrowIfNull(oldName);
+                        _textBox.Text = oldName;
+                        _textBox.SelectAll();
+                        break;
+                }
+            }
+
+            internal string GetTextBoxText() {
+                return _textBox.Text;
+            }
+        }
+
+        private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
+            _contentDialog.SetDialogType(
+                TagFilterSetEditorContentDialog.DialogType.Create,
+                "Enter a name for the new tag filter set:", // TODO
+                "Create" // TODO
+            );
+            ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            string name = textBox.Text;
+            string name = _contentDialog.GetTextBoxText();
             TagFilterSet tagFilterSet = new() {
                 Name = name,
                 TagFilters =
                     CATEGORIES
-                    .Select(category => new TagFilter() { Category = category })
+                    .Select(
+                        category => new TagFilter() {
+                            Category = category,
+                            Tags = GetTags(category)
+                        }
+                    )
                     .ToList()
             };
-            for (int i = 0; i < CATEGORIES.Length; i++) {
-                (tagFilterSet.TagFilters as List<TagFilter>)[i].Tags = GetTags(i);
-            }
-            _tagFilterSetContext.TagFilterSets.Add(tagFilterSet);
-            _tagFilterSetContext.SaveChanges();
+            TagFilterSetContext.TagFilterSets.Add(tagFilterSet);
+            TagFilterSetContext.SaveChanges();
             TagFilterSetComboBox.SelectedItem = tagFilterSet;
             // TODO show infobar
             Trace.WriteLine($"{name} has been created.");
@@ -171,64 +229,52 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
             string oldName = (string)TagFilterSetComboBox.SelectedValue;
-            TextBox textBox = new() {
-                Text = oldName,
-                SelectionLength = oldName.Length
-            };
-            ContentDialog contentDialog = new() {
-                XamlRoot = MainWindow.SearchPage.XamlRoot,
-                DefaultButton = ContentDialogButton.Primary,
-                PrimaryButtonText = "Rename", // TODO
-                CloseButtonText = TEXT_CANCEL,
-                Title = new TextBlock() {
-                    TextWrapping = TextWrapping.WrapWholeWords,
-                    Text = "Enter a new name for the current tag filter set" // TODO
-                },
-                Content = textBox
-            };
-            textBox.TextChanged += (_, _) => { contentDialog.IsPrimaryButtonEnabled = textBox.Text.Length != 0; };
-            ContentDialogResult cdr = await contentDialog.ShowAsync();
+            _contentDialog.SetDialogType(
+                TagFilterSetEditorContentDialog.DialogType.Rename,
+                "Enter a new name for the current tag filter set:", // TODO
+                "Rename", // TODO
+                oldName
+            );
+            ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            string newName = textBox.Text;
-            // TODO implementation
-
+            string newName = _contentDialog.GetTextBoxText();
+            TagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
+            TagFilterSetContext.SaveChanges();
             // TODO show infobar
             Trace.WriteLine($"{oldName} has been renamed to {newName}.");
         }
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1) {
             TagFilterSet tagFilterSet =
-                _tagFilterSetContext
+                TagFilterSetContext
                 .TagFilterSets
                 .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedValue);
             for (int i = 0; i < tagFilterSet.TagFilters.Count; i++) {
                 (tagFilterSet.TagFilters as List<TagFilter>)[i].Tags = GetTags(i);
             }
-            _tagFilterSetContext.SaveChanges();
+            TagFilterSetContext.SaveChanges();
             // TODO show InfoBar
             Trace.WriteLine($"{tagFilterSet.Name} has been saved.");
         }
 
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1) {
             string name = (string)TagFilterSetComboBox.SelectedValue;
-            ContentDialog contentDialog = new() {
-                XamlRoot = MainWindow.SearchPage.XamlRoot,
-                DefaultButton = ContentDialogButton.Primary,
-                PrimaryButtonText = "Delete", // TODO
-                CloseButtonText = TEXT_CANCEL,
-                Title = new TextBlock() {
-                    TextWrapping = TextWrapping.WrapWholeWords,
-                    Text = $"Delete \"{name}\"?" // TODO
-                }
-            };
-            ContentDialogResult cdr = await contentDialog.ShowAsync();
+            _contentDialog.SetDialogType(
+                TagFilterSetEditorContentDialog.DialogType.Delete,
+                $"Delete \"{name}\"?", // TODO
+                "Delete" // TODO
+            );
+            ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            // TODO implementation
-
+            TagFilterSetContext.TagFilterSets.Remove(TagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == name));
+            TagFilterSetContext.SaveChanges();
+            foreach (TextBox textBox in _tagFilterTextBoxes) {
+                textBox.Text = "";
+            }
             // TODO show infobar
             Trace.WriteLine($"{name} has been deleted.");
         }
