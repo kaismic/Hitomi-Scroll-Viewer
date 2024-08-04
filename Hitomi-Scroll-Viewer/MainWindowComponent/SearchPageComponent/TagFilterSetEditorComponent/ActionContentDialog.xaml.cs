@@ -17,6 +17,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
             InitializeComponent();
             DefaultButton = ContentDialogButton.Primary;
             CloseButtonText = TEXT_CANCEL;
+            LengthDisplayTextBlock.Text = $"0/{TagFilterSet.TAG_FILTER_SET_NAME_MAX_LEN}";
+            InputTextBox.MaxLength = TagFilterSet.TAG_FILTER_SET_NAME_MAX_LEN;
 
             InputTextBox.TextChanged += (_, _) => {
                 LengthDisplayTextBlock.Text = $"{InputTextBox.Text.Length}/{TagFilterSet.TAG_FILTER_SET_NAME_MAX_LEN}";
