@@ -12,12 +12,22 @@ using static Hitomi_Scroll_Viewer.Entities.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
 using static Hitomi_Scroll_Viewer.Resources;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
+using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class TagFilterSetEditor : Grid {
-        public static readonly TagFilterSetContext TagFilterSetContext = new();
-        private readonly TextBox[] _tagFilterTextBoxes = new TextBox[CATEGORIES.Length];
-        private readonly TagFilterSetEditorContentDialog _contentDialog = new(TagFilterSetContext);
+        private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
+
+        private static readonly TagFilterSetContext _tagFilterSetContext = new();
+        private class IndexedTextBox : TextBox {
+            internal int Index { get; set; }
+        }
+        private readonly IndexedTextBox[] _tagFilterTextBoxes = new IndexedTextBox[CATEGORIES.Length];
+        private readonly ActionContentDialog _contentDialog = new(_tagFilterSetContext);
+        internal Button HyperlinkCreateButton { get; set; }
+        private readonly bool[] _textBoxesEmpty = new bool[CATEGORIES.Length];
+        private bool _allTextBoxesEmpty = true;
 
         public TagFilterSetEditor() {
             InitializeComponent();
@@ -57,19 +67,47 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                     AcceptsReturn = true,
                     TextWrapping = TextWrapping.Wrap,
                     CornerRadius = new CornerRadius(0),
-                    Padding = new Thickness(0)
+                    Padding = new Thickness(0),
+                    Index = i
                 };
                 SetRow(_tagFilterTextBoxes[i], 1);
                 SetColumn(_tagFilterTextBoxes[i], i);
                 TextBoxesGrid.Children.Add(_tagFilterTextBoxes[i]);
+                _tagFilterTextBoxes[i].TextChanged += (object sender, TextChangedEventArgs e) => {
+                    IndexedTextBox indexedTextBox = sender as IndexedTextBox;
+                    if (indexedTextBox.Text.Length == 0) {
+                        _textBoxesEmpty[indexedTextBox.Index] = true;
+                        _allTextBoxesEmpty = _tagFilterTextBoxes.All(textBox => textBox.Text.Length == 0);
+                    } else {
+                        _allTextBoxesEmpty = false;
+                    }
+                    EnableHyperlinkCreateButton(null, null);
+                };
             }
 
-            //_tagFilterSetContext.Database.EnsureDeleted();
-            TagFilterSetContext.Database.EnsureCreated();
-            TagFilterSetContext.TagFilterSets.Load();
-            TagFilterSetComboBox.ItemsSource = TagFilterSetContext.TagFilterSets.Local.ToObservableCollection();
+            IncludeTagFilterSetSelector.RegisterPropertyChangedCallback(
+                TagFilterSetSelector.AnyCheckedProperty,
+                EnableHyperlinkCreateButton
+            );
+            ExcludeTagFilterSetSelector.RegisterPropertyChangedCallback(
+                TagFilterSetSelector.AnyCheckedProperty,
+                EnableHyperlinkCreateButton
+            );
 
             Loaded += TagFilterSetEditor_Loaded;
+
+            //_tagFilterSetContext.Database.EnsureDeleted();
+            _tagFilterSetContext.Database.EnsureCreated();
+            _tagFilterSetContext.TagFilterSets.Load();
+
+            ObservableCollection<TagFilterSet> collection = _tagFilterSetContext.TagFilterSets.Local.ToObservableCollection();
+            TagFilterSetComboBox.ItemsSource = collection;
+            IncludeTagFilterSetSelector.Init(collection);
+            ExcludeTagFilterSetSelector.Init(collection);
+        }
+
+        private void EnableHyperlinkCreateButton(DependencyObject _0, DependencyProperty _1) {
+            HyperlinkCreateButton.IsEnabled = !_allTextBoxesEmpty || IncludeTagFilterSetSelector.AnyChecked || ExcludeTagFilterSetSelector.AnyChecked;
         }
 
         private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
@@ -112,94 +150,18 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             }
             RenameButton.IsEnabled = SaveButton.IsEnabled = DeleteButton.IsEnabled = true;
             InsertTagFilters(
-                TagFilterSetContext
+                _tagFilterSetContext
                 .TagFilterSets
                 .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedValue)
                 .TagFilters
             );
         }
 
-        private class TagFilterSetEditorContentDialog : ContentDialog {
-            private readonly TextBlock _titleTextBlock = new() {
-                TextWrapping = TextWrapping.WrapWholeWords
-            };
-            private readonly TextBox _textBox = new();
-            private readonly TextBlock _errorMsgTextBlock = new() {
-                Foreground = new SolidColorBrush(Colors.Red)
-            };
-            private readonly StackPanel _contentPanel = new() {
-                Orientation = Orientation.Vertical
-            };
-            internal enum DialogType {
-                Create, Rename, Delete
-            }
-            private string _oldName;
-
-            public TagFilterSetEditorContentDialog(TagFilterSetContext tagFilterSetContext) {
-                DefaultButton = ContentDialogButton.Primary;
-                CloseButtonText = TEXT_CANCEL;
-                Title = _titleTextBlock;
-                _contentPanel.Children.Add(_textBox);
-                _contentPanel.Children.Add(_errorMsgTextBlock);
-                _textBox.TextChanged += (_, _) => {
-                    IsPrimaryButtonEnabled = _textBox.Text.Length != 0;
-                    _errorMsgTextBlock.Text = "";
-                };
-                PrimaryButtonClick += (ContentDialog _, ContentDialogButtonClickEventArgs args) => {
-                    // Delete
-                    if (Content == null) {
-                        return;
-                    }
-                    string newName = _textBox.Text;
-                    // Rename or Create
-                    if (_oldName == newName) {
-                        _errorMsgTextBlock.Text = "Cannot rename to the same name."; // TODO
-                        args.Cancel = true;
-                        return;
-                    }
-                    // Create
-                    if (tagFilterSetContext.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == newName)) {
-                        _errorMsgTextBlock.Text = $"\"{newName}\" already exists."; // TODO
-                        args.Cancel = true;
-                        return;
-                    }
-                };
-            }
-
-            internal void SetDialogType(DialogType dialogType, string title, string primaryButtonText, string oldName = null) {
-                _errorMsgTextBlock.Text = "";
-                _titleTextBlock.Text = title;
-                PrimaryButtonText = primaryButtonText;
-                _oldName = oldName;
-                if (dialogType == DialogType.Delete) {
-                    IsPrimaryButtonEnabled = true;
-                    Content = null;
-                    return;
-                } else {
-                    Content = _contentPanel;
-                }
-                switch (dialogType) {
-                    case DialogType.Create:
-                        IsPrimaryButtonEnabled = false;
-                        _textBox.Text = "";
-                        break;
-                    case DialogType.Rename:
-                        IsPrimaryButtonEnabled = true;
-                        ArgumentNullException.ThrowIfNull(oldName);
-                        _textBox.Text = oldName;
-                        _textBox.SelectAll();
-                        break;
-                }
-            }
-
-            internal string GetTextBoxText() {
-                return _textBox.Text;
-            }
-        }
+        // TODO separate CRUD logic to separate methods
 
         private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
             _contentDialog.SetDialogType(
-                TagFilterSetEditorContentDialog.DialogType.Create,
+                ActionContentDialog.Action.Create,
                 "Enter a name for the new tag filter set:", // TODO
                 "Create" // TODO
             );
@@ -207,7 +169,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            string name = _contentDialog.GetTextBoxText();
+            string name = _contentDialog.GetText();
             TagFilterSet tagFilterSet = new() {
                 Name = name,
                 TagFilters =
@@ -220,8 +182,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                     )
                     .ToList()
             };
-            TagFilterSetContext.TagFilterSets.Add(tagFilterSet);
-            TagFilterSetContext.SaveChanges();
+            _tagFilterSetContext.TagFilterSets.Add(tagFilterSet);
+            _tagFilterSetContext.SaveChanges();
             TagFilterSetComboBox.SelectedItem = tagFilterSet;
             // TODO show infobar
             Trace.WriteLine($"{name} has been created.");
@@ -230,7 +192,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
             string oldName = (string)TagFilterSetComboBox.SelectedValue;
             _contentDialog.SetDialogType(
-                TagFilterSetEditorContentDialog.DialogType.Rename,
+                ActionContentDialog.Action.Rename,
                 "Enter a new name for the current tag filter set:", // TODO
                 "Rename", // TODO
                 oldName
@@ -239,22 +201,22 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            string newName = _contentDialog.GetTextBoxText();
-            TagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
-            TagFilterSetContext.SaveChanges();
+            string newName = _contentDialog.GetText();
+            _tagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
+            _tagFilterSetContext.SaveChanges();
             // TODO show infobar
             Trace.WriteLine($"{oldName} has been renamed to {newName}.");
         }
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1) {
             TagFilterSet tagFilterSet =
-                TagFilterSetContext
+                _tagFilterSetContext
                 .TagFilterSets
                 .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedValue);
-            for (int i = 0; i < tagFilterSet.TagFilters.Count; i++) {
-                (tagFilterSet.TagFilters as List<TagFilter>)[i].Tags = GetTags(i);
+            foreach (TagFilter tagFilter in tagFilterSet.TagFilters) {
+                tagFilter.Tags = GetTags(tagFilter.Category);
             }
-            TagFilterSetContext.SaveChanges();
+            _tagFilterSetContext.SaveChanges();
             // TODO show InfoBar
             Trace.WriteLine($"{tagFilterSet.Name} has been saved.");
         }
@@ -262,7 +224,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1) {
             string name = (string)TagFilterSetComboBox.SelectedValue;
             _contentDialog.SetDialogType(
-                TagFilterSetEditorContentDialog.DialogType.Delete,
+                ActionContentDialog.Action.Delete,
                 $"Delete \"{name}\"?", // TODO
                 "Delete" // TODO
             );
@@ -270,13 +232,118 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            TagFilterSetContext.TagFilterSets.Remove(TagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == name));
-            TagFilterSetContext.SaveChanges();
+            _tagFilterSetContext.TagFilterSets.Remove(_tagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == name));
+            _tagFilterSetContext.SaveChanges();
             foreach (TextBox textBox in _tagFilterTextBoxes) {
                 textBox.Text = "";
             }
             // TODO show infobar
             Trace.WriteLine($"{name} has been deleted.");
+        }
+
+        internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
+            string selectedTagFilterSetName = (string)TagFilterSetComboBox.SelectedValue;
+
+            IEnumerable<string> includeTagFilterSetNames = IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
+            IEnumerable<string> excludeTagFilterSetNames = ExcludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
+            IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
+            IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
+
+            KeyValuePair<string, IEnumerable<string>>[] dupTagFiltersDict = new KeyValuePair<string, IEnumerable<string>>[CATEGORIES.Length];
+            IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(GetTags).ToArray();
+            using TagFilterSetContext context = new();
+
+            void TakeTagFilterSetsUnion(IEnumerable<string> tagFilterSetNames, IEnumerable<string>[] tagFilters) {
+                foreach (string tagFilterSetName in tagFilterSetNames) {
+                    IEnumerable<string>[] tagsArray =
+                        tagFilterSetName == selectedTagFilterSetName
+                        ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
+                        : context.TagFilterSets
+                            .First(tfs => tfs.Name == tagFilterSetName)
+                            .TagFilters
+                            .Select(tagFilter => tagFilter.Tags)
+                            //.Select(tagList => tagList.Select(tag => tag.Value))
+                            .ToArray();
+                    for (int i = 0; i < CATEGORIES.Length; i++) {
+                        tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
+                    }
+                }
+            }
+            TakeTagFilterSetsUnion(includeTagFilterSetNames, includeTagFilters);
+            TakeTagFilterSetsUnion(excludeTagFilterSetNames, excludeTagFilters);
+
+            for (int i = 0; i < CATEGORIES.Length; i++) {
+                dupTagFiltersDict[i] = new(CATEGORIES[i], includeTagFilters[i].Intersect(excludeTagFilters[i]));
+            }
+
+            string overlappingTagFiltersText =
+                dupTagFiltersDict.Aggregate(
+                    "",
+                    (result, dupTagFiltersPair) =>
+                        dupTagFiltersPair.Value.Any()
+                            ? (
+                                result +=
+                                    dupTagFiltersPair.Key + ": " +
+                                    string.Join(", ", dupTagFiltersPair.Value) +
+                                    Environment.NewLine
+                            )
+                            : result
+
+                );
+            if (overlappingTagFiltersText.Length != 0) {
+                MainWindow.NotifyUser(
+                    //_resourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString, TODO
+                    "There are overlapping tags.",
+                    overlappingTagFiltersText
+                );
+                return null;
+            }
+
+            string searchParams = string.Join(
+                ' ',
+                CATEGORIES.Select(
+                    (category, i) =>
+                        (
+                            string.Join(' ', includeTagFilters[i].Select(tag => category + ':' + tag.Replace(' ', '_')))
+                            + ' ' +
+                            string.Join(' ', excludeTagFilters[i].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
+                        ).Trim()
+                ).Where(searchParam => searchParam.Length != 0)
+            );
+            if (searchParams.Length == 0) {
+                MainWindow.NotifyUser(
+                    //_resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString, TODO
+                    "All of the selected tag filter sets are empty",
+                    ""
+                );
+                return null;
+            }
+            string searchLink = SEARCH_ADDRESS + searchParams;
+
+            string displayText = string.Join(
+                Environment.NewLine,
+                CATEGORIES.Select(
+                    (category, i) => {
+                        string displayTextPart =
+                            (
+                                string.Join(' ', includeTagFilters[i].Select(tag => tag.Replace(' ', '_')))
+                                + ' ' +
+                                string.Join(' ', excludeTagFilters[i].Select(tag => '-' + tag.Replace(' ', '_')))
+                            ).Trim();
+                        if (displayTextPart.Length != 0) {
+                            return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
+                        } else {
+                            return "";
+                        }
+                    }
+                ).Where(displayTagTexts => displayTagTexts.Length != 0)
+            );
+
+            return new (
+                searchLink,
+                displayText,
+                (_, arg) => searchLinkItems.Remove((SearchLinkItem)arg.Parameter)
+            );
         }
     }
 }

@@ -15,10 +15,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using static Hitomi_Scroll_Viewer.Resources;
-using static Hitomi_Scroll_Viewer.Entities.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
-using Hitomi_Scroll_Viewer.Entities;
-using Hitomi_Scroll_Viewer.DbContexts;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent
 {
@@ -28,17 +25,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         private static readonly string BOOKMARK_NUM_PER_PAGE_SETTING_KEY = "BookmarkNumPerPage";
         private readonly ApplicationDataContainer _settings;
 
-        private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private readonly IEnumerable<int> _bookmarkNumPerPageRange = Enumerable.Range(1, 8);
         internal static readonly List<BookmarkItem> BookmarkItems = [];
         private static readonly Dictionary<string, BookmarkItem> BookmarkDict = [];
         private static readonly object _bmLock = new();
-
-        internal enum BookmarkSwapDirection {
-            Up, Down
-        }
 
         private static readonly DataPackage _myDataPackage = new() {
             RequestedOperation = DataPackageOperation.Copy
@@ -48,8 +40,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
 
         internal readonly ObservableCollection<DownloadItem> DownloadingItems = [];
         internal static readonly ConcurrentDictionary<int, byte> DownloadingGalleryIds = [];
-
-        private string _currTagFilterName;
 
         private readonly ContentDialog _confirmDialog = new() {
             DefaultButton = ContentDialogButton.Primary,
@@ -135,107 +125,13 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         private static readonly string NOTIFICATION_TAG_FILTER_DELETE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_1_Title").ValueAsString;
         private static readonly string NOTIFICATION_TAG_FILTER_DELETE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_2_Title").ValueAsString;
 
-        private void CreateHyperlinkBtn_Clicked(object _0, RoutedEventArgs _1) {
-            string selectedTagFilterSetName = TagFilterSetEditor.GetSelectedTagFilterSetName();
-
-            IEnumerable<string> includeTagFilterSetNames = IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
-            IEnumerable<string> excludeTagFilterSetNames = ExcludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
-            IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
-            IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
-
-            KeyValuePair<string, IEnumerable<string>>[] dupTagFiltersDict = new KeyValuePair<string, IEnumerable<string>>[CATEGORIES.Length];
-            IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(TagFilterSetEditor.GetTags).ToArray();
-            //IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(TagFilterSetEditor.GetTags).Select(tagList => tagList.Select(tag => tag.Value)).ToArray();
-            using TagFilterSetContext context = new();
-
-            void TakeTagFilterSetsUnion(IEnumerable<string> tagFilterSetNames, IEnumerable<string>[] tagFilters) {
-                foreach (string tagFilterSetName in tagFilterSetNames) {
-                    IEnumerable<string>[] tagsArray =
-                        tagFilterSetName == selectedTagFilterSetName
-                        ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
-                        : context.TagFilterSets
-                            .First(tfs => tfs.Name == tagFilterSetName)
-                            .TagFilters
-                            .Select(tagFilter => tagFilter.Tags)
-                            //.Select(tagList => tagList.Select(tag => tag.Value))
-                            .ToArray();
-                    for (int i = 0; i < CATEGORIES.Length; i++) {
-                        tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
-                    }
-                }
+        private void HyperlinkCreateButton_Clicked(object _0, RoutedEventArgs _1) {
+            SearchLinkItem searchLinkItem = TagFilterSetEditor.GetSearchLinkItem(_searchLinkItems);
+            if (searchLinkItem != null) {
+                _searchLinkItems.Add(searchLinkItem);
+                // copy link to clipboard
+                _myDataPackage.SetText(searchLinkItem.SearchLink);
             }
-            TakeTagFilterSetsUnion(includeTagFilterSetNames, includeTagFilters);
-            TakeTagFilterSetsUnion(excludeTagFilterSetNames, excludeTagFilters);
-
-            for (int i = 0; i < CATEGORIES.Length; i++) {
-                dupTagFiltersDict[i] = new(CATEGORIES[i], includeTagFilters[i].Intersect(excludeTagFilters[i]));
-            }
-
-            string overlappingTagFiltersText =
-                dupTagFiltersDict.Aggregate(
-                    "",
-                    (result, dupTagFiltersPair) => 
-                        dupTagFiltersPair.Value.Any()
-                            ? (
-                                result +=
-                                    dupTagFiltersPair.Key + ": " +
-                                    string.Join(", ", dupTagFiltersPair.Value) +
-                                    Environment.NewLine
-                            )
-                            : result
-                    
-                );
-            if (overlappingTagFiltersText.Length != 0) {
-                MainWindow.NotifyUser(
-                    _resourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString,
-                    overlappingTagFiltersText
-                );
-                return;
-            }
-
-            string searchParams = string.Join(
-                ' ',
-                CATEGORIES.Select(
-                    (category, i) =>
-                        (
-                            string.Join(' ', includeTagFilters[i].Select(tag => category + ':' + tag.Replace(' ', '_')))
-                            + ' ' +
-                            string.Join(' ', excludeTagFilters[i].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
-                        ).Trim()
-                ).Where(searchParam => searchParam.Length != 0)
-            );
-            if (searchParams.Length == 0) {
-                MainWindow.NotifyUser(_resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString, "");
-                return;
-            }
-            string searchLink = SEARCH_ADDRESS + searchParams;
-
-            string displayText = string.Join(
-                Environment.NewLine,
-                CATEGORIES.Select(
-                    (category, i) => {
-                        string displayTextPart =
-                            (
-                                string.Join(' ', includeTagFilters[i].Select(tag => tag.Replace(' ', '_')))
-                                + ' ' +
-                                string.Join(' ', excludeTagFilters[i].Select(tag => '-' + tag.Replace(' ', '_')))
-                            ).Trim();
-                        if (displayTextPart.Length != 0) {
-                            return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
-                        } else {
-                            return "";
-                        }
-                    }
-                ).Where(displayTagTexts => displayTagTexts.Length != 0)
-            );
-            
-            _searchLinkItems.Add(new(
-                searchLink,
-                displayText,
-                (_, arg) => _searchLinkItems.Remove((SearchLinkItem)arg.Parameter)
-            ));
-            // copy link to clipboard
-            _myDataPackage.SetText(searchLink);
             Clipboard.SetContent(_myDataPackage);
         }
 

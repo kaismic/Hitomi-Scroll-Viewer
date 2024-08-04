@@ -23,24 +23,10 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <spc:TagFilterSetEditor x:Name="TagFilterSetEditor"
-                                        Grid.Row="0" Grid.Column="0"
+                                        Grid.Row="0" Grid.RowSpan="2"
+                                        Grid.Column="0"
+                                        HyperlinkCreateButton="{x:Bind HyperlinkCreateButton}"
                                         />
-                <Grid Grid.Row="1" Grid.Column="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <spc:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector"
-                                    IsInclude="True"
-                                    PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
-                                    Grid.Column="0"
-                                    />
-                    <spc:TagFilterSetSelector x:Name="ExcludeTagFilterSetSelector"
-                                    IsInclude="False"
-                                    PairTagFilterSelector="{x:Bind IncludeTagFilterSetSelector}"
-                                    Grid.Column="1"
-                                    />
-                </Grid>
                 <Grid Grid.Row="0" Grid.Column="1"
                             VerticalAlignment="Stretch"
                             RowSpacing="16"
@@ -62,9 +48,9 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Button x:Name="CreateHyperlinkBtn"
+                        <Button x:Name="HyperlinkCreateButton"
                                 Grid.Row="0"
-                                Click="CreateHyperlinkBtn_Clicked"
+                                Click="HyperlinkCreateButton_Clicked"
                                 MinHeight="80"
                                 BorderBrush="DeepPink"
                                 HorizontalAlignment="Stretch"

@@ -4,14 +4,14 @@ using Windows.Foundation;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class SearchLinkItem : Grid {
-        private readonly string _searchLink;
+        internal readonly string SearchLink;
         private readonly string _displayText;
         public SearchLinkItem(
             string searchLink,
             string displayText,
             TypedEventHandler<XamlUICommand, ExecuteRequestedEventArgs> handler
-            ) {
-            _searchLink = searchLink;
+        ) {
+            SearchLink = searchLink;
             _displayText = displayText;
             InitializeComponent();
             DeleteCommand.ExecuteRequested += handler;

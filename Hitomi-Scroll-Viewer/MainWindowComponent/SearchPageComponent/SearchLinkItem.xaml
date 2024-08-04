@@ -14,7 +14,7 @@
         <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     <HyperlinkButton Grid.Column="0"
-                     NavigateUri="{x:Bind _searchLink}"
+                     NavigateUri="{x:Bind SearchLink}"
                      HorizontalAlignment="Stretch"
                      HorizontalContentAlignment="Left"
                      VerticalAlignment="Stretch">

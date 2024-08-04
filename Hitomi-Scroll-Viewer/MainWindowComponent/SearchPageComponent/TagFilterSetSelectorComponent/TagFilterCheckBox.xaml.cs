@@ -4,9 +4,11 @@ using Microsoft.UI.Xaml.Controls;
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetSelectorComponent {
     public sealed partial class TagFilterCheckBox : CheckBox
     {
-        public readonly string TagFilterSetName;
-        public TagFilterCheckBox(string tagFilterSetName, RoutedEventHandler checkedEventHandler, RoutedEventHandler uncheckedEventHandler)
+        internal int Index { get; set; }
+        internal readonly string TagFilterSetName;
+        public TagFilterCheckBox(int index, string tagFilterSetName, RoutedEventHandler checkedEventHandler, RoutedEventHandler uncheckedEventHandler)
         {
+            Index = index;
             TagFilterSetName = tagFilterSetName;
             InitializeComponent();
             Checked += checkedEventHandler;

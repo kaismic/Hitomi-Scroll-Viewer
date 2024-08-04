@@ -7,5 +7,5 @@
     mc:Ignorable="d"
     MinWidth="0"
     Style="{StaticResource DefaultCheckBoxStyle}">
-    <TextBlock Text="{x:Bind TagFilterSetName}" TextWrapping="Wrap"></TextBlock>
+    <TextBlock Text="{x:Bind TagFilterSetName}" TextWrapping="Wrap"/>
 </CheckBox>

@@ -5,11 +5,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:entities="using:Hitomi_Scroll_Viewer.Entities"
+    xmlns:tfsec="using:Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent"
     mc:Ignorable="d"
     RowSpacing="8"
     >
     <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
         <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
     <Grid x:Name="TagFilterSetControlGrid"
@@ -67,5 +69,21 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+    </Grid>
+    <Grid Grid.Row="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <tfsec:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector"
+                                    IsInclude="True"
+                                    PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
+                                    Grid.Column="0"
+                                    />
+        <tfsec:TagFilterSetSelector x:Name="ExcludeTagFilterSetSelector"
+                                    IsInclude="False"
+                                    PairTagFilterSelector="{x:Bind IncludeTagFilterSetSelector}"
+                                    Grid.Column="1"
+                                    />
     </Grid>
 </Grid>
