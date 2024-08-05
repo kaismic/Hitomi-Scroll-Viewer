@@ -2,12 +2,14 @@ using Hitomi_Scroll_Viewer.DbContexts;
 using Hitomi_Scroll_Viewer.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Linq;
 using static Hitomi_Scroll_Viewer.Resources;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent {
     internal sealed partial class ActionContentDialog : ContentDialog {
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ActionContentDialog");
         internal enum Action {
             Create, Rename, Delete
         }
@@ -33,13 +35,16 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
                 string newName = InputTextBox.Text;
                 // Rename or Create
                 if (_oldName == newName) {
-                    ErrorMsgTextBlock.Text = "Cannot rename to the same name."; // TODO
+                    ErrorMsgTextBlock.Text = _resourceMap.GetValue("Error_Message_SameName").ValueAsString;
                     args.Cancel = true;
                     return;
                 }
                 // Create
                 if (tagFilterSetContext.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == newName)) {
-                    ErrorMsgTextBlock.Text = $"\"{newName}\" already exists."; // TODO
+                    ErrorMsgTextBlock.Text = string.Format(
+                        _resourceMap.GetValue("Error_Message_Duplicate").ValueAsString,
+                        newName
+                    );
                     args.Cancel = true;
                     return;
                 }
