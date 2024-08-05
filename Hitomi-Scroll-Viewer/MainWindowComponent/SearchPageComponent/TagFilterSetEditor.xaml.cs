@@ -25,8 +25,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         private readonly IndexedTextBox[] _tagFilterTextBoxes = new IndexedTextBox[CATEGORIES.Length];
         private readonly ActionContentDialog _contentDialog = new(_tagFilterSetContext);
         internal Button HyperlinkCreateButton { get; set; }
-        private readonly bool[] _textBoxesEmpty = new bool[CATEGORIES.Length];
-        private bool _allTextBoxesEmpty = true;
 
         public TagFilterSetEditor() {
             InitializeComponent();
@@ -71,16 +69,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 SetRow(_tagFilterTextBoxes[i], 1);
                 SetColumn(_tagFilterTextBoxes[i], i);
                 TextBoxesGrid.Children.Add(_tagFilterTextBoxes[i]);
-                _tagFilterTextBoxes[i].TextChanged += (object sender, TextChangedEventArgs e) => {
-                    IndexedTextBox indexedTextBox = sender as IndexedTextBox;
-                    if (indexedTextBox.Text.Length == 0) {
-                        _textBoxesEmpty[indexedTextBox.Index] = true;
-                        _allTextBoxesEmpty = _tagFilterTextBoxes.All(textBox => textBox.Text.Length == 0);
-                    } else {
-                        _allTextBoxesEmpty = false;
-                    }
-                    EnableHyperlinkCreateButton(null, null);
-                };
             }
 
             IncludeTagFilterSetSelector.RegisterPropertyChangedCallback(
@@ -104,12 +92,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             ExcludeTagFilterSetSelector.Init(collection);
         }
 
-        // TODO correct logic
-        /**
-         * if 
-         */
         private void EnableHyperlinkCreateButton(DependencyObject _0, DependencyProperty _1) {
-            HyperlinkCreateButton.IsEnabled = !_allTextBoxesEmpty || IncludeTagFilterSetSelector.AnyChecked || ExcludeTagFilterSetSelector.AnyChecked;
+            HyperlinkCreateButton.IsEnabled = IncludeTagFilterSetSelector.AnyChecked || ExcludeTagFilterSetSelector.AnyChecked;
         }
 
         private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
