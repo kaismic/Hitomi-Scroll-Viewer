@@ -17,7 +17,7 @@ using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class TagFilterSetEditor : Grid {
-        private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
+        private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
 
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetEditor");
 
