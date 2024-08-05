@@ -159,9 +159,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
         }
 
         private const int INFOBAR_DISPLAY_DURATION = 5000;
-        internal void ShowInfoBar(string title, string message) {
+        internal void ShowInfoBar(string message) {
             InfoBar infoBar = new() {
-                Title = title,
                 Message = message,
                 IsOpen = true
             };
