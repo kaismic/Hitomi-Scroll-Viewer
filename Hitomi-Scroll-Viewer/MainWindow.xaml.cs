@@ -11,8 +11,6 @@ using static Hitomi_Scroll_Viewer.Utils;
 namespace Hitomi_Scroll_Viewer {
     public sealed partial class MainWindow : Window {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("MainWindow");
-        private static readonly string EXIT_CONFIRM_TEXT = ResourceMap.GetValue("ExitConfirmText").ValueAsString;
-
         public static SearchPage SearchPage { get; private set; }
         public static ViewPage ImageWatchingPage { get; private set; }
 
@@ -41,7 +39,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
                     ContentDialog dialog = new() {
                         DefaultButton = ContentDialogButton.Close,
-                        Title = EXIT_CONFIRM_TEXT,
+                        Title = ResourceMap.GetValue("ExitConfirmText").ValueAsString,
                         PrimaryButtonText = TEXT_EXIT,
                         CloseButtonText = TEXT_CANCEL,
                         XamlRoot = Content.XamlRoot
@@ -72,7 +70,7 @@ namespace Hitomi_Scroll_Viewer {
         }
 
         private static readonly ContentDialog _notification = new() {
-            CloseButtonText = "Ok",
+            CloseButtonText = TEXT_CLOSE,
             Title = new TextBlock() {
                 TextWrapping = TextWrapping.WrapWholeWords
             },
