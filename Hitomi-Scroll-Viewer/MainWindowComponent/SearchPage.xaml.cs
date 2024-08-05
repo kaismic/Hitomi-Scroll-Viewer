@@ -77,7 +77,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
 
             //    WriteTagFilterDict();
             //}
-            GalleryIDTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = GalleryIDTextBox.Text.Length != 0; };
+            DownloadInputTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = DownloadInputTextBox.Text.Length != 0; };
 
 
             Loaded += SearchPage_Loaded;
@@ -86,26 +86,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             PopupInfoBarStackPanel.Margin = new Thickness(0, 0, 0, ActualHeight / 16);
             Loaded -= SearchPage_Loaded;
         }
-
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_CONTENT = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Content").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameDup_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_NAME_DUP_CONTENT = _resourceMap.GetValue("Notification_TagFilter_NameDup_Content").ValueAsString;
-        
-        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_CREATE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Create_2_Title").ValueAsString;
-
-
-        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Rename_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_RENAME_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Rename_2_Title").ValueAsString;
-
-
-        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Save_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_1_CONTENT = _resourceMap.GetValue("Notification_TagFilter_Save_1_Content").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_SAVE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Save_2_Title").ValueAsString;
-
-        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_1_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_1_Title").ValueAsString;
-        private static readonly string NOTIFICATION_TAG_FILTER_DELETE_2_TITLE = _resourceMap.GetValue("Notification_TagFilter_Delete_2_Title").ValueAsString;
 
         private void HyperlinkCreateButton_Clicked(object _0, RoutedEventArgs _1) {
             SearchLinkItem searchLinkItem = TagFilterSetEditor.GetSearchLinkItem(_searchLinkItems);
@@ -117,15 +97,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             Clipboard.SetContent(_myDataPackage);
         }
 
-        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE = _resourceMap.GetValue("Notification_GalleryIDTextBox_ContentEmpty_Title").ValueAsString;
-        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_TITLE = _resourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Title").ValueAsString;
-        private static readonly string NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_CONTENT = _resourceMap.GetValue("Notification_GalleryIDTextBox_ContentInvalid_Content").ValueAsString;
-
         private void DownloadBtn_Clicked(object _0, RoutedEventArgs _1) {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
-            string[] urlOrIds = GalleryIDTextBox.Text.Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS);
+            string[] urlOrIds = DownloadInputTextBox.Text.Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS);
             if (urlOrIds.Length == 0) {
-                MainWindow.NotifyUser(NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_EMPTY_TITLE, "");
+                MainWindow.NotifyUser(_resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString, "");
                 return;
             }
             List<int> extractedIds = [];
@@ -137,12 +113,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             }
             if (extractedIds.Count == 0) {
                 MainWindow.NotifyUser(
-                    NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_TITLE,
-                    NOTIFICATION_GALLERY_ID_TEXTBOX_CONTENT_INVALID_CONTENT
+                    _resourceMap.GetValue("Notification_DownloadInputTextBox_Invalid_Title").ValueAsString,
+                    ""
                 );
                 return;
             }
-            GalleryIDTextBox.Text = "";
+            DownloadInputTextBox.Text = "";
             
             // only download if the gallery is not already downloading
             foreach (int id in extractedIds) {

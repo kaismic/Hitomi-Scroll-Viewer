@@ -58,7 +58,7 @@
                                     HorizontalAlignment="Stretch"
                                     IsEnabled="False"
                                     Padding="16">
-                                <TextBlock x:Uid="/SearchPage/CreateHyperlinkBtnTextBlock"
+                                <TextBlock x:Uid="/SearchPage/HyperlinkCreateButtonTextBlock"
                                            FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                             </Button>
                             <ListView x:Name="SearchLinkItemsListView"
@@ -93,7 +93,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="GalleryIDTextBox" x:Uid="/SearchPage/GalleryIDTextBox"
+                            <TextBox x:Name="DownloadInputTextBox" x:Uid="/SearchPage/DownloadInputTextBox"
                                      Grid.Column="0"
                                      VerticalAlignment="Stretch"
                                      TextWrapping="Wrap"
