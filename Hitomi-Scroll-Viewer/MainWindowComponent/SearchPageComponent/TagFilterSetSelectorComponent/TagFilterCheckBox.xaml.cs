@@ -1,15 +1,15 @@
+using Hitomi_Scroll_Viewer.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System.ComponentModel;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetSelectorComponent {
-    public sealed partial class TagFilterCheckBox : CheckBox
-    {
+    public sealed partial class TagFilterCheckBox : CheckBox {
         internal int Index { get; set; }
-        internal readonly string TagFilterSetName;
-        public TagFilterCheckBox(int index, string tagFilterSetName, RoutedEventHandler checkedEventHandler, RoutedEventHandler uncheckedEventHandler)
-        {
+        internal TagFilterSet TagFilterSet { get; private set; }
+        public TagFilterCheckBox(int index, TagFilterSet tagFilterSet, RoutedEventHandler checkedEventHandler, RoutedEventHandler uncheckedEventHandler) {
             Index = index;
-            TagFilterSetName = tagFilterSetName;
+            TagFilterSet = tagFilterSet;
             InitializeComponent();
             Checked += checkedEventHandler;
             Unchecked += uncheckedEventHandler;

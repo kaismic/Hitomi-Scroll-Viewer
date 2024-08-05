@@ -79,7 +79,12 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             SignInBtn.IsEnabled = false;
             try {
                 if (_isSignedIn) {
-                    ContentDialogResult cdr = await MainWindow.SearchPage.ShowConfirmDialogAsync(NOTIFICATION_SIGN_OUT_TITLE, "");
+                    ContentDialog contentDialog = new() {
+                        Style = Resources["DefaultContentDialogStyle"] as Style,
+                        Title = NOTIFICATION_SIGN_OUT_TITLE,
+                        CloseButtonText = TEXT_CANCEL
+                    };
+                    ContentDialogResult cdr = await contentDialog.ShowAsync();
                     if (cdr != ContentDialogResult.Primary) {
                         return;
                     }

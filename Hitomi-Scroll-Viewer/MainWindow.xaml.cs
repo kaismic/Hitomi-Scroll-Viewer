@@ -17,15 +17,23 @@ namespace Hitomi_Scroll_Viewer {
         public static ViewPage ImageWatchingPage { get; private set; }
 
         public MainWindow() {
-            ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             InitializeComponent();
+            SearchPage = new();
+            ImageWatchingPage = new();
+            RootFrame.Content = SearchPage;
+            SizeChanged += (object _, WindowSizeChangedEventArgs e) => {
+                if (RootFrame.Content is SearchPage) {
+                    SearchPage.Window_SizeChanged(e);
+                } else {
+                    ImageWatchingPage.Window_SizeChanged();
+                }
+            };
+            ((OverlappedPresenter)AppWindow.Presenter).Maximize();
+
             Title = APP_DISPLAY_NAME;
             // create directories if they don't exist
             Directory.CreateDirectory(ROOT_DIR);
             Directory.CreateDirectory(IMAGE_DIR);
-
-            SearchPage = new();
-            ImageWatchingPage = new();
 
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
@@ -50,9 +58,6 @@ namespace Hitomi_Scroll_Viewer {
                 ImageWatchingPage.SaveSettings();
                 Close();
             };
-            SizeChanged += (_, _) => { if (RootFrame.Content is ViewPage) ImageWatchingPage.Window_SizeChanged(); };
-
-            RootFrame.Content = SearchPage;
         }
 
         public void SwitchPage() {

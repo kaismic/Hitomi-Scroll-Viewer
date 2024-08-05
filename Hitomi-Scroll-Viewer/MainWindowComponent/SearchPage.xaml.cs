@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -40,18 +41,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
 
         internal readonly ObservableCollection<DownloadItem> DownloadingItems = [];
         internal static readonly ConcurrentDictionary<int, byte> DownloadingGalleryIds = [];
-
-        private readonly ContentDialog _confirmDialog = new() {
-            DefaultButton = ContentDialogButton.Primary,
-            PrimaryButtonText = TEXT_YES,
-            CloseButtonText = TEXT_CANCEL,
-            Title = new TextBlock() {
-                TextWrapping = TextWrapping.WrapWholeWords
-            },
-            Content = new TextBlock() {
-                TextWrapping = TextWrapping.WrapWholeWords
-            }
-        };
 
         public SearchPage() {
             InitializeComponent();
@@ -91,18 +80,11 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
             GalleryIDTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = GalleryIDTextBox.Text.Length != 0; };
 
 
-            void SetConfirmDialogXamlRoot(object _0, RoutedEventArgs _1) {
-                _confirmDialog.XamlRoot = XamlRoot;
-                Loaded -= SetConfirmDialogXamlRoot;
-            };
-            Loaded += SetConfirmDialogXamlRoot;
+            Loaded += SearchPage_Loaded;
         }
-
-        public async Task<ContentDialogResult> ShowConfirmDialogAsync(string title, string content) {
-            (_confirmDialog.Title as TextBlock).Text = title;
-            (_confirmDialog.Content as TextBlock).Text = content;
-            ContentDialogResult result = await _confirmDialog.ShowAsync();
-            return result;
+        private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
+            PopupInfoBarStackPanel.Margin = new Thickness(0, 0, 0, ActualHeight / 16);
+            Loaded -= SearchPage_Loaded;
         }
 
         private static readonly string NOTIFICATION_TAG_FILTER_NAME_EMPTY_TITLE = _resourceMap.GetValue("Notification_TagFilter_NameEmpty_Title").ValueAsString;
@@ -174,6 +156,38 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent
                 return true;
             }
             return false;
+        }
+
+        private const int INFOBAR_DISPLAY_DURATION = 5000;
+        internal void ShowInfoBar(string title, string message) {
+            InfoBar infoBar = new() {
+                Title = title,
+                Message = message,
+                IsOpen = true
+            };
+            CancellationTokenSource cts = new();
+            infoBar.CloseButtonClick += (InfoBar infoBar, object _) => {
+                cts.Cancel();
+            };
+            PopupInfoBarStackPanel.Children.Add(infoBar);
+            Task.Run(
+                async () => {
+                    await Task.Delay(INFOBAR_DISPLAY_DURATION, cts.Token);
+                    DispatcherQueue.TryEnqueue(() => PopupInfoBarStackPanel.Children.Remove(infoBar));
+                },
+                cts.Token
+            );
+        }
+
+        private DateTime _lastWindowSizeChangeTime;
+        internal async void Window_SizeChanged(WindowSizeChangedEventArgs e) {
+            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.UtcNow;
+            // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
+            await Task.Delay(200);
+            if (_lastWindowSizeChangeTime != thisDateTime) {
+                return;
+            }
+            MainControlGrid.Height = e.Size.Height - MainContainerStackPanel.Padding.Top - MainContainerStackPanel.Padding.Bottom;
         }
 
         //public BookmarkItem AddBookmark(Gallery gallery) {

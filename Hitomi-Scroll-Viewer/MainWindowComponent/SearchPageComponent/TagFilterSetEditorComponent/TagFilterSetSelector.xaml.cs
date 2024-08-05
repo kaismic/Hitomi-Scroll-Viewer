@@ -54,28 +54,28 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
         }
 
         internal void Init(ObservableCollection<TagFilterSet> collection) {
-            collection.CollectionChanged += TagFilterNames_CollectionChanged;
+            collection.CollectionChanged += TagFilterSets_CollectionChanged;
             _tagFilterCheckBoxes?.Clear();
             SearchFilterItemsRepeater.ItemsSource = null;
             _tagFilterCheckBoxes =
                 new(
                     collection.Select(
-                        (tagFilterSet, i)=>
+                        (tagFilterSet, i) =>
                             new TagFilterCheckBox(
-                                i, tagFilterSet.Name, CheckBox_Checked, CheckBox_Unchecked
+                                i, tagFilterSet, CheckBox_Checked, CheckBox_Unchecked
                             )
                     )
                 );
             SearchFilterItemsRepeater.ItemsSource = _tagFilterCheckBoxes;
         }
 
-        private void TagFilterNames_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+        private void TagFilterSets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Add:
                     _tagFilterCheckBoxes.Add(
                         new(
                             _tagFilterCheckBoxes.Count,
-                            e.NewItems.Cast<TagFilterSet>().ToList()[0].Name,
+                            e.NewItems.Cast<TagFilterSet>().ToList()[0],
                             CheckBox_Checked,
                             CheckBox_Unchecked
                         )
@@ -91,10 +91,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
                     _tagFilterCheckBoxes.Clear();
                     _tagFilterCheckBoxes = 
                         new(
-                            (sender as ObservableCollection<TagFilterCheckBox>).Select(
+                            (sender as ObservableCollection<TagFilterSet>).Select(
                                 (tagFilterSet, i) =>
                                     new TagFilterCheckBox(
-                                        i, tagFilterSet.Name, CheckBox_Checked, CheckBox_Unchecked
+                                        i, tagFilterSet, CheckBox_Checked, CheckBox_Unchecked
                                     )
                             )
                         );
@@ -118,8 +118,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
             PairTagFilterSelector.EnableCheckBox(i, true);
         }
 
-        internal IEnumerable<string> GetCheckedTagFilterSetNames() {
-            return CheckedIndexes.Select(i => _tagFilterCheckBoxes[i].TagFilterSetName);
+        internal IEnumerable<TagFilterSet> GetCheckedTagFilterSets() {
+            return CheckedIndexes.Select(i => _tagFilterCheckBoxes[i].TagFilterSet);
         }
     }
 }

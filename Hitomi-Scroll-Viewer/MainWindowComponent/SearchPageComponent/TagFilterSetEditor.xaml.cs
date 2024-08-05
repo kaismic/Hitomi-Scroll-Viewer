@@ -11,7 +11,6 @@ using System.Linq;
 using static Hitomi_Scroll_Viewer.Entities.TagFilter;
 using static Hitomi_Scroll_Viewer.Utils;
 using static Hitomi_Scroll_Viewer.Resources;
-using System.Diagnostics;
 using System.Collections.ObjectModel;
 using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent;
 
@@ -36,8 +35,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 FrameworkElement elem = TagFilterSetControlGrid.Children[i] as FrameworkElement;
                 SetColumn(elem, i);
                 if (elem is Button button) {
-                    button.Width = 64;
-                    button.Height = 64;
+                    button.Padding = new(16);
                 }
             }
 
@@ -106,6 +104,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             ExcludeTagFilterSetSelector.Init(collection);
         }
 
+        // TODO correct logic
+        /**
+         * if 
+         */
         private void EnableHyperlinkCreateButton(DependencyObject _0, DependencyProperty _1) {
             HyperlinkCreateButton.IsEnabled = !_allTextBoxesEmpty || IncludeTagFilterSetSelector.AnyChecked || ExcludeTagFilterSetSelector.AnyChecked;
         }
@@ -157,8 +159,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             );
         }
 
-        // TODO separate CRUD logic to separate methods
-
         private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
             _contentDialog.SetDialogType(
                 ActionContentDialog.Action.Create,
@@ -185,8 +185,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             _tagFilterSetContext.TagFilterSets.Add(tagFilterSet);
             _tagFilterSetContext.SaveChanges();
             TagFilterSetComboBox.SelectedItem = tagFilterSet;
-            // TODO show infobar
-            Trace.WriteLine($"{name} has been created.");
+            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{name}\" has been created."); // TODO
         }
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
@@ -204,8 +203,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             string newName = _contentDialog.GetText();
             _tagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
             _tagFilterSetContext.SaveChanges();
-            // TODO show infobar
-            Trace.WriteLine($"{oldName} has been renamed to {newName}.");
+            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{oldName}\" has been renamed to \"{newName}\"."); // TODO
         }
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1) {
@@ -217,8 +215,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 tagFilter.Tags = GetTags(tagFilter.Category);
             }
             _tagFilterSetContext.SaveChanges();
-            // TODO show InfoBar
-            Trace.WriteLine($"{tagFilterSet.Name} has been saved.");
+            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{tagFilterSet.Name}\" has been saved."); // TODO
         }
 
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1) {
@@ -237,15 +234,14 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             foreach (TextBox textBox in _tagFilterTextBoxes) {
                 textBox.Text = "";
             }
-            // TODO show infobar
-            Trace.WriteLine($"{name} has been deleted.");
+            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{name}\" has been deleted."); // TODO
         }
 
         internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
             string selectedTagFilterSetName = (string)TagFilterSetComboBox.SelectedValue;
 
-            IEnumerable<string> includeTagFilterSetNames = IncludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
-            IEnumerable<string> excludeTagFilterSetNames = ExcludeTagFilterSetSelector.GetCheckedTagFilterSetNames();
+            IEnumerable<TagFilterSet> includeTagFilterSets = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
+            IEnumerable<TagFilterSet> excludeTagFilterSets = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
             IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
             IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
 
@@ -253,24 +249,19 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(GetTags).ToArray();
             using TagFilterSetContext context = new();
 
-            void TakeTagFilterSetsUnion(IEnumerable<string> tagFilterSetNames, IEnumerable<string>[] tagFilters) {
-                foreach (string tagFilterSetName in tagFilterSetNames) {
+            void TakeTagFilterSetsUnion(IEnumerable<TagFilterSet> tagFilterSets, IEnumerable<string>[] tagFilters) {
+                foreach (TagFilterSet tagFilterSet in tagFilterSets) {
                     IEnumerable<string>[] tagsArray =
-                        tagFilterSetName == selectedTagFilterSetName
+                        tagFilterSet.Name == selectedTagFilterSetName
                         ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
-                        : context.TagFilterSets
-                            .First(tfs => tfs.Name == tagFilterSetName)
-                            .TagFilters
-                            .Select(tagFilter => tagFilter.Tags)
-                            //.Select(tagList => tagList.Select(tag => tag.Value))
-                            .ToArray();
+                        : tagFilterSet.TagFilters.Select(tagFilter => tagFilter.Tags).ToArray();
                     for (int i = 0; i < CATEGORIES.Length; i++) {
                         tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
                     }
                 }
             }
-            TakeTagFilterSetsUnion(includeTagFilterSetNames, includeTagFilters);
-            TakeTagFilterSetsUnion(excludeTagFilterSetNames, excludeTagFilters);
+            TakeTagFilterSetsUnion(includeTagFilterSets, includeTagFilters);
+            TakeTagFilterSetsUnion(excludeTagFilterSets, excludeTagFilters);
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 dupTagFiltersDict[i] = new(CATEGORIES[i], includeTagFilters[i].Intersect(excludeTagFilters[i]));

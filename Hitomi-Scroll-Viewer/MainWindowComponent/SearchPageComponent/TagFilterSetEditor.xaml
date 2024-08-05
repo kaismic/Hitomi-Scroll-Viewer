@@ -42,7 +42,8 @@
                   DisplayMemberPath="Name"
                   SelectedValuePath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        </ComboBox>
         <Button x:Name="SaveButton"
                 Click="SaveButton_Click"
                 IsEnabled="False"
@@ -75,6 +76,9 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <tfsec:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector"
                                     IsInclude="True"
                                     PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
