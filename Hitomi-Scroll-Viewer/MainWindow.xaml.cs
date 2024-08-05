@@ -39,7 +39,7 @@ namespace Hitomi_Scroll_Viewer {
                 if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
                     ContentDialog dialog = new() {
                         DefaultButton = ContentDialogButton.Close,
-                        Title = ResourceMap.GetValue("ExitConfirmText").ValueAsString,
+                        Title = ResourceMap.GetValue("Exit_Confirm_Title_Text").ValueAsString,
                         PrimaryButtonText = TEXT_EXIT,
                         CloseButtonText = TEXT_CANCEL,
                         XamlRoot = Content.XamlRoot
