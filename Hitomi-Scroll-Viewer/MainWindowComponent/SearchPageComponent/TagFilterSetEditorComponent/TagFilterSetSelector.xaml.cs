@@ -14,7 +14,7 @@ using static Hitomi_Scroll_Viewer.Resources;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent {
     public sealed partial class TagFilterSetSelector : DockPanel {
-        //private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetSelector");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetSelector");
 
         private ObservableCollection<TagFilterCheckBox> _tagFilterCheckBoxes;
         internal TagFilterSetSelector PairTagFilterSelector { get; set; }
@@ -34,12 +34,10 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilter
         public bool IsInclude {
             set {
                 if (value) {
-                    //HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Include").ValueAsString; TODO
-                    HeaderTextBlock.Text = "HeaderText_Include";
+                    HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Include").ValueAsString;
                     HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Green);
                 } else {
-                    //HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Exclude").ValueAsString; TODO
-                    HeaderTextBlock.Text = "HeaderText_Exclude";
+                    HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Exclude").ValueAsString;
                     HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Red);
                 }
             }

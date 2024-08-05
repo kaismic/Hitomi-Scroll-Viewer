@@ -118,9 +118,9 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="HeaderText_Exclude" xml:space="preserve">
-    <value>제외</value>
+    <value>Select tag filter sets to exclude</value>
   </data>
   <data name="HeaderText_Include" xml:space="preserve">
-    <value>포함</value>
+    <value>Select tag filter sets to include</value>
   </data>
 </root>
