@@ -1,22 +1,25 @@
 using Hitomi_Scroll_Viewer.DbContexts;
 using Hitomi_Scroll_Viewer.Entities;
+using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using static Hitomi_Scroll_Viewer.Entities.TagFilter;
-using static Hitomi_Scroll_Viewer.Utils;
 using static Hitomi_Scroll_Viewer.Resources;
-using System.Collections.ObjectModel;
-using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent;
+using static Hitomi_Scroll_Viewer.Utils;
 
 namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
     public sealed partial class TagFilterSetEditor : Grid {
         private static readonly string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
+
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetEditor");
 
         private static readonly TagFilterSetContext _tagFilterSetContext = new();
         private class IndexedTextBox : TextBox {
@@ -125,10 +128,6 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 .ToList();
         }
 
-        internal string GetSelectedTagFilterSetName() {
-            return (string)TagFilterSetComboBox.SelectedValue;
-        }
-
         private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (TagFilterSetComboBox.SelectedIndex == -1) {
                 RenameButton.IsEnabled = SaveButton.IsEnabled = DeleteButton.IsEnabled = false;
@@ -138,7 +137,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             InsertTagFilters(
                 _tagFilterSetContext
                 .TagFilterSets
-                .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedValue)
+                .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name)
                 .TagFilters
             );
         }
@@ -146,8 +145,8 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
         private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
             _contentDialog.SetDialogType(
                 ActionContentDialog.Action.Create,
-                "Enter a name for the new tag filter set:", // TODO
-                "Create" // TODO
+                _resourceMap.GetValue("ActionContentDialog_Title_Create").ValueAsString,
+                _resourceMap.GetValue("Text_Create").ValueAsString
             );
             ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
@@ -169,15 +168,20 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             _tagFilterSetContext.TagFilterSets.Add(tagFilterSet);
             _tagFilterSetContext.SaveChanges();
             TagFilterSetComboBox.SelectedItem = tagFilterSet;
-            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{name}\" has been created."); // TODO
+            MainWindow.SearchPage.ShowInfoBar(
+                string.Format(
+                    _resourceMap.GetValue("InfoBar_Message_Create_Complete").ValueAsString,
+                    name
+                )
+            );
         }
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
-            string oldName = (string)TagFilterSetComboBox.SelectedValue;
+            string oldName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
             _contentDialog.SetDialogType(
                 ActionContentDialog.Action.Rename,
-                "Enter a new name for the current tag filter set:", // TODO
-                "Rename", // TODO
+                _resourceMap.GetValue("ActionContentDialog_Title_Rename").ValueAsString,
+                _resourceMap.GetValue("Text_Rename").ValueAsString,
                 oldName
             );
             ContentDialogResult cdr = await _contentDialog.ShowAsync();
@@ -187,27 +191,38 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             string newName = _contentDialog.GetText();
             _tagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
             _tagFilterSetContext.SaveChanges();
-            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{oldName}\" has been renamed to \"{newName}\"."); // TODO
+            MainWindow.SearchPage.ShowInfoBar(
+                string.Format(
+                    _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
+                    oldName,
+                    newName
+                )
+            );
         }
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1) {
             TagFilterSet tagFilterSet =
                 _tagFilterSetContext
                 .TagFilterSets
-                .First(tagFilterSet => tagFilterSet.Name == (string)TagFilterSetComboBox.SelectedValue);
+                .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name);
             foreach (TagFilter tagFilter in tagFilterSet.TagFilters) {
                 tagFilter.Tags = GetTags(tagFilter.Category);
             }
             _tagFilterSetContext.SaveChanges();
-            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{tagFilterSet.Name}\" has been saved."); // TODO
+            MainWindow.SearchPage.ShowInfoBar(
+                string.Format(
+                    _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
+                    tagFilterSet.Name
+                )
+            );
         }
 
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1) {
-            string name = (string)TagFilterSetComboBox.SelectedValue;
+            string name = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
             _contentDialog.SetDialogType(
                 ActionContentDialog.Action.Delete,
-                $"Delete \"{name}\"?", // TODO
-                "Delete" // TODO
+                string.Format(_resourceMap.GetValue("ActionContentDialog_Title_Delete").ValueAsString, name),
+                _resourceMap.GetValue("Text_Delete").ValueAsString
             );
             ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
@@ -218,11 +233,16 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             foreach (TextBox textBox in _tagFilterTextBoxes) {
                 textBox.Text = "";
             }
-            MainWindow.SearchPage.ShowInfoBar("Success", $"\"{name}\" has been deleted."); // TODO
+            MainWindow.SearchPage.ShowInfoBar(
+                string.Format(
+                    _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,
+                    name
+                )
+            );
         }
 
         internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
-            string selectedTagFilterSetName = (string)TagFilterSetComboBox.SelectedValue;
+            string selectedTagFilterSetName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
 
             IEnumerable<TagFilterSet> includeTagFilterSets = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
             IEnumerable<TagFilterSet> excludeTagFilterSets = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
@@ -258,7 +278,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                         dupTagFiltersPair.Value.Any()
                             ? (
                                 result +=
-                                    dupTagFiltersPair.Key + ": " +
+                                    dupTagFiltersPair.Key[0].ToString().ToUpper() + dupTagFiltersPair.Key[1..] + ": " +
                                     string.Join(", ", dupTagFiltersPair.Value) +
                                     Environment.NewLine
                             )
@@ -267,8 +287,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 );
             if (overlappingTagFiltersText.Length != 0) {
                 MainWindow.NotifyUser(
-                    //_resourceMap.GetValue("Notification_TagFilter_Overlap_Title").ValueAsString, TODO
-                    "There are overlapping tags.",
+                    _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
                     overlappingTagFiltersText
                 );
                 return null;
@@ -287,8 +306,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
             );
             if (searchParams.Length == 0) {
                 MainWindow.NotifyUser(
-                    //_resourceMap.GetValue("Notification_SeachLink_ContentEmpty_Title").ValueAsString, TODO
-                    "All of the selected tag filter sets are empty",
+                    _resourceMap.GetValue("Notification_TagFilterSets_Empty_Title").ValueAsString,
                     ""
                 );
                 return null;
@@ -314,7 +332,7 @@ namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent {
                 ).Where(displayTagTexts => displayTagTexts.Length != 0)
             );
 
-            return new (
+            return new(
                 searchLink,
                 displayText,
                 (_, arg) => searchLinkItems.Remove((SearchLinkItem)arg.Parameter)
