@@ -1,9 +1,8 @@
 using Hitomi_Scroll_Viewer.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System.ComponentModel;
 
-namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetSelectorComponent {
+namespace Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent.TagFilterSetSelectorComponent {
     public sealed partial class TagFilterCheckBox : CheckBox {
         internal int Index { get; set; }
         internal TagFilterSet TagFilterSet { get; private set; }

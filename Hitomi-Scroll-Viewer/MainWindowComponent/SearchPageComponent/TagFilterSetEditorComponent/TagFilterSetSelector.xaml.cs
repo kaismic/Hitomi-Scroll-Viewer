@@ -1,6 +1,6 @@
 using CommunityToolkit.WinUI.Controls;
 using Hitomi_Scroll_Viewer.Entities;
-using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetSelectorComponent;
+using Hitomi_Scroll_Viewer.MainWindowComponent.SearchPageComponent.TagFilterSetEditorComponent.TagFilterSetSelectorComponent;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
