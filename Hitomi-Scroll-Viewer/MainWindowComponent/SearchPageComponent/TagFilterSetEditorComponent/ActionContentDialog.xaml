@@ -12,7 +12,7 @@
     >
     <ContentDialog.Resources>
         <x:Double x:Key="ContentDialogMaxWidth">4294967296</x:Double>
-        <x:Double x:Key="ActionContentDialogWidth">384</x:Double>
+        <x:Double x:Key="ActionContentDialogWidth">548</x:Double>
     </ContentDialog.Resources>
     <ContentDialog.Title>
         <TextBlock x:Name="TitleTextBlock"
