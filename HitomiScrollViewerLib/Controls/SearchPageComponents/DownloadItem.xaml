@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Grid
+    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.DownloadItem"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    
+    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+    CornerRadius="{StaticResource OverlayCornerRadius}"
+    BorderThickness="1"
+    Padding="16"
+    ColumnSpacing="8"
+    RowSpacing="4"
+    >
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition/>
+        <RowDefinition/>
+        <RowDefinition/>
+    </Grid.RowDefinitions>
+    <TextBlock x:Name="Description" Grid.Row="0" Grid.Column="0"
+               TextWrapping="WrapWholeWords" IsTextSelectionEnabled="True"/>
+    <ProgressBar x:Name="DownloadProgressBar" Grid.Row="1" Grid.Column="0"
+                 Background="Gray"/>
+    <TextBlock x:Name="DownloadStatusTextBlock" Grid.Row="2" Grid.Column="0"
+               TextWrapping="WrapWholeWords" IsTextSelectionEnabled="True"/>
+    <Button x:Name="DownloadControlBtn" Grid.Row="0" Grid.Column="1"
+            Click="PauseOrResume"
+            HorizontalAlignment="Stretch"/>
+    <Button x:Name="CancelBtn" Grid.Row="0" Grid.Column="2"
+            x:Uid="/DownloadItem/CancelBtn"
+            HorizontalAlignment="Stretch">
+        <SymbolIcon Symbol="Delete"></SymbolIcon>
+    </Button>
+    <ComboBox x:Name="ThreadNumComboBox"
+              Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
+              ItemsSource="{x:Bind _threadNums}"
+              SelectedIndex="0"
+              SelectionChanged="HandleThreadNumChange">
+        <ComboBox.Header>
+            <TextBlock x:Uid="/DownloadItem/ThreadNumComboBoxHeader"/>
+        </ComboBox.Header>
+    </ComboBox>
+</Grid>

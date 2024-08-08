@@ -1,0 +1,33 @@
+<Grid
+    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.SearchLinkItem"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    ColumnSpacing="16">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <HyperlinkButton Grid.Column="0"
+                     NavigateUri="{x:Bind SearchLink}"
+                     HorizontalAlignment="Stretch"
+                     HorizontalContentAlignment="Left"
+                     VerticalAlignment="Stretch">
+        <TextBlock TextWrapping="WrapWholeWords"
+                   Style="{StaticResource CaptionTextBlockStyle}"
+                   Text="{x:Bind _displayText}"/>
+    </HyperlinkButton>
+    <Button Grid.Column="1" CommandParameter="{x:Bind}">
+        <Button.Command>
+            <StandardUICommand x:Name="DeleteCommand" Kind="Delete" Label="Delete"/>
+        </Button.Command>
+        <Button.Content>
+            <SymbolIcon Symbol="Delete"></SymbolIcon>
+        </Button.Content>
+    </Button>
+</Grid>

@@ -1,8 +1,8 @@
 ﻿<Application
-    x:Class="Hitomi_Scroll_Viewer.App"
+    x:Class="HitomiScrollViewerApp.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Hitomi_Scroll_Viewer">
+    xmlns:local="using:HitomiScrollViewerApp">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

@@ -1,0 +1,89 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>HitomiScrollViewerLib</RootNamespace>
+    <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &gt;= 8">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &lt; 8">win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Controls\Pages\SearchPage.xaml" />
+    <None Remove="Controls\Pages\ViewPage.xaml" />
+    <None Remove="Controls\SearchPageComponents\ActionContentDialog.xaml" />
+    <None Remove="Controls\SearchPageComponents\BookmarkItem.xaml" />
+    <None Remove="Controls\SearchPageComponents\DownloadItem.xaml" />
+    <None Remove="Controls\SearchPageComponents\MigrationProgressReporter.xaml" />
+    <None Remove="Controls\SearchPageComponents\SearchLinkItem.xaml" />
+    <None Remove="Controls\SearchPageComponents\SyncContentDialog.xaml" />
+    <None Remove="Controls\SearchPageComponents\SyncManager.xaml" />
+    <None Remove="Controls\SearchPageComponents\TagFilterCheckBox.xaml" />
+    <None Remove="Controls\SearchPageComponents\TagFilterSetEditor.xaml" />
+    <None Remove="Controls\SearchPageComponents\TagFilterSetSelector.xaml" />
+    <None Remove="Controls\ViewPageComponents\GroupedImagePanel.xaml" />
+    <None Remove="MainWindow.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.0.240109" />
+      <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3466" />
+      <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
+      <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
+      <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
+      <PackageReference Include="Soluling" Version="1.0.71" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Controls\Pages\SearchPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Controls\Pages\ViewPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\ActionContentDialog.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\BookmarkItem.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\DownloadItem.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\MigrationProgressReporter.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\SearchLinkItem.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\SyncContentDialog.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\SyncManager.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\TagFilterCheckBox.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\TagFilterSetEditor.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Controls\SearchPageComponents\TagFilterSetSelector.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Controls\ViewPageComponents\GroupedImagePanel.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="MainWindow.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+</Project>

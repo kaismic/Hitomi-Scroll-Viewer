@@ -1,0 +1,93 @@
+<Grid
+    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.TagFilterSetEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:entities="using:HitomiScrollViewerLib.Entities"
+    xmlns:spc="using:HitomiScrollViewerLib.Controls.SearchPageComponents"
+    mc:Ignorable="d"
+    RowSpacing="8"
+    >
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <Grid x:Name="TagFilterSetControlGrid"
+          Grid.Row="0"
+          ColumnSpacing="8"
+          >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <Border/>
+        <Button Click="CreateButton_Click">
+            <SymbolIcon Symbol="Add"/>
+        </Button>
+        <Button x:Name="RenameButton"
+                Click="RenameButton_Click"
+                IsEnabled="False"
+                >
+            <SymbolIcon Symbol="Edit"/>
+        </Button>
+        <ComboBox x:Name="TagFilterSetComboBox"
+                  x:DefaultBindMode="OneWay"
+                  DisplayMemberPath="Name"
+                  SelectedValuePath="Name"
+                  SelectionChanged="TagFilterSetComboBox_SelectionChanged"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        </ComboBox>
+        <Button x:Name="SaveButton"
+                Click="SaveButton_Click"
+                IsEnabled="False"
+                >
+            <SymbolIcon Symbol="Save"/>
+        </Button>
+        <Button x:Name="DeleteButton"
+                Click="DeleteButton_Click"
+                IsEnabled="False"
+                >
+            <SymbolIcon Symbol="Delete"/>
+        </Button>
+        <Border/>
+    </Grid>
+    <Grid x:Name="TextBoxesGrid"
+          Grid.Row="1"
+          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          CornerRadius="{StaticResource OverlayCornerRadius}"
+          BorderThickness="1"
+          Padding="16"
+          VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+    </Grid>
+    <Grid Grid.Row="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <spc:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector"
+                                    IsInclude="True"
+                                    PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
+                                    Grid.Column="0"
+                                    />
+        <spc:TagFilterSetSelector x:Name="ExcludeTagFilterSetSelector"
+                                    IsInclude="False"
+                                    PairTagFilterSelector="{x:Bind IncludeTagFilterSetSelector}"
+                                    Grid.Column="1"
+                                    />
+    </Grid>
+</Grid>

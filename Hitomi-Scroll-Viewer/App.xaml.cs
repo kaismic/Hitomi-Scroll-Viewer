@@ -1,15 +1,15 @@
 ﻿using Microsoft.UI.Xaml;
-
+using HitomiScrollViewerLib.Controls;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace Hitomi_Scroll_Viewer {
+namespace HitomiScrollViewerApp {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
     public partial class App : Application {
-        public static MainWindow MainWindow { get; private set; }
+        private static MainWindow _mainWindow;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -25,9 +25,8 @@ namespace Hitomi_Scroll_Viewer {
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs args) {
-            MainWindow = new();
-            MainWindow.Activate();
+            _mainWindow = new();
+            _mainWindow.Activate();
         }
-
     }
 }

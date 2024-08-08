@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.MigrationProgressReporter"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HitomiScrollViewerLib.Controls.SearchPageComponents"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <ContentDialog.Title>
+        <TextBlock x:Name="TitleTextBlcok" TextWrapping="WrapWholeWords"
+                   Text="Migrating old data format into new database..."/>
+    </ContentDialog.Title>
+    <StackPanel>
+        <TextBlock Text="Please wait until all migration processes are completed."/>
+        <ProgressBar x:Name="MigrationProgressBar"/>
+        <TextBlock x:Name="ProgressDescTextBlock"/>
+    </StackPanel>
+</ContentDialog>
