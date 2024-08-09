@@ -40,12 +40,8 @@ namespace HitomiScrollViewerLib.Controls.Pages
         internal readonly ObservableCollection<DownloadItem> DownloadingItems = [];
         internal static readonly ConcurrentDictionary<int, byte> DownloadingGalleryIds = [];
 
-        private readonly MainWindow _mainWindow;
-
-        public SearchPage(MainWindow mainWindow) {
+        public SearchPage() {
             InitializeComponent();
-
-            _mainWindow = mainWindow;
 
             //if (File.Exists(TAG_FILTERS_FILE_PATH)) {
             //    TagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
@@ -120,7 +116,7 @@ namespace HitomiScrollViewerLib.Controls.Pages
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = DownloadInputTextBox.Text.Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS);
             if (urlOrIds.Length == 0) {
-                _mainWindow.NotifyUser(_resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString, "");
+                MainWindow.CurrentMainWindow.NotifyUser(_resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString, "");
                 return;
             }
             List<int> extractedIds = [];
@@ -131,7 +127,7 @@ namespace HitomiScrollViewerLib.Controls.Pages
                 }
             }
             if (extractedIds.Count == 0) {
-                _mainWindow.NotifyUser(
+                MainWindow.CurrentMainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_DownloadInputTextBox_Invalid_Title").ValueAsString,
                     ""
                 );

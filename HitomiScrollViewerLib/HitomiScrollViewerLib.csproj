@@ -6,6 +6,7 @@
     <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &gt;= 8">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &lt; 8">win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\Pages\SearchPage.xaml" />
@@ -51,7 +52,6 @@
     </Page>
     <Page Update="Controls\SearchPageComponents\DownloadItem.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="Controls\SearchPageComponents\MigrationProgressReporter.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
@@ -76,7 +76,6 @@
     </Page>
     <Page Update="Controls\SearchPageComponents\TagFilterSetSelector.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="Controls\ViewPageComponents\GroupedImagePanel.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>

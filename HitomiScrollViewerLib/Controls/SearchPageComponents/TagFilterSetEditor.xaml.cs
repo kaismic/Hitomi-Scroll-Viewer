@@ -1,6 +1,5 @@
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Controls.SearchPageComponents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -20,8 +19,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
 
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetEditor");
-
-        internal MainWindow MainWindow { get; set; }
 
         private static readonly TagFilterSetContext _tagFilterSetContext = new();
         private class IndexedTextBox : TextBox {
@@ -290,7 +287,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
                 );
             if (overlappingTagFiltersText.Length != 0) {
-                MainWindow.NotifyUser(
+                MainWindow.CurrentMainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
                     overlappingTagFiltersText
                 );
@@ -309,7 +306,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 ).Where(searchParam => searchParam.Length != 0)
             );
             if (searchParams.Length == 0) {
-                MainWindow.NotifyUser(
+                MainWindow.CurrentMainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_TagFilterSets_Empty_Title").ValueAsString,
                     ""
                 );

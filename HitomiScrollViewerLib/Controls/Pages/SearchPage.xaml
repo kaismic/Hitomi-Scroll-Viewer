@@ -26,7 +26,6 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <spc:TagFilterSetEditor x:Name="TagFilterSetEditor"
-                                            MainWindow="{x:Bind _mainWindow}"
                                             Grid.Row="0" Grid.RowSpan="2"
                                             Grid.Column="0"
                                             HyperlinkCreateButton="{x:Bind HyperlinkCreateButton}"
@@ -39,7 +38,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <spc:SyncManager Grid.Row="0" MainWindow="{x:Bind _mainWindow}"/>
+                        <spc:SyncManager Grid.Row="0"/>
                         <Grid Grid.Row="1"
                               Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                               BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"

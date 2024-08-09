@@ -47,13 +47,10 @@ namespace HitomiScrollViewerLib.Controls.Pages {
         private ViewDirection _viewDirection;
 
         private static readonly object _actionLock = new();
+        internal MainWindow MainWindow { get; set; }
 
-        private readonly MainWindow _mainWindow;
-
-        public ViewPage(MainWindow mainWindow) {
+        public ViewPage() {
             InitializeComponent();
-
-            _mainWindow = mainWindow;
 
             EnableControls(false);
 
@@ -89,7 +86,7 @@ namespace HitomiScrollViewerLib.Controls.Pages {
                 TopCommandBar.Opacity = 0;
                 PageNumDisplay.Visibility = Visibility.Collapsed;
             };
-            GoBackBtn.Click += (_, _) => mainWindow.SwitchPage();
+            GoBackBtn.Click += (_, _) => MainWindow.SwitchPage();
             AutoScrollIntervalSlider.ValueChanged += (object sender, RangeBaseValueChangedEventArgs e) => { _autoScrollInterval = e.NewValue; };
             AutoScrollBtn.Click += (_, _) => ToggleAutoScroll((bool)AutoScrollBtn.IsChecked);
             LoopBtn.Click += (_, _) => SetLoopBtnStatus((bool)LoopBtn.IsChecked);
@@ -123,10 +120,10 @@ namespace HitomiScrollViewerLib.Controls.Pages {
 
         public async void LoadGallery(Gallery gallery) {
             if (!Directory.Exists(Path.Combine(IMAGE_DIR_V2, gallery.Id.ToString()))) {
-                _mainWindow.NotifyUser(Text_Notification_NoImagesToLoad_Title, "");
+                MainWindow.NotifyUser(Text_Notification_NoImagesToLoad_Title, "");
                 return;
             }
-            _mainWindow.SwitchPage();
+            MainWindow.SwitchPage();
             if (ToggleAction(true)) {
                 try {
                     if (CurrLoadedGallery != null && gallery.Id == CurrLoadedGallery.Id) {

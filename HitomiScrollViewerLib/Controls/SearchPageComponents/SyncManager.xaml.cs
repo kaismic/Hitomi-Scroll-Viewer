@@ -40,8 +40,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private static UserCredential _userCredential;
         private static BaseClientService.Initializer _initializer;
 
-        internal MainWindow MainWindow { get; set; }
-
         public SyncManager() {
             InitializeComponent();
 
@@ -150,8 +148,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                         // App.MainWindow.Activate(); alone doesn't work and instead we need to
                         // minimize then activate the window because of this bug https://github.com/microsoft/microsoft-ui-xaml/issues/7595
                         if (!isWindowFocused) {
-                            (MainWindow.AppWindow.Presenter as OverlappedPresenter).Minimize();
-                            MainWindow.Activate();
+                            (MainWindow.CurrentMainWindow.AppWindow.Presenter as OverlappedPresenter).Minimize();
+                            MainWindow.CurrentMainWindow.Activate();
                         }
                     }
                 }

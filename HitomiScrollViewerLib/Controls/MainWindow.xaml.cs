@@ -11,13 +11,23 @@ using static HitomiScrollViewerLib.Utils;
 namespace HitomiScrollViewerLib.Controls {
     public sealed partial class MainWindow : Window {
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("MainWindow");
+
+        private static MainWindow _currentMainWindow;
+        public static MainWindow CurrentMainWindow {
+            get {
+                if (_currentMainWindow == null) {
+                    _currentMainWindow = new MainWindow();
+                }
+                return _currentMainWindow;
+            }
+        }
         public static SearchPage SearchPage { get; private set; }
         public static ViewPage ViewPage { get; private set; }
 
-        public MainWindow() {
+        private MainWindow() {
             InitializeComponent();
-            SearchPage = new(this);
-            ViewPage = new(this);
+            SearchPage = new();
+            ViewPage = new();
             RootFrame.Content = SearchPage;
             SizeChanged += (object _, WindowSizeChangedEventArgs e) => {
                 if (RootFrame.Content is SearchPage) {
