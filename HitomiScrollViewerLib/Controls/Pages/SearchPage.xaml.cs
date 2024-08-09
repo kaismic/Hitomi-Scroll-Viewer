@@ -24,9 +24,6 @@ namespace HitomiScrollViewerLib.Controls.Pages
     public sealed partial class SearchPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SearchPage");
 
-        private static readonly string BOOKMARK_NUM_PER_PAGE_SETTING_KEY = "BookmarkNumPerPage";
-        private readonly ApplicationDataContainer _settings;
-
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private readonly IEnumerable<int> _bookmarkNumPerPageRange = Enumerable.Range(1, 8);
@@ -49,9 +46,6 @@ namespace HitomiScrollViewerLib.Controls.Pages
             InitializeComponent();
 
             _mainWindow = mainWindow;
-
-            //_settings = ApplicationData.Current.LocalSettings;
-            //BookmarkNumPerPageSelector.SelectedIndex = (int)(_settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] ?? 2);
 
             //if (File.Exists(TAG_FILTERS_FILE_PATH)) {
             //    TagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
@@ -284,10 +278,6 @@ namespace HitomiScrollViewerLib.Controls.Pages
         //        BookmarkPageSelector.Items.Add(i + 1);
         //    }
         //    BookmarkPageSelector.SelectedIndex = 0;
-        //}
-
-        //internal void SaveSettings() {
-        //    _settings.Values[BOOKMARK_NUM_PER_PAGE_SETTING_KEY] = BookmarkNumPerPageSelector.SelectedIndex;
         //}
     }
 }
