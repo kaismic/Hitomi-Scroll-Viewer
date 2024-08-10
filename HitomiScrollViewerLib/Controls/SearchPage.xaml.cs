@@ -19,7 +19,7 @@ using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
-namespace HitomiScrollViewerLib.Controls.Pages
+namespace HitomiScrollViewerLib.Controls
 {
     public sealed partial class SearchPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SearchPage");
@@ -87,17 +87,45 @@ namespace HitomiScrollViewerLib.Controls.Pages
             // 2. Migrate galleries (bookmarks)
             // 3. Migrate images from roaming to local folder
 
+            /**
+             * if tag_filters.json exists:
+             *      read it
+             *      
+             */
+            
+            //int progressBarMax = 0;
             //bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
             //bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
             //if (v2TagFilterExists || v2BookmarksExists) {
+            //    Dictionary<string, TagFilterV2> tagFilterV2 = [];
             //    MigrationProgressReporter reporter = new();
             //    if (v2TagFilterExists) {
-            //        Dictionary<string, TagFilterSet> tagFilterSetDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
+            //        tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
             //            File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-            //            typeof(Dictionary<string, TagFilter>),
-            //            DEFAULT_SERIALIZER_OPTIONS
+            //            typeof(Dictionary<string, TagFilterV2>),
+            //            SERIALIZER_OPTIONS_V2
             //        );
+            //        progressBarMax += tagFilterV2.Count * 2;
             //    }
+            //    if (v2BookmarksExists) {
+            //        // TODO
+            //        //progressBarMax += ;
+            //    }
+            //    reporter.SetProgressBarMaximum(progressBarMax);
+            //    _ = Task.Run(() => {
+            //        if (v2TagFilterExists) {
+            //            foreach (var pair in tagFilterV2) {
+            //                TagFilterSetEditor.TagFilterSetContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+            //                reporter.IncrementProgressBar();
+            //            }
+            //            TagFilterSetEditor.TagFilterSetContext.SaveChanges();
+            //            File.Delete(TAG_FILTERS_FILE_PATH_V2);
+            //        }
+            //        if (v2BookmarksExists) {
+            //            // TODO
+            //        }
+            //    });
+            //    await reporter.ShowAsync();
             //}
             TagFilterSetEditor.Init();
         }

@@ -6,14 +6,16 @@
     xmlns:local="using:HitomiScrollViewerLib.Controls.SearchPageComponents"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    
+    Style="{StaticResource DefaultContentDialogStyle}">
     <ContentDialog.Title>
-        <TextBlock x:Name="TitleTextBlcok" TextWrapping="WrapWholeWords"
-                   Text="Migrating old data format into new database..."/>
+        <TextBlock x:Name="TitleTextBlock" TextWrapping="WrapWholeWords"
+                   Text="Migrating data in old format into new database..."/>
     </ContentDialog.Title>
-    <StackPanel>
+    <StackPanel Spacing="40">
         <TextBlock Text="Please wait until all migration processes are completed."/>
         <ProgressBar x:Name="MigrationProgressBar"/>
-        <TextBlock x:Name="ProgressDescTextBlock"/>
+        <TextBlock x:Name="ProgressStatusTextBlock"/>
     </StackPanel>
 </ContentDialog>

@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Windows.Foundation;
-using static HitomiScrollViewerLib.Controls.Pages.ViewPage;
+using static HitomiScrollViewerLib.Controls.ViewPage;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls.ViewPageComponents {

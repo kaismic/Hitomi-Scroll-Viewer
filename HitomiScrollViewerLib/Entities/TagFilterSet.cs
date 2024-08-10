@@ -19,7 +19,7 @@ namespace HitomiScrollViewerLib.Entities {
                 NotifyPropertyChanged();
             }
         }
-        public virtual ICollection<TagFilter> TagFilters { get; set; }
+        public virtual ICollection<TagFilterV3> TagFilters { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {

@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using static HitomiScrollViewerLib.Entities.TagFilter;
+using static HitomiScrollViewerLib.Entities.TagFilterV3;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
@@ -20,12 +20,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetEditor");
 
-        private static readonly TagFilterSetContext _tagFilterSetContext = new();
+        internal static readonly TagFilterSetContext TagFilterSetContext = new();
         private class IndexedTextBox : TextBox {
             internal int Index { get; set; }
         }
         private readonly IndexedTextBox[] _tagFilterTextBoxes = new IndexedTextBox[CATEGORIES.Length];
-        private readonly ActionContentDialog _contentDialog = new(_tagFilterSetContext);
+        private readonly ActionContentDialog _contentDialog = new(TagFilterSetContext);
         internal Button HyperlinkCreateButton { get; set; }
 
         public TagFilterSetEditor() {
@@ -82,15 +82,15 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 EnableHyperlinkCreateButton
             );
 
+            //_tagFilterSetContext.Database.EnsureDeleted();
+            TagFilterSetContext.Database.EnsureCreated();
+            TagFilterSetContext.TagFilterSets.Load();
+
             Loaded += TagFilterSetEditor_Loaded;
         }
 
         internal void Init() {
-            //_tagFilterSetContext.Database.EnsureDeleted();
-            _tagFilterSetContext.Database.EnsureCreated();
-            _tagFilterSetContext.TagFilterSets.Load();
-
-            ObservableCollection<TagFilterSet> collection = _tagFilterSetContext.TagFilterSets.Local.ToObservableCollection();
+            ObservableCollection<TagFilterSet> collection = TagFilterSetContext.TagFilterSets.Local.ToObservableCollection();
             TagFilterSetComboBox.ItemsSource = collection;
             IncludeTagFilterSetSelector.Init(collection);
             ExcludeTagFilterSetSelector.Init(collection);
@@ -105,8 +105,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             Loaded -= TagFilterSetEditor_Loaded;
         }
 
-        internal void InsertTagFilters(ICollection<TagFilter> tagFilters) {
-            foreach (TagFilter tagFilter in tagFilters) {
+        internal void InsertTagFilters(ICollection<TagFilterV3> tagFilters) {
+            foreach (TagFilterV3 tagFilter in tagFilters) {
                 _tagFilterTextBoxes[CATEGORY_INDEX_MAP[tagFilter.Category]].Text = string.Join(Environment.NewLine, tagFilter.Tags);
             }
         }
@@ -136,7 +136,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
             RenameButton.IsEnabled = SaveButton.IsEnabled = DeleteButton.IsEnabled = true;
             InsertTagFilters(
-                _tagFilterSetContext
+                TagFilterSetContext
                 .TagFilterSets
                 .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name)
                 .TagFilters
@@ -159,15 +159,15 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 TagFilters =
                     CATEGORIES
                     .Select(
-                        category => new TagFilter() {
+                        category => new TagFilterV3() {
                             Category = category,
                             Tags = GetTags(category)
                         }
                     )
                     .ToList()
             };
-            _tagFilterSetContext.TagFilterSets.Add(tagFilterSet);
-            _tagFilterSetContext.SaveChanges();
+            TagFilterSetContext.TagFilterSets.Add(tagFilterSet);
+            TagFilterSetContext.SaveChanges();
             TagFilterSetComboBox.SelectedItem = tagFilterSet;
             MainWindow.SearchPage.ShowInfoBar(
                 string.Format(
@@ -190,8 +190,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 return;
             }
             string newName = _contentDialog.GetText();
-            _tagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
-            _tagFilterSetContext.SaveChanges();
+            TagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
+            TagFilterSetContext.SaveChanges();
             MainWindow.SearchPage.ShowInfoBar(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
@@ -203,13 +203,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1) {
             TagFilterSet tagFilterSet =
-                _tagFilterSetContext
+                TagFilterSetContext
                 .TagFilterSets
                 .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name);
-            foreach (TagFilter tagFilter in tagFilterSet.TagFilters) {
+            foreach (TagFilterV3 tagFilter in tagFilterSet.TagFilters) {
                 tagFilter.Tags = GetTags(tagFilter.Category);
             }
-            _tagFilterSetContext.SaveChanges();
+            TagFilterSetContext.SaveChanges();
             MainWindow.SearchPage.ShowInfoBar(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
@@ -229,8 +229,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
-            _tagFilterSetContext.TagFilterSets.Remove(_tagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == name));
-            _tagFilterSetContext.SaveChanges();
+            TagFilterSetContext.TagFilterSets.Remove(TagFilterSetContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == name));
+            TagFilterSetContext.SaveChanges();
             foreach (TextBox textBox in _tagFilterTextBoxes) {
                 textBox.Text = "";
             }

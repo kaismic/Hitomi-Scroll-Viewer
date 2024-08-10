@@ -18,7 +18,7 @@ using Windows.System;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
-namespace HitomiScrollViewerLib.Controls.Pages {
+namespace HitomiScrollViewerLib.Controls {
     public sealed partial class ViewPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ViewPage");
         private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Text_StringArray_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);

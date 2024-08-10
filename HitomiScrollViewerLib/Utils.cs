@@ -1,4 +1,6 @@
-﻿using System;
+﻿using HitomiScrollViewerLib.Entities;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -38,6 +40,9 @@ namespace HitomiScrollViewerLib {
         public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
         public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        };
+        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS_V2 = new() {
+            IncludeFields = true
         };
         public static readonly StringSplitOptions DEFAULT_STR_SPLIT_OPTIONS = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 

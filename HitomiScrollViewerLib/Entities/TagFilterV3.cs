@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
-    public class TagFilter {
+    public class TagFilterV3 {
         public static readonly string[] CATEGORIES = [
             "language", "female", "male", "artist", "character", "group", "series", "type", "tag"
         ];

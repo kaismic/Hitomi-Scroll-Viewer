@@ -1,5 +1,4 @@
-﻿using HitomiScrollViewerLib.Controls.Pages;
-using Microsoft.UI.Windowing;
+﻿using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -14,12 +13,7 @@ namespace HitomiScrollViewerLib.Controls {
 
         private static MainWindow _currentMainWindow;
         public static MainWindow CurrentMainWindow {
-            get {
-                if (_currentMainWindow == null) {
-                    _currentMainWindow = new MainWindow();
-                }
-                return _currentMainWindow;
-            }
+            get => _currentMainWindow ??= new MainWindow();
         }
         public static SearchPage SearchPage { get; private set; }
         public static ViewPage ViewPage { get; private set; }

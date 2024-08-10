@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Controls.Pages.SearchPage;
+using static HitomiScrollViewerLib.Controls.SearchPage;
 using static HitomiScrollViewerLib.Utils;
 using HitomiScrollViewerLib.Entities;
 
