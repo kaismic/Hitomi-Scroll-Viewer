@@ -156,4 +156,10 @@
   <data name="Text_Page" xml:space="preserve">
     <value>페이지</value>
   </data>
+  <data name="Text_Exclude" xml:space="preserve">
+    <value>제외</value>
+  </data>
+  <data name="Text_Include" xml:space="preserve">
+    <value>포함</value>
+  </data>
 </root>
