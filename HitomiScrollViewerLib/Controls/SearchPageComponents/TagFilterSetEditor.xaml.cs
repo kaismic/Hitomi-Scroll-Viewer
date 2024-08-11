@@ -234,7 +234,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
-            string selectedTagFilterSetName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
+            string selectedTagFilterSetName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem)?.Name;
 
             IEnumerable<TagFilterSet> includeTagFilterSets = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
             IEnumerable<TagFilterSet> excludeTagFilterSets = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
@@ -297,7 +297,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             );
             if (searchParams.Length == 0) {
                 MainWindow.CurrentMainWindow.NotifyUser(
-                    _resourceMap.GetValue("Notification_TagFilterSets_Empty_Title").ValueAsString,
+                    _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString,
                     ""
                 );
                 return null;

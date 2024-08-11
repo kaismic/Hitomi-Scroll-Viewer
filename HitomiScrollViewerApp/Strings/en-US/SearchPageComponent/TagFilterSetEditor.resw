@@ -141,7 +141,7 @@
   <data name="Notification_Duplicate_Tags_Title" xml:space="preserve">
     <value>There are duplicate tags in the selected include/exclude tag filter sets.</value>
   </data>
-  <data name="Notification_SeachLink_ContentEmpty_Title" xml:space="preserve">
+  <data name="Notification_Selected_TagFilterSets_Empty_Title" xml:space="preserve">
     <value>All of the selected tag filter sets are empty.</value>
   </data>
   <data name="Text_Create" xml:space="preserve">
