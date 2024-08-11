@@ -3,7 +3,7 @@
 namespace HitomiScrollViewerLib {
     public class SharedResources {
         public static readonly ResourceMap MainResourceMap = new ResourceManager().MainResourceMap;
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("HitomiScrollViewerLib/SharedResources");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SharedResources).Name);
 
         public static readonly string APP_DISPLAY_NAME = _resourceMap.GetValue("AppDisplayName").ValueAsString;
         
