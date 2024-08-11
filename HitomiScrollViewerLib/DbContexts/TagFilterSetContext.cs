@@ -11,6 +11,8 @@ namespace HitomiScrollViewerLib.DbContexts {
             get => _mainContext ??= new TagFilterSetContext();
         }
 
+        private TagFilterSetContext(): base() {}
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
             optionsBuilder
