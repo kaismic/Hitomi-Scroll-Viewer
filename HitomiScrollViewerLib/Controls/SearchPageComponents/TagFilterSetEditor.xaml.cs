@@ -18,7 +18,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class TagFilterSetEditor : Grid {
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
 
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetEditor");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetEditor).Name);
 
         private readonly TextBox[] _tagFilterTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly ActionContentDialog _contentDialog = new();
