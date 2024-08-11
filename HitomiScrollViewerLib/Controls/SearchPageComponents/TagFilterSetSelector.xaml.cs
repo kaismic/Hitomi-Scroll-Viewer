@@ -13,11 +13,11 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class TagFilterSetSelector : Grid {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetSelector");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetSelector).Name);
 
         private ObservableCollection<TagFilterCheckBox> _tagFilterCheckBoxes;
+        private readonly ObservableHashSet<TagFilterCheckBox> _checkedBoxes = [];
         internal TagFilterSetSelector PairTagFilterSelector { get; set; }
-        internal readonly ObservableHashSet<int> CheckedIndexes = [];
         internal bool AnyChecked {
             get => (bool)GetValue(AnyCheckedProperty);
             set => SetValue(AnyCheckedProperty, value);
@@ -45,8 +45,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         public TagFilterSetSelector() {
             InitializeComponent();
 
-            CheckedIndexes.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
-                AnyChecked = CheckedIndexes.Count != 0;
+            _checkedBoxes.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
+                AnyChecked = _checkedBoxes.Count != 0;
             };
         }
 
@@ -59,7 +59,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     collection.Select(
                         (tagFilterSet, i) =>
                             new TagFilterCheckBox(
-                                i, tagFilterSet, CheckBox_Checked, CheckBox_Unchecked
+                                tagFilterSet, CheckBox_Checked, CheckBox_Unchecked
                             )
                     )
                 );
@@ -71,7 +71,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 case NotifyCollectionChangedAction.Add:
                     _tagFilterCheckBoxes.Add(
                         new(
-                            _tagFilterCheckBoxes.Count,
                             e.NewItems.Cast<TagFilterSet>().ToList()[0],
                             CheckBox_Checked,
                             CheckBox_Unchecked
@@ -91,7 +90,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                             (sender as ObservableCollection<TagFilterSet>).Select(
                                 (tagFilterSet, i) =>
                                     new TagFilterCheckBox(
-                                        i, tagFilterSet, CheckBox_Checked, CheckBox_Unchecked
+                                        tagFilterSet, CheckBox_Checked, CheckBox_Unchecked
                                     )
                             )
                         );
@@ -104,19 +103,19 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e) {
-            int i = _tagFilterCheckBoxes.IndexOf(sender as TagFilterCheckBox);
-            CheckedIndexes.Add(i);
-            PairTagFilterSelector.EnableCheckBox(i, false);
+            TagFilterCheckBox checkBox = (TagFilterCheckBox)sender;
+            PairTagFilterSelector.EnableCheckBox(_tagFilterCheckBoxes.IndexOf(checkBox), false);
+            _checkedBoxes.Add(checkBox);
         }
 
         private void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
-            int i = _tagFilterCheckBoxes.IndexOf(sender as TagFilterCheckBox);
-            CheckedIndexes.Remove(i);
-            PairTagFilterSelector.EnableCheckBox(i, true);
+            TagFilterCheckBox checkBox = (TagFilterCheckBox)sender;
+            PairTagFilterSelector.EnableCheckBox(_tagFilterCheckBoxes.IndexOf(checkBox), true);
+            _checkedBoxes.Remove(checkBox);
         }
 
         internal IEnumerable<TagFilterSet> GetCheckedTagFilterSets() {
-            return CheckedIndexes.Select(i => _tagFilterCheckBoxes[i].TagFilterSet);
+            return _checkedBoxes.Select(box => box.TagFilterSet);
         }
     }
 }
