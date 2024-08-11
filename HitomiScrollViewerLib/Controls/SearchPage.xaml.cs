@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerLib.Controls.SearchPageComponents;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -77,13 +78,13 @@ namespace HitomiScrollViewerLib.Controls
             Loaded += SearchPage_Loaded;
         }
 
-        private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
+        private async void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
             Loaded -= SearchPage_Loaded;
             PopupInfoBarStackPanel.Margin = new Thickness(0, 0, 0, ActualHeight / 16);
 
             // TODO
             // if app upgraded from v2 -> v3:
-            // 1. Migrate tag filter set
+            // 1. Migrate tag filter set - DONE
             // 2. Migrate galleries (bookmarks)
             // 3. Migrate images from roaming to local folder
 
@@ -92,33 +93,28 @@ namespace HitomiScrollViewerLib.Controls
              *      read it
              *      
              */
-            
-            //int progressBarMax = 0;
+
             //bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
             //bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
             //if (v2TagFilterExists || v2BookmarksExists) {
-            //    Dictionary<string, TagFilterV2> tagFilterV2 = [];
             //    MigrationProgressReporter reporter = new();
-            //    if (v2TagFilterExists) {
-            //        tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
-            //            File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-            //            typeof(Dictionary<string, TagFilterV2>),
-            //            SERIALIZER_OPTIONS_V2
-            //        );
-            //        progressBarMax += tagFilterV2.Count * 2;
-            //    }
-            //    if (v2BookmarksExists) {
-            //        // TODO
-            //        //progressBarMax += ;
-            //    }
-            //    reporter.SetProgressBarMaximum(progressBarMax);
             //    _ = Task.Run(() => {
             //        if (v2TagFilterExists) {
+            //            DispatcherQueue.TryEnqueue(() => {
+            //                reporter.SetStatusMessage(MigrationProgressReporter.DataType.TagFilterSets);
+            //                reporter.ResetProgressBarValue();
+            //            });
+            //            Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
+            //                File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
+            //                typeof(Dictionary<string, TagFilterV2>),
+            //                SERIALIZER_OPTIONS_V2
+            //            );
+            //            DispatcherQueue.TryEnqueue(() => reporter.SetProgressBarMaximum(tagFilterV2.Count * 2));
             //            foreach (var pair in tagFilterV2) {
-            //                TagFilterSetEditor.TagFilterSetContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
-            //                reporter.IncrementProgressBar();
+            //                TagFilterSetContext.MainContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+            //                DispatcherQueue.TryEnqueue(() => reporter.IncrementProgressBar());
             //            }
-            //            TagFilterSetEditor.TagFilterSetContext.SaveChanges();
+            //            TagFilterSetContext.MainContext.SaveChanges();
             //            File.Delete(TAG_FILTERS_FILE_PATH_V2);
             //        }
             //        if (v2BookmarksExists) {
