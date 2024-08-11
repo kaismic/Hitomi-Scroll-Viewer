@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 
 namespace HitomiScrollViewerLib.Entities {
-    [Index(nameof(Name))]
+    [Index(nameof(Name), IsUnique = true)]
     public class TagFilterSet : INotifyPropertyChanged {
         public const int TAG_FILTER_SET_NAME_MAX_LEN = 100;
         public long Id { get; set; }
