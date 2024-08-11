@@ -1,21 +1,10 @@
+using HitomiScrollViewerLib.Controls.SearchPageComponents;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using HitomiScrollViewerLib.Controls;
-using HitomiScrollViewerLib.Controls.SearchPageComponents;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace HitomiScrollViewerTestApp {
     /// <summary>
@@ -27,10 +16,11 @@ namespace HitomiScrollViewerTestApp {
             for (int i = 0; i < ButtonGrid.Children.Count; i++) {
                 if (ButtonGrid.Children[i] is Button button) {
                     Grid.SetRow(button, i);
+                    button.VerticalAlignment = VerticalAlignment.Stretch;
+                    button.HorizontalAlignment = HorizontalAlignment.Stretch;
                 }
             }
             Button1.Content = "show dialog";
-            Button2.Content = "hide dialog";
 
             MainGrid.Loaded += MainGrid_Loaded;
             RootGrid.KeyDown += RootGrid_KeyDown;
@@ -39,9 +29,9 @@ namespace HitomiScrollViewerTestApp {
         private readonly MigrationProgressReporter reporter = new();
 
         private void RootGrid_KeyDown(object sender, KeyRoutedEventArgs e) {
+            Trace.WriteLine(e.Key + " pressed");
             switch (e.Key) {
                 case Windows.System.VirtualKey.D:
-                    Trace.WriteLine(e.Key + " pressed");
                     reporter.Hide();
                     break;
             }
@@ -58,6 +48,7 @@ namespace HitomiScrollViewerTestApp {
                 int totalTime = 10;
                 int delay = 1000;
                 DispatcherQueue.TryEnqueue(() => {
+                    reporter.ResetProgressBarValue();
                     reporter.SetProgressBarMaximum(totalTime);
                     reporter.SetStatusMessage("Counting from 1 to 10...");
                 });
@@ -68,11 +59,11 @@ namespace HitomiScrollViewerTestApp {
                     });
                 }
             });
-            _ = reporter.ShowAsync();
+            _ = reporter.ShowAsync(ContentDialogPlacement.InPlace);
         }
 
         private void Button2_Click(object sender, RoutedEventArgs e) {
-            //reporter.Hide();
+
         }
 
         private void Button3_Click(object sender, RoutedEventArgs e) {
