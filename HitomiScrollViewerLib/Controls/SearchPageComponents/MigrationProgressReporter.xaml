@@ -10,12 +10,11 @@
     
     Style="{StaticResource DefaultContentDialogStyle}">
     <ContentDialog.Title>
-        <TextBlock x:Name="TitleTextBlock" TextWrapping="WrapWholeWords"
-                   Text="Migrating data in old format into new database..."/>
+        <TextBlock x:Uid="/MigrationProgressReporter/TitleTextBlock" TextWrapping="WrapWholeWords"/>
     </ContentDialog.Title>
-    <StackPanel Spacing="40">
-        <TextBlock Text="Please wait until all migration processes are completed."/>
-        <ProgressBar x:Name="MigrationProgressBar"/>
+    <StackPanel>
+        <TextBlock x:Uid="/MigrationProgressReporter/PleaseWaitTextBlock" TextWrapping="WrapWholeWords"/>
+        <ProgressBar x:Name="MigrationProgressBar" Margin="0 30 0 10"/>
         <TextBlock x:Name="ProgressStatusTextBlock"/>
     </StackPanel>
 </ContentDialog>
