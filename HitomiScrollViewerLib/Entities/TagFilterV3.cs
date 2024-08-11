@@ -17,5 +17,16 @@ namespace HitomiScrollViewerLib.Entities {
         [MaxLength(9)]
         public string Category { get; set; }
         public List<string> Tags { get; set; }
+
+        public static List<TagFilterV3> GetListInstance() {
+            return CATEGORIES
+                .Select(
+                    category => new TagFilterV3() {
+                        Category = category,
+                        Tags = []
+                    }
+                )
+                .ToList();
+        }
     }
 }

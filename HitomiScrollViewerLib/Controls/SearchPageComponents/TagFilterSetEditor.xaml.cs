@@ -24,7 +24,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             internal int Index { get; set; }
         }
         private readonly IndexedTextBox[] _tagFilterTextBoxes = new IndexedTextBox[CATEGORIES.Length];
-        private readonly ActionContentDialog _contentDialog = new(TagFilterSetContext.MainContext);
+        private readonly ActionContentDialog _contentDialog = new();
         internal Button HyperlinkCreateButton { get; set; }
 
         public TagFilterSetEditor() {
@@ -80,10 +80,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 TagFilterSetSelector.AnyCheckedProperty,
                 EnableHyperlinkCreateButton
             );
-
-            //_tagFilterSetContext.Database.EnsureDeleted();
-            TagFilterSetContext.MainContext.Database.EnsureCreated();
-            TagFilterSetContext.MainContext.TagFilterSets.Load();
 
             Loaded += TagFilterSetEditor_Loaded;
         }

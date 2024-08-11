@@ -1,11 +1,10 @@
-﻿using Microsoft.UI.Windowing;
+﻿using HitomiScrollViewerLib.DbContexts;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using System.IO;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls {
     public sealed partial class MainWindow : Window {
@@ -33,13 +32,9 @@ namespace HitomiScrollViewerLib.Controls {
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
 
             Title = APP_DISPLAY_NAME;
-            // create directories if they don't exist
-            Directory.CreateDirectory(ROOT_DIR_V2);
-            Directory.CreateDirectory(IMAGE_DIR_V2);
 
             // Handle window closing
             AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
-                e.Cancel = true;
                 if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
                     ContentDialog dialog = new() {
                         DefaultButton = ContentDialogButton.Close,
@@ -48,17 +43,14 @@ namespace HitomiScrollViewerLib.Controls {
                         CloseButtonText = TEXT_CANCEL,
                         XamlRoot = Content.XamlRoot
                     };
-                    ContentDialogResult cdr = await dialog.ShowAsync();
-                    switch (cdr) {
-                        // cancel exit
-                        case ContentDialogResult.None: {
-                            return;
-                        }
+                    if (await dialog.ShowAsync() == ContentDialogResult.None) {
+                        e.Cancel = true;
+                        return;
                     }
                 }
                 ViewPage.ToggleAutoScroll(false);
                 ViewPage.SaveSettings();
-                Close();
+                TagFilterSetContext.MainContext.Dispose();
             };
         }
 

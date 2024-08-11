@@ -16,14 +16,13 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls
 {
     public sealed partial class SearchPage : Page {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SearchPage");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SearchPage).Name);
 
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
@@ -43,38 +42,7 @@ namespace HitomiScrollViewerLib.Controls
 
         public SearchPage() {
             InitializeComponent();
-
-            //if (File.Exists(TAG_FILTERS_FILE_PATH)) {
-            //    TagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
-            //        File.ReadAllText(TAG_FILTERS_FILE_PATH),
-            //        typeof(Dictionary<string, TagFilter>),
-            //        DEFAULT_SERIALIZER_OPTIONS
-            //    );
-            //} else {
-            //    TagFilterDict = new() {
-            //        { EXAMPLE_TAG_FILTER_NAME_1, new() },
-            //        { EXAMPLE_TAG_FILTER_NAME_2, new() },
-            //        { EXAMPLE_TAG_FILTER_NAME_3, new() },
-            //        { EXAMPLE_TAG_FILTER_NAME_4, new() },
-            //    };
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["language"].Add("english");
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].IncludeTagFilters["tag"].Add("full_color");
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_1].ExcludeTagFilters["type"].Add("gamecg");
-
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["type"].Add("doujinshi");
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["series"].Add("naruto");
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_2].IncludeTagFilters["language"].Add("korean");
-
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["series"].Add("blue_archive");
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].IncludeTagFilters["female"].Add("sole_female");
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_3].ExcludeTagFilters["language"].Add("chinese");
-
-            //    TagFilterDict[EXAMPLE_TAG_FILTER_NAME_4].ExcludeTagFilters["tag"].Add("non-h_imageset");
-
-            //    WriteTagFilterDict();
-            //}
             DownloadInputTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = DownloadInputTextBox.Text.Length != 0; };
-
             Loaded += SearchPage_Loaded;
         }
 
@@ -88,41 +56,44 @@ namespace HitomiScrollViewerLib.Controls
             // 2. Migrate galleries (bookmarks)
             // 3. Migrate images from roaming to local folder
 
-            /**
-             * if tag_filters.json exists:
-             *      read it
-             *      
-             */
-
-            //bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
-            //bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
-            //if (v2TagFilterExists || v2BookmarksExists) {
-            //    MigrationProgressReporter reporter = new();
-            //    _ = Task.Run(() => {
-            //        if (v2TagFilterExists) {
-            //            DispatcherQueue.TryEnqueue(() => {
-            //                reporter.SetStatusMessage(MigrationProgressReporter.DataType.TagFilterSets);
-            //                reporter.ResetProgressBarValue();
-            //            });
-            //            Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
-            //                File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-            //                typeof(Dictionary<string, TagFilterV2>),
-            //                SERIALIZER_OPTIONS_V2
-            //            );
-            //            DispatcherQueue.TryEnqueue(() => reporter.SetProgressBarMaximum(tagFilterV2.Count * 2));
-            //            foreach (var pair in tagFilterV2) {
-            //                TagFilterSetContext.MainContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
-            //                DispatcherQueue.TryEnqueue(() => reporter.IncrementProgressBar());
-            //            }
-            //            TagFilterSetContext.MainContext.SaveChanges();
-            //            File.Delete(TAG_FILTERS_FILE_PATH_V2);
-            //        }
-            //        if (v2BookmarksExists) {
-            //            // TODO
-            //        }
-            //    });
-            //    await reporter.ShowAsync();
-            //}
+            bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
+            bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
+            bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.MainContext.Init();
+            //GalleryContext.MainContext.Init(); TODO uncomment
+            // User upgraded from v2 to v3
+            if (v2TagFilterExists || v2BookmarksExists) {
+                MigrationProgressReporter reporter = new() { XamlRoot = XamlRoot };
+                var dialogShowOperation = reporter.ShowAsync();
+                _ = Task.Run(() => {
+                    if (v2TagFilterExists) {
+                        DispatcherQueue.TryEnqueue(() => {
+                            reporter.SetStatusMessage(MigrationProgressReporter.DataType.TagFilterSets);
+                            reporter.ResetProgressBarValue();
+                        });
+                        Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
+                            File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
+                            typeof(Dictionary<string, TagFilterV2>),
+                            SERIALIZER_OPTIONS_V2
+                        );
+                        DispatcherQueue.TryEnqueue(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
+                        foreach (var pair in tagFilterV2) {
+                            TagFilterSetContext.MainContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+                            DispatcherQueue.TryEnqueue(() => reporter.IncrementProgressBar());
+                        }
+                        TagFilterSetContext.MainContext.SaveChanges();
+                        File.Delete(TAG_FILTERS_FILE_PATH_V2);
+                    }
+                    if (v2BookmarksExists) {
+                        // TODO
+                    }
+                    DispatcherQueue.TryEnqueue(() => reporter.Hide());
+                });
+                await dialogShowOperation;
+            }
+            // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
+            if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
+                TagFilterSetContext.MainContext.AddExampleTagFilterSets();
+            }
             TagFilterSetEditor.Init();
         }
 

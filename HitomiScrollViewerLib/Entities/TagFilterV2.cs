@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
     internal class TagFilterV2 {
         public Dictionary<string, IEnumerable<string>> includeTags = [];
         public Dictionary<string, IEnumerable<string>> excludeTags = [];
-        internal (TagFilterSet includeSet, TagFilterSet excludeSet) ToTagFilterSet(string name) {
+        internal TagFilterSet[] ToTagFilterSet(string name) {
             List<TagFilterV3> includeTagFilters = TagFilterV3.CATEGORIES
                 .Select(
                     category => new TagFilterV3() {
@@ -28,16 +29,16 @@ namespace HitomiScrollViewerLib.Entities {
                 excludeTagFilters[TagFilterV3.CATEGORY_INDEX_MAP[pair.Key]].Tags = pair.Value.ToList();
             }
 
-            return (
+            return [
                 new TagFilterSet() {
-                    Name = name + " - " + SharedResources.MainResourceMap.GetValue("Text_Include").ValueAsString,
+                    Name = name + " - " + TEXT_INCLUDE,
                     TagFilters = includeTagFilters
                 },
                 new TagFilterSet() {
-                    Name = name + " - " + SharedResources.MainResourceMap.GetValue("Text_Exclude").ValueAsString,
+                    Name = name + " - " + TEXT_EXCLUDE,
                     TagFilters = excludeTagFilters
                 }
-            );
+            ];
         }
     }
 

@@ -9,13 +9,13 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     internal sealed partial class ActionContentDialog : ContentDialog {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ActionContentDialog");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(ActionContentDialog).Name);
         internal enum Action {
             Create, Rename, Delete
         }
         private string _oldName;
 
-        public ActionContentDialog(TagFilterSetContext tagFilterSetContext) {
+        public ActionContentDialog() {
             InitializeComponent();
             DefaultButton = ContentDialogButton.Primary;
             CloseButtonText = TEXT_CANCEL;
@@ -40,7 +40,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     return;
                 }
                 // Create
-                if (tagFilterSetContext.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == newName)) {
+                if (TagFilterSetContext.MainContext.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == newName)) {
                     ErrorMsgTextBlock.Text = string.Format(
                         _resourceMap.GetValue("Error_Message_Duplicate").ValueAsString,
                         newName
