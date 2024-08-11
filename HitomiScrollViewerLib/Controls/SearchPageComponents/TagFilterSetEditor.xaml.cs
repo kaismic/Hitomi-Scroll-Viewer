@@ -20,10 +20,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("TagFilterSetEditor");
 
-        private class IndexedTextBox : TextBox {
-            internal int Index { get; set; }
-        }
-        private readonly IndexedTextBox[] _tagFilterTextBoxes = new IndexedTextBox[CATEGORIES.Length];
+        private readonly TextBox[] _tagFilterTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly ActionContentDialog _contentDialog = new();
         internal Button HyperlinkCreateButton { get; set; }
 
@@ -64,8 +61,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     AcceptsReturn = true,
                     TextWrapping = TextWrapping.Wrap,
                     CornerRadius = new CornerRadius(0),
-                    Padding = new Thickness(0),
-                    Index = i
+                    Padding = new Thickness(0)
                 };
                 SetRow(_tagFilterTextBoxes[i], 1);
                 SetColumn(_tagFilterTextBoxes[i], i);
