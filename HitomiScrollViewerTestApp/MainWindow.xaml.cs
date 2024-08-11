@@ -45,12 +45,23 @@ namespace HitomiScrollViewerTestApp {
 
         private void Button1_Click(object sender, RoutedEventArgs e) {
             _ = Task.Run(async () => {
-                int totalTime = 10;
+                int totalTime = 5;
                 int delay = 1000;
                 DispatcherQueue.TryEnqueue(() => {
                     reporter.ResetProgressBarValue();
                     reporter.SetProgressBarMaximum(totalTime);
-                    reporter.SetStatusMessage("Counting from 1 to 10...");
+                    reporter.SetStatusMessage(MigrationProgressReporter.DataType.TagFilterSets);
+                });
+                for (int i = 0; i < totalTime; i++) {
+                    await Task.Delay(delay);
+                    DispatcherQueue.TryEnqueue(() => {
+                        reporter.IncrementProgressBar();
+                    });
+                }
+                DispatcherQueue.TryEnqueue(() => {
+                    reporter.ResetProgressBarValue();
+                    reporter.SetProgressBarMaximum(totalTime);
+                    reporter.SetStatusMessage(MigrationProgressReporter.DataType.BookmarkGalleries);
                 });
                 for (int i = 0; i < totalTime; i++) {
                     await Task.Delay(delay);
