@@ -20,7 +20,7 @@ namespace HitomiScrollViewerLib.DbContexts {
 
         public void Init() {
             Database.EnsureCreated();
-            Galleries.Load(); // TODO test if this is needed or where else I can put it
+            Galleries.Load();
         }
     }
 }

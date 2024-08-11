@@ -26,7 +26,7 @@ namespace HitomiScrollViewerLib.DbContexts {
         /// <returns><see langword="true" /> if the database is created, <see langword="false" /> if it already existed.</returns>
         public bool Init() {
             bool created = Database.EnsureCreated();
-            TagFilterSets.Load(); // TODO test if this is needed or where else I can put it
+            TagFilterSets.Load();
             return created;
         }
 
