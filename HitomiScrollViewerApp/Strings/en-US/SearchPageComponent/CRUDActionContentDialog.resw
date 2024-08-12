@@ -123,4 +123,22 @@
   <data name="Error_Message_SameName" xml:space="preserve">
     <value>Cannot rename to the same name.</value>
   </data>
+	<data name="Title_Create" xml:space="preserve">
+    <value>Enter a name to create a new tag filter set:</value>
+  </data>
+	<data name="Title_Delete" xml:space="preserve">
+    <value>Select tag filter sets to delete:</value>
+  </data>
+	<data name="Title_Rename" xml:space="preserve">
+    <value>Enter a new name:</value>
+  </data>
+	<data name="Text_Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+	<data name="Text_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+	<data name="Text_Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
 </root>

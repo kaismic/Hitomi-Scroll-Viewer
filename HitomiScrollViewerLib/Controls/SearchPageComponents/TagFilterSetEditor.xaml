@@ -52,7 +52,6 @@
         </Button>
         <Button x:Name="DeleteButton"
                 Click="DeleteButton_Click"
-                IsEnabled="False"
                 >
             <SymbolIcon Symbol="Delete"/>
         </Button>

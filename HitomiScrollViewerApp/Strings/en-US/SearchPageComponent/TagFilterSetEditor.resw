@@ -117,15 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ActionContentDialog_Title_Create" xml:space="preserve">
-    <value>Enter a name to create a new tag filter set:</value>
-  </data>
-  <data name="ActionContentDialog_Title_Delete" xml:space="preserve">
-    <value>Delete "{0}"?</value>
-  </data>
-  <data name="ActionContentDialog_Title_Rename" xml:space="preserve">
-    <value>Enter a new name:</value>
-  </data>
   <data name="InfoBar_Message_Create_Complete" xml:space="preserve">
     <value>"{0}" has been created.</value>
   </data>
@@ -143,14 +134,5 @@
   </data>
   <data name="Notification_Selected_TagFilterSets_Empty_Title" xml:space="preserve">
     <value>All of the selected tag filter sets are empty.</value>
-  </data>
-  <data name="Text_Create" xml:space="preserve">
-    <value>Create</value>
-  </data>
-  <data name="Text_Delete" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="Text_Rename" xml:space="preserve">
-    <value>Rename</value>
   </data>
 </root>

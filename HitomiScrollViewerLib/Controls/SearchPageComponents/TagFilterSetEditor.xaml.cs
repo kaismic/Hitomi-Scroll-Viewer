@@ -21,6 +21,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private readonly TextBox[] _tagFilterTextBoxes = new TextBox[CATEGORIES.Length];
         private readonly CRUDActionContentDialog _contentDialog = new();
+        private readonly TagFilterSetSelector _deleteTagFilterSetSelector = new();
         internal Button HyperlinkCreateButton { get; set; }
 
         public TagFilterSetEditor() {
@@ -84,6 +85,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             TagFilterSetComboBox.ItemsSource = collection;
             IncludeTagFilterSetSelector.Init(collection);
             ExcludeTagFilterSetSelector.Init(collection);
+            _deleteTagFilterSetSelector.Init(collection);
         }
 
         private void EnableHyperlinkCreateButton(DependencyObject _0, DependencyProperty _1) {
@@ -121,10 +123,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (TagFilterSetComboBox.SelectedIndex == -1) {
-                RenameButton.IsEnabled = SaveButton.IsEnabled = DeleteButton.IsEnabled = false;
+                RenameButton.IsEnabled = SaveButton.IsEnabled = false;
                 return;
             }
-            RenameButton.IsEnabled = SaveButton.IsEnabled = DeleteButton.IsEnabled = true;
+            RenameButton.IsEnabled = SaveButton.IsEnabled = true;
             InsertTagFilters(
                 TagFilterSetContext.MainContext
                 .TagFilterSets
@@ -134,11 +136,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
-            _contentDialog.SetDialogType(
-                CRUDActionContentDialog.Action.Create,
-                _resourceMap.GetValue("ActionContentDialog_Title_Create").ValueAsString,
-                _resourceMap.GetValue("Text_Create").ValueAsString
-            );
+            _contentDialog.SetDialogAction(CRUDActionContentDialog.Action.Create);
             ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
                 return;
@@ -169,11 +167,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
             string oldName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
-            _contentDialog.SetDialogType(
-                CRUDActionContentDialog.Action.Rename,
-                _resourceMap.GetValue("ActionContentDialog_Title_Rename").ValueAsString,
-                _resourceMap.GetValue("Text_Rename").ValueAsString,
-                oldName
+            _contentDialog.SetDialogAction(
+                action: CRUDActionContentDialog.Action.Rename,
+                oldName: oldName
             );
             ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
@@ -210,15 +206,15 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1) {
             string name = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
-            _contentDialog.SetDialogType(
-                CRUDActionContentDialog.Action.Delete,
-                string.Format(_resourceMap.GetValue("ActionContentDialog_Title_Delete").ValueAsString, name),
-                _resourceMap.GetValue("Text_Delete").ValueAsString
+            _contentDialog.SetDialogAction(
+                action: CRUDActionContentDialog.Action.Delete,
+                tagFilterSetSelector: _deleteTagFilterSetSelector
             );
             ContentDialogResult cdr = await _contentDialog.ShowAsync();
             if (cdr != ContentDialogResult.Primary) {
                 return;
             }
+
             TagFilterSetContext.MainContext.TagFilterSets.Remove(TagFilterSetContext.MainContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == name));
             TagFilterSetContext.MainContext.SaveChanges();
             foreach (TextBox textBox in _tagFilterTextBoxes) {

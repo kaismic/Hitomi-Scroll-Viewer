@@ -14,6 +14,7 @@
     <None Remove="Controls\SearchPageComponents\BookmarkItem.xaml" />
     <None Remove="Controls\SearchPageComponents\CRUDActionContentDialog.xaml" />
     <None Remove="Controls\SearchPageComponents\DownloadItem.xaml" />
+    <None Remove="Controls\SearchPageComponents\InputValidation.xaml" />
     <None Remove="Controls\SearchPageComponents\MigrationProgressReporter.xaml" />
     <None Remove="Controls\SearchPageComponents\SearchLinkItem.xaml" />
     <None Remove="Controls\SearchPageComponents\SyncContentDialog.xaml" />
@@ -34,6 +35,12 @@
       <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
       <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
       <PackageReference Include="Soluling" Version="1.0.71" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Controls\SearchPageComponents\InputValidation.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>
