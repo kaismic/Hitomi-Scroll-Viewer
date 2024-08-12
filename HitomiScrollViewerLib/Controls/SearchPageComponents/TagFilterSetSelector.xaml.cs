@@ -11,12 +11,11 @@ using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
-    public sealed partial class TagFilterSetSelector : Grid {
+    public partial class TagFilterSetSelector : Grid {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetSelector).Name);
 
-        private ObservableCollection<TagFilterCheckBox> _tagFilterCheckBoxes;
-        private readonly ObservableHashSet<TagFilterCheckBox> _checkedBoxes = [];
-        internal TagFilterSetSelector PairTagFilterSelector { get; set; }
+        protected ObservableCollection<TagFilterCheckBox> _tagFilterCheckBoxes;
+        protected readonly ObservableHashSet<TagFilterCheckBox> _checkedBoxes = [];
         internal bool AnyChecked {
             get => (bool)GetValue(AnyCheckedProperty);
             set => SetValue(AnyCheckedProperty, value);
@@ -86,24 +85,16 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
         }
 
-        internal void EnableCheckBox(int i, bool enable) {
-            _tagFilterCheckBoxes[i].IsEnabled = enable;
-        }
-
-        private void CheckBox_Checked(object sender, RoutedEventArgs e) {
-            TagFilterCheckBox checkBox = (TagFilterCheckBox)sender;
-            PairTagFilterSelector.EnableCheckBox(_tagFilterCheckBoxes.IndexOf(checkBox), false);
-            _checkedBoxes.Add(checkBox);
-        }
-
-        private void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
-            TagFilterCheckBox checkBox = (TagFilterCheckBox)sender;
-            PairTagFilterSelector.EnableCheckBox(_tagFilterCheckBoxes.IndexOf(checkBox), true);
-            _checkedBoxes.Remove(checkBox);
-        }
-
         internal IEnumerable<TagFilterSet> GetCheckedTagFilterSets() {
             return _checkedBoxes.Select(box => box.TagFilterSet);
+        }
+
+        virtual protected void CheckBox_Checked(object sender, RoutedEventArgs e) {
+            _checkedBoxes.Add((TagFilterCheckBox)sender);
+        }
+
+        virtual protected void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
+            _checkedBoxes.Remove((TagFilterCheckBox)sender);
         }
     }
 }
