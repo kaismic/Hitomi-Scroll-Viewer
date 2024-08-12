@@ -8,14 +8,14 @@ using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
-    internal sealed partial class ActionContentDialog : ContentDialog {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(ActionContentDialog).Name);
+    internal sealed partial class CRUDActionContentDialog : ContentDialog {
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(CRUDActionContentDialog).Name);
         internal enum Action {
             Create, Rename, Delete
         }
         private string _oldName;
 
-        public ActionContentDialog() {
+        public CRUDActionContentDialog() {
             InitializeComponent();
             DefaultButton = ContentDialogButton.Primary;
             CloseButtonText = TEXT_CANCEL;
@@ -33,7 +33,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     return;
                 }
                 string newName = InputTextBox.Text;
-                // Rename or Create
+                // Rename
                 if (_oldName == newName) {
                     ErrorMsgTextBlock.Text = _resourceMap.GetValue("Error_Message_SameName").ValueAsString;
                     args.Cancel = true;
@@ -55,9 +55,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             ErrorMsgTextBlock.Text = "";
             TitleTextBlock.Text = title;
             PrimaryButtonText = primaryButtonText;
-            _oldName = oldName;
             switch (action) {
                 case Action.Create:
+                    _oldName = null;
                     IsPrimaryButtonEnabled = false;
                     ContentGrid.Visibility = Visibility.Visible;
                     InputTextBox.Text = "";
@@ -66,10 +66,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     IsPrimaryButtonEnabled = true;
                     ContentGrid.Visibility = Visibility.Visible;
                     ArgumentNullException.ThrowIfNull(oldName);
-                    InputTextBox.Text = oldName;
+                    InputTextBox.Text = _oldName = oldName;
                     InputTextBox.SelectAll();
                     break;
                 case Action.Delete:
+                    _oldName = null;
                     IsPrimaryButtonEnabled = true;
                     ContentGrid.Visibility = Visibility.Collapsed;
                     break;
