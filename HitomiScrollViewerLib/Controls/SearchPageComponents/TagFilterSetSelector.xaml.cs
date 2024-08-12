@@ -1,6 +1,5 @@
 using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -30,17 +29,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
               new PropertyMetadata(false)
         );
 
-        public bool IsInclude {
-            set {
-                if (value) {
-                    HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Include").ValueAsString;
-                    HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Green);
-                } else {
-                    HeaderTextBlock.Text = _resourceMap.GetValue("HeaderText_Exclude").ValueAsString;
-                    HeaderTextBlock.Foreground = new SolidColorBrush(Colors.Red);
-                }
-            }
-        }
+        public string HeaderTextRes { set => HeaderTextBlock.Text = _resourceMap.GetValue(value).ValueAsString; }
+        public Brush HeaderForeground { set => HeaderTextBlock.Foreground = value; }
 
         public TagFilterSetSelector() {
             InitializeComponent();
@@ -69,13 +59,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private void TagFilterSets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Add:
-                    _tagFilterCheckBoxes.Add(
-                        new(
-                            e.NewItems.Cast<TagFilterSet>().ToList()[0],
-                            CheckBox_Checked,
-                            CheckBox_Unchecked
-                        )
-                    );
+                    _tagFilterCheckBoxes.Add(new(
+                        e.NewItems.Cast<TagFilterSet>().ToList()[0],
+                        CheckBox_Checked,
+                        CheckBox_Unchecked
+                    ));
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     _tagFilterCheckBoxes.RemoveAt(e.OldStartingIndex);

@@ -80,14 +80,16 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <spc:TagFilterSetSelector x:Name="IncludeTagFilterSetSelector"
-                                    IsInclude="True"
-                                    PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
-                                    Grid.Column="0"
-                                    />
+                                  HeaderTextRes="HeaderText_Include"
+                                  HeaderForeground="Green"
+                                  PairTagFilterSelector="{x:Bind ExcludeTagFilterSetSelector}"
+                                  Grid.Column="0"
+                                  />
         <spc:TagFilterSetSelector x:Name="ExcludeTagFilterSetSelector"
-                                    IsInclude="False"
-                                    PairTagFilterSelector="{x:Bind IncludeTagFilterSetSelector}"
-                                    Grid.Column="1"
-                                    />
+                                  HeaderTextRes="HeaderText_Exclude"
+                                  HeaderForeground="Red"
+                                  PairTagFilterSelector="{x:Bind IncludeTagFilterSetSelector}"
+                                  Grid.Column="1"
+                                  />
     </Grid>
 </Grid>
