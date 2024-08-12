@@ -11,8 +11,8 @@
   <ItemGroup>
     <None Remove="Controls\Pages\SearchPage.xaml" />
     <None Remove="Controls\Pages\ViewPage.xaml" />
-    <None Remove="Controls\SearchPageComponents\ActionContentDialog.xaml" />
     <None Remove="Controls\SearchPageComponents\BookmarkItem.xaml" />
+    <None Remove="Controls\SearchPageComponents\CRUDActionContentDialog.xaml" />
     <None Remove="Controls\SearchPageComponents\DownloadItem.xaml" />
     <None Remove="Controls\SearchPageComponents\MigrationProgressReporter.xaml" />
     <None Remove="Controls\SearchPageComponents\SearchLinkItem.xaml" />
@@ -43,7 +43,7 @@
     <Page Update="Controls\Pages\ViewPage.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
-    <Page Update="Controls\SearchPageComponents\ActionContentDialog.xaml">
+    <Page Update="Controls\SearchPageComponents\CRUDActionContentDialog.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>

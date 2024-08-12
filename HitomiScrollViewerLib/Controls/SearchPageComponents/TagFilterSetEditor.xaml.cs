@@ -21,7 +21,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetEditor).Name);
 
         private readonly TextBox[] _tagFilterTextBoxes = new TextBox[CATEGORIES.Length];
-        private readonly ActionContentDialog _contentDialog = new();
+        private readonly CRUDActionContentDialog _contentDialog = new();
         internal Button HyperlinkCreateButton { get; set; }
 
         public TagFilterSetEditor() {
@@ -136,7 +136,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
             _contentDialog.SetDialogType(
-                ActionContentDialog.Action.Create,
+                CRUDActionContentDialog.Action.Create,
                 _resourceMap.GetValue("ActionContentDialog_Title_Create").ValueAsString,
                 _resourceMap.GetValue("Text_Create").ValueAsString
             );
@@ -171,7 +171,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
             string oldName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
             _contentDialog.SetDialogType(
-                ActionContentDialog.Action.Rename,
+                CRUDActionContentDialog.Action.Rename,
                 _resourceMap.GetValue("ActionContentDialog_Title_Rename").ValueAsString,
                 _resourceMap.GetValue("Text_Rename").ValueAsString,
                 oldName
@@ -212,7 +212,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1) {
             string name = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
             _contentDialog.SetDialogType(
-                ActionContentDialog.Action.Delete,
+                CRUDActionContentDialog.Action.Delete,
                 string.Format(_resourceMap.GetValue("ActionContentDialog_Title_Delete").ValueAsString, name),
                 _resourceMap.GetValue("Text_Delete").ValueAsString
             );
