@@ -28,7 +28,8 @@
             <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <Border/>
-        <Button Click="CreateButton_Click">
+        <Button x:Name="CreateButton"
+                Click="CreateButton_Click">
             <SymbolIcon Symbol="Add"/>
         </Button>
         <Button x:Name="RenameButton"
@@ -42,7 +43,9 @@
                   DisplayMemberPath="Name"
                   SelectedValuePath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                  Visibility="Collapsed"
+                  >
         </ComboBox>
         <Button x:Name="SaveButton"
                 Click="SaveButton_Click"

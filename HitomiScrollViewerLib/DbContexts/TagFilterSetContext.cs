@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 using static HitomiScrollViewerLib.Entities.TagFilterV3;
+using System.Threading.Tasks;
 
 namespace HitomiScrollViewerLib.DbContexts {
     public class TagFilterSetContext : DbContext {
@@ -30,7 +31,7 @@ namespace HitomiScrollViewerLib.DbContexts {
             return created;
         }
 
-        public void AddExampleTagFilterSets() {
+        public async Task AddExampleTagFilterSets() {
             List<TagFilterV3> tagFilters1 = GetListInstance();
             tagFilters1[CATEGORY_INDEX_MAP["language"]].Tags.Add("english");
             tagFilters1[CATEGORY_INDEX_MAP["tag"]].Tags.Add("full_color");
@@ -44,7 +45,7 @@ namespace HitomiScrollViewerLib.DbContexts {
             List<TagFilterV3> tagFilters4 = GetListInstance();
             tagFilters4[CATEGORY_INDEX_MAP["tag"]].Tags.Add("non-h_imageset");
 
-            TagFilterSets.AddRange(
+            await TagFilterSets.AddRangeAsync(
                 new TagFilterSet() {
                     Name = EXAMPLE_TAG_FILTER_SET_1,
                     TagFilters = tagFilters1
@@ -63,7 +64,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                 }
             );
 
-            SaveChanges();
+            await SaveChangesAsync();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using HitomiScrollViewerLib.Controls.SearchPageComponents;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -58,7 +59,7 @@ namespace HitomiScrollViewerLib.Controls
 
             bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
             bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
-            bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.MainContext.Init();
+            bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.MainContext.Database.EnsureCreated();
             //GalleryContext.MainContext.Init(); TODO uncomment
             // User upgraded from v2 to v3
             if (v2TagFilterExists || v2BookmarksExists) {
@@ -78,7 +79,7 @@ namespace HitomiScrollViewerLib.Controls
                         DispatcherQueue.TryEnqueue(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
                         foreach (var pair in tagFilterV2) {
                             TagFilterSetContext.MainContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
-                            DispatcherQueue.TryEnqueue(() => reporter.IncrementProgressBar());
+                            DispatcherQueue.TryEnqueue(reporter.IncrementProgressBar);
                         }
                         TagFilterSetContext.MainContext.SaveChanges();
                         File.Delete(TAG_FILTERS_FILE_PATH_V2);
@@ -86,14 +87,15 @@ namespace HitomiScrollViewerLib.Controls
                     if (v2BookmarksExists) {
                         // TODO
                     }
-                    DispatcherQueue.TryEnqueue(() => reporter.Hide());
+                    DispatcherQueue.TryEnqueue(reporter.Hide);
                 });
                 await dialogShowOperation;
             }
             // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
             if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
-                TagFilterSetContext.MainContext.AddExampleTagFilterSets();
+                await TagFilterSetContext.MainContext.AddExampleTagFilterSets();
             }
+            await TagFilterSetContext.MainContext.TagFilterSets.LoadAsync();
             TagFilterSetEditor.Init();
         }
 

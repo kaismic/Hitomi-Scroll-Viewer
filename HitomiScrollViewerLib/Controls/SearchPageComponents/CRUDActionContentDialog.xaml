@@ -18,32 +18,4 @@
                    TextWrapping="WrapWholeWords"
                    MaxWidth="{StaticResource ActionContentDialogWidth}"/>
     </ContentDialog.Title>
-    <Grid x:Name="ContentGrid"
-          Width="{StaticResource ActionContentDialogWidth}"
-          >
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <TextBox x:Name="InputTextBox"
-                 Grid.Row="0"
-                 Width="{StaticResource ActionContentDialogWidth}"
-                 />
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <TextBlock x:Name="ErrorMsgTextBlock"
-                       Grid.Column="0"
-                       Foreground="Red"
-                       HorizontalAlignment="Left"/>
-            <TextBlock x:Name="LengthDisplayTextBlock"
-                       Grid.Column="1"
-                       HorizontalAlignment="Right"/>
-        </Grid>
-    </Grid>
 </ContentDialog>

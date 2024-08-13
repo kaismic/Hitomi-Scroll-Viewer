@@ -15,21 +15,21 @@
         <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
     <TextBox x:Name="InputTextBox"
-                 Grid.Row="0"
-                 MaxWidth="{x:Bind MaxWidth, Mode=OneWay}"
-                 Width="{x:Bind Width, Mode=OneWay}"
-                 />
+             Grid.Row="0"
+             MaxWidth="{x:Bind MaxWidth, Mode=OneWay}"
+             Width="{x:Bind Width, Mode=OneWay}"
+             />
     <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <TextBlock x:Name="ErrorMsgTextBlock"
-                       Grid.Column="0"
-                       Foreground="Red"
-                       HorizontalAlignment="Left"/>
+                   Grid.Column="0"
+                   Foreground="Red"
+                   HorizontalAlignment="Left"/>
         <TextBlock x:Name="LengthDisplayTextBlock"
-                       Grid.Column="1"
-                       HorizontalAlignment="Right"/>
+                   Grid.Column="1"
+                   HorizontalAlignment="Right"/>
     </Grid>
 </Grid>
