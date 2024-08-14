@@ -15,6 +15,7 @@ namespace HitomiScrollViewerLib.Entities {
         public virtual TagFilterSet TagFilterSet { get; set; }
         public long Id { get; set; }
         [MaxLength(9)]
+        [Required]
         public string Category { get; set; }
         public List<string> Tags { get; set; }
 

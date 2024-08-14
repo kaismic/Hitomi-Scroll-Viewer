@@ -14,10 +14,9 @@
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-    <TextBox x:Name="InputTextBox"
+    <TextBox x:Name="InputTextBox" x:FieldModifier="internal"
              Grid.Row="0"
-             MaxWidth="{x:Bind MaxWidth, Mode=OneWay}"
-             Width="{x:Bind Width, Mode=OneWay}"
+             Width="492"
              />
     <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>

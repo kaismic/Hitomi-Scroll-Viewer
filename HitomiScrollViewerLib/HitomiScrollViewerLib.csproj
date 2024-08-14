@@ -19,21 +19,21 @@
     <None Remove="Controls\SearchPageComponents\SearchLinkItem.xaml" />
     <None Remove="Controls\SearchPageComponents\SyncContentDialog.xaml" />
     <None Remove="Controls\SearchPageComponents\SyncManager.xaml" />
-    <None Remove="Controls\SearchPageComponents\TagFilterCheckBox.xaml" />
     <None Remove="Controls\SearchPageComponents\TagFilterSetEditor.xaml" />
-    <None Remove="Controls\SearchPageComponents\TagFilterSetSelector.xaml" />
+    <None Remove="Controls\SearchPageComponents\TFSCheckBox.xaml" />
+    <None Remove="Controls\SearchPageComponents\TFSSelector.xaml" />
     <None Remove="Controls\ViewPageComponents\GroupedImagePanel.xaml" />
     <None Remove="MainWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>
       <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.0.240109" />
-      <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3466" />
+      <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3498" />
       <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.7" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
-      <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
+      <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240802000" />
       <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
+      <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" />
       <PackageReference Include="Soluling" Version="1.0.71" />
   </ItemGroup>
 
@@ -75,13 +75,13 @@
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Controls\SearchPageComponents\TagFilterCheckBox.xaml">
+    <Page Update="Controls\SearchPageComponents\TFSCheckBox.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
     <Page Update="Controls\SearchPageComponents\TagFilterSetEditor.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
-    <Page Update="Controls\SearchPageComponents\TagFilterSetSelector.xaml">
+    <Page Update="Controls\SearchPageComponents\TFSSelector.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
     <Page Update="Controls\ViewPageComponents\GroupedImagePanel.xaml">

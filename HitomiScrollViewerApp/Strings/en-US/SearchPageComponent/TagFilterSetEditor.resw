@@ -121,7 +121,7 @@
     <value>"{0}" has been created.</value>
   </data>
   <data name="InfoBar_Message_Delete_Complete" xml:space="preserve">
-    <value>"{0}" has been deleted.</value>
+    <value>{plural, one {{0} tag filter set has} other {{0} tag filter sets have}} been deleted.</value>
   </data>
   <data name="InfoBar_Message_Rename_Complete" xml:space="preserve">
     <value>"{0}" has been renamed to "{1}".</value>

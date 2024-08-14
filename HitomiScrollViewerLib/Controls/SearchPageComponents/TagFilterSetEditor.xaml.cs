@@ -1,10 +1,12 @@
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
+using Soluling;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -76,11 +78,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
 
             IncludeTagFilterSetSelector.RegisterPropertyChangedCallback(
-                TagFilterSetSelector.AnyCheckedProperty,
+                TFSSelector.AnyCheckedProperty,
                 EnableHyperlinkCreateButton
             );
             ExcludeTagFilterSetSelector.RegisterPropertyChangedCallback(
-                TagFilterSetSelector.AnyCheckedProperty,
+                TFSSelector.AnyCheckedProperty,
                 EnableHyperlinkCreateButton
             );
 
@@ -116,18 +118,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
         }
 
-        internal List<string> GetTags(string category) {
+        private List<string> GetTags(string category) {
             return
                 _tagFilterTextBoxes[CATEGORY_INDEX_MAP[category]]
-                .Text
-                .Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS)
-                .Distinct()
-                .ToList();
-        }
-
-        internal List<string> GetTags(int idx) {
-            return
-                _tagFilterTextBoxes[idx]
                 .Text
                 .Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS)
                 .Distinct()
@@ -143,6 +136,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             InsertTagFilters(
                 TagFilterSetContext.MainContext
                 .TagFilterSets
+                .Include(t => t.TagFilters)
                 .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name)
                 .TagFilters
             );
@@ -150,8 +144,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
             _crudActionContentDialog.SetDialogAction(CRUDActionContentDialog.Action.Create);
-            ContentDialogResult cdr = await _crudActionContentDialog.ShowAsync();
-            if (cdr != ContentDialogResult.Primary) {
+            if (await _crudActionContentDialog.ShowAsync() != ContentDialogResult.Primary) {
                 return;
             }
             string name = _crudActionContentDialog.GetInputText();
@@ -181,8 +174,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
             string oldName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
             _crudActionContentDialog.SetDialogAction(CRUDActionContentDialog.Action.Rename, oldName);
-            ContentDialogResult cdr = await _crudActionContentDialog.ShowAsync();
-            if (cdr != ContentDialogResult.Primary) {
+            if (await _crudActionContentDialog.ShowAsync() != ContentDialogResult.Primary) {
                 return;
             }
             string newName = _crudActionContentDialog.GetInputText();
@@ -214,23 +206,16 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             );
         }
 
+        // Special exception case for delete action: Handle delete action in _crudActionContentDialog PrimaryButtonClick event
         private async void DeleteButton_Click(object _0, RoutedEventArgs _1) {
-            string name = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
-            _crudActionContentDialog.SetDialogAction(action: CRUDActionContentDialog.Action.Delete);
-            ContentDialogResult cdr = await _crudActionContentDialog.ShowAsync();
-            if (cdr != ContentDialogResult.Primary) {
+            _crudActionContentDialog.SetDialogAction(CRUDActionContentDialog.Action.Delete);
+            if (await _crudActionContentDialog.ShowAsync() != ContentDialogResult.Primary) {
                 return;
             }
-
-            TagFilterSetContext.MainContext.TagFilterSets.Remove(TagFilterSetContext.MainContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == name));
-            TagFilterSetContext.MainContext.SaveChanges();
-            foreach (TextBox textBox in _tagFilterTextBoxes) {
-                textBox.Text = "";
-            }
             MainWindow.SearchPage.ShowInfoBar(
-                string.Format(
+                MultiPattern.Format(
                     _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,
-                    name
+                    _crudActionContentDialog.DeletionCount
                 )
             );
         }

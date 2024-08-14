@@ -121,7 +121,7 @@
     <value>"{0}"이(가) 생성되었습니다.</value>
   </data>
   <data name="InfoBar_Message_Delete_Complete" xml:space="preserve">
-    <value>"{0}"이(가) 삭제되었습니다.</value>
+    <value>{plural, one {{0}개의 태그 필터 모음} other {{0}개의 태그 필터 모음들}}이 삭제되었습니다.</value>
   </data>
   <data name="InfoBar_Message_Rename_Complete" xml:space="preserve">
     <value>"{0}"이(가) "{1}"으(로) 이름이 변경되었습니다.</value>

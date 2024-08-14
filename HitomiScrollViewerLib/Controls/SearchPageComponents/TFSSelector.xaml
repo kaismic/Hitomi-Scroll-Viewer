@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Grid
-    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.TagFilterSetSelector"
+    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.TFSSelector"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,18 +12,13 @@
     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
     CornerRadius="{StaticResource OverlayCornerRadius}"
     BorderThickness="1"
-    Padding="16">
+    Padding="16"
+    RowSpacing="16">
     <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
-    <TextBlock x:Name="HeaderTextBlock"
-                TextWrapping="Wrap"
-                Grid.Row="0"
-                HorizontalAlignment="Center"
-                FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
     <ScrollViewer Grid.Row="1">
-        <ItemsRepeater x:Name="SearchFilterItemsRepeater" ItemsSource="{x:Bind _tagFilterCheckBoxes, Mode=OneWay}">
+        <ItemsRepeater x:Name="SearchFilterItemsRepeater" x:DefaultBindMode="OneWay">
             <ItemsRepeater.Layout>
                 <communityToolkitControls:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
             </ItemsRepeater.Layout>

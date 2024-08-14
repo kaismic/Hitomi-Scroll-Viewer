@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Concurrent;
@@ -59,7 +60,7 @@ namespace HitomiScrollViewerLib.Controls
 
             bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
             bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
-            bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.MainContext.Database.EnsureCreated();
+            bool tagFilterSetDbCreatedFirstTime = await TagFilterSetContext.MainContext.Database.EnsureCreatedAsync();
             //GalleryContext.MainContext.Init(); TODO uncomment
             // User upgraded from v2 to v3
             if (v2TagFilterExists || v2BookmarksExists) {
@@ -150,7 +151,8 @@ namespace HitomiScrollViewerLib.Controls
         internal void ShowInfoBar(string message) {
             InfoBar infoBar = new() {
                 Message = message,
-                IsOpen = true
+                IsOpen = true,
+                Background = new SolidColorBrush(Colors.White)
             };
             CancellationTokenSource cts = new();
             infoBar.CloseButtonClick += (InfoBar infoBar, object _) => {

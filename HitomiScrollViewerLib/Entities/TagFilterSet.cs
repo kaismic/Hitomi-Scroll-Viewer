@@ -9,9 +9,10 @@ namespace HitomiScrollViewerLib.Entities {
     public class TagFilterSet : INotifyPropertyChanged {
         public const int TAG_FILTER_SET_NAME_MAX_LEN = 100;
         public long Id { get; set; }
-        [MaxLength(TAG_FILTER_SET_NAME_MAX_LEN)]
 
         private string _name;
+        [MaxLength(TAG_FILTER_SET_NAME_MAX_LEN)]
+        [Required]
         public string Name {
             get => _name;
             set {

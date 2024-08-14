@@ -15,20 +15,18 @@ namespace HitomiScrollViewerLib.DbContexts {
             get => _mainContext ??= new TagFilterSetContext();
         }
 
-        private TagFilterSetContext(): base() {}
+        private TagFilterSetContext() : base() { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder
-                .UseSqlite($"Data Source={TAG_FILTER_SETS_DATABASE_NAME_V3}")
-                .UseLazyLoadingProxies();
+            optionsBuilder.UseSqlite($"Data Source={TAG_FILTER_SETS_DATABASE_NAME_V3}");
         }
 
-        /// <returns><see langword="true" /> if the database is created, <see langword="false" /> if it already existed.</returns>
-        public bool Init() {
-            bool created = Database.EnsureCreated();
-            TagFilterSets.Load();
-            return created;
+        protected override void OnModelCreating(ModelBuilder modelBuilder) {
+            modelBuilder.Entity<TagFilterSet>()
+                .HasMany(t => t.TagFilters)
+                .WithOne() // Assuming TagFilterV3 has a navigation property to TagFilterSet
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public async Task AddExampleTagFilterSets() {

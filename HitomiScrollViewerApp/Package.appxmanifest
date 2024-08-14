@@ -32,7 +32,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="ms-resource:AppDisplayName"
+        DisplayName="ms-resource:/SharedResources/AppDisplayName"
         Description="Hitomi-Scroll-Viewer"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
