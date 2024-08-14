@@ -225,6 +225,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
             IEnumerable<TagFilterSet> includeTagFilterSets = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
             IEnumerable<TagFilterSet> excludeTagFilterSets = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
+            TagFilterSetContext.MainContext.TagFilterSets.Include(tfs => tfs.TagFilters).Where(tfs => includeTagFilterSets.Contains(tfs)).Load();
+            TagFilterSetContext.MainContext.TagFilterSets.Include(tfs => tfs.TagFilters).Where(tfs => excludeTagFilterSets.Contains(tfs)).Load();
             IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
             IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
 
