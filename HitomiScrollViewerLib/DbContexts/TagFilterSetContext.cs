@@ -29,7 +29,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
-        public async Task AddExampleTagFilterSets() {
+        public void AddExampleTagFilterSets() {
             List<TagFilterV3> tagFilters1 = GetListInstance();
             tagFilters1[CATEGORY_INDEX_MAP["language"]].Tags.Add("english");
             tagFilters1[CATEGORY_INDEX_MAP["tag"]].Tags.Add("full_color");
@@ -43,7 +43,7 @@ namespace HitomiScrollViewerLib.DbContexts {
             List<TagFilterV3> tagFilters4 = GetListInstance();
             tagFilters4[CATEGORY_INDEX_MAP["tag"]].Tags.Add("non-h_imageset");
 
-            await TagFilterSets.AddRangeAsync(
+            TagFilterSets.AddRange(
                 new TagFilterSet() {
                     Name = EXAMPLE_TAG_FILTER_SET_1,
                     TagFilters = tagFilters1
@@ -61,8 +61,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                     TagFilters = tagFilters4
                 }
             );
-
-            await SaveChangesAsync();
+            SaveChanges();
         }
     }
 }
