@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerLib.Controls.SearchPageComponents;
+﻿using CommunityToolkit.WinUI;
+using HitomiScrollViewerLib.Controls.SearchPageComponents;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
@@ -48,7 +50,7 @@ namespace HitomiScrollViewerLib.Controls
             Loaded += SearchPage_Loaded;
         }
 
-        private async void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
+        private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
             Loaded -= SearchPage_Loaded;
             PopupInfoBarStackPanel.Margin = new Thickness(0, 0, 0, ActualHeight / 16);
 
@@ -58,17 +60,20 @@ namespace HitomiScrollViewerLib.Controls
             // 2. Migrate galleries (bookmarks)
             // 3. Migrate images from roaming to local folder
 
-            bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
-            bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
-            bool tagFilterSetDbCreatedFirstTime = await TagFilterSetContext.MainContext.Database.EnsureCreatedAsync();
-            //GalleryContext.MainContext.Init(); TODO uncomment
-            // User upgraded from v2 to v3
-            if (v2TagFilterExists || v2BookmarksExists) {
-                MigrationProgressReporter reporter = new() { XamlRoot = XamlRoot };
-                var dialogShowOperation = reporter.ShowAsync();
-                _ = Task.Run(() => {
+            _ = Task.Run(async () => {
+                bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
+                bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
+                bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.MainContext.Database.EnsureCreated();
+                TagFilterSetContext.MainContext.TagFilterSets.Load();
+                //GalleryContext.MainContext.Galleries.Load(); TODO uncomment when implemented
+                // User upgraded from v2 to v3
+                if (v2TagFilterExists || v2BookmarksExists) {
+                    MigrationProgressReporter reporter = await DispatcherQueue.EnqueueAsync(() => {
+                        return new MigrationProgressReporter() { XamlRoot = XamlRoot };
+                    });
+                    IAsyncOperation<ContentDialogResult> dialogShowOperation = await DispatcherQueue.EnqueueAsync(reporter.ShowAsync);
                     if (v2TagFilterExists) {
-                        DispatcherQueue.TryEnqueue(() => {
+                        await DispatcherQueue.EnqueueAsync(() => {
                             reporter.SetStatusMessage(MigrationProgressReporter.DataType.TagFilterSets);
                             reporter.ResetProgressBarValue();
                         });
@@ -77,10 +82,10 @@ namespace HitomiScrollViewerLib.Controls
                             typeof(Dictionary<string, TagFilterV2>),
                             SERIALIZER_OPTIONS_V2
                         );
-                        DispatcherQueue.TryEnqueue(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
+                        await DispatcherQueue.EnqueueAsync(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
                         foreach (var pair in tagFilterV2) {
                             TagFilterSetContext.MainContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
-                            DispatcherQueue.TryEnqueue(reporter.IncrementProgressBar);
+                            await DispatcherQueue.EnqueueAsync(reporter.IncrementProgressBar);
                         }
                         TagFilterSetContext.MainContext.SaveChanges();
                         File.Delete(TAG_FILTERS_FILE_PATH_V2);
@@ -88,16 +93,15 @@ namespace HitomiScrollViewerLib.Controls
                     if (v2BookmarksExists) {
                         // TODO
                     }
-                    DispatcherQueue.TryEnqueue(reporter.Hide);
-                });
-                await dialogShowOperation;
-            }
-            // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
-            if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
-                await TagFilterSetContext.MainContext.AddExampleTagFilterSets();
-            }
-            await TagFilterSetContext.MainContext.TagFilterSets.LoadAsync();
-            TagFilterSetEditor.Init();
+                    await DispatcherQueue.EnqueueAsync(reporter.Hide);
+                    await dialogShowOperation;
+                }
+                // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
+                if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
+                    TagFilterSetContext.MainContext.AddExampleTagFilterSets();
+                }
+                await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Init);
+            });
         }
 
         private void HyperlinkCreateButton_Clicked(object _0, RoutedEventArgs _1) {
