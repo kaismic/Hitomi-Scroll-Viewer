@@ -23,7 +23,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         public CRUDActionContentDialog() {
             InitializeComponent();
-            DefaultButton = ContentDialogButton.Primary;
             CloseButtonText = TEXT_CANCEL;
 
             PrimaryButtonClick += (ContentDialog _, ContentDialogButtonClickEventArgs args) => {
