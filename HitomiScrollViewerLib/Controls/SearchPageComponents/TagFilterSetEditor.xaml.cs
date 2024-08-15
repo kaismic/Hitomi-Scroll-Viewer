@@ -223,10 +223,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
             string selectedTagFilterSetName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem)?.Name;
 
-            IEnumerable<TagFilterSet> includeTagFilterSets = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
-            IEnumerable<TagFilterSet> excludeTagFilterSets = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
-            TagFilterSetContext.MainContext.TagFilterSets.Include(tfs => tfs.TagFilters).Where(tfs => includeTagFilterSets.Contains(tfs)).Load();
-            TagFilterSetContext.MainContext.TagFilterSets.Include(tfs => tfs.TagFilters).Where(tfs => excludeTagFilterSets.Contains(tfs)).Load();
+            IEnumerable<TagFilterSet> includeTFSs = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
+            IEnumerable<TagFilterSet> excludeTFSs = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
+            IEnumerable<long> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
+            IEnumerable<long> excludeTFSIds = excludeTFSs.Select(tfs => tfs.Id);
+            TagFilterSetContext.MainContext.TagFilterSets.Where(tfs => includeTFSIds.Contains(tfs.Id) || excludeTFSIds.Contains(tfs.Id)).Include(tfs => tfs.TagFilters).Load();
             IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
             IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
 
@@ -244,8 +245,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     }
                 }
             }
-            TakeTagFilterSetsUnion(includeTagFilterSets, includeTagFilters);
-            TakeTagFilterSetsUnion(excludeTagFilterSets, excludeTagFilters);
+            TakeTagFilterSetsUnion(includeTFSs, includeTagFilters);
+            TakeTagFilterSetsUnion(excludeTFSs, excludeTagFilters);
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 dupTagFiltersDict[i] = new(CATEGORIES[i], includeTagFilters[i].Intersect(excludeTagFilters[i]));
