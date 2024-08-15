@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using System.Collections.Concurrent;
 
@@ -51,9 +50,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private void TagFilterSets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Add:
-                    Trace.WriteLine("Adding:");
                     foreach (var tfs in e.NewItems.Cast<TagFilterSet>()) {
-                        Trace.WriteLine(tfs.Name);
                         _tfsCheckBoxes.Add(new(tfs, CheckBox_Checked, CheckBox_Unchecked));
                     }
                     break;
@@ -62,11 +59,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     foreach (var tfs in removingTFSs) {
                         _checkedBoxes.Remove(tfs);
                     }
-                    Trace.WriteLine("Removing:");
                     foreach (var tfs in removingTFSs) {
                         var removingCheckBox = _tfsCheckBoxes.FirstOrDefault(checkBox => checkBox.TagFilterSet == tfs, null);
                         if (removingCheckBox != null) {
-                            Trace.WriteLine(removingCheckBox.TagFilterSet.Name);
                             _tfsCheckBoxes.Remove(removingCheckBox);
                         }
 
