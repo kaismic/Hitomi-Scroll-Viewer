@@ -135,10 +135,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             RenameButton.IsEnabled = SaveButton.IsEnabled = true;
             InsertTagFilters(
                 TagFilterSetContext.MainContext
-                .TagFilterSets
-                .Include(t => t.TagFilters)
-                .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name)
-                .TagFilters
+                    .TagFilterSets
+                    .Where(tfs => tfs.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id)
+                    .Include(tfs => tfs.TagFilters)
+                    .First()
+                    .TagFilters
             );
         }
 
@@ -172,13 +173,14 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
-            string oldName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name;
+            TagFilterSet selectedTFS = ((TagFilterSet)TagFilterSetComboBox.SelectedItem);
+            string oldName = selectedTFS.Name;
             _crudActionContentDialog.SetDialogAction(CRUDActionContentDialog.Action.Rename, oldName);
             if (await _crudActionContentDialog.ShowAsync() != ContentDialogResult.Primary) {
                 return;
             }
             string newName = _crudActionContentDialog.GetInputText();
-            TagFilterSetContext.MainContext.TagFilterSets.First(tagFilterSet => tagFilterSet.Name == oldName).Name = newName;
+            selectedTFS.Name = newName;
             TagFilterSetContext.MainContext.SaveChanges();
             MainWindow.SearchPage.ShowInfoBar(
                 string.Format(
@@ -193,7 +195,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             TagFilterSet tagFilterSet =
                 TagFilterSetContext.MainContext
                 .TagFilterSets
-                .First(tagFilterSet => tagFilterSet.Name == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Name);
+                .First(tagFilterSet => tagFilterSet.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id);
             foreach (TagFilterV3 tagFilter in tagFilterSet.TagFilters) {
                 tagFilter.Tags = GetTags(tagFilter.Category);
             }
@@ -221,13 +223,16 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
-            string selectedTagFilterSetName = ((TagFilterSet)TagFilterSetComboBox.SelectedItem)?.Name;
+            TagFilterSet selectedTFS = (TagFilterSet)TagFilterSetComboBox.SelectedItem;
 
             IEnumerable<TagFilterSet> includeTFSs = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
             IEnumerable<TagFilterSet> excludeTFSs = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
             IEnumerable<long> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
             IEnumerable<long> excludeTFSIds = excludeTFSs.Select(tfs => tfs.Id);
-            TagFilterSetContext.MainContext.TagFilterSets.Where(tfs => includeTFSIds.Contains(tfs.Id) || excludeTFSIds.Contains(tfs.Id)).Include(tfs => tfs.TagFilters).Load();
+            TagFilterSetContext.MainContext.TagFilterSets
+                .Where(tfs => includeTFSIds.Contains(tfs.Id) || excludeTFSIds.Contains(tfs.Id))
+                .Include(tfs => tfs.TagFilters)
+                .Load();
             IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
             IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
 
@@ -235,13 +240,21 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(GetTags).ToArray();
 
             void TakeTagFilterSetsUnion(IEnumerable<TagFilterSet> tagFilterSets, IEnumerable<string>[] tagFilters) {
-                foreach (TagFilterSet tagFilterSet in tagFilterSets) {
-                    IEnumerable<string>[] tagsArray =
-                        tagFilterSet.Name == selectedTagFilterSetName
-                        ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
-                        : tagFilterSet.TagFilters.Select(tagFilter => tagFilter.Tags).ToArray();
-                    for (int i = 0; i < CATEGORIES.Length; i++) {
-                        tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
+                if (selectedTFS == null) {
+                    foreach (TagFilterSet tagFilterSet in tagFilterSets) {
+                        for (int i = 0; i < CATEGORIES.Length; i++) {
+                            tagFilters[i] = tagFilters[i].Union(tagFilterSet.TagFilters.Select(tagFilter => tagFilter.Tags).ToArray()[i]);
+                        }
+                    }
+                } else {
+                    foreach (TagFilterSet tagFilterSet in tagFilterSets) {
+                        IEnumerable<string>[] tagsArray =
+                            tagFilterSet.Id == selectedTFS?.Id
+                            ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
+                            : tagFilterSet.TagFilters.Select(tagFilter => tagFilter.Tags).ToArray();
+                        for (int i = 0; i < CATEGORIES.Length; i++) {
+                            tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
+                        }
                     }
                 }
             }
