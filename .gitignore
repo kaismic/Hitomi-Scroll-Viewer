@@ -3,8 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# temporarily ignore BookmarkPagerControl
-BookmarkPagerControl.*
+
+# ignore test app
+HitomiScrollViewerTestApp/
 
 # ignore Credentials.resw
 Credentials.resw
