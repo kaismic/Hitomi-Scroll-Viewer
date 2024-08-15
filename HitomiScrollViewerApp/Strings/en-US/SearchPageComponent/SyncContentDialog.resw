@@ -138,7 +138,7 @@
   <data name="FetchTagFilterOption2TextBlock.Text" xml:space="preserve">
     <value>Select how to sync tag filters with duplicate names</value>
   </data>
-  <data name="InfoBar_Error_FileNotFound_Message" xml:space="preserve">
+  <data name="InfoBar_Error_FileNotUploaded_Message" xml:space="preserve">
     <value>File has not been uploaded yet.</value>
   </data>
   <data name="InfoBar_Error_Unauthorized_Message" xml:space="preserve">

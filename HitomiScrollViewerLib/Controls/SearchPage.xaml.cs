@@ -19,7 +19,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
@@ -47,6 +46,7 @@ namespace HitomiScrollViewerLib.Controls
         public SearchPage() {
             InitializeComponent();
             DownloadInputTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = DownloadInputTextBox.Text.Length != 0; };
+            TagFilterSetEditor.Main = TagFilterSetEditor;
             Loaded += SearchPage_Loaded;
         }
 
@@ -61,51 +61,55 @@ namespace HitomiScrollViewerLib.Controls
             // 3. Migrate images from roaming to local folder
 
             _ = Task.Run(async () => {
+                bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.Main.Database.EnsureCreated();
+                TagFilterSetContext.Main.TagFilterSets.Load();
+                //GalleryContext.MainContext.Galleries.Load(); TODO uncomment when implemented
                 bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
                 bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
-                bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.MainContext.Database.EnsureCreated();
-                TagFilterSetContext.MainContext.TagFilterSets.Load();
-                //GalleryContext.MainContext.Galleries.Load(); TODO uncomment when implemented
                 // User upgraded from v2 to v3
                 if (v2TagFilterExists || v2BookmarksExists) {
-                    MigrationProgressReporter reporter = await DispatcherQueue.EnqueueAsync(() => {
-                        return new MigrationProgressReporter() { XamlRoot = XamlRoot };
-                    });
-                    IAsyncOperation<ContentDialogResult> dialogShowOperation = await DispatcherQueue.EnqueueAsync(reporter.ShowAsync);
-                    if (v2TagFilterExists) {
-                        await DispatcherQueue.EnqueueAsync(() => {
-                            reporter.SetStatusMessage(MigrationProgressReporter.DataType.TagFilterSets);
-                            reporter.ResetProgressBarValue();
-                        });
-                        Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
-                            File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-                            typeof(Dictionary<string, TagFilterV2>),
-                            SERIALIZER_OPTIONS_V2
-                        );
-                        await DispatcherQueue.EnqueueAsync(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
-                        foreach (var pair in tagFilterV2) {
-                            TagFilterSetContext.MainContext.AddRange(pair.Value.ToTagFilterSet(pair.Key));
-                            await DispatcherQueue.EnqueueAsync(reporter.IncrementProgressBar);
-                        }
-                        TagFilterSetContext.MainContext.SaveChanges();
-                        File.Delete(TAG_FILTERS_FILE_PATH_V2);
-                    }
-                    if (v2BookmarksExists) {
-                        // TODO
-                    }
-                    await DispatcherQueue.EnqueueAsync(reporter.Hide);
-                    await dialogShowOperation;
+                    await MigrateUserData(v2TagFilterExists, v2BookmarksExists);
                 }
                 // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
                 if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
-                    TagFilterSetContext.MainContext.AddExampleTagFilterSets();
+                    TagFilterSetContext.Main.AddExampleTagFilterSets();
                 }
-                await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Init);
+                await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
+                await SyncManager.Init();
             });
         }
 
+        private async Task MigrateUserData(bool v2TagFilterExists, bool v2BookmarksExists) {
+            MigrationProgressReporter reporter = await DispatcherQueue.EnqueueAsync(() => {
+                return new MigrationProgressReporter() { XamlRoot = XamlRoot };
+            });
+            _ = await DispatcherQueue.EnqueueAsync(reporter.ShowAsync);
+            if (v2TagFilterExists) {
+                await DispatcherQueue.EnqueueAsync(() => {
+                    reporter.SetStatusMessage(UserDataType.TagFilterSet);
+                    reporter.ResetProgressBarValue();
+                });
+                Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
+                    File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
+                    typeof(Dictionary<string, TagFilterV2>),
+                    SERIALIZER_OPTIONS_V2
+                );
+                await DispatcherQueue.EnqueueAsync(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
+                foreach (var pair in tagFilterV2) {
+                    TagFilterSetContext.Main.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+                    await DispatcherQueue.EnqueueAsync(reporter.IncrementProgressBar);
+                }
+                TagFilterSetContext.Main.SaveChanges();
+                File.Delete(TAG_FILTERS_FILE_PATH_V2);
+            }
+            if (v2BookmarksExists) {
+                // TODO
+            }
+            await DispatcherQueue.EnqueueAsync(reporter.Hide);
+        }
+
         private void HyperlinkCreateButton_Clicked(object _0, RoutedEventArgs _1) {
-            SearchLinkItem searchLinkItem = TagFilterSetEditor.GetSearchLinkItem(_searchLinkItems);
+            SearchLinkItem searchLinkItem = TagFilterSetEditor.Main.GetSearchLinkItem(_searchLinkItems);
             if (searchLinkItem != null) {
                 _searchLinkItems.Add(searchLinkItem);
                 // copy link to clipboard

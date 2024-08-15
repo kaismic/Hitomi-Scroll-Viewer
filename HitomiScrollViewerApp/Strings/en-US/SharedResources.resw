@@ -133,8 +133,8 @@
   <data name="Text_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="Text_Bookmarks" xml:space="preserve">
-    <value>Bookmarks</value>
+  <data name="Text_Galleries" xml:space="preserve">
+    <value>Galleries</value>
   </data>
   <data name="Text_Error" xml:space="preserve">
     <value>Error</value>
@@ -142,8 +142,8 @@
   <data name="Text_No" xml:space="preserve">
     <value>No</value>
   </data>
-  <data name="Text_TagFilters" xml:space="preserve">
-    <value>Tag filters</value>
+  <data name="Text_TagFilterSets" xml:space="preserve">
+    <value>Tag filter sets</value>
   </data>
   <data name="Text_Page" xml:space="preserve">
     <value>Page</value>

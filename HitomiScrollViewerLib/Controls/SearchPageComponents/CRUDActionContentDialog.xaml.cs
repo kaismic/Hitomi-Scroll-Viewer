@@ -37,8 +37,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     ToggleDeleteAction(true);
                     var checkedTagFilterSets = _deleteTFSSelector.GetCheckedTagFilterSets();
                     DeletionCount = checkedTagFilterSets.Count();
-                    TagFilterSetContext.MainContext.TagFilterSets.RemoveRange(checkedTagFilterSets);
-                    TagFilterSetContext.MainContext.SaveChanges();
+                    TagFilterSetContext.Main.TagFilterSets.RemoveRange(checkedTagFilterSets);
+                    TagFilterSetContext.Main.SaveChanges();
                     ToggleDeleteAction(false);
                 }
             };
@@ -57,7 +57,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         internal void Init(ObservableCollection<TagFilterSet> collection) {
-            _deleteTFSSelector.Init(collection);
+            _deleteTFSSelector.SetCollectionSource(collection);
         }
 
         private void ToggleDeleteAction(bool toggle) {
@@ -70,7 +70,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private bool CheckDuplicate(string name, TextBlock errorMsgTextBlock) {
-            if (TagFilterSetContext.MainContext.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == name)) {
+            if (TagFilterSetContext.Main.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == name)) {
                 errorMsgTextBlock.Text = string.Format(
                     _resourceMap.GetValue("Error_Message_Duplicate").ValueAsString,
                     name

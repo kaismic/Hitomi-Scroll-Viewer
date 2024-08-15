@@ -42,35 +42,35 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         public SyncManager() {
             InitializeComponent();
+        }
 
-            Task.Run(async () => {
-                TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
-                bool tokenExists = tokenResponse != null;
-                string userEmail = null;
-                if (tokenExists) {
-                    _userCredential = new(
-                        new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
-                            ClientSecrets = new ClientSecrets {
-                                ClientId = CLIENT_ID,
-                                ClientSecret = CLIENT_SECRET
-                            },
-                            Scopes = SCOPES,
-                            DataStore = FILE_DATA_STORE
-                        }),
-                        Environment.UserName,
-                        tokenResponse
-                    );
-                    _initializer = new BaseClientService.Initializer() {
-                        HttpClientInitializer = _userCredential,
-                        ApplicationName = APP_DISPLAY_NAME
-                    };
-                    userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH);
-                }
-                DispatcherQueue.TryEnqueue(() => {
-                    SignInBtnTextBlock.Text = tokenExists && userEmail != null ? string.Format(BUTTON_TEXT_SIGNED_IN, userEmail) : BUTTON_TEXT_NOT_SIGNED_IN;
-                    ToggleSignInState(tokenExists);
-                    SignInBtn.IsEnabled = true;
-                });
+        internal async Task Init() {
+            TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
+            bool tokenExists = tokenResponse != null;
+            string userEmail = null;
+            if (tokenExists) {
+                _userCredential = new(
+                    new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+                        ClientSecrets = new ClientSecrets {
+                            ClientId = CLIENT_ID,
+                            ClientSecret = CLIENT_SECRET
+                        },
+                        Scopes = SCOPES,
+                        DataStore = FILE_DATA_STORE
+                    }),
+                    Environment.UserName,
+                    tokenResponse
+                );
+                _initializer = new BaseClientService.Initializer() {
+                    HttpClientInitializer = _userCredential,
+                    ApplicationName = APP_DISPLAY_NAME
+                };
+                userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH);
+            }
+            DispatcherQueue.TryEnqueue(() => {
+                SignInBtnTextBlock.Text = tokenExists && userEmail != null ? string.Format(BUTTON_TEXT_SIGNED_IN, userEmail) : BUTTON_TEXT_NOT_SIGNED_IN;
+                ToggleSignInState(tokenExists);
+                SignInBtn.IsEnabled = true;
             });
         }
 

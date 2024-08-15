@@ -24,11 +24,21 @@ namespace HitomiScrollViewerLib {
         public static readonly string NON_VIRTUAL_IMAGE_DIR_V3 = Path.Combine(NON_VIRTUAL_ROOT_DIR_V3, IMAGE_DIR_NAME);
         public static readonly string LOGS_PATH_V3 = Path.Combine(ROOT_DIR_V3, "logs.txt");
 
-        public static readonly string TAG_FILTER_SETS_DATABASE_NAME_V3 = "tag_filter_sets.db";
-        public static readonly string TAG_FILTER_SETS_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, TAG_FILTER_SETS_DATABASE_NAME_V3);
-        public static readonly string GALLERIES_DATABASE_NAME_V3 = "galleries.db";
-        public static readonly string GALLERIES_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, GALLERIES_DATABASE_NAME_V3);
+        public static readonly string TFS_MAIN_DATABASE_NAME_V3 = "tag_filter_sets.db";
+        public static readonly string TFS_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, TFS_MAIN_DATABASE_NAME_V3);
+        public static readonly string TFS_TEMP_DATABASE_NAME_V3 = "tag_filter_sets_temp.db";
+        public static readonly string TFS_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, TFS_TEMP_DATABASE_NAME_V3);
 
+        public static readonly string GALLERIES_MAIN_DATABASE_NAME_V3 = "galleries.db";
+        public static readonly string GALLERIES_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, GALLERIES_MAIN_DATABASE_NAME_V3);
+        public static readonly string GALLERIES_TEMP_DATABASE_NAME_V3 = "galleries_temp.db";
+        public static readonly string GALLERIES_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, GALLERIES_TEMP_DATABASE_NAME_V3);
+
+        public static readonly string DB_MIME_TYPE = "application/db";
+
+        public enum UserDataType {
+            TagFilterSet, Gallery
+        }
         /*
          * apparently I can't just use Environment.NewLine as separator
          * because of this TextBox bug which somehow converts \r\n to \r and it's still not fixed...

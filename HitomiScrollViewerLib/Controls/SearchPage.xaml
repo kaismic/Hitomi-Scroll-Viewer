@@ -38,7 +38,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <spc:SyncManager Grid.Row="0"/>
+                        <spc:SyncManager x:Name="SyncManager" Grid.Row="0"/>
                         <Grid Grid.Row="1"
                               Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                               BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"

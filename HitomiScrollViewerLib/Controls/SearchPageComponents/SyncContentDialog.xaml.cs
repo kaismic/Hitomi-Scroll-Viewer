@@ -1,9 +1,11 @@
+using CommunityToolkit.WinUI;
 using Google;
 using Google.Apis.Download;
 using Google.Apis.Drive.v3;
-using Google.Apis.Drive.v3.Data;
 using Google.Apis.Upload;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -11,7 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,8 +34,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
             InitializeComponent();
             CloseButtonText = TEXT_CLOSE;
 
-            TagFilterOptionCheckBox.Content = TEXT_TAG_FILTERS;
-            BookmarkOptionCheckBox.Content = TEXT_BOOKMARKS;
+            TagFilterOptionCheckBox.Content = TEXT_TAG_FILTER_SETS;
+            BookmarkOptionCheckBox.Content = TEXT_GALLERIES;
 
             FetchBookmarkOption1.Items.Add(new RadioButton() {
                 Content = TEXT_YES
@@ -77,217 +78,215 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
             }
         }
 
-        private static readonly string INFOBAR_UPLOAD_SUCCESS_MESSAGE = _resourceMap.GetValue("InfoBar_Upload_Success_Message").ValueAsString;
-        private static readonly string INFOBAR_UPLOAD_CANCELED_MESSAGE = _resourceMap.GetValue("InfoBar_Upload_Canceled_Message").ValueAsString;
+        private async Task StartUploadAsync(UserDataType userDataType, Google.Apis.Drive.v3.Data.File file) {
+            string fileName = userDataType switch {
+                UserDataType.TagFilterSet => TFS_MAIN_DATABASE_NAME_V3,
+                UserDataType.Gallery => GALLERIES_MAIN_DATABASE_NAME_V3,
+                _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
+            };
+            string localFilePath = userDataType switch {
+                UserDataType.TagFilterSet => TFS_MAIN_DATABASE_PATH_V3,
+                UserDataType.Gallery => GALLERIES_MAIN_DATABASE_PATH_V3,
+                _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
+            };
+            InfoBar infoBar = userDataType switch {
+                UserDataType.TagFilterSet => TagFilterSyncResultInfoBar,
+                UserDataType.Gallery => BookmarkSyncResultInfoBar,
+                _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
+            };
+            string infoBarTitle = userDataType switch {
+                UserDataType.TagFilterSet => TEXT_TAG_FILTER_SETS,
+                UserDataType.Gallery => TEXT_GALLERIES,
+                _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
+            };
 
-        private static readonly string INFOBAR_FETCH_SUCCESS_MESSAGE = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
-        private static readonly string INFOBAR_FETCH_CANCELED_MESSAGE = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
+            try {
+                if (file == null) {
+                    await CreateFileAsync(fileName, localFilePath, DB_MIME_TYPE, _cts.Token);
+                } else {
+                    await UpdateFileAsync(file, localFilePath, DB_MIME_TYPE, _cts.Token);
+                }
+                infoBar.Severity = InfoBarSeverity.Success;
+                infoBar.Title = infoBarTitle;
+                infoBar.Message = _resourceMap.GetValue("InfoBar_Upload_Success_Message").ValueAsString;
+            } catch (TaskCanceledException) {
+                infoBar.Severity = InfoBarSeverity.Informational;
+                infoBar.Title = infoBarTitle;
+                infoBar.Message = _resourceMap.GetValue("InfoBar_Upload_Canceled_Message").ValueAsString;
+            } catch (Exception e) {
+                infoBar.Severity = InfoBarSeverity.Error;
+                infoBar.Title = TEXT_ERROR;
+                if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                    infoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                } else {
+                    infoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                }
+            } finally {
+                infoBar.IsOpen = true;
+            }
+        }
 
-        private static readonly string INFOBAR_ERROR_UNAUTHORIZED_MESSAGE = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
-        private static readonly string INFOBAR_ERROR_UNKNOWN_MESSAGE = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
-        private static readonly string INFOBAR_ERROR_FILENOTFOUND_MESSAGE = _resourceMap.GetValue("InfoBar_Error_FileNotFound_Message").ValueAsString;
+        private static void HandleFileNotUploaded(InfoBar infoBar, string infoBarTitle) {
+            infoBar.Severity = InfoBarSeverity.Error;
+            infoBar.Title = infoBarTitle;
+            infoBar.Message = _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString;
+        }
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
-            //_cts = new();
-            //_closeDialog = false;
-            //StartStopSync(true);
+            _cts = new();
+            _closeDialog = false;
+            StartStopSync(true);
 
-            //FilesResource.ListRequest listRequest = _driveService.Files.List();
-            //listRequest.Spaces = "appDataFolder";
-            //listRequest.Fields = "nextPageToken, files(id, name, size)";
-            //listRequest.PageSize = 2;
-            //Google.Apis.Drive.v3.Data.File tagFiltersFile = null;
-            //Google.Apis.Drive.v3.Data.File bookmarksFile = null;
-            //try {
-            //    FileList fileList = await listRequest.ExecuteAsync(_cts.Token);
-            //    if (fileList != null) {
-            //        foreach (var file in fileList.Files) {
-            //            if (file.Name == TAG_FILTERS_FILE_NAME) {
-            //                tagFiltersFile = file;
-            //            } else if (file.Name == BOOKMARKS_FILE_NAME) {
-            //                bookmarksFile = file;
-            //            }
-            //        }
-            //    }
-            //} catch (Exception) {}
+            FilesResource.ListRequest listRequest = _driveService.Files.List();
+            listRequest.Spaces = "appDataFolder";
+            listRequest.Fields = "nextPageToken, files(id, name, size)";
+            listRequest.PageSize = 8;
+            Google.Apis.Drive.v3.Data.File tfssFile = null;
+            Google.Apis.Drive.v3.Data.File galleriesFile = null;
+            try {
+                Google.Apis.Drive.v3.Data.FileList fileList = await listRequest.ExecuteAsync(_cts.Token);
+                if (fileList != null) {
+                    foreach (var file in fileList.Files) {
+                        if (file.Name == TFS_MAIN_DATABASE_NAME_V3) {
+                            tfssFile = file;
+                        } else if (file.Name == GALLERIES_MAIN_DATABASE_NAME_V3) {
+                            galleriesFile = file;
+                        }
+                    }
+                }
+            } catch (Exception) { }
 
-            //// Upload
-            //if (SyncDirectionRadioButtons.SelectedIndex == 0) {
-            //    // Upload tag filters
-            //    if (TagFilterOptionCheckBox.IsChecked == true) {
-            //        try {
-            //            if (tagFiltersFile == null) {
-            //                await CreateFileAsync(TAG_FILTERS_FILE_NAME, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
-            //            } else {
-            //                await UpdateFileAsync(tagFiltersFile, TAG_FILTERS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
-            //            }
-            //            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-            //            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
-            //            TagFilterSyncResultInfoBar.Message = INFOBAR_UPLOAD_SUCCESS_MESSAGE;
-            //        } catch (TaskCanceledException) {
-            //            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-            //            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
-            //            TagFilterSyncResultInfoBar.Message = INFOBAR_UPLOAD_CANCELED_MESSAGE;
-            //        } catch (Exception e) {
-            //            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-            //            TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
-            //            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-            //                TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
-            //            } else {
-            //                TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
-            //            }
-            //        } finally {
-            //            TagFilterSyncResultInfoBar.IsOpen = true;
-            //        }
-            //    }
-            //    // Upload bookmarks
-            //    if (BookmarkOptionCheckBox.IsChecked == true) {
-            //        try {
-            //            if (bookmarksFile == null) {
-            //                await CreateFileAsync(BOOKMARKS_FILE_NAME, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
-            //            } else {
-            //                await UpdateFileAsync(bookmarksFile, BOOKMARKS_FILE_PATH, MediaTypeNames.Application.Json, _cts.Token);
-            //            }
-            //            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-            //            BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
-            //            BookmarkSyncResultInfoBar.Message = INFOBAR_UPLOAD_SUCCESS_MESSAGE;
-            //        } catch (TaskCanceledException) {
-            //            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-            //            BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
-            //            BookmarkSyncResultInfoBar.Message = INFOBAR_UPLOAD_CANCELED_MESSAGE;
-            //        } catch (Exception e) {
-            //            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-            //            BookmarkSyncResultInfoBar.Title = TEXT_ERROR;
-            //            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-            //                BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
-            //            } else {
-            //                BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
-            //            }
-            //        } finally {
-            //            BookmarkSyncResultInfoBar.IsOpen = true;
-            //        }
-            //    }
-            //}
-            //// Fetch
-            //else {
-            //    // Fetch tag filters
-            //    if (TagFilterOptionCheckBox.IsChecked == true) {
-            //        // file is not uploaded yet
-            //        if (tagFiltersFile == null) {
-            //            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-            //            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
-            //            TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_FILENOTFOUND_MESSAGE;
-            //        }
-            //        // file exists
-            //        else {
-            //            try {
-            //                string fetchedTagFiltersData = await GetFile(tagFiltersFile, _cts.Token);
-            //                Dictionary<string, TagFilter> fetchedTagFilterDict = (Dictionary<string, TagFilter>)JsonSerializer.Deserialize(
-            //                    fetchedTagFiltersData,
-            //                    typeof(Dictionary<string, TagFilter>),
-            //                    DEFAULT_SERIALIZER_OPTIONS
-            //                );
-            //                // Overwrite tag filters
-            //                if (FetchTagFilterOption1.SelectedIndex == 0) {
-            //                    MainWindow.SearchPage.TagFilterDict = fetchedTagFilterDict;
-            //                }
-            //                // Append tag filters
-            //                else {
-            //                    // Replace locally stored tag filters with duplicate names from the cloud
-            //                    if (FetchTagFilterOption2.SelectedIndex == 0) {
-            //                        MainWindow.SearchPage.TagFilterDict =
-            //                            fetchedTagFilterDict
-            //                            .Concat(
-            //                                MainWindow.SearchPage.TagFilterDict.Where(
-            //                                    pair => !fetchedTagFilterDict.ContainsKey(pair.Key)
-            //                                )
-            //                            )
-            //                            .ToDictionary(pair => pair.Key, pair => pair.Value);
-            //                    }
-            //                    // Keep locally stored tag filters with duplicate names
-            //                    else {
-            //                        MainWindow.SearchPage.TagFilterDict =
-            //                            MainWindow.SearchPage.TagFilterDict
-            //                            .Concat(
-            //                                fetchedTagFilterDict.Where(
-            //                                    pair => !MainWindow.SearchPage.TagFilterDict.ContainsKey(pair.Key)
-            //                                )
-            //                            )
-            //                            .ToDictionary(pair => pair.Key, pair => pair.Value);
-            //                    }
-            //                }
-            //                MainWindow.SearchPage.WriteTagFilterDict();
-
-            //                TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-            //                TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
-            //                TagFilterSyncResultInfoBar.Message = INFOBAR_FETCH_SUCCESS_MESSAGE;
-            //            } catch (TaskCanceledException) {
-            //                TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-            //                TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTERS;
-            //                TagFilterSyncResultInfoBar.Message = INFOBAR_FETCH_CANCELED_MESSAGE;
-            //            } catch (Exception e) {
-            //                TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-            //                TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
-            //                if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-            //                    TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
-            //                } else {
-            //                    TagFilterSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
-            //                }
-            //            }
-            //        }
-            //        TagFilterSyncResultInfoBar.IsOpen = true;
-            //    }
-            //    // Fetch bookmarks
-            //    if (BookmarkOptionCheckBox.IsChecked == true) {
-            //        // file is not uploaded yet
-            //        if (tagFiltersFile == null) {
-            //            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-            //            BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
-            //            BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_FILENOTFOUND_MESSAGE;
-            //        }
-            //        // file exists
-            //        else {
-            //            try {
-            //                string fetchedBookmarksData = await GetFile(bookmarksFile, _cts.Token);
-            //                IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
-            //                    fetchedBookmarksData,
-            //                    typeof(IEnumerable<Gallery>),
-            //                    DEFAULT_SERIALIZER_OPTIONS
-            //                );
-            //                // append fetched galleries to existing bookmark if they are not already in the bookmark
-            //                IEnumerable<Gallery> localBookmarkGalleries = SearchPage.BookmarkItems.Select(item => item.gallery);
-            //                IEnumerable<Gallery> appendingGalleries = fetchedBookmarkGalleries.ExceptBy(
-            //                    localBookmarkGalleries.Select(gallery => gallery.id),
-            //                    gallery => gallery.id
-            //                );
-            //                foreach (var gallery in appendingGalleries) {
-            //                    BookmarkItem appendedBookmarkItem = MainWindow.SearchPage.AddBookmark(gallery);
-            //                    // start downloading all appended galleries if the corresponding option is checked
-            //                    if (FetchBookmarkOption1.SelectedIndex == 0) {
-            //                        MainWindow.SearchPage.TryDownload(gallery.id, appendedBookmarkItem);
-            //                    }
-            //                }
-            //                BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-            //                BookmarkSyncResultInfoBar.Title = TEXT_BOOKMARKS;
-            //                BookmarkSyncResultInfoBar.Message = INFOBAR_FETCH_SUCCESS_MESSAGE;
-            //            } catch (TaskCanceledException) {
-            //                TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-            //                TagFilterSyncResultInfoBar.Title = TEXT_BOOKMARKS;
-            //                TagFilterSyncResultInfoBar.Message = INFOBAR_FETCH_CANCELED_MESSAGE;
-            //            } catch (Exception e) {
-            //                BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-            //                BookmarkSyncResultInfoBar.Title = TEXT_ERROR;
-            //                if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-            //                    BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNAUTHORIZED_MESSAGE;
-            //                } else {
-            //                    BookmarkSyncResultInfoBar.Message = INFOBAR_ERROR_UNKNOWN_MESSAGE;
-            //                }
-            //            }
-            //        }
-            //        BookmarkSyncResultInfoBar.IsOpen = true;
-            //    }
-            //}
-            //StartStopSync(false);
+            // Upload
+            if (SyncDirectionRadioButtons.SelectedIndex == 0) {
+                // Upload tag filter sets
+                if (TagFilterOptionCheckBox.IsChecked == true) {
+                    await StartUploadAsync(UserDataType.TagFilterSet, tfssFile);
+                }
+                // Upload galleries
+                if (BookmarkOptionCheckBox.IsChecked == true) {
+                    await StartUploadAsync(UserDataType.Gallery, galleriesFile);
+                }
+            }
+            // Fetch
+            else {
+                // Fetch tag filter sets
+                if (TagFilterOptionCheckBox.IsChecked == true) {
+                    // file is not uploaded yet
+                    if (tfssFile == null) {
+                        HandleFileNotUploaded(TagFilterSyncResultInfoBar, TEXT_TAG_FILTER_SETS);
+                    }
+                    // file exists
+                    else {
+                        try {
+                            string fetchedTFSsFileContent = await GetFile(tfssFile, _cts.Token);
+                            // Overwrite tag filter sets
+                            if (FetchTagFilterOption1.SelectedIndex == 0) {
+                                await TagFilterSetContext.ReplaceMainContext(fetchedTFSsFileContent);
+                                await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
+                            }
+                            // Append tag filter sets
+                            else {
+                                await File.WriteAllTextAsync(TFS_TEMP_DATABASE_PATH_V3, fetchedTFSsFileContent, _cts.Token);
+                                using TagFilterSetContext fetchedContext = new(TFS_TEMP_DATABASE_NAME_V3);
+                                fetchedContext.TagFilterSets.Load();
+                                IEnumerable<string> fetchedTFSNames = fetchedContext.TagFilterSets.Select(tfs => tfs.Name);
+                                // Replace locally stored tfss with duplicate names from the cloud
+                                foreach (string fetchedTFSName in fetchedTFSNames) {
+                                    TagFilterSet localTFS = TagFilterSetContext.Main.TagFilterSets.FirstOrDefault(tfs => tfs.Name == fetchedTFSName, null);
+                                    // fetched tfs does not exist locally so just add
+                                    if (localTFS == null) {
+                                        await TagFilterSetContext.Main.TagFilterSets.AddAsync(
+                                            new() {
+                                                Name = fetchedTFSName,
+                                                TagFilters =
+                                                    fetchedContext.TagFilterSets
+                                                    .Where(tfs => tfs.Name == fetchedTFSName)
+                                                    .Include(tfs => tfs.TagFilters)
+                                                    .First()
+                                                    .TagFilters
+                                            }
+                                        );
+                                    }
+                                    // replace local tfs with duplicate name
+                                    else if (FetchTagFilterOption2.SelectedIndex == 0) {
+                                        localTFS.TagFilters =
+                                            fetchedContext.TagFilterSets
+                                            .Where(tfs => tfs.Name == fetchedTFSName)
+                                            .Include(tfs => tfs.TagFilters)
+                                            .First()
+                                            .TagFilters;
+                                    }
+                                }
+                                await TagFilterSetContext.Main.SaveChangesAsync();
+                            }
+                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
+                            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
+                            TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
+                        } catch (TaskCanceledException) {
+                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
+                            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
+                            TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
+                        } catch (Exception e) {
+                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                            TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
+                            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                                TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                            } else {
+                                TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                            }
+                        }
+                    }
+                    TagFilterSyncResultInfoBar.IsOpen = true;
+                }
+                //// Fetch bookmarks
+                //if (BookmarkOptionCheckBox.IsChecked == true) {
+                //    // file is not uploaded yet
+                //    if (tfssFile == null) {
+                //        HandleFileNotUploaded(BookmarkSyncResultInfoBar, TEXT_GALLERIES);
+                //    }
+                //    // file exists
+                //    else {
+                //        try {
+                //            string fetchedBookmarksData = await GetFile(galleriesFile, _cts.Token);
+                //            IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
+                //                fetchedBookmarksData,
+                //                typeof(IEnumerable<Gallery>),
+                //                DEFAULT_SERIALIZER_OPTIONS
+                //            );
+                //            // append fetched galleries to existing bookmark if they are not already in the bookmark
+                //            IEnumerable<Gallery> localBookmarkGalleries = SearchPage.BookmarkItems.Select(item => item.gallery);
+                //            IEnumerable<Gallery> appendingGalleries = fetchedBookmarkGalleries.ExceptBy(
+                //                localBookmarkGalleries.Select(gallery => gallery.id),
+                //                gallery => gallery.id
+                //            );
+                //            foreach (var gallery in appendingGalleries) {
+                //                BookmarkItem appendedBookmarkItem = MainWindow.SearchPage.AddBookmark(gallery);
+                //                // start downloading all appended galleries if the corresponding option is checked
+                //                if (FetchBookmarkOption1.SelectedIndex == 0) {
+                //                    MainWindow.SearchPage.TryDownload(gallery.id, appendedBookmarkItem);
+                //                }
+                //            }
+                //            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
+                //            BookmarkSyncResultInfoBar.Title = TEXT_GALLERIES;
+                //            BookmarkSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
+                //        } catch (TaskCanceledException) {
+                //            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
+                //            TagFilterSyncResultInfoBar.Title = TEXT_GALLERIES;
+                //            TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
+                //        } catch (Exception e) {
+                //            BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                //            BookmarkSyncResultInfoBar.Title = TEXT_ERROR;
+                //            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                //                BookmarkSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                //            } else {
+                //                BookmarkSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                //            }
+                //        }
+                //    }
+                //    BookmarkSyncResultInfoBar.IsOpen = true;
+                //}
+            }
+            StartStopSync(false);
         }
 
         private void AttachProgressChangedEventHandler(object request, long totalByteSize) {
@@ -384,7 +383,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
             }
             stream.Position = 0;
             using StreamReader reader = new(stream);
-            return await reader.ReadToEndAsync();
+            return await reader.ReadToEndAsync(ct);
         }
 
         private void ContentDialog_Closing(ContentDialog _0, ContentDialogClosingEventArgs args) {
@@ -416,8 +415,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                 // Fetch option selected
                 case 1: {
                     UploadWarningInfoBar.IsOpen = false;
-                    FetchTagFilterOptionStackPanel.Visibility = (bool)TagFilterOptionCheckBox.IsChecked ? Visibility.Visible : Visibility.Collapsed;
-                    FetchBookmarkOptionStackPanel.Visibility = (bool)BookmarkOptionCheckBox.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+                    FetchTagFilterOptionStackPanel.Visibility = TagFilterOptionCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+                    FetchBookmarkOptionStackPanel.Visibility = BookmarkOptionCheckBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
                     Border1.Visibility = Visibility.Visible;
                     break;
                 }
@@ -489,21 +488,21 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
         private void TogglePrimaryButton() {
             // Upload option selected
             if (SyncDirectionRadioButtons.SelectedIndex == 0) {
-                IsPrimaryButtonEnabled = (bool)TagFilterOptionCheckBox.IsChecked || (bool)BookmarkOptionCheckBox.IsChecked;
+                IsPrimaryButtonEnabled = TagFilterOptionCheckBox.IsChecked == true || BookmarkOptionCheckBox.IsChecked == true;
             }
             // Fetch option selected
             else {
-                if (!(bool)TagFilterOptionCheckBox.IsChecked && !(bool)BookmarkOptionCheckBox.IsChecked) {
+                if (TagFilterOptionCheckBox.IsChecked == false && BookmarkOptionCheckBox.IsChecked == false) {
                     IsPrimaryButtonEnabled = false;
                     return;
                 }
                 bool enable = true;
-                if ((bool)TagFilterOptionCheckBox.IsChecked) {
+                if (TagFilterOptionCheckBox.IsChecked == true) {
                     int option1Idx = FetchTagFilterOption1.SelectedIndex;
                     int option2Idx = FetchTagFilterOption2.SelectedIndex;
                     enable &= option1Idx != -1 && (option1Idx == 0 || option2Idx != -1);
                 }
-                if ((bool)BookmarkOptionCheckBox.IsChecked) {
+                if (BookmarkOptionCheckBox.IsChecked == true) {
                     enable &= FetchBookmarkOption1.SelectedIndex != -1;
                 }
                 IsPrimaryButtonEnabled = enable;

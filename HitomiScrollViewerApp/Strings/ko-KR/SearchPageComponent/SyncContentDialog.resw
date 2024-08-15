@@ -138,7 +138,7 @@
   <data name="FetchTagFilterOption2TextBlock.Text" xml:space="preserve">
     <value>동일한 이름을 가진 태그 필터들을 동기화 할 방법을 선택하세요</value>
   </data>
-  <data name="InfoBar_Error_FileNotFound_Message" xml:space="preserve">
+  <data name="InfoBar_Error_FileNotUploaded_Message" xml:space="preserve">
     <value>파일이 아직 업로드 되지 않았습니다.</value>
   </data>
   <data name="InfoBar_Error_Unauthorized_Message" xml:space="preserve">

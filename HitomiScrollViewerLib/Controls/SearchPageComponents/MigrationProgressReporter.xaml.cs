@@ -1,16 +1,13 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using static HitomiScrollViewerLib.SharedResources;
+using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class MigrationProgressReporter : ContentDialog {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(MigrationProgressReporter).Name);
         public MigrationProgressReporter() {
             InitializeComponent();
-        }
-
-        public enum DataType {
-            TagFilterSets, BookmarkGalleries
         }
 
         public void ResetProgressBarValue() {
@@ -27,12 +24,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
         }
 
-        public void SetStatusMessage(DataType dataType) {
+        public void SetStatusMessage(UserDataType dataType) {
             switch (dataType) {
-                case DataType.TagFilterSets:
+                case UserDataType.TagFilterSet:
                     ProgressStatusTextBlock.Text = _resourceMap.GetValue("Text_Migrating_TagFilterSets").ValueAsString;
                     break;
-                case DataType.BookmarkGalleries:
+                case UserDataType.Gallery:
                     ProgressStatusTextBlock.Text = _resourceMap.GetValue("Text_Migrating_BookmarkGalleries").ValueAsString;
                     break;
             }

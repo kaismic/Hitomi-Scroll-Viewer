@@ -5,21 +5,23 @@ using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 using static HitomiScrollViewerLib.Entities.TagFilterV3;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace HitomiScrollViewerLib.DbContexts {
-    public class TagFilterSetContext : DbContext {
+    public class TagFilterSetContext(string dbFileName) : DbContext() {
         public DbSet<TagFilterSet> TagFilterSets { get; set; }
 
-        private static TagFilterSetContext _mainContext;
-        public static TagFilterSetContext MainContext {
-            get => _mainContext ??= new TagFilterSetContext();
+        private static TagFilterSetContext _main;
+        public static TagFilterSetContext Main {
+            get => _main ??= new TagFilterSetContext(TFS_MAIN_DATABASE_NAME_V3);
+            private set => _main = value;
         }
 
-        private TagFilterSetContext() : base() { }
+        private readonly string _dbFileName = dbFileName;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder.UseSqlite($"Data Source={TAG_FILTER_SETS_DATABASE_NAME_V3}");
+            optionsBuilder.UseSqlite($"Data Source={_dbFileName}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
@@ -27,6 +29,14 @@ namespace HitomiScrollViewerLib.DbContexts {
                 .HasMany(t => t.TagFilters)
                 .WithOne() // Assuming TagFilterV3 has a navigation property to TagFilterSet
                 .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        public static async Task ReplaceMainContext(string newDbFilecontent) {
+            await Main.Database.EnsureDeletedAsync();
+            Main.Dispose();
+            await File.WriteAllTextAsync(TFS_MAIN_DATABASE_PATH_V3, newDbFilecontent);
+            Main = new TagFilterSetContext(TFS_MAIN_DATABASE_NAME_V3);
+            Main.TagFilterSets.Load();
         }
 
         public void AddExampleTagFilterSets() {

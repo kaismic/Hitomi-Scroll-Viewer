@@ -31,8 +31,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             };
         }
 
-        internal void Init(ObservableCollection<TagFilterSet> collection) {
+        internal void SetCollectionSource(ObservableCollection<TagFilterSet> collection) {
             collection.CollectionChanged += TagFilterSets_CollectionChanged;
+            foreach (var pair in _checkedBoxes) {
+                _checkedBoxes.Remove(pair.Key);
+            }
             _tfsCheckBoxes?.Clear();
             SearchFilterItemsRepeater.ItemsSource = null;
             _tfsCheckBoxes =

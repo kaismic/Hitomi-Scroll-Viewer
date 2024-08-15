@@ -141,8 +141,8 @@
   <data name="ExampleTagFilterSet_4" xml:space="preserve">
     <value>Non-H</value>
   </data>
-  <data name="Text_Bookmarks" xml:space="preserve">
-    <value>북마크</value>
+  <data name="Text_Galleries" xml:space="preserve">
+    <value>갤러리</value>
   </data>
   <data name="Text_Error" xml:space="preserve">
     <value>오류</value>
@@ -150,8 +150,8 @@
   <data name="Text_No" xml:space="preserve">
     <value>아니오</value>
   </data>
-  <data name="Text_TagFilters" xml:space="preserve">
-    <value>태그 필터</value>
+  <data name="Text_TagFilterSets" xml:space="preserve">
+    <value>태그 필터 모음</value>
   </data>
   <data name="Text_Page" xml:space="preserve">
     <value>페이지</value>

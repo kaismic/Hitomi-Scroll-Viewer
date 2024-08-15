@@ -13,8 +13,8 @@ namespace HitomiScrollViewerLib {
         public static readonly string TEXT_EXIT = _resourceMap.GetValue("Text_Exit").ValueAsString;
         public static readonly string TEXT_CLOSE = _resourceMap.GetValue("Text_Close").ValueAsString;
         public static readonly string TEXT_ERROR = _resourceMap.GetValue("Text_Error").ValueAsString;
-        public static readonly string TEXT_TAG_FILTERS = _resourceMap.GetValue("Text_TagFilters").ValueAsString;
-        public static readonly string TEXT_BOOKMARKS = _resourceMap.GetValue("Text_Bookmarks").ValueAsString;
+        public static readonly string TEXT_TAG_FILTER_SETS = _resourceMap.GetValue("Text_TagFilterSets").ValueAsString;
+        public static readonly string TEXT_GALLERIES = _resourceMap.GetValue("Text_Galleries").ValueAsString;
         public static readonly string TEXT_PAGE = _resourceMap.GetValue("Text_Page").ValueAsString;
         public static readonly string TEXT_INCLUDE = _resourceMap.GetValue("Text_Include").ValueAsString;
         public static readonly string TEXT_EXCLUDE = _resourceMap.GetValue("Text_Exclude").ValueAsString;

@@ -15,7 +15,7 @@ namespace HitomiScrollViewerLib.DbContexts {
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder.UseSqlite($"Data Source={GALLERIES_DATABASE_NAME_V3}");
+            optionsBuilder.UseSqlite($"Data Source={GALLERIES_MAIN_DATABASE_NAME_V3}");
         }
 
         public void Init() {
