@@ -79,9 +79,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             try {
                 if (_isSignedIn) {
                     ContentDialog contentDialog = new() {
-                        Style = Resources["DefaultContentDialogStyle"] as Style,
+                        DefaultButton = ContentDialogButton.Primary,
+                        Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
                         Title = NOTIFICATION_SIGN_OUT_TITLE,
-                        CloseButtonText = TEXT_CANCEL
+                        PrimaryButtonText = TEXT_YES,
+                        CloseButtonText = TEXT_CANCEL,
+                        XamlRoot = XamlRoot
                     };
                     ContentDialogResult cdr = await contentDialog.ShowAsync();
                     if (cdr != ContentDialogResult.Primary) {

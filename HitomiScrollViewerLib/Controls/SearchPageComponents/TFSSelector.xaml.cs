@@ -1,16 +1,16 @@
 using HitomiScrollViewerLib.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Collections.Concurrent;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public partial class TFSSelector : Grid {
         protected ObservableCollection<TFSCheckBox> _tfsCheckBoxes;
-        protected ObservableConcurrentDictionary<TagFilterSet, TFSCheckBox> _checkedBoxes = [];
+        protected ObservableConcurrentDictionary<long, TFSCheckBox> _checkedBoxes = [];
         internal bool AnyChecked {
             get => (bool)GetValue(AnyCheckedProperty);
             set => SetValue(AnyCheckedProperty, value);
@@ -31,22 +31,31 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             };
         }
 
-        internal void SetCollectionSource(ObservableCollection<TagFilterSet> collection) {
+        public void SetCollectionSource(ObservableCollection<TagFilterSet> collection) {
             collection.CollectionChanged += TagFilterSets_CollectionChanged;
-            foreach (var pair in _checkedBoxes) {
-                _checkedBoxes.Remove(pair.Key);
+            Refresh(collection);
+        }
+
+        private void Refresh(ObservableCollection<TagFilterSet> collection) {
+            long[] keys = [.. _checkedBoxes.Keys];
+            foreach (var key in keys) {
+                _checkedBoxes.Remove(key);
             }
-            _tfsCheckBoxes?.Clear();
+            // gotta remove by iterating because somehow _tfsCheckBoxes?.Clear() doesn't work
+            // and causes checkboxes to not properly update
+            if (_tfsCheckBoxes != null) {
+                int i = _tfsCheckBoxes.Count - 1;
+                while (_tfsCheckBoxes.Count > 0) {
+                    _tfsCheckBoxes.RemoveAt(i--);
+                }
+            }
+            SearchFilterItemsRepeater.DataContext = null;
             SearchFilterItemsRepeater.ItemsSource = null;
             _tfsCheckBoxes =
-                new(
-                    collection.Select(
-                        (tagFilterSet, i) =>
-                            new TFSCheckBox(
-                                tagFilterSet, CheckBox_Checked, CheckBox_Unchecked
-                            )
-                    )
-                );
+                new(collection.Select(
+                    tagFilterSet => new TFSCheckBox(tagFilterSet, CheckBox_Checked, CheckBox_Unchecked)
+                ));
+            SearchFilterItemsRepeater.DataContext = _tfsCheckBoxes;
             SearchFilterItemsRepeater.ItemsSource = _tfsCheckBoxes;
         }
 
@@ -60,31 +69,20 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 case NotifyCollectionChangedAction.Remove:
                     var removingTFSs = e.OldItems.Cast<TagFilterSet>();
                     foreach (var tfs in removingTFSs) {
-                        _checkedBoxes.Remove(tfs);
-                    }
-                    foreach (var tfs in removingTFSs) {
+                        _checkedBoxes.Remove(tfs.Id);
                         var removingCheckBox = _tfsCheckBoxes.FirstOrDefault(checkBox => checkBox.TagFilterSet == tfs, null);
                         if (removingCheckBox != null) {
                             _tfsCheckBoxes.Remove(removingCheckBox);
                         }
-
                     }
                     break;
                 // Assuming Replace and Move does not happen
-                case NotifyCollectionChangedAction.Replace: break;
-                case NotifyCollectionChangedAction.Move: break;
+                case NotifyCollectionChangedAction.Replace:
+                    break;
+                case NotifyCollectionChangedAction.Move:
+                    break;
                 case NotifyCollectionChangedAction.Reset:
-                    _tfsCheckBoxes.Clear();
-                    _tfsCheckBoxes =
-                        new(
-                            (sender as ObservableCollection<TagFilterSet>).Select(
-                                (tagFilterSet, i) =>
-                                    new TFSCheckBox(tagFilterSet, CheckBox_Checked, CheckBox_Unchecked)
-                            )
-                        );
-                    foreach (var pair in _checkedBoxes) {
-                        _checkedBoxes.Remove(pair.Key);
-                    }
+                    Refresh(sender as ObservableCollection<TagFilterSet>);
                     break;
             }
         }
@@ -94,11 +92,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         virtual protected void CheckBox_Checked(object sender, RoutedEventArgs e) {
-            _checkedBoxes.Add(((TFSCheckBox)sender).TagFilterSet, (TFSCheckBox)sender);
+            _checkedBoxes.Add(((TFSCheckBox)sender).TagFilterSet.Id, (TFSCheckBox)sender);
         }
 
         virtual protected void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
-            _checkedBoxes.Remove(((TFSCheckBox)sender).TagFilterSet);
+            _checkedBoxes.Remove(((TFSCheckBox)sender).TagFilterSet.Id);
         }
     }
 }

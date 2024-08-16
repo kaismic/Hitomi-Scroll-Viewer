@@ -1,26 +1,23 @@
 ﻿using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.DbContexts {
-    internal class GalleryContext : DbContext {
+    public class GalleryContext(string dbFileName) : DbContext {
         public DbSet<Gallery> Galleries { get; set; }
 
-        private static GalleryContext _mainContext;
-        public static GalleryContext MainContext {
-            get => _mainContext ??= new GalleryContext();
+        private static GalleryContext _main;
+        public static GalleryContext Main {
+            get => _main ??= new GalleryContext(Path.GetFileName(GALLERIES_MAIN_DATABASE_PATH_V3));
+            set => _main = value;
         }
 
-        private GalleryContext() : base() { }
+        private readonly string _dbFileName = dbFileName;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder.UseSqlite($"Data Source={GALLERIES_MAIN_DATABASE_NAME_V3}");
-        }
-
-        public void Init() {
-            Database.EnsureCreated();
-            Galleries.Load();
+            optionsBuilder.UseSqlite($"Data Source={_dbFileName};Pooling=False");
         }
     }
 }

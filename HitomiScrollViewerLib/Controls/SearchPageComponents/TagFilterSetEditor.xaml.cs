@@ -90,13 +90,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         internal void Init() {
+            TagFilterSetComboBox.SelectedIndex = -1;
             ObservableCollection<TagFilterSet> collection = TagFilterSetContext.Main.TagFilterSets.Local.ToObservableCollection();
-            TagFilterSetComboBox.Items.Clear();
             TagFilterSetComboBox.ItemsSource = null;
             TagFilterSetComboBox.ItemsSource = collection;
             IncludeTagFilterSetSelector.SetCollectionSource(collection);
             ExcludeTagFilterSetSelector.SetCollectionSource(collection);
-            _crudActionContentDialog.Init(collection);
+            _crudActionContentDialog.DeletingTFSSelector.SetCollectionSource(collection);
 
             CreateButton.IsEnabled = true;
             DeleteButton.IsEnabled = true;
@@ -131,9 +131,16 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 .ToList();
         }
 
+        private void ClearTextBoxes() {
+            foreach (var textBox in _tagFilterTextBoxes) {
+                textBox.Text = "";
+            }
+        }
+
         private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (TagFilterSetComboBox.SelectedIndex == -1) {
                 RenameButton.IsEnabled = SaveButton.IsEnabled = false;
+                ClearTextBoxes();
                 return;
             }
             RenameButton.IsEnabled = SaveButton.IsEnabled = true;
@@ -177,7 +184,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
-            TagFilterSet selectedTFS = ((TagFilterSet)TagFilterSetComboBox.SelectedItem);
+            TagFilterSet selectedTFS = (TagFilterSet)TagFilterSetComboBox.SelectedItem;
             string oldName = selectedTFS.Name;
             _crudActionContentDialog.SetDialogAction(CRUDActionContentDialog.Action.Rename, oldName);
             if (await _crudActionContentDialog.ShowAsync() != ContentDialogResult.Primary) {

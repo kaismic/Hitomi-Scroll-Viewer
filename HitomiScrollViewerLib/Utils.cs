@@ -1,6 +1,11 @@
-﻿using System;
+﻿using Google.Apis.Drive.v3;
+using Google.Apis.Upload;
+using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
+using System.Threading;
+using Google.Apis.Download;
 
 namespace HitomiScrollViewerLib {
     public static class Utils {
@@ -24,17 +29,13 @@ namespace HitomiScrollViewerLib {
         public static readonly string NON_VIRTUAL_IMAGE_DIR_V3 = Path.Combine(NON_VIRTUAL_ROOT_DIR_V3, IMAGE_DIR_NAME);
         public static readonly string LOGS_PATH_V3 = Path.Combine(ROOT_DIR_V3, "logs.txt");
 
-        public static readonly string TFS_MAIN_DATABASE_NAME_V3 = "tag_filter_sets.db";
-        public static readonly string TFS_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, TFS_MAIN_DATABASE_NAME_V3);
-        public static readonly string TFS_TEMP_DATABASE_NAME_V3 = "tag_filter_sets_temp.db";
-        public static readonly string TFS_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, TFS_TEMP_DATABASE_NAME_V3);
+        public static readonly string TFS_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tag_filter_sets.db");
+        public static readonly string TFS_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tag_filter_sets_temp.db");
 
-        public static readonly string GALLERIES_MAIN_DATABASE_NAME_V3 = "galleries.db";
-        public static readonly string GALLERIES_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, GALLERIES_MAIN_DATABASE_NAME_V3);
-        public static readonly string GALLERIES_TEMP_DATABASE_NAME_V3 = "galleries_temp.db";
-        public static readonly string GALLERIES_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, GALLERIES_TEMP_DATABASE_NAME_V3);
+        public static readonly string GALLERIES_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "galleries.db");
+        public static readonly string GALLERIES_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "galleries_temp.db");
 
-        public static readonly string DB_MIME_TYPE = "application/db";
+        public static readonly string DB_MIME_TYPE = "application/vnd.sqlite3";
 
         public enum UserDataType {
             TagFilterSet, Gallery
@@ -65,6 +66,57 @@ namespace HitomiScrollViewerLib {
             output += stacktrace;
 
             return output;
+        }
+
+        public static FilesResource.CreateMediaUpload GetCreateMediaUpload(
+            DriveService driveService,
+            FileStream uploadStream,
+            string fileName,
+            string contentType
+        ) {
+            Google.Apis.Drive.v3.Data.File fileMetaData = new() {
+                Name = fileName,
+                Parents = ["appDataFolder"]
+            };
+            return driveService.Files.Create(
+                fileMetaData,
+                uploadStream,
+                contentType
+            );
+        }
+
+        public static FilesResource.UpdateMediaUpload GetUpdateMediaUpload(
+            DriveService driveService,
+            FileStream uploadStream,
+            string fileId,
+            string contentType
+        ) {
+            return driveService.Files.Update(
+                new(),
+                fileId,
+                uploadStream,
+                contentType
+            );
+        }
+
+        /**
+         * <returns>The file content from Google Drive<c>string</c>.</returns>
+         * <exception cref="Exception"/>
+         * <exception cref="TaskCanceledException"/>
+         * <exception cref="Google.GoogleApiException"/>
+         */
+        public static async Task DownloadAndWriteAsync(
+            FilesResource.GetRequest request,
+            string filePath,
+            CancellationToken ct
+        ) {
+            using FileStream fileStream = new(filePath, FileMode.Create, FileAccess.Write) {
+                Position = 0
+            };
+            IDownloadProgress result = await request.DownloadAsync(fileStream, ct);
+            if (result.Exception != null) {
+                throw result.Exception;
+            }
         }
     }
 }

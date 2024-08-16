@@ -61,8 +61,8 @@ namespace HitomiScrollViewerLib.Controls
             // 3. Migrate images from roaming to local folder
 
             _ = Task.Run(async () => {
-                bool tagFilterSetDbCreatedFirstTime = TagFilterSetContext.Main.Database.EnsureCreated();
-                TagFilterSetContext.Main.TagFilterSets.Load();
+                bool tagFilterSetDbCreatedFirstTime = await TagFilterSetContext.Main.Database.EnsureCreatedAsync();
+                await TagFilterSetContext.Main.TagFilterSets.LoadAsync();
                 //GalleryContext.MainContext.Galleries.Load(); TODO uncomment when implemented
                 bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
                 bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
@@ -72,7 +72,7 @@ namespace HitomiScrollViewerLib.Controls
                 }
                 // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
                 if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
-                    TagFilterSetContext.Main.AddExampleTagFilterSets();
+                    await TagFilterSetContext.Main.AddExampleTagFilterSetsAsync();
                 }
                 await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
                 await SyncManager.Init();

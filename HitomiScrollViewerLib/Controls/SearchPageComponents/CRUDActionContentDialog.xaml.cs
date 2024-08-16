@@ -4,12 +4,11 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
-    internal sealed partial class CRUDActionContentDialog : ContentDialog {
+    public sealed partial class CRUDActionContentDialog : ContentDialog {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(CRUDActionContentDialog).Name);
         internal enum Action {
             Create, Rename, Delete
@@ -17,7 +16,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private Action _currAction;
         private string _oldName;
         private readonly InputValidation _inputValidation = new();
-        private readonly TFSSelector _deleteTFSSelector = new();
+        public readonly TFSSelector DeletingTFSSelector = new();
         private bool _isInAction = false;
         internal int DeletionCount { get; set; }
 
@@ -35,7 +34,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 }
                 if (_currAction == Action.Delete) {
                     ToggleDeleteAction(true);
-                    var checkedTagFilterSets = _deleteTFSSelector.GetCheckedTagFilterSets();
+                    var checkedTagFilterSets = DeletingTFSSelector.GetCheckedTagFilterSets();
                     DeletionCount = checkedTagFilterSets.Count();
                     TagFilterSetContext.Main.TagFilterSets.RemoveRange(checkedTagFilterSets);
                     TagFilterSetContext.Main.SaveChanges();
@@ -48,16 +47,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             };
             _inputValidation.InputTextBox.TextChanged += (_, _) => { IsPrimaryButtonEnabled = _inputValidation.InputTextBox.Text.Length != 0;  };
             _inputValidation.InputTextBox.MaxLength = TagFilterSet.TAG_FILTER_SET_NAME_MAX_LEN;
-            _deleteTFSSelector.RegisterPropertyChangedCallback(
+            DeletingTFSSelector.RegisterPropertyChangedCallback(
                 TFSSelector.AnyCheckedProperty,
-                (_, _) => { IsPrimaryButtonEnabled = _deleteTFSSelector.AnyChecked; }
+                (_, _) => { IsPrimaryButtonEnabled = DeletingTFSSelector.AnyChecked; }
             );
 
             Loaded += (_, _) => _inputValidation.ClearErrorMsg();
-        }
-
-        internal void Init(ObservableCollection<TagFilterSet> collection) {
-            _deleteTFSSelector.SetCollectionSource(collection);
         }
 
         private void ToggleDeleteAction(bool toggle) {
@@ -117,8 +112,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 case Action.Delete:
                     TitleTextBlock.Text = _resourceMap.GetValue("Title_Delete").ValueAsString;
                     PrimaryButtonText = _resourceMap.GetValue("Text_Delete").ValueAsString;
-                    IsPrimaryButtonEnabled = _deleteTFSSelector.AnyChecked;
-                    MainStackPanel.Children.Insert(0, _deleteTFSSelector);
+                    IsPrimaryButtonEnabled = DeletingTFSSelector.AnyChecked;
+                    MainStackPanel.Children.Insert(0, DeletingTFSSelector);
                     break;
             }
         }

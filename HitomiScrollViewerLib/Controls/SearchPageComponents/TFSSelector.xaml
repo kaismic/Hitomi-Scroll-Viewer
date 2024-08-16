@@ -18,7 +18,7 @@
         <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
     <ScrollViewer Grid.Row="1">
-        <ItemsRepeater x:Name="SearchFilterItemsRepeater" x:DefaultBindMode="OneWay">
+        <ItemsRepeater x:Name="SearchFilterItemsRepeater" x:DefaultBindMode="TwoWay">
             <ItemsRepeater.Layout>
                 <communityToolkitControls:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
             </ItemsRepeater.Layout>

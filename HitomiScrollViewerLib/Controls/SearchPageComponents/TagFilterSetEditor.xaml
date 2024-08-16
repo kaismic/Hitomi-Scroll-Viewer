@@ -38,7 +38,7 @@
                 >
             <SymbolIcon Symbol="Edit"/>
         </Button>
-        <ComboBox x:Name="TagFilterSetComboBox"
+        <ComboBox x:Name="TagFilterSetComboBox" x:FieldModifier="internal"
                   x:DefaultBindMode="OneWay"
                   DisplayMemberPath="Name"
                   SelectedValuePath="Name"

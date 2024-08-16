@@ -1,11 +1,11 @@
 ﻿using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using static HitomiScrollViewerLib.Entities.TagFilterV3;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
-using static HitomiScrollViewerLib.Entities.TagFilterV3;
-using System.Threading.Tasks;
-using System.IO;
 
 namespace HitomiScrollViewerLib.DbContexts {
     public class TagFilterSetContext(string dbFileName) : DbContext() {
@@ -13,15 +13,15 @@ namespace HitomiScrollViewerLib.DbContexts {
 
         private static TagFilterSetContext _main;
         public static TagFilterSetContext Main {
-            get => _main ??= new TagFilterSetContext(TFS_MAIN_DATABASE_NAME_V3);
-            private set => _main = value;
+            get => _main ??= new TagFilterSetContext(Path.GetFileName(TFS_MAIN_DATABASE_PATH_V3));
+            set => _main = value;
         }
 
         private readonly string _dbFileName = dbFileName;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder.UseSqlite($"Data Source={_dbFileName}");
+            optionsBuilder.UseSqlite($"Data Source={_dbFileName};Pooling=False");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
@@ -31,15 +31,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
-        public static async Task ReplaceMainContext(string newDbFilecontent) {
-            await Main.Database.EnsureDeletedAsync();
-            Main.Dispose();
-            await File.WriteAllTextAsync(TFS_MAIN_DATABASE_PATH_V3, newDbFilecontent);
-            Main = new TagFilterSetContext(TFS_MAIN_DATABASE_NAME_V3);
-            Main.TagFilterSets.Load();
-        }
-
-        public void AddExampleTagFilterSets() {
+        public async Task AddExampleTagFilterSetsAsync() {
             List<TagFilterV3> tagFilters1 = GetListInstance();
             tagFilters1[CATEGORY_INDEX_MAP["language"]].Tags.Add("english");
             tagFilters1[CATEGORY_INDEX_MAP["tag"]].Tags.Add("full_color");
@@ -53,7 +45,7 @@ namespace HitomiScrollViewerLib.DbContexts {
             List<TagFilterV3> tagFilters4 = GetListInstance();
             tagFilters4[CATEGORY_INDEX_MAP["tag"]].Tags.Add("non-h_imageset");
 
-            TagFilterSets.AddRange(
+            await TagFilterSets.AddRangeAsync(
                 new TagFilterSet() {
                     Name = EXAMPLE_TAG_FILTER_SET_1,
                     TagFilters = tagFilters1
@@ -71,7 +63,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                     TagFilters = tagFilters4
                 }
             );
-            SaveChanges();
+            await SaveChangesAsync();
         }
     }
 }
