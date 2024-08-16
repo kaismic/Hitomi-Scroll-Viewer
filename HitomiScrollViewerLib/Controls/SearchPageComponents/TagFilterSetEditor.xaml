@@ -44,7 +44,6 @@
                   SelectedValuePath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  Visibility="Collapsed"
                   >
         </ComboBox>
         <Button x:Name="SaveButton"
@@ -73,7 +72,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
     </Grid>
-    <Grid Grid.Row="2">
+    <Grid Grid.Row="2" ColumnSpacing="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
@@ -81,16 +80,24 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <spc:PairedTFSSelector x:Name="IncludeTagFilterSetSelector"
+        <ProgressRing x:Name="IncludeTFSSelectorProgRing" Grid.Column="0"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      />
+        <ProgressRing x:Name="ExcludeTFSSelectorProgRing" Grid.Column="1"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      />
+        <spc:PairedTFSSelector x:Name="IncludeTFSSelector"
                                   HeaderTextRes="HeaderText_Include"
                                   HeaderForeground="Green"
-                                  OtherPairedSelector="{x:Bind ExcludeTagFilterSetSelector}"
+                                  OtherPairedSelector="{x:Bind ExcludeTFSSelector}"
                                   Grid.Column="0"
                                   />
-        <spc:PairedTFSSelector x:Name="ExcludeTagFilterSetSelector"
+        <spc:PairedTFSSelector x:Name="ExcludeTFSSelector"
                                   HeaderTextRes="HeaderText_Exclude"
                                   HeaderForeground="Red"
-                                  OtherPairedSelector="{x:Bind IncludeTagFilterSetSelector}"
+                                  OtherPairedSelector="{x:Bind IncludeTFSSelector}"
                                   Grid.Column="1"
                                   />
     </Grid>

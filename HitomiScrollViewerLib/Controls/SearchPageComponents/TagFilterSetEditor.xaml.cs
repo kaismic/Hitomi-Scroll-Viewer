@@ -25,7 +25,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private readonly CRUDActionContentDialog _crudActionContentDialog = new();
         internal Button HyperlinkCreateButton { get; set; }
 
-        private ProgressRing _loadingIndicator = new() {
+        private readonly ProgressRing _comboBoxProgRing = new() {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -41,8 +41,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     button.Padding = new(16);
                 }
             }
-            SetColumn(_loadingIndicator, GetColumn(TagFilterSetComboBox));
-            TagFilterSetControlGrid.Children.Add(_loadingIndicator);
+            SetColumn(_comboBoxProgRing, GetColumn(TagFilterSetComboBox));
+            TagFilterSetControlGrid.Children.Add(_comboBoxProgRing);
 
             for (int i = 0; i < CATEGORIES.Length; i++) {
                 TextBoxesGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -77,11 +77,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 TextBoxesGrid.Children.Add(_tagFilterTextBoxes[i]);
             }
 
-            IncludeTagFilterSetSelector.RegisterPropertyChangedCallback(
+            IncludeTFSSelector.RegisterPropertyChangedCallback(
                 TFSSelector.AnyCheckedProperty,
                 EnableHyperlinkCreateButton
             );
-            ExcludeTagFilterSetSelector.RegisterPropertyChangedCallback(
+            ExcludeTFSSelector.RegisterPropertyChangedCallback(
                 TFSSelector.AnyCheckedProperty,
                 EnableHyperlinkCreateButton
             );
@@ -89,26 +89,41 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             Loaded += TagFilterSetEditor_Loaded;
         }
 
+        private void ShowProgressRings(bool show) {
+            if (show) {
+                TagFilterSetComboBox.Visibility = Visibility.Collapsed;
+                IncludeTFSSelector.Visibility = Visibility.Collapsed;
+                ExcludeTFSSelector.Visibility = Visibility.Collapsed;
+                _comboBoxProgRing.Visibility = Visibility.Visible;
+                IncludeTFSSelectorProgRing.Visibility = Visibility.Visible;
+                ExcludeTFSSelectorProgRing.Visibility = Visibility.Visible;
+            } else {
+                _comboBoxProgRing.Visibility = Visibility.Collapsed;
+                IncludeTFSSelectorProgRing.Visibility = Visibility.Collapsed;
+                ExcludeTFSSelectorProgRing.Visibility = Visibility.Collapsed;
+                TagFilterSetComboBox.Visibility = Visibility.Visible; 
+                IncludeTFSSelector.Visibility = Visibility.Visible;
+                ExcludeTFSSelector.Visibility = Visibility.Visible;
+            }
+        }
+
         internal void Init() {
+            ShowProgressRings(true);
             TagFilterSetComboBox.SelectedIndex = -1;
             ObservableCollection<TagFilterSet> collection = TagFilterSetContext.Main.TagFilterSets.Local.ToObservableCollection();
             TagFilterSetComboBox.ItemsSource = null;
             TagFilterSetComboBox.ItemsSource = collection;
-            IncludeTagFilterSetSelector.SetCollectionSource(collection);
-            ExcludeTagFilterSetSelector.SetCollectionSource(collection);
+            IncludeTFSSelector.SetCollectionSource(collection);
+            ExcludeTFSSelector.SetCollectionSource(collection);
             _crudActionContentDialog.DeletingTFSSelector.SetCollectionSource(collection);
 
             CreateButton.IsEnabled = true;
             DeleteButton.IsEnabled = true;
-            TagFilterSetComboBox.Visibility = Visibility.Visible;
-            if (_loadingIndicator != null) {
-                TagFilterSetControlGrid.Children.Remove(_loadingIndicator);
-                _loadingIndicator = null;
-            }
+            ShowProgressRings(false);
         }
 
         private void EnableHyperlinkCreateButton(DependencyObject _0, DependencyProperty _1) {
-            HyperlinkCreateButton.IsEnabled = IncludeTagFilterSetSelector.AnyChecked || ExcludeTagFilterSetSelector.AnyChecked;
+            HyperlinkCreateButton.IsEnabled = IncludeTFSSelector.AnyChecked || ExcludeTFSSelector.AnyChecked;
         }
 
         private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
@@ -236,8 +251,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
             TagFilterSet selectedTFS = (TagFilterSet)TagFilterSetComboBox.SelectedItem;
 
-            IEnumerable<TagFilterSet> includeTFSs = IncludeTagFilterSetSelector.GetCheckedTagFilterSets();
-            IEnumerable<TagFilterSet> excludeTFSs = ExcludeTagFilterSetSelector.GetCheckedTagFilterSets();
+            IEnumerable<TagFilterSet> includeTFSs = IncludeTFSSelector.GetCheckedTagFilterSets();
+            IEnumerable<TagFilterSet> excludeTFSs = ExcludeTFSSelector.GetCheckedTagFilterSets();
             IEnumerable<long> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
             IEnumerable<long> excludeTFSIds = excludeTFSs.Select(tfs => tfs.Id);
             TagFilterSetContext.Main.TagFilterSets
