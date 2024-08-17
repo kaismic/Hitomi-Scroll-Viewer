@@ -51,6 +51,9 @@
                 IsEnabled="False"
                 >
             <SymbolIcon Symbol="Save"/>
+            <Button.KeyboardAccelerators>
+                <KeyboardAccelerator Key="S" Modifiers="Control" />
+            </Button.KeyboardAccelerators>
         </Button>
         <Button x:Name="DeleteButton"
                 Click="DeleteButton_Click"
