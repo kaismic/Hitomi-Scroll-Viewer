@@ -5,14 +5,12 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Upload;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -75,6 +73,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                 TagFilterSyncResultInfoBar.IsOpen = false;
                 BookmarkSyncResultInfoBar.IsOpen = false;
             } else {
+                _cts.Dispose();
                 SyncProgressBar.Visibility = Visibility.Collapsed;
                 CloseButtonText = TEXT_CLOSE;
             }

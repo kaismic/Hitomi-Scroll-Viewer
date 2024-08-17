@@ -270,7 +270,7 @@ namespace HitomiScrollViewerLib.Controls {
         private static readonly string TEXT_AUTO_SCROLL_BTN_ON = _resourceMap.GetValue("Text_AutoScrollBtn_On").ValueAsString;
         private static readonly string TEXT_AUTO_SCROLL_BTN_OFF = _resourceMap.GetValue("Text_AutoScrollBtn_Off").ValueAsString;
 
-        private CancellationTokenSource _autoScrollCts = new();
+        private CancellationTokenSource _autoScrollCts;
         public void ToggleAutoScroll(bool starting) {
             IsAutoScrolling = starting;
             AutoScrollBtn.IsChecked = starting;
@@ -283,7 +283,7 @@ namespace HitomiScrollViewerLib.Controls {
                 Task.Run(() => ScrollAutomatically(_autoScrollCts.Token), _autoScrollCts.Token);
             } else {
                 ShowActionIndicator(Symbol.Pause, null);
-                _autoScrollCts.Cancel();
+                _autoScrollCts?.Cancel();
                 AutoScrollBtn.Icon = new SymbolIcon(Symbol.Play);
                 AutoScrollBtn.Label = TEXT_AUTO_SCROLL_BTN_OFF;
             }

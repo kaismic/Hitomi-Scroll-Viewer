@@ -101,8 +101,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     SignInBtnTextBlock.Text = BUTTON_TEXT_NOT_SIGNED_IN;
                 } else {
                     bool isWindowFocused = false;
+                    CancellationTokenSource cts = new();
                     try {
-                        CancellationTokenSource cts = new();
                         // ContentDialog is needed because it is currently not possible to detect when the user has closed the browser
                         // ref https://github.com/googleapis/google-api-dotnet-client/issues/508#issuecomment-290700919
                         ContentDialog manualCancelDialog = new() {
@@ -153,6 +153,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                         if (!isWindowFocused) {
                             (MainWindow.CurrentMainWindow.AppWindow.Presenter as OverlappedPresenter).Minimize();
                             MainWindow.CurrentMainWindow.Activate();
+                            if (!cts.IsCancellationRequested) {
+                                cts.Dispose();
+                            }
                         }
                     }
                 }

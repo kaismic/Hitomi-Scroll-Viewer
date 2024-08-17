@@ -76,6 +76,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void RemoveSelf() {
+            _cts.Dispose();
             if (BookmarkItem != null) {
                 BookmarkItem.IsDownloading = false;
                 BookmarkItem?.EnableRemoveBtn(true);
