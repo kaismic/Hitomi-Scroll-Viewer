@@ -17,6 +17,7 @@ using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Controls.SearchPage;
 using static HitomiScrollViewerLib.Utils;
 using HitomiScrollViewerLib.Entities;
+using System.Threading.Tasks.Dataflow;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class DownloadItem : Grid {
@@ -50,6 +51,29 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         internal BookmarkItem BookmarkItem;
 
         private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
+
+        /// <summary>
+        /// download start
+        /// store current ServerTime to downloaditem
+        /// total_404_count = 0 
+        /// When total_404_count > 3, stop and cancel download
+        /// if ServerTime == stored serverTime go to 1 else go to 2
+        /// 1. if _ggjsFetchLock is locked: lock ServerTime and subscribe to ServerTime property changed
+        ///                           else: lock _ggjsFetchLock and fetch ggjs then go to 1.2
+        /// 1.2 if fetched serverTime == current: cancel download and display: an unknown error has occurred, please try again later
+        ///                                 else: notify _serverTime property changed
+        /// 2. use the newly updated ServerTime and start over again
+        /// </summary>
+
+        private static readonly object _ggjsFetchLock = new();
+        private static bool _ggjsInitFetched = false;
+        private static string _serverTime;
+        private static HashSet<string> _subdomainSelectionSet;
+        private static (string notContains, string contains) _subdomainOrder;
+
+
+
+
 
         public DownloadItem(int id, BookmarkItem bookmarkItem = null) {
             _id = id;
@@ -238,15 +262,25 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
             DownloadStatusTextBlock.Text = STATUS_TEXT_FETCHING_SERVER_TIME;
 
-            string ggjs;
-            try {
-                ggjs = await GetggjsFile(ct);
-            } catch (HttpRequestException e) {
-                SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_FETCHING_SERVER_TIME_ERROR + Environment.NewLine + e.Message);
-                return;
-            } catch (TaskCanceledException) {
-                HandleDownloadPaused();
-                return;
+
+            if (!_ggjsInitFetched) {
+                _ggjsInitFetched = true;
+                try {
+                    // TODO
+                    if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
+                        await ExtractInfoFromGgjs();
+                    } else {
+                        // TODO
+                    }
+                } catch (HttpRequestException e) {
+                    SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_FETCHING_SERVER_TIME_ERROR + Environment.NewLine + e.Message);
+                    return;
+                } catch (TaskCanceledException) {
+                    HandleDownloadPaused();
+                    return;
+                } finally {
+                    Monitor.Exit(_ggjsFetchLock);
+                }
             }
 
             ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
@@ -254,7 +288,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 imageInfos[i] = _gallery.Files[missingIndexes[i]];
             }
             string[] imgFormats = GetImageFormats(imageInfos);
-            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats, ggjs);
+            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats);
 
             DownloadStatusTextBlock.Text = STATUS_TEXT_DOWNLOADING;
             try {
@@ -297,39 +331,35 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
          * <exception cref="HttpRequestException"></exception>
          * <exception cref="TaskCanceledException"></exception>
         */
-        private static async Task<string> GetggjsFile(CancellationToken ct) {
+        private static async Task ExtractInfoFromGgjs() {
             HttpRequestMessage req = new() {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(GG_JS_ADDRESS)
             };
-            HttpResponseMessage response = await HitomiHttpClient.SendAsync(req, ct);
+
+            HttpResponseMessage response = await HitomiHttpClient.SendAsync(req);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync(ct);
+
+            string ggjs = await response.Content.ReadAsStringAsync();
+
+            _serverTime = ggjs.Substring(ggjs.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
+
+            string selectionSetPat = @"case (\d+)";
+            MatchCollection matches = Regex.Matches(ggjs, selectionSetPat);
+            _subdomainSelectionSet = matches.Select(match => match.Groups[1].Value).ToHashSet();
+
+            string orderPat = @"var [a-z] = (\d);";
+            Match match = Regex.Match(ggjs, orderPat);
+            _subdomainOrder = match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
         }
 
-        private static HashSet<string> ExtractSubdomainSelectionSet(string ggjs) {
-            string pat = @"case (\d+)";
-            MatchCollection matches = Regex.Matches(ggjs, pat);
-            return matches.Select(match => match.Groups[1].Value).ToHashSet();
-        }
-
-        private static (string notContains, string contains) ExtractSubdomainOrder(string ggjs) {
-            string pat = @"var [a-z] = (\d);";
-            Match match = Regex.Match(ggjs, pat);
-            return match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
-        }
-
-        private static string[] GetImageAddresses(ImageInfo[] imageInfos, string[] imgFormats, string ggjs) {
-            string serverTime = ggjs.Substring(ggjs.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
-            HashSet<string> subdomainFilterSet = ExtractSubdomainSelectionSet(ggjs);
-            (string notContains, string contains) = ExtractSubdomainOrder(ggjs);
-
+        private static string[] GetImageAddresses(ImageInfo[] imageInfos, string[] imgFormats) {
             string[] result = new string[imageInfos.Length];
             for (int i = 0; i < imageInfos.Length; i++) {
                 string hash = imageInfos[i].Hash;
                 string subdomainAndAddressValue = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
-                string subdomain = subdomainFilterSet.Contains(subdomainAndAddressValue) ? contains : notContains;
-                result[i] = $"https://{subdomain}.{BASE_DOMAIN}/{imgFormats[i]}/{serverTime}/{subdomainAndAddressValue}/{hash}.{imgFormats[i]}";
+                string subdomain = _subdomainSelectionSet.Contains(subdomainAndAddressValue) ? _subdomainOrder.contains : _subdomainOrder.notContains;
+                result[i] = $"https://{subdomain}.{BASE_DOMAIN}/{imgFormats[i]}/{_serverTime}/{subdomainAndAddressValue}/{hash}.{imgFormats[i]}";
             }
             return result;
         }
