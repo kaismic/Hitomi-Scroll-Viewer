@@ -155,24 +155,36 @@ namespace HitomiScrollViewerLib.Controls
             return false;
         }
 
-        private const int INFOBAR_DISPLAY_DURATION = 5000;
+        private const int POPUP_MSG_DISPLAY_DURATION = 5000;
+        private const int POPUP_MSG_MAX_DISPLAY_NUM = 3;
+        private readonly ObservableCollection<InfoBar> _popupMsgInfoBars = [];
         internal void ShowInfoBar(string message) {
             InfoBar infoBar = new() {
                 Message = message,
                 IsOpen = true,
-                Background = new SolidColorBrush(Colors.White)
-            };
-            CancellationTokenSource cts = new();
+                Background = new SolidColorBrush(Colors.White),
+                Width = ActualWidth / 4
+            };            
             infoBar.CloseButtonClick += (InfoBar infoBar, object _) => {
-                cts.Cancel();
+                lock (_popupMsgInfoBars) {
+                    _popupMsgInfoBars.Remove(infoBar);
+                }
             };
-            PopupInfoBarStackPanel.Children.Add(infoBar);
+            lock (_popupMsgInfoBars) {
+                if (_popupMsgInfoBars.Count >= POPUP_MSG_MAX_DISPLAY_NUM) {
+                    _popupMsgInfoBars.RemoveAt(0);
+                }
+                _popupMsgInfoBars.Add(infoBar);
+            }
             Task.Run(
                 async () => {
-                    await Task.Delay(INFOBAR_DISPLAY_DURATION, cts.Token);
-                    DispatcherQueue.TryEnqueue(() => PopupInfoBarStackPanel.Children.Remove(infoBar));
-                },
-                cts.Token
+                    await Task.Delay(POPUP_MSG_DISPLAY_DURATION);
+                    DispatcherQueue.TryEnqueue(() => {
+                        lock (_popupMsgInfoBars) {
+                            _popupMsgInfoBars.Remove(infoBar);
+                        }
+                    });
+                }
             );
         }
 

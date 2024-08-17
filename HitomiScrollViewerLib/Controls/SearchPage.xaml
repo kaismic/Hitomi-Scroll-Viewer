@@ -158,8 +158,18 @@
                 <StackPanel x:Name="BookmarkPanel" Orientation="Vertical" Spacing="16"/>-->
             </StackPanel>
         </ScrollViewer>
-        <StackPanel x:Name="PopupInfoBarStackPanel"
-                    VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                    Spacing="4"/>
+        <ListView x:Name="PopupInfoBarStackPanel"
+                  VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                  ItemsSource="{x:Bind _popupMsgInfoBars, Mode=OneWay}"
+                  SelectionMode="None" IsItemClickEnabled="False">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="4"></StackPanel>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemContainerTransitions>
+                <TransitionCollection/>
+            </ListView.ItemContainerTransitions>
+        </ListView>
     </Grid>
 </Page>
