@@ -109,7 +109,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                         break;
                     }
                     case UserDataType.Gallery: {
-                        // TODO
+                        await GalleryContext.Main.Database.CloseConnectionAsync();
                         break;
                     }
                 }
@@ -141,16 +141,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                     infoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
                 }
             } finally {
-                switch (userDataType) {
-                    case UserDataType.TagFilterSet: {
-                        await TagFilterSetContext.Main.Database.OpenConnectionAsync();
-                        break;
-                    }
-                    case UserDataType.Gallery: {
-                        // TODO
-                        break;
-                    }
-                }
                 infoBar.IsOpen = true;
             }
         }
