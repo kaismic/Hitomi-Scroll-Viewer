@@ -31,10 +31,11 @@
                  Background="Gray"/>
     <TextBlock x:Name="DownloadStatusTextBlock" Grid.Row="2" Grid.Column="0"
                TextWrapping="WrapWholeWords" IsTextSelectionEnabled="True"/>
-    <Button x:Name="DownloadControlBtn" Grid.Row="0" Grid.Column="1"
-            Click="PauseOrResume"
+    <Button x:Name="DownloadControlButton" Grid.Row="0" Grid.Column="1"
+            Click="DownloadControlButton_Clicked"
             HorizontalAlignment="Stretch"/>
-    <Button x:Name="CancelBtn" Grid.Row="0" Grid.Column="2"
+    <Button x:Name="CancelDownloadButton" Grid.Row="0" Grid.Column="2"
+            Click="CancelDownloadButton_Click"
             x:Uid="/DownloadItem/CancelBtn"
             HorizontalAlignment="Stretch">
         <SymbolIcon Symbol="Delete"></SymbolIcon>
@@ -43,7 +44,7 @@
               Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
               ItemsSource="{x:Bind _threadNums}"
               SelectedIndex="0"
-              SelectionChanged="HandleThreadNumChange">
+              SelectionChanged="ThreadNumComboBox_SelectionChanged">
         <ComboBox.Header>
             <TextBlock x:Uid="/DownloadItem/ThreadNumComboBoxHeader"/>
         </ComboBox.Header>

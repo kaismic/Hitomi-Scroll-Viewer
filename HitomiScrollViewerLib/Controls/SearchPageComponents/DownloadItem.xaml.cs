@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -17,11 +18,10 @@ using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Controls.SearchPage;
 using static HitomiScrollViewerLib.Utils;
 using HitomiScrollViewerLib.Entities;
-using System.Threading.Tasks.Dataflow;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class DownloadItem : Grid {
-        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("DownloadItem");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("DownloadItem");
 
         private static readonly string REFERER = "https://hitomi.la/";
         private static readonly string BASE_DOMAIN = "hitomi.la";
@@ -34,17 +34,20 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             DefaultRequestHeaders = {
                 {"referer", REFERER }
             },
-            Timeout = TimeSpan.FromSeconds(10)
+            Timeout = TimeSpan.FromSeconds(15)
         };
+
+        private const int MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404 = 2;
+        private const int MAX_HTTP_404_ERROR_NUM_LIMIT = 3;
 
         private enum DownloadStatus {
             Downloading,
             Paused,
             Failed
         }
-        private DownloadStatus _downloadingState = DownloadStatus.Downloading;
+        private DownloadStatus _downloadingState;
 
-        private CancellationTokenSource _cts;
+        private CancellationTokenSource _cts = new();
 
         private Gallery _gallery;
         private int _id;
@@ -52,96 +55,70 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
 
-        /// <summary>
-        /// download start
-        /// store current ServerTime to downloaditem
-        /// total_404_count = 0 
-        /// When total_404_count > 3, stop and cancel download
-        /// if ServerTime == stored serverTime go to 1 else go to 2
-        /// 1. if _ggjsFetchLock is locked: lock ServerTime and subscribe to ServerTime property changed
-        ///                           else: lock _ggjsFetchLock and fetch ggjs then go to 1.2
-        /// 1.2 if fetched serverTime == current: cancel download and display: an unknown error has occurred, please try again later
-        ///                                 else: notify _serverTime property changed
-        /// 2. use the newly updated ServerTime and start over again
-        /// </summary>
-
         private static readonly object _ggjsFetchLock = new();
         private static bool _ggjsInitFetched = false;
         private static string _serverTime;
         private static HashSet<string> _subdomainSelectionSet;
         private static (string notContains, string contains) _subdomainOrder;
 
-
-
-
+        private int _retryByHttp404Count = 0;
+        private static readonly List<DownloadItem> _waitingDownloadItems = [];
 
         public DownloadItem(int id, BookmarkItem bookmarkItem = null) {
             _id = id;
-            _cts = new();
             BookmarkItem = bookmarkItem;
-
             InitializeComponent();
-
             Description.Text = id.ToString();
+            InitDownload(_cts.Token);
+        }
 
-            CancelBtn.Click += (_, _) => {
-                _cts.Cancel();
-                EnableButtons(false);
-                RemoveSelf();
-            };
-
-            Download(_cts.Token);
+        private void CancelDownloadButton_Click(object _0, RoutedEventArgs _1) {
+            EnableButtons(false);
+            _cts.Cancel();
+            RemoveSelf();
         }
 
         private void EnableButtons(bool enable) {
-            DownloadControlBtn.IsEnabled = enable;
-            CancelBtn.IsEnabled = enable;
+            DownloadControlButton.IsEnabled = enable;
+            CancelDownloadButton.IsEnabled = enable;
             ThreadNumComboBox.IsEnabled = enable;
         }
 
         private void RemoveSelf() {
-            _cts.Dispose();
             if (BookmarkItem != null) {
                 BookmarkItem.IsDownloading = false;
-                BookmarkItem?.EnableRemoveBtn(true);
+                BookmarkItem.EnableRemoveBtn(true);
             }
             DownloadingGalleryIds.TryRemove(_id, out _);
             MainWindow.SearchPage.DownloadingItems.Remove(this);
         }
 
-        private void PauseOrResume(object _0, RoutedEventArgs _1) {
-            EnableButtons(false);
+        private void DownloadControlButton_Clicked(object _0, RoutedEventArgs _1) {
             switch (_downloadingState) {
                 case DownloadStatus.Downloading:
-                    // pause
-                    _cts.Cancel();
+                    CancelDownloadTask(TaskCancelReason.PausedByUser);
                     break;
                 case DownloadStatus.Paused or DownloadStatus.Failed:
-                    // resume
-                    _cts = new();
-                    Download(_cts.Token);
-                    EnableButtons(true);
+                    // reset retry by http 404 error count
+                    _retryByHttp404Count = 0;
+                    InitDownload(_cts.Token);
                     break;
             }
         }
 
-        private static readonly string TOOLTIP_TEXT_PAUSE = ResourceMap.GetValue("ToolTipText_Pause").ValueAsString;
-        private static readonly string TOOLTIP_TEXT_RESUME = ResourceMap.GetValue("ToolTipText_Resume").ValueAsString;
-        private static readonly string TOOLTIP_TEXT_TRY_AGAIN = ResourceMap.GetValue("ToolTipText_TryAgain").ValueAsString;
-
         private void SetDownloadControlBtnState() {
             switch (_downloadingState) {
                 case DownloadStatus.Downloading:
-                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Pause);
-                    ToolTipService.SetToolTip(DownloadControlBtn, TOOLTIP_TEXT_PAUSE);
+                    DownloadControlButton.Content = new SymbolIcon(Symbol.Pause);
+                    ToolTipService.SetToolTip(DownloadControlButton, _resourceMap.GetValue("ToolTipText_Pause").ValueAsString);
                     break;
                 case DownloadStatus.Paused:
-                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Play);
-                    ToolTipService.SetToolTip(DownloadControlBtn, TOOLTIP_TEXT_RESUME);
+                    DownloadControlButton.Content = new SymbolIcon(Symbol.Play);
+                    ToolTipService.SetToolTip(DownloadControlButton, _resourceMap.GetValue("ToolTipText_Resume").ValueAsString);
                     break;
                 case DownloadStatus.Failed:
-                    DownloadControlBtn.Content = new SymbolIcon(Symbol.Refresh);
-                    ToolTipService.SetToolTip(DownloadControlBtn, TOOLTIP_TEXT_TRY_AGAIN);
+                    DownloadControlButton.Content = new SymbolIcon(Symbol.Refresh);
+                    ToolTipService.SetToolTip(DownloadControlButton, _resourceMap.GetValue("ToolTipText_TryAgain").ValueAsString);
                     break;
             }
         }
@@ -152,54 +129,67 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             SetDownloadControlBtnState();
         }
 
-        private void HandleDownloadPaused() {
-            SetStateAndText(DownloadStatus.Paused, STATUS_TEXT_PAUSED);
-            // download paused due to ThreadNum change so continue downloading
-            if (_threadNumChanged) {
-                _threadNumChanged = false;
-                _cts = new();
-                Download(_cts.Token);
+        private enum TaskCancelReason {
+            PausedByUser,
+            ThreadNumChanged,
+            Http404MaxLimitReached
+        }
+        private TaskCancelReason _taskCancelReason;
+
+        private void CancelDownloadTask(TaskCancelReason taskCancelReason) {
+            EnableButtons(false);
+            _taskCancelReason = taskCancelReason;
+            _cts.Cancel();
+            _cts = new();
+        }
+
+        private async void HandleDownloadTaskCancel() {
+            switch (_taskCancelReason) {
+                case TaskCancelReason.PausedByUser:
+                    SetStateAndText(DownloadStatus.Paused, _resourceMap.GetValue("StatusText_Paused").ValueAsString);
+                    break;
+                case TaskCancelReason.ThreadNumChanged:
+                    // continue download
+                    InitDownload(_cts.Token);
+                    break;
+                case TaskCancelReason.Http404MaxLimitReached:
+                    if (_retryByHttp404Count >= MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404) {
+                        SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_Unknown_Error").ValueAsString);
+                    }
+                    // fetch ggjs again at here
+                    else if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
+                        try {
+                            await GetGgjsInfo();
+                            InitDownload(_cts.Token);
+                        } catch (HttpRequestException e) {
+                            SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
+                            return;
+                        } finally {
+                            Monitor.Exit(_ggjsFetchLock);
+                        }
+                    }
+                    // continue download
+                    // TODO
+                    break;
             }
             EnableButtons(true);
         }
 
-        private bool _threadNumChanged = false;
-
-        private void HandleThreadNumChange(object _0, SelectionChangedEventArgs e) {
+        private void ThreadNumComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
             if (e.RemovedItems.Count == 0) {
                 // ignore initial default selection
                 return;
             }
-            EnableButtons(false);
-            switch (_downloadingState) {
-                case DownloadStatus.Downloading:
-                    // cancel downloading and continue download with the newly updated ThreadNum
-                    _threadNumChanged = true;
-                    _cts.Cancel();
-                    break;
-                case DownloadStatus.Paused or DownloadStatus.Failed:
-                    // do nothing
-                    EnableButtons(true);
-                    break;
+            if (_downloadingState == DownloadStatus.Downloading) {
+                CancelDownloadTask(TaskCancelReason.ThreadNumChanged);
             }
         }
 
-        private static readonly string STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER = ResourceMap.GetValue("StatusText_CalculatingDownloadNumber").ValueAsString;
-        private static readonly string STATUS_TEXT_DOWNLOADING = ResourceMap.GetValue("StatusText_Downloading").ValueAsString;
-        private static readonly string STATUS_TEXT_FAILED = ResourceMap.GetValue("StatusText_Failed").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO = ResourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_GALLERY_INFO_ERROR = ResourceMap.GetValue("StatusText_FetchingGalleryInfo_Error").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME = ResourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
-        private static readonly string STATUS_TEXT_FETCHING_SERVER_TIME_ERROR = ResourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString;
-        private static readonly string STATUS_TEXT_PAUSED = ResourceMap.GetValue("StatusText_Paused").ValueAsString;
-        private static readonly string STATUS_TEXT_READING_GALLERY_INFO = ResourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
-        private static readonly string STATUS_TEXT_READING_GALLERY_INFO_ERROR = ResourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString;
-
-        private async void Download(CancellationToken ct) {
+        private async void InitDownload(CancellationToken ct) {
             SetStateAndText(DownloadStatus.Downloading, "");
             BookmarkItem?.EnableRemoveBtn(false);
             if (_gallery == null) {
-                DownloadStatusTextBlock.Text = STATUS_TEXT_FETCHING_GALLERY_INFO;
+                DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
                 string galleryInfo;
                 try {
                     galleryInfo = await GetGalleryInfo(ct);
@@ -214,21 +204,20 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                             ct
                         );
                     }
-                    SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_FETCHING_GALLERY_INFO_ERROR + Environment.NewLine + e.Message);
+                    SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message);
                     return;
                 } catch (TaskCanceledException) {
-                    HandleDownloadPaused();
+                    HandleDownloadTaskCancel();
                     return;
                 }
 
-                DownloadStatusTextBlock.Text = STATUS_TEXT_READING_GALLERY_INFO;
+                DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
                 try {
                     _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS);
                     DownloadProgressBar.Maximum = _gallery.Files.Length;
                     Description.Text += $" - {_gallery.Title}"; // add title to description
-                }
-                catch (JsonException e) {
-                    SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_READING_GALLERY_INFO_ERROR + Environment.NewLine + e.Message);
+                } catch (JsonException e) {
+                    SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message);
                     return;
                 }
             }
@@ -241,11 +230,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 Description.Text += $"{_gallery.Id} - {_gallery.Title}";
             }
 
+            // TODO uncomment and modify
             //if (BookmarkItem == null) {
             //    BookmarkItem = MainWindow.SearchPage.AddBookmark(_gallery);
             //}
 
-            DownloadStatusTextBlock.Text = STATUS_TEXT_CALCULATING_DOWNLOAD_NUMBER;
+            DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_CalculatingDownloadNumber").ValueAsString;
             List<int> missingIndexes;
             try {
                 missingIndexes = GetMissingIndexes();
@@ -259,54 +249,54 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 missingIndexes = Enumerable.Range(0, _gallery.Files.Length).ToList();
             }
             DownloadProgressBar.Value = _gallery.Files.Length - missingIndexes.Count;
-
-            DownloadStatusTextBlock.Text = STATUS_TEXT_FETCHING_SERVER_TIME;
-
+            DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
 
             if (!_ggjsInitFetched) {
                 _ggjsInitFetched = true;
-                try {
-                    // TODO
-                    if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
-                        await ExtractInfoFromGgjs();
-                    } else {
-                        // TODO
+                // this DownloadItem is the first DownloadItem so fetch ggjs
+                // even if thread didn't acquire the lock, it means that another thread got in between this
+                // code state and is fetching ggjs anyway so no problem
+                if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
+                    try {
+                        await GetGgjsInfo();
+                    } catch (HttpRequestException e) {
+                        SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
+                        return;
+                    } finally {
+                        Monitor.Exit(_ggjsFetchLock);
                     }
-                } catch (HttpRequestException e) {
-                    SetStateAndText(DownloadStatus.Failed, STATUS_TEXT_FETCHING_SERVER_TIME_ERROR + Environment.NewLine + e.Message);
-                    return;
-                } catch (TaskCanceledException) {
-                    HandleDownloadPaused();
-                    return;
-                } finally {
-                    Monitor.Exit(_ggjsFetchLock);
                 }
             }
 
-            ImageInfo[] imageInfos = new ImageInfo[missingIndexes.Count];
-            for (int i = 0; i < missingIndexes.Count; i++) {
-                imageInfos[i] = _gallery.Files[missingIndexes[i]];
+            lock (_waitingDownloadItems) {
+                if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
+                    Monitor.Exit(_ggjsFetchLock);
+                } else {
+                    _waitingDownloadItems.Add(this);
+                    return;
+                }
             }
-            string[] imgFormats = GetImageFormats(imageInfos);
-            string[] imgAddresses = GetImageAddresses(imageInfos, imgFormats);
 
-            DownloadStatusTextBlock.Text = STATUS_TEXT_DOWNLOADING;
+            // at here, no thread is fetching ggjs so just start download
+            DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_Downloading").ValueAsString;
             try {
-                await DownloadImages(
-                    imgAddresses,
-                    imgFormats,
-                    missingIndexes,
-                    ct
-                );
+                await DownloadImages(ct);
             } catch (TaskCanceledException) {
-                HandleDownloadPaused();
+                HandleDownloadTaskCancel();
                 return;
             }
+            FinishDownload();
+        }
 
-            missingIndexes = GetMissingIndexes();
+        private void FinishDownload(List<int> missingIndexes = null) {
+            EnableButtons(false);
+            missingIndexes ??= GetMissingIndexes();
             if (missingIndexes.Count > 0) {
-                SetStateAndText(DownloadStatus.Failed, MultiPattern.Format(STATUS_TEXT_FAILED, missingIndexes.Count));
+                SetStateAndText(DownloadStatus.Failed, MultiPattern.Format(_resourceMap.GetValue("StatusText_Failed").ValueAsString, missingIndexes.Count));
             } else {
+                if (!_cts.IsCancellationRequested) {
+                    _cts.Dispose();
+                }
                 RemoveSelf();
             }
         }
@@ -329,15 +319,14 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         /**
          * <exception cref="HttpRequestException"></exception>
-         * <exception cref="TaskCanceledException"></exception>
         */
-        private static async Task ExtractInfoFromGgjs() {
-            HttpRequestMessage req = new() {
+        private static async Task GetGgjsInfo() {
+            HttpRequestMessage request = new() {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(GG_JS_ADDRESS)
             };
 
-            HttpResponseMessage response = await HitomiHttpClient.SendAsync(req);
+            HttpResponseMessage response = await HitomiHttpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             string ggjs = await response.Content.ReadAsStringAsync();
@@ -353,52 +342,56 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             _subdomainOrder = match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
         }
 
-        private static string[] GetImageAddresses(ImageInfo[] imageInfos, string[] imgFormats) {
-            string[] result = new string[imageInfos.Length];
-            for (int i = 0; i < imageInfos.Length; i++) {
-                string hash = imageInfos[i].Hash;
-                string subdomainAndAddressValue = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
-                string subdomain = _subdomainSelectionSet.Contains(subdomainAndAddressValue) ? _subdomainOrder.contains : _subdomainOrder.notContains;
-                result[i] = $"https://{subdomain}.{BASE_DOMAIN}/{imgFormats[i]}/{_serverTime}/{subdomainAndAddressValue}/{hash}.{imgFormats[i]}";
-            }
-            return result;
+        private static string GetImageAddress(ImageInfo imageInfo, string imageFormat) {
+            string hash = imageInfo.Hash;
+            string subdomainAndAddressValue = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
+            string subdomain = _subdomainSelectionSet.Contains(subdomainAndAddressValue) ? _subdomainOrder.contains : _subdomainOrder.notContains;
+            return $"https://{subdomain}.{BASE_DOMAIN}/{imageFormat}/{_serverTime}/{subdomainAndAddressValue}/{hash}.{imageFormat}";
         }
 
-        private static string[] GetImageFormats(ImageInfo[] imageInfos) {
-            string[] imgFormats = new string[imageInfos.Length];
-            for (int i = 0; i < imgFormats.Length; i++) {
-                if (imageInfos[i].HasWebp == 1) {
-                    imgFormats[i] = "webp";
-                } else if (imageInfos[i].HasAvif == 1) {
-                    imgFormats[i] = "avif";
-                } else if (imageInfos[i].HasJxl == 1) {
-                    imgFormats[i] = "jxl";
-                }
-            }
-            return imgFormats;
+        private static string GetImageFormat(ImageInfo imageInfo) {
+            return imageInfo.HasWebp == 1 ? "webp" :
+                   imageInfo.HasAvif == 1 ? "avif" :
+                   "jxl";
         }
+
+        private readonly struct FetchInfo {
+            public int Idx { get; init; }
+            public ImageInfo ImageInfo { get; init; }
+            public string ImageFormat { get; init; }
+            public string ImageAddress { get; init; }
+        };
 
         /**
+         * <exception cref="HttpRequestException">Thrown only if <see cref="HttpRequestException.StatusCode"/> == <see cref="HttpStatusCode.NotFound"/></exception>
          * <exception cref="TaskCanceledException"></exception>
          */
-        public async Task FetchImage(string imgAddress, string imgFormat, int idx, CancellationToken ct) {
+        private async Task<bool> GetImage(FetchInfo fetchInfo, CancellationToken ct) {
             try {
                 HttpResponseMessage response = null;
                 try {
-                    response = await HitomiHttpClient.GetAsync(imgAddress, ct);
+                    response = await HitomiHttpClient.GetAsync(fetchInfo.ImageAddress, ct);
                     response.EnsureSuccessStatusCode();
                 } catch (HttpRequestException e) {
+                    if (e.StatusCode == HttpStatusCode.NotFound) {
+                        throw;
+                    }
                     Debug.WriteLine(e.Message);
-                    Debug.WriteLine("Status Code: " + e.StatusCode);
-                    return;
+                    Debug.WriteLine($"Fetching {_id} at index = {fetchInfo.Idx} failed. Status Code: {e.StatusCode}");
+                    return false;
                 }
                 try {
                     byte[] imageBytes = await response.Content.ReadAsByteArrayAsync(ct);
-                    await File.WriteAllBytesAsync(Path.Combine(IMAGE_DIR_V2, _id.ToString(), idx.ToString()) + '.' + imgFormat, imageBytes, ct);
+                    await File.WriteAllBytesAsync(
+                        Path.Combine(IMAGE_DIR_V2, _id.ToString(), fetchInfo.Idx.ToString()) + '.' + fetchInfo.ImageFormat,
+                        imageBytes,
+                        CancellationToken.None
+                    );
+                    return true;
                 } catch (DirectoryNotFoundException) {
-                    return;
+                    return false;
                 } catch (IOException) {
-                    return;
+                    return false;
                 }
             } catch (TaskCanceledException) {
                 throw;
@@ -408,12 +401,24 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         /**
          * <exception cref="TaskCanceledException"></exception>
         */
-        private Task DownloadImages(string[] imgAddresses, string[] imgFormats, List<int> missingIndexes, CancellationToken ct) {
+        private Task DownloadImages(CancellationToken ct) {
             Directory.CreateDirectory(Path.Combine(IMAGE_DIR_V2, _id.ToString()));
-
+            List<int> missingIndexes = GetMissingIndexes();
+            FetchInfo[] fetchInfos =
+                missingIndexes
+                .Select(missingIndex => {
+                    ImageInfo imageInfo = _gallery.Files[missingIndex];
+                    string imageFormat = GetImageFormat(imageInfo);
+                    return new FetchInfo() {
+                        Idx = missingIndex,
+                        ImageInfo = imageInfo,
+                        ImageFormat = imageFormat,
+                        ImageAddress = GetImageAddress(imageInfo, imageFormat)
+                    };
+                }).ToArray();
             /*
                 example:
-                imgAddresses.Length = 8, indexes = [0,1,4,5,7,9,10,11,14,15,17], concurrentTaskNum = 3
+                fetchInfos.Length = 8, indexes = [0,1,4,5,7,9,10,11,14,15,17], concurrentTaskNum = 3
                 11 / 3 = 3 r 2
                 -----------------
                 |3+1 | 3+1 |  3 |
@@ -423,29 +428,40 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                  5     11
             */
             int concurrentTaskNum = (int)ThreadNumComboBox.SelectedItem;
-            int quotient = imgAddresses.Length / concurrentTaskNum;
-            int remainder = imgAddresses.Length % concurrentTaskNum;
+            int quotient = fetchInfos.Length / concurrentTaskNum;
+            int remainder = fetchInfos.Length % concurrentTaskNum;
             Task[] tasks = new Task[concurrentTaskNum];
 
             int startIdx = 0;
+            int http404ErrorCount = 0;
+            object http404ErrorCountLock = new();
             for (int i = 0; i < concurrentTaskNum; i++) {
                 int thisStartIdx = startIdx;
                 int thisJMax = quotient + (i < remainder ? 1 : 0);
                 tasks[i] = Task.Run(async () => {
                     for (int j = 0; j < thisJMax; j++) {
-                        int idx = thisStartIdx + j;
-                        await FetchImage(imgAddresses[idx], imgFormats[idx], missingIndexes[idx], ct)
-                            .ContinueWith(task => {
-                                if (task.IsCompletedSuccessfully) {
-                                    MainWindow.SearchPage.DispatcherQueue.TryEnqueue(() => {
-                                        BookmarkItem.UpdateSingleImage(missingIndexes[idx]);
-                                        lock (DownloadProgressBar) {
-                                            DownloadProgressBar.Value++;
-                                        }
-                                    });
+                        int k = thisStartIdx + j;
+                        try {
+                            bool success = await GetImage(fetchInfos[k], ct);
+                            if (success) {
+                                MainWindow.SearchPage.DispatcherQueue.TryEnqueue(() => {
+                                    BookmarkItem.UpdateSingleImage(missingIndexes[k]);
+                                    lock (DownloadProgressBar) {
+                                        DownloadProgressBar.Value++;
+                                    }
+                                });
+                            }
+                        }
+                        // HttpRequestException.StatusCode should and must be HttpStatusCode.NotFound
+                        catch (HttpRequestException) {
+                            lock (http404ErrorCountLock) {
+                                http404ErrorCount++;
+                                if (http404ErrorCount >= MAX_HTTP_404_ERROR_NUM_LIMIT) {
+                                    CancelDownloadTask(TaskCancelReason.Http404MaxLimitReached);
+                                    return;
                                 }
-                            },
-                            ct);
+                            }
+                        }
                     }
                 }, ct);
                 startIdx += thisJMax;
