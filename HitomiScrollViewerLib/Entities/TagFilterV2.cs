@@ -6,7 +6,7 @@ namespace HitomiScrollViewerLib.Entities {
     internal class TagFilterV2 {
         public Dictionary<string, IEnumerable<string>> includeTags = [];
         public Dictionary<string, IEnumerable<string>> excludeTags = [];
-        internal TagFilterSet[] ToTagFilterSet(string name) {
+        internal List<TagFilterSet> ToTagFilterSet(string name) {
             List<TagFilterV3> includeTagFilters = TagFilterV3.CATEGORIES
                 .Select(
                     category => new TagFilterV3() {
@@ -22,23 +22,39 @@ namespace HitomiScrollViewerLib.Entities {
                 )
                 .ToList();
 
+            List<TagFilterSet> result = [];
+
+            bool hasAnyTags = false;
             foreach (var pair in includeTags) {
-                includeTagFilters[TagFilterV3.CATEGORY_INDEX_MAP[pair.Key]].Tags = pair.Value.ToList();
+                List<string> tags = pair.Value.ToList();
+                hasAnyTags |= tags.Count != 0;
+                includeTagFilters[TagFilterV3.CATEGORY_INDEX_MAP[pair.Key]].Tags = tags;
             }
-            foreach (var pair in excludeTags) {
-                excludeTagFilters[TagFilterV3.CATEGORY_INDEX_MAP[pair.Key]].Tags = pair.Value.ToList();
+            if (hasAnyTags) {
+                result.Add(
+                    new TagFilterSet() {
+                        Name = name + " - " + TEXT_INCLUDE,
+                        TagFilters = includeTagFilters
+                    }
+                );
             }
 
-            return [
-                new TagFilterSet() {
-                    Name = name + " - " + TEXT_INCLUDE,
-                    TagFilters = includeTagFilters
-                },
-                new TagFilterSet() {
-                    Name = name + " - " + TEXT_EXCLUDE,
-                    TagFilters = excludeTagFilters
-                }
-            ];
+            hasAnyTags = false;
+            foreach (var pair in excludeTags) {
+                List<string> tags = pair.Value.ToList();
+                hasAnyTags |= tags.Count != 0;
+                excludeTagFilters[TagFilterV3.CATEGORY_INDEX_MAP[pair.Key]].Tags = tags;
+            }
+            if (hasAnyTags) {
+                result.Add(
+                    new TagFilterSet() {
+                        Name = name + " - " + TEXT_INCLUDE,
+                        TagFilters = includeTagFilters
+                    }
+                );
+            }
+
+            return result;
         }
     }
 
