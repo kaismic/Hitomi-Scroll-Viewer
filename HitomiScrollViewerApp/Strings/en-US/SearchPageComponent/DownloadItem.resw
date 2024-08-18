@@ -127,20 +127,20 @@
     <value>Downloading...</value>
   </data>
   <data name="StatusText_Failed" xml:space="preserve">
-    <value>Failed to download {plural, one {{0} image} other {{0} images}}</value>
+    <value>Failed to download {plural, one {{0} image} other {{0} images}}.</value>
     <comment>{0}: Number of missing images</comment>
   </data>
   <data name="StatusText_FetchingGalleryInfo" xml:space="preserve">
     <value>Fetching gallery information...</value>
   </data>
   <data name="StatusText_FetchingGalleryInfo_Error" xml:space="preserve">
-    <value>An error has occurred while fetching gallery information</value>
+    <value>An error has occurred while fetching gallery information.</value>
   </data>
   <data name="StatusText_FetchingServerTime" xml:space="preserve">
     <value>Fetching server time...</value>
   </data>
   <data name="StatusText_FetchingServerTime_Error" xml:space="preserve">
-    <value>An error has occurred while fetching the server time</value>
+    <value>An error has occurred while fetching the server time.</value>
   </data>
   <data name="StatusText_Paused" xml:space="preserve">
     <value>Download paused</value>
@@ -149,7 +149,10 @@
     <value>Reading gallery information...</value>
   </data>
   <data name="StatusText_ReadingGalleryInfo_Error" xml:space="preserve">
-    <value>An error has occurred while reading gallery information</value>
+    <value>An error has occurred while reading gallery information.</value>
+  </data>
+  <data name="StatusText_Unknown_Error" xml:space="preserve">
+    <value>An unknown error has occurred.</value>
   </data>
   <data name="ThreadNumComboBoxHeader.Text" xml:space="preserve">
     <value>Download threads</value>
