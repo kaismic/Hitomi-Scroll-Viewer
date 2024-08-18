@@ -138,7 +138,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             EnableButtons(false);
             _taskCancelReason = taskCancelReason;
             _cts.Cancel();
-            _cts = new();
         }
 
         private async void HandleTaskCancellation() {
@@ -155,7 +154,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     if (_retryByHttp404Count >= MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404) {
                         SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_Unknown_Error").ValueAsString);
                     }
-                    // fetch ggjs again at here
+                    // fetch ggjs and continue download
                     else if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
                         try {
                             await GetGgjsInfo();
@@ -167,16 +166,14 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                             Monitor.Exit(_ggjsFetchLock);
                         }
                     }
-                    // continue download
-                    // TODO
                     break;
             }
             EnableButtons(true);
         }
 
         private void ThreadNumComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
+            // ignore initial default selection
             if (e.RemovedItems.Count == 0) {
-                // ignore initial default selection
                 return;
             }
             if (_downloadState == DownloadStatus.Downloading) {
@@ -185,6 +182,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private async void InitDownload() {
+            _cts = new();
             CancellationToken ct = _cts.Token;
             SetStateAndText(DownloadStatus.Downloading, "");
             BookmarkItem?.EnableRemoveBtn(false);
