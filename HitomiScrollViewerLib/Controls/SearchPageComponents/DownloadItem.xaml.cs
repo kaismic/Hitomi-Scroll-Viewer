@@ -67,7 +67,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             BookmarkItem = bookmarkItem;
             InitializeComponent();
             Description.Text = id.ToString();
-            InitDownload(_cts.Token);
+            InitDownload();
         }
 
         private void CancelDownloadButton_Click(object _0, RoutedEventArgs _1) {
@@ -99,7 +99,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 case DownloadStatus.Paused or DownloadStatus.Failed:
                     // reset retry by http 404 error count
                     _retryByHttp404Count = 0;
-                    InitDownload(_cts.Token);
+                    InitDownload();
                     break;
             }
         }
@@ -148,7 +148,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     break;
                 case TaskCancelReason.ThreadNumChanged:
                     // continue download
-                    InitDownload(_cts.Token);
+                    InitDownload();
                     break;
                 case TaskCancelReason.Http404MaxLimitReached:
                     _retryByHttp404Count++;
@@ -159,7 +159,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     else if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
                         try {
                             await GetGgjsInfo();
-                            InitDownload(_cts.Token);
+                            InitDownload();
                         } catch (HttpRequestException e) {
                             SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
                             return;
@@ -184,7 +184,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
         }
 
-        private async void InitDownload(CancellationToken ct) {
+        private async void InitDownload() {
+            CancellationToken ct = _cts.Token;
             SetStateAndText(DownloadStatus.Downloading, "");
             BookmarkItem?.EnableRemoveBtn(false);
             if (_gallery == null) {
@@ -271,6 +272,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
                     Monitor.Exit(_ggjsFetchLock);
                 } else {
+                    // another thread is already fetching ggjs so add to download waiting list
                     _waitingDownloadItems.Add(this);
                     return;
                 }
@@ -339,6 +341,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             string orderPat = @"var [a-z] = (\d);";
             Match match = Regex.Match(ggjs, orderPat);
             _subdomainOrder = match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
+
+            lock (_waitingDownloadItems) {
+                foreach (var downloadItem in _waitingDownloadItems) {
+                    downloadItem.InitDownload();
+                }
+                _waitingDownloadItems.Clear();
+            }
         }
 
         private static string GetImageAddress(ImageInfo imageInfo, string imageFormat) {
