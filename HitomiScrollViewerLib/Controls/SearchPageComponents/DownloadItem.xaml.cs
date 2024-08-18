@@ -1,4 +1,4 @@
-using HitomiScrollViewerLib.Controls.SearchPageComponents;
+using HitomiScrollViewerLib.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -14,21 +14,20 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Controls.SearchPage;
+using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
-using HitomiScrollViewerLib.Entities;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class DownloadItem : Grid {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("DownloadItem");
 
-        private static readonly string REFERER = "https://hitomi.la/";
-        private static readonly string BASE_DOMAIN = "hitomi.la";
-        private static readonly string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
-        private static readonly string GALLERY_INFO_EXCLUDE_STRING = "var galleryinfo = ";
-        private static readonly string GG_JS_ADDRESS = "https://ltn.hitomi.la/gg.js";
-        private static readonly string SERVER_TIME_EXCLUDE_STRING = "0123456789/'\r\n};";
+        private const string REFERER = "https://hitomi.la/";
+        private const string BASE_DOMAIN = "hitomi.la";
+        private const string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
+        private const string GALLERY_INFO_EXCLUDE_STRING = "var galleryinfo = ";
+        private const string GG_JS_ADDRESS = "https://ltn.hitomi.la/gg.js";
+        private const string SERVER_TIME_EXCLUDE_STRING = "0123456789/'\r\n};";
 
         private static readonly HttpClient HitomiHttpClient = new() {
             DefaultRequestHeaders = {
@@ -37,15 +36,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             Timeout = TimeSpan.FromSeconds(15)
         };
 
-        private const int MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404 = 2;
-        private const int MAX_HTTP_404_ERROR_NUM_LIMIT = 3;
-
         private enum DownloadStatus {
             Downloading,
             Paused,
             Failed
         }
-        private DownloadStatus _downloadingState;
+        private DownloadStatus _downloadState;
 
         private CancellationTokenSource _cts = new();
 
@@ -61,6 +57,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private static HashSet<string> _subdomainSelectionSet;
         private static (string notContains, string contains) _subdomainOrder;
 
+        private const int MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404 = 2;
+        private const int MAX_HTTP_404_ERROR_NUM_LIMIT = 3;
         private int _retryByHttp404Count = 0;
         private static readonly List<DownloadItem> _waitingDownloadItems = [];
 
@@ -94,7 +92,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void DownloadControlButton_Clicked(object _0, RoutedEventArgs _1) {
-            switch (_downloadingState) {
+            switch (_downloadState) {
                 case DownloadStatus.Downloading:
                     CancelDownloadTask(TaskCancelReason.PausedByUser);
                     break;
@@ -107,7 +105,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void SetDownloadControlBtnState() {
-            switch (_downloadingState) {
+            switch (_downloadState) {
                 case DownloadStatus.Downloading:
                     DownloadControlButton.Content = new SymbolIcon(Symbol.Pause);
                     ToolTipService.SetToolTip(DownloadControlButton, _resourceMap.GetValue("ToolTipText_Pause").ValueAsString);
@@ -124,7 +122,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void SetStateAndText(DownloadStatus state, string text) {
-            _downloadingState = state;
+            _downloadState = state;
             DownloadStatusTextBlock.Text = text;
             SetDownloadControlBtnState();
         }
@@ -143,7 +141,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             _cts = new();
         }
 
-        private async void HandleDownloadTaskCancel() {
+        private async void HandleTaskCancellation() {
             switch (_taskCancelReason) {
                 case TaskCancelReason.PausedByUser:
                     SetStateAndText(DownloadStatus.Paused, _resourceMap.GetValue("StatusText_Paused").ValueAsString);
@@ -153,6 +151,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     InitDownload(_cts.Token);
                     break;
                 case TaskCancelReason.Http404MaxLimitReached:
+                    _retryByHttp404Count++;
                     if (_retryByHttp404Count >= MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404) {
                         SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_Unknown_Error").ValueAsString);
                     }
@@ -180,7 +179,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 // ignore initial default selection
                 return;
             }
-            if (_downloadingState == DownloadStatus.Downloading) {
+            if (_downloadState == DownloadStatus.Downloading) {
                 CancelDownloadTask(TaskCancelReason.ThreadNumChanged);
             }
         }
@@ -207,7 +206,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message);
                     return;
                 } catch (TaskCanceledException) {
-                    HandleDownloadTaskCancel();
+                    HandleTaskCancellation();
                     return;
                 }
 
@@ -282,7 +281,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             try {
                 await DownloadImages(ct);
             } catch (TaskCanceledException) {
-                HandleDownloadTaskCancel();
+                HandleTaskCancellation();
                 return;
             }
             FinishDownload();
@@ -363,7 +362,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         };
 
         /**
-         * <exception cref="HttpRequestException">Thrown only if <see cref="HttpRequestException.StatusCode"/> == <see cref="HttpStatusCode.NotFound"/></exception>
+         * <exception cref="HttpRequestException">
+         * Thrown only if <see cref="HttpRequestException.StatusCode"/> == <see cref="HttpStatusCode.NotFound"/>
+         * </exception>
          * <exception cref="TaskCanceledException"></exception>
          */
         private async Task<bool> GetImage(FetchInfo fetchInfo, CancellationToken ct) {
