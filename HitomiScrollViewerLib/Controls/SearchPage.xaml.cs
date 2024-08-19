@@ -60,51 +60,79 @@ namespace HitomiScrollViewerLib.Controls
             // 3. Migrate images from roaming to local folder
 
             _ = Task.Run(async () => {
+                LoadProgressReporter reporter = await DispatcherQueue.EnqueueAsync(() => {
+                    return new LoadProgressReporter() { XamlRoot = XamlRoot };
+                });
+                _ = await DispatcherQueue.EnqueueAsync(reporter.ShowAsync);
+
+                await DispatcherQueue.EnqueueAsync(() => {
+                    reporter.SetProgressBarType(true);
+                    reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.LoadingDatabase);
+                });
                 bool tagFilterSetDbCreatedFirstTime = await TagFilterSetContext.Main.Database.EnsureCreatedAsync();
                 await TagFilterSetContext.Main.TagFilterSets.LoadAsync();
-                //GalleryContext.MainContext.Galleries.Load(); TODO uncomment when implemented
+                //await GalleryContext.Main.Galleries.LoadAsync(); TODO uncomment when implemented
+
                 bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
-                bool v2BookmarksExists = File.Exists(BOOKMARKS_FILE_PATH_V2);
                 // User upgraded from v2 to v3
-                if (v2TagFilterExists || v2BookmarksExists) {
-                    await MigrateUserData(v2TagFilterExists, v2BookmarksExists);
+                if (v2TagFilterExists) {
+                    await DispatcherQueue.EnqueueAsync(() => {
+                        reporter.SetProgressBarType(false);
+                        reporter.ResetProgressBarValue();
+                        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MigratingTFSs);
+                    });
+                    Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
+                        File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
+                        typeof(Dictionary<string, TagFilterV2>),
+                        SERIALIZER_OPTIONS_V2
+                    );
+                    await DispatcherQueue.EnqueueAsync(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
+                    foreach (var pair in tagFilterV2) {
+                        TagFilterSetContext.Main.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+                        await DispatcherQueue.EnqueueAsync(reporter.IncrementProgressBar);
+                    }
+                    TagFilterSetContext.Main.SaveChanges();
+                    File.Delete(TAG_FILTERS_FILE_PATH_V2);
                 }
+
                 // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
                 if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
+                    await DispatcherQueue.EnqueueAsync(() => {
+                        reporter.SetProgressBarType(true);
+                        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);
+                    });
                     await TagFilterSetContext.Main.AddExampleTagFilterSetsAsync();
                 }
+
+                // move images folder in roaming folder to local
+                await DispatcherQueue.EnqueueAsync(() => {
+                    reporter.SetProgressBarType(true);
+                    reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MovingImageFolder);
+                });
+                if (Directory.Exists(IMAGE_DIR_V2)) {
+                    Directory.Move(IMAGE_DIR_V2, IMAGE_DIR_V3);
+                }
+
+                // TODO
+                //if (File.Exists(BOOKMARKS_FILE_PATH_V2)) {
+                //    await DispatcherQueue.EnqueueAsync(() => {
+                //        reporter.SetProgressBarType(false);
+                //        reporter.ResetProgressBarValue();
+                //        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MigratingGalleries);
+                //    });
+
+                //    await DispatcherQueue.EnqueueAsync(() => reporter.SetProgressBarMaximum());
+                //}
+
+                await DispatcherQueue.EnqueueAsync(() => {
+                    reporter.SetProgressBarType(true);
+                    reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.Initialising);
+                });
                 await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
                 await SyncManager.Init();
-            });
-        }
 
-        private async Task MigrateUserData(bool v2TagFilterExists, bool v2BookmarksExists) {
-            MigrationProgressReporter reporter = await DispatcherQueue.EnqueueAsync(() => {
-                return new MigrationProgressReporter() { XamlRoot = XamlRoot };
+                await DispatcherQueue.EnqueueAsync(reporter.Hide);
             });
-            _ = await DispatcherQueue.EnqueueAsync(reporter.ShowAsync);
-            if (v2TagFilterExists) {
-                await DispatcherQueue.EnqueueAsync(() => {
-                    reporter.SetStatusMessage(UserDataType.TagFilterSet);
-                    reporter.ResetProgressBarValue();
-                });
-                Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
-                    File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-                    typeof(Dictionary<string, TagFilterV2>),
-                    SERIALIZER_OPTIONS_V2
-                );
-                await DispatcherQueue.EnqueueAsync(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
-                foreach (var pair in tagFilterV2) {
-                    TagFilterSetContext.Main.AddRange(pair.Value.ToTagFilterSet(pair.Key));
-                    await DispatcherQueue.EnqueueAsync(reporter.IncrementProgressBar);
-                }
-                TagFilterSetContext.Main.SaveChanges();
-                File.Delete(TAG_FILTERS_FILE_PATH_V2);
-            }
-            if (v2BookmarksExists) {
-                // TODO
-            }
-            await DispatcherQueue.EnqueueAsync(reporter.Hide);
         }
 
         private void HyperlinkCreateButton_Clicked(object _0, RoutedEventArgs _1) {
