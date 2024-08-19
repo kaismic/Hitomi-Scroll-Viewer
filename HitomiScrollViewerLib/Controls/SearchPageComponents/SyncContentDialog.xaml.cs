@@ -155,14 +155,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
             _closeDialog = false;
             StartStopSync(true);
 
-            FilesResource.ListRequest listRequest = _driveService.Files.List();
-            listRequest.Spaces = "appDataFolder";
-            listRequest.Fields = "nextPageToken, files(id, name, size)";
-            listRequest.PageSize = 8;
             Google.Apis.Drive.v3.Data.File tfssFile = null;
             Google.Apis.Drive.v3.Data.File galleriesFile = null;
             try {
-                Google.Apis.Drive.v3.Data.FileList fileList = await listRequest.ExecuteAsync(_cts.Token);
+                Google.Apis.Drive.v3.Data.FileList fileList = await GetListRequest(_driveService).ExecuteAsync(_cts.Token);
                 if (fileList != null) {
                     foreach (var file in fileList.Files) {
                         if (file.Name == Path.GetFileName(TFS_MAIN_DATABASE_PATH_V3)) {
