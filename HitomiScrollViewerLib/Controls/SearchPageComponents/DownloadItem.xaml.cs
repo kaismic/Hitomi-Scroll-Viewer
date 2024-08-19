@@ -313,6 +313,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     Monitor.Exit(ggjsFetchLockTaken);
                 }
             }
+            if (startSelfDownload) {
+                InitDownload();
+            }
             lock (_waitingDownloadItems) {
                 foreach (var downloadItem in _waitingDownloadItems) {
                     downloadItem.InitDownload();
