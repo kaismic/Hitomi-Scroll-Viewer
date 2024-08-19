@@ -243,7 +243,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             if (!_ggjsInitFetched) {
                 // this DownloadItem is the first DownloadItem so fetch ggjs
                 // even if this thread didn't acquire the lock, it means that another thread got in between
-                // and it is fetching ggjs anyway so no problem
+                // and that thread is going to fetch ggjs so no problem
                 _ggjsInitFetched = true;
                 await TryGetGgjsInfo(false);
             }
