@@ -299,27 +299,25 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private async Task TryGetGgjsInfo(bool startSelfDownload) {
-            bool waitingDownloadItemsLockTaken = false;
-            if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
-                try {
+            bool ggjsFetchLockTaken = false;
+            try {
+                Monitor.TryEnter(_ggjsFetchLock, 0, ref ggjsFetchLockTaken);
+                if (ggjsFetchLockTaken) {
                     await GetGgjsInfo();
-                    if (startSelfDownload) {
-                        InitDownload();
-                    }
-                    Monitor.Enter(_waitingDownloadItems, ref waitingDownloadItemsLockTaken);
-                    foreach (var downloadItem in _waitingDownloadItems) {
-                        downloadItem.InitDownload();
-                    }
-                    _waitingDownloadItems.Clear();
-                } catch (HttpRequestException e) {
-                    SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
-                    return;
-                } finally {
-                    Monitor.Exit(_ggjsFetchLock);
-                    if (waitingDownloadItemsLockTaken) {
-                        Monitor.Exit(_waitingDownloadItems);
-                    }
                 }
+            } catch (HttpRequestException e) {
+                SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
+                return;
+            } finally {
+                if (ggjsFetchLockTaken) {
+                    Monitor.Exit(ggjsFetchLockTaken);
+                }
+            }
+            lock (_waitingDownloadItems) {
+                foreach (var downloadItem in _waitingDownloadItems) {
+                    downloadItem.InitDownload();
+                }
+                _waitingDownloadItems.Clear();
             }
         }
 
