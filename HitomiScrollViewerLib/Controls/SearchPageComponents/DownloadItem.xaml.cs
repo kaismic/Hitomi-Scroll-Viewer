@@ -154,17 +154,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     if (_retryByHttp404Count >= MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404) {
                         SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_Unknown_Error").ValueAsString);
                     }
-                    // fetch ggjs and continue download
-                    else if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
-                        try {
-                            await GetGgjsInfo();
-                            InitDownload();
-                        } catch (HttpRequestException e) {
-                            SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
-                            return;
-                        } finally {
-                            Monitor.Exit(_ggjsFetchLock);
-                        }
+                    else {
+                        await TryGetGgjsInfo(true);
                     }
                     break;
             }
@@ -250,20 +241,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
 
             if (!_ggjsInitFetched) {
-                _ggjsInitFetched = true;
                 // this DownloadItem is the first DownloadItem so fetch ggjs
-                // even if thread didn't acquire the lock, it means that another thread got in between this
-                // code state and is fetching ggjs anyway so no problem
-                if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
-                    try {
-                        await GetGgjsInfo();
-                    } catch (HttpRequestException e) {
-                        SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
-                        return;
-                    } finally {
-                        Monitor.Exit(_ggjsFetchLock);
-                    }
-                }
+                // even if this thread didn't acquire the lock, it means that another thread got in between
+                // and it is fetching ggjs anyway so no problem
+                _ggjsInitFetched = true;
+                await TryGetGgjsInfo(false);
             }
 
             lock (_waitingDownloadItems) {
@@ -316,6 +298,31 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             return responseString[GALLERY_INFO_EXCLUDE_STRING.Length..];
         }
 
+        private async Task TryGetGgjsInfo(bool startSelfDownload) {
+            bool waitingDownloadItemsLockTaken = false;
+            if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
+                try {
+                    await GetGgjsInfo();
+                    if (startSelfDownload) {
+                        InitDownload();
+                    }
+                    Monitor.Enter(_waitingDownloadItems, ref waitingDownloadItemsLockTaken);
+                    foreach (var downloadItem in _waitingDownloadItems) {
+                        downloadItem.InitDownload();
+                    }
+                    _waitingDownloadItems.Clear();
+                } catch (HttpRequestException e) {
+                    SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message);
+                    return;
+                } finally {
+                    Monitor.Exit(_ggjsFetchLock);
+                    if (waitingDownloadItemsLockTaken) {
+                        Monitor.Exit(_waitingDownloadItems);
+                    }
+                }
+            }
+        }
+
         /**
          * <exception cref="HttpRequestException"></exception>
         */
@@ -339,13 +346,6 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             string orderPat = @"var [a-z] = (\d);";
             Match match = Regex.Match(ggjs, orderPat);
             _subdomainOrder = match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
-
-            lock (_waitingDownloadItems) {
-                foreach (var downloadItem in _waitingDownloadItems) {
-                    downloadItem.InitDownload();
-                }
-                _waitingDownloadItems.Clear();
-            }
         }
 
         private static string GetImageAddress(ImageInfo imageInfo, string imageFormat) {
