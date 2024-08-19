@@ -117,16 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="PleaseWaitTextBlock.Text" xml:space="preserve">
-    <value>Please wait until all processes are completed.</value>
+  <data name="Text_AddingExampleTFSs" xml:space="preserve">
+    <value>Creating example tag filter sets....</value>
   </data>
-  <data name="Text_Migrating_BookmarkGalleries" xml:space="preserve">
+  <data name="Text_Initialising" xml:space="preserve">
+    <value>Initialising...</value>
+  </data>
+  <data name="Text_LoadingDatabase" xml:space="preserve">
+    <value>Loading database...</value>
+  </data>
+  <data name="Text_MigratingGalleries" xml:space="preserve">
     <value>Migrating bookmark galleries...</value>
   </data>
-  <data name="Text_Migrating_TagFilterSets" xml:space="preserve">
+  <data name="Text_MigratingTFSs" xml:space="preserve">
     <value>Migrating tag filter sets...</value>
   </data>
-  <data name="TitleTextBlock.Text" xml:space="preserve">
+  <data name="Text_MovingImageFolder" xml:space="preserve">
+    <value>Moving image storage folder...</value>
+  </data>
+  <data name="Text_PleaseWait" xml:space="preserve">
+    <value>Please wait until all processes are completed.</value>
+  </data>
+  <data name="Text_Title" xml:space="preserve">
     <value>Migrating user data into version 3 data format...</value>
   </data>
 </root>

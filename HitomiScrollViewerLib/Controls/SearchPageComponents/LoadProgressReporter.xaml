@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ContentDialog
-    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.MigrationProgressReporter"
+    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.LoadProgressReporter"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:HitomiScrollViewerLib.Controls.SearchPageComponents"
@@ -9,11 +9,8 @@
     mc:Ignorable="d"
     
     Style="{StaticResource DefaultContentDialogStyle}">
-    <ContentDialog.Title>
-        <TextBlock x:Uid="/MigrationProgressReporter/TitleTextBlock" TextWrapping="WrapWholeWords"/>
-    </ContentDialog.Title>
     <StackPanel>
-        <TextBlock x:Uid="/MigrationProgressReporter/PleaseWaitTextBlock" TextWrapping="WrapWholeWords"/>
+        <TextBlock x:Name="PleaseWaitTextBlock" TextWrapping="WrapWholeWords"/>
         <ProgressBar x:Name="MigrationProgressBar" Margin="0 30 0 10"/>
         <TextBlock x:Name="ProgressStatusTextBlock"/>
     </StackPanel>

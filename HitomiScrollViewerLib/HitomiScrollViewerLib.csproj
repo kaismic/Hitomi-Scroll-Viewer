@@ -15,7 +15,7 @@
     <None Remove="Controls\SearchPageComponents\CRUDActionContentDialog.xaml" />
     <None Remove="Controls\SearchPageComponents\DownloadItem.xaml" />
     <None Remove="Controls\SearchPageComponents\InputValidation.xaml" />
-    <None Remove="Controls\SearchPageComponents\MigrationProgressReporter.xaml" />
+    <None Remove="Controls\SearchPageComponents\LoadProgressReporter.xaml" />
     <None Remove="Controls\SearchPageComponents\SearchLinkItem.xaml" />
     <None Remove="Controls\SearchPageComponents\SyncContentDialog.xaml" />
     <None Remove="Controls\SearchPageComponents\SyncManager.xaml" />
@@ -60,7 +60,7 @@
     <Page Update="Controls\SearchPageComponents\DownloadItem.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
-    <Page Update="Controls\SearchPageComponents\MigrationProgressReporter.xaml">
+    <Page Update="Controls\SearchPageComponents\LoadProgressReporter.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
