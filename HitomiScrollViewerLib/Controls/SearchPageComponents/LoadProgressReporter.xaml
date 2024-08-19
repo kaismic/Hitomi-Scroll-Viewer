@@ -11,7 +11,7 @@
     Style="{StaticResource DefaultContentDialogStyle}">
     <StackPanel>
         <TextBlock x:Name="PleaseWaitTextBlock" TextWrapping="WrapWholeWords"/>
-        <ProgressBar x:Name="MigrationProgressBar" Margin="0 30 0 10"/>
+        <ProgressBar x:Name="LoadProgressBar" x:FieldModifier="internal" Margin="0 30 0 10"/>
         <TextBlock x:Name="ProgressStatusTextBlock"/>
     </StackPanel>
 </ContentDialog>

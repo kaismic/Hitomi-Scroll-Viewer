@@ -47,6 +47,7 @@ namespace HitomiScrollViewerLib.Controls
             DownloadInputTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = DownloadInputTextBox.Text.Length != 0; };
             TagFilterSetEditor.Main = TagFilterSetEditor;
             Loaded += SearchPage_Loaded;
+            DownloadButton.SizeChanged += (object sender, SizeChangedEventArgs e) => { DownloadInputTextBox.Height = e.NewSize.Height; };
         }
 
         private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
@@ -66,7 +67,7 @@ namespace HitomiScrollViewerLib.Controls
                 _ = await DispatcherQueue.EnqueueAsync(reporter.ShowAsync);
 
                 await DispatcherQueue.EnqueueAsync(() => {
-                    reporter.SetProgressBarType(true);
+                    reporter.LoadProgressBar.IsIndeterminate = true;
                     reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.LoadingDatabase);
                 });
                 bool tagFilterSetDbCreatedFirstTime = await TagFilterSetContext.Main.Database.EnsureCreatedAsync();
@@ -77,8 +78,8 @@ namespace HitomiScrollViewerLib.Controls
                 // User upgraded from v2 to v3
                 if (v2TagFilterExists) {
                     await DispatcherQueue.EnqueueAsync(() => {
-                        reporter.SetProgressBarType(false);
-                        reporter.ResetProgressBarValue();
+                        reporter.LoadProgressBar.IsIndeterminate = false;
+                        reporter.LoadProgressBar.Value = 0;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MigratingTFSs);
                     });
                     Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
@@ -86,10 +87,14 @@ namespace HitomiScrollViewerLib.Controls
                         typeof(Dictionary<string, TagFilterV2>),
                         SERIALIZER_OPTIONS_V2
                     );
-                    await DispatcherQueue.EnqueueAsync(() => reporter.SetProgressBarMaximum(tagFilterV2.Count));
+                    await DispatcherQueue.EnqueueAsync(() => reporter.LoadProgressBar.Maximum = tagFilterV2.Count);
                     foreach (var pair in tagFilterV2) {
                         TagFilterSetContext.Main.AddRange(pair.Value.ToTagFilterSet(pair.Key));
-                        await DispatcherQueue.EnqueueAsync(reporter.IncrementProgressBar);
+                        await DispatcherQueue.EnqueueAsync(() => {
+                            lock (reporter.LoadProgressBar) {
+                                reporter.LoadProgressBar.Value++;
+                            }
+                        });
                     }
                     TagFilterSetContext.Main.SaveChanges();
                     File.Delete(TAG_FILTERS_FILE_PATH_V2);
@@ -98,7 +103,7 @@ namespace HitomiScrollViewerLib.Controls
                 // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
                 if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
                     await DispatcherQueue.EnqueueAsync(() => {
-                        reporter.SetProgressBarType(true);
+                        reporter.LoadProgressBar.IsIndeterminate = true;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);
                     });
                     await TagFilterSetContext.Main.AddExampleTagFilterSetsAsync();
@@ -106,7 +111,7 @@ namespace HitomiScrollViewerLib.Controls
 
                 // move images folder in roaming folder to local
                 await DispatcherQueue.EnqueueAsync(() => {
-                    reporter.SetProgressBarType(true);
+                    reporter.LoadProgressBar.IsIndeterminate = true;
                     reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MovingImageFolder);
                 });
                 if (Directory.Exists(IMAGE_DIR_V2)) {
@@ -125,7 +130,7 @@ namespace HitomiScrollViewerLib.Controls
                 //}
 
                 await DispatcherQueue.EnqueueAsync(() => {
-                    reporter.SetProgressBarType(true);
+                    reporter.LoadProgressBar.IsIndeterminate = true;
                     reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.Initialising);
                 });
                 await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);

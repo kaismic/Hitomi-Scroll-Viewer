@@ -127,7 +127,7 @@
     <value>데이터베이스를 불러오는 중...</value>
   </data>
   <data name="Text_MigratingGalleries" xml:space="preserve">
-    <value>북마크 갤러리들을 이전하는 중...</value>
+    <value>갤러리들을 이전하는 중...</value>
   </data>
   <data name="Text_MigratingTFSs" xml:space="preserve">
     <value>태그 필터 모음들을 이전하는 중...</value>
@@ -139,6 +139,6 @@
     <value>모든 과정이 완료 될 때까지 기다려주세요.</value>
   </data>
   <data name="Text_Title" xml:space="preserve">
-    <value>사용자 데이터를 버전 3 데이터 형식으로 이전하는 중...</value>
+    <value>로딩 중...</value>
   </data>
 </root>

@@ -95,7 +95,6 @@
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="DownloadInputTextBox" x:Uid="/SearchPage/DownloadInputTextBox"
                                      Grid.Column="0"
-                                     VerticalAlignment="Stretch"
                                      TextWrapping="Wrap"
                                      AcceptsReturn="True"
                                      />
