@@ -23,11 +23,12 @@ namespace HitomiScrollViewerLib {
         public static readonly string BOOKMARKS_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, BOOKMARKS_FILE_NAME_V2);
 
 
-        public static readonly string ROOT_DIR_V3 = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        public static readonly string NON_VIRTUAL_ROOT_DIR_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalCacheFolder.Path, new DirectoryInfo(ROOT_DIR_V3).Name);
-        public static readonly string IMAGE_DIR_V3 = Path.Combine(ROOT_DIR_V3, IMAGE_DIR_NAME);
-        public static readonly string NON_VIRTUAL_IMAGE_DIR_V3 = Path.Combine(NON_VIRTUAL_ROOT_DIR_V3, IMAGE_DIR_NAME);
-        public static readonly string LOGS_PATH_V3 = Path.Combine(ROOT_DIR_V3, "logs.txt");
+        public static readonly string LOCAL_DIR_V3 = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        public static readonly string ROAMING_DIR_V3 = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        public static readonly string NON_VIRTUAL_LOCAL_DIR_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalCacheFolder.Path, new DirectoryInfo(LOCAL_DIR_V3).Name);
+        public static readonly string IMAGE_DIR_V3 = Path.Combine(LOCAL_DIR_V3, IMAGE_DIR_NAME);
+        public static readonly string NON_VIRTUAL_IMAGE_DIR_V3 = Path.Combine(NON_VIRTUAL_LOCAL_DIR_V3, IMAGE_DIR_NAME);
+        public static readonly string LOGS_PATH_V3 = Path.Combine(LOCAL_DIR_V3, "logs.txt");
 
         public static readonly string TFS_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tag_filter_sets.db");
         public static readonly string TFS_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tag_filter_sets_temp.db");
@@ -66,6 +67,14 @@ namespace HitomiScrollViewerLib {
             output += stacktrace;
 
             return output;
+        }
+
+        public static FilesResource.ListRequest GetListRequest(DriveService driveService) {
+            FilesResource.ListRequest listRequest = driveService.Files.List();
+            listRequest.Spaces = "appDataFolder";
+            listRequest.Fields = "nextPageToken, files(id, name, size)";
+            listRequest.PageSize = 8;
+            return listRequest;
         }
 
         public static FilesResource.CreateMediaUpload GetCreateMediaUpload(
