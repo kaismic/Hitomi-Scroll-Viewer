@@ -19,7 +19,9 @@ using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class SyncManager : Grid {
-        private static readonly string USER_EMAIL_FILE_PATH = Path.Combine(ROOT_DIR_V2, "user_email.txt");
+        private const string USER_EMAIL_FILE_NAME = "user_email.txt";
+        private static readonly string USER_EMAIL_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, USER_EMAIL_FILE_NAME);
+        private static readonly string USER_EMAIL_FILE_PATH_V3 = Path.Combine(ROAMING_DIR_V3, USER_EMAIL_FILE_NAME);
 
         private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SyncManager");
 
@@ -40,11 +42,16 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private static UserCredential _userCredential;
         private static BaseClientService.Initializer _initializer;
 
+        private SyncContentDialog _syncContentDialog;
+        public SyncContentDialog SyncContentDialog {
+            get => _syncContentDialog ??= new(new(_initializer)) { XamlRoot = XamlRoot };
+        }
+
         public SyncManager() {
             InitializeComponent();
         }
 
-        internal async Task Init() {
+        public async Task Init() {
             TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
             bool tokenExists = tokenResponse != null;
             string userEmail = null;
@@ -65,7 +72,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     HttpClientInitializer = _userCredential,
                     ApplicationName = APP_DISPLAY_NAME
                 };
-                userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH);
+                if (File.Exists(USER_EMAIL_FILE_PATH_V2)) {
+                    File.Move(USER_EMAIL_FILE_PATH_V2, USER_EMAIL_FILE_PATH_V3);
+                }
+                userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH_V3);
             }
             DispatcherQueue.TryEnqueue(() => {
                 SignInBtnTextBlock.Text = tokenExists && userEmail != null ? string.Format(BUTTON_TEXT_SIGNED_IN, userEmail) : BUTTON_TEXT_NOT_SIGNED_IN;
@@ -96,7 +106,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                         await _userCredential.RevokeTokenAsync(CancellationToken.None);
                     } catch (TokenResponseException) {}
                     await FILE_DATA_STORE.DeleteAsync<TokenResponse>(Environment.UserName);
-                    File.Delete(USER_EMAIL_FILE_PATH);
+                    File.Delete(USER_EMAIL_FILE_PATH_V2);
 
                     SignInBtnTextBlock.Text = BUTTON_TEXT_NOT_SIGNED_IN;
                 } else {
@@ -136,7 +146,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                             };
                             Userinfo userInfo = await new Oauth2Service(_initializer).Userinfo.Get().ExecuteAsync();
                             SignInBtnTextBlock.Text = string.Format(BUTTON_TEXT_SIGNED_IN, userInfo.Email);
-                            await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH, userInfo.Email);
+                            await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V2, userInfo.Email);
                             ToggleSignInState(true);
                         } else {
                             isWindowFocused = true;
@@ -166,10 +176,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
             SyncBtn.IsEnabled = false;
-            SyncContentDialog dialog = new(new(_initializer)) {
-                XamlRoot = XamlRoot,
-            };
-            await dialog.ShowAsync();
+            await SyncContentDialog.ShowAsync();
             SyncBtn.IsEnabled = true;
         }
 
