@@ -6,8 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace HitomiScrollViewerLib.Entities
-{
+namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Name), IsUnique = true)]
     public class TagFilterSet : INotifyPropertyChanged {
         public const int TAG_FILTER_SET_NAME_MAX_LEN = 100;
@@ -37,6 +36,5 @@ namespace HitomiScrollViewerLib.Entities
         public virtual ICollection<GroupTag> GroupTags { get; set; }
         public virtual ICollection<SeriesTag> SeriesTags { get; set; }
         public virtual ICollection<CharacterTag> CharacterTags { get; set; }
-
     }
 }
