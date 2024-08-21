@@ -85,7 +85,7 @@ namespace HitomiScrollViewerLib.Controls
                     Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
                         File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
                         typeof(Dictionary<string, TagFilterV2>),
-                        SERIALIZER_OPTIONS_V2
+                        TagFilterV2.DEFAULT_SERIALIZER_OPTIONS
                     );
                     await DispatcherQueue.EnqueueAsync(() => reporter.LoadProgressBar.Maximum = tagFilterV2.Count);
                     foreach (var pair in tagFilterV2) {

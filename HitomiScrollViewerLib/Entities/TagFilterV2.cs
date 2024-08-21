@@ -1,6 +1,7 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -14,6 +15,7 @@ namespace HitomiScrollViewerLib.Entities {
             { "character", Category.Character },
             { "series", Category.Series }
         };
+        public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web);
 
         public Dictionary<string, IEnumerable<string>> IncludeTags { get; set; }
         public Dictionary<string, IEnumerable<string>> ExcludeTags { get; set; }
