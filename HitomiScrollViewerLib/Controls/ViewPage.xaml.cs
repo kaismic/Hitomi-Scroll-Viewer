@@ -21,8 +21,8 @@ using static HitomiScrollViewerLib.Utils;
 namespace HitomiScrollViewerLib.Controls {
     public sealed partial class ViewPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ViewPage");
-        private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Text_StringArray_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
-        private readonly string[] VIEW_DIRECTION_NAMES = _resourceMap.GetValue("Text_StringArray_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
+        private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Array_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
+        private readonly string[] VIEW_DIRECTION_NAMES = _resourceMap.GetValue("Array_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
 
         private static readonly string SCROLL_DIRECTION_SETTING_KEY = "ScrollDirection";
         private static readonly string VIEW_DIRECTION_SETTING_KEY = "ViewDirection";
