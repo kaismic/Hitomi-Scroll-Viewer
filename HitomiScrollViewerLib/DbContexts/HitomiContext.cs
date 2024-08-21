@@ -8,26 +8,32 @@ using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.DbContexts {
-    public class HitomiContext(string dbFileName) : DbContext() {
+    public class HitomiContext : DbContext {
         public DbSet<TagFilterSet> TagFilterSets { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
+        public DbSet<MaleTag> MaleTags { get; set; }
+        public DbSet<FemaleTag> FemaleTags { get; set; }
+        public DbSet<TagTag> TagTags { get; set; }
+        public DbSet<ArtistTag> ArtistTags { get; set; }
+        public DbSet<GroupTag> GroupTags { get; set; }
+        public DbSet<SeriesTag> SeriesTags { get; set; }
+        public DbSet<CharacterTag> CharacterTags { get; set; }
 
         private static HitomiContext _main;
         public static HitomiContext Main {
-            get => _main ??= new HitomiContext(Path.GetFileName(MAIN_DATABASE_PATH_V3));
+            get => _main ??= new HitomiContext();
             set => _main = value;
         }
 
-        private readonly string _dbFileName = dbFileName;
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder.UseSqlite($"Data Source={_dbFileName};Pooling=False");
+            optionsBuilder.UseSqlite($"Data Source={MAIN_DATABASE_PATH_V3}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             modelBuilder.Entity<TagBase>()
                 .UseTpcMappingStrategy();
+
             modelBuilder.Entity<Gallery>()
                 .HasMany(t => t.Files)
                 .WithOne()

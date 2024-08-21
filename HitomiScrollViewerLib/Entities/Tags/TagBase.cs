@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-// single-value tags: language, type
+// single-value tags: "language", "type"
 // multi-value tags: "female", "male", "tag", "artist", "group", "series", "character"
 
 namespace HitomiScrollViewerLib.Entities.Tags
