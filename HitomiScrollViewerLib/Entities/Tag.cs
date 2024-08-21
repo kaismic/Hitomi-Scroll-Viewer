@@ -10,7 +10,6 @@ namespace HitomiScrollViewerLib.Entities {
         Tag, Male, Female, Artist, Group, Character, Series
     }
 
-    [Index(nameof(Category))]
     [Index(nameof(Value))]
     public class Tag {
         public long Id { get; set; }
