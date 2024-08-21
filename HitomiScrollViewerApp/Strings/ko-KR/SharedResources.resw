@@ -130,16 +130,16 @@
     <value>예</value>
   </data>
   <data name="ExampleTagFilterSet_1" xml:space="preserve">
-    <value>영어, 풀컬러</value>
+    <value>태그: 풀컬러, 여성: 긴 머리카락</value>
   </data>
   <data name="ExampleTagFilterSet_2" xml:space="preserve">
-    <value>동인지, 나루토, 한국어</value>
+    <value>여성: 안경, 남성: 1인 남성</value>
   </data>
   <data name="ExampleTagFilterSet_3" xml:space="preserve">
-    <value>블루 아카이브, 1인 여성</value>
+    <value>시리즈: 나루토, 여성: 거유</value>
   </data>
   <data name="ExampleTagFilterSet_4" xml:space="preserve">
-    <value>Non-H</value>
+    <value>태그: Non-H</value>
   </data>
   <data name="Text_Galleries" xml:space="preserve">
     <value>갤러리</value>

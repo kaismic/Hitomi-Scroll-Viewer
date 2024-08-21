@@ -149,16 +149,16 @@
     <value>Page</value>
   </data>
   <data name="ExampleTagFilterSet_1" xml:space="preserve">
-    <value>English, Full Color</value>
+    <value>Tag: Full Color, Female: Very Long Hair</value>
   </data>
   <data name="ExampleTagFilterSet_2" xml:space="preserve">
-    <value>Doujinshi, Naruto, Korean</value>
+    <value>Female: Glasses, Male: Sole Male</value>
   </data>
   <data name="ExampleTagFilterSet_3" xml:space="preserve">
-    <value>Blue Archive, Sole Female</value>
+    <value>Series: Naruto, Female: Big Breasts</value>
   </data>
   <data name="ExampleTagFilterSet_4" xml:space="preserve">
-    <value>Non-H</value>
+    <value>Tag: Non-H</value>
   </data>
   <data name="Text_Exclude" xml:space="preserve">
     <value>Exlclude</value>

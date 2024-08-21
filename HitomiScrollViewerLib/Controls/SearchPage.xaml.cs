@@ -106,7 +106,7 @@ namespace HitomiScrollViewerLib.Controls
                         reporter.LoadProgressBar.IsIndeterminate = true;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);
                     });
-                    await HitomiContext.Main.AddExampleTagFilterSetsAsync();
+                    HitomiContext.Main.AddExampleTagFilterSets();
                 }
 
                 // move images folder in roaming folder to local

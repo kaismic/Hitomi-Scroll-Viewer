@@ -28,34 +28,32 @@ namespace HitomiScrollViewerLib.DbContexts {
         }
 
         public void AddExampleTagFilterSets() {
-            // TODO !!!
             TagFilterSets.AddRange(
                 new() {
                     Name = EXAMPLE_TAG_FILTER_SET_1,
                     Tags = [
                         Tag.GetTag("full_color", Category.Tag),
-                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("very_long_hair", Category.Female),
                     ]
                 },
                 new() {
-                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Name = EXAMPLE_TAG_FILTER_SET_2,
                     Tags = [
-                        Tag.GetTag("full_color", Category.Tag),
-                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("glasses", Category.Female),
+                        Tag.GetTag("sole_male", Category.Male),
                     ]
                 },
                 new() {
-                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Name = EXAMPLE_TAG_FILTER_SET_3,
                     Tags = [
-                        Tag.GetTag("full_color", Category.Tag),
-                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("naruto", Category.Series),
+                        Tag.GetTag("big_breasts", Category.Tag),
                     ]
                 },
                 new() {
-                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Name = EXAMPLE_TAG_FILTER_SET_4,
                     Tags = [
-                        Tag.GetTag("full_color", Category.Tag),
-                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("non-h_imageset", Category.Tag)
                     ]
                 }
             );
