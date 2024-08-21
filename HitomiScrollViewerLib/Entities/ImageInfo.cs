@@ -9,7 +9,6 @@ namespace HitomiScrollViewerLib.Entities {
     public class ImageInfo {
         [JsonIgnore]
         public long Id { get; set; }
-        [JsonIgnore]
         public string Name { get; set; }
         public int Height { get; set; }
         public int Width { get; set; }
