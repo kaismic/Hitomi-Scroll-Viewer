@@ -1,6 +1,4 @@
-﻿using HitomiScrollViewerLib.DbContexts;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace HitomiScrollViewerLib.Entities {
     public class OriginalGalleryInfo {
@@ -58,25 +56,12 @@ namespace HitomiScrollViewerLib.Entities {
             SetGalleryProperty(Parodys, gallery, Category.Series);
 
             foreach (var compositeTag in Tags) {
-                if (compositeTag.Male == 1) {
-                    gallery.Tags.Add(
-                        HitomiContext.Main.Tags
-                            .Where(tag => tag.Value == compositeTag.Tag && tag.Category == Category.Male)
-                            .First()
-                    );
-                } else if (compositeTag.Female == 1) {
-                    gallery.Tags.Add(
-                        HitomiContext.Main.Tags
-                            .Where(tag => tag.Value == compositeTag.Tag && tag.Category == Category.Female)
-                            .First()
-                    );
-                } else {
-                    gallery.Tags.Add(
-                        HitomiContext.Main.Tags
-                            .Where(tag => tag.Value == compositeTag.Tag && tag.Category == Category.Tag)
-                            .First()
-                    );
-                }
+                gallery.Tags.Add(Tag.GetTag(
+                    compositeTag.Tag,
+                    compositeTag.Male == 1   ? Category.Male   :
+                    compositeTag.Female == 1 ? Category.Female :
+                                               Category.Tag
+                ));
             }
 
             return gallery;
@@ -89,11 +74,7 @@ namespace HitomiScrollViewerLib.Entities {
         ) {
             if (originalDictArr != null) {
                 foreach (var dict in originalDictArr) {
-                    gallery.Tags.Add(
-                        HitomiContext.Main.Tags
-                            .Where(tag => tag.Value == dict[CATEGORY_PROP_KEY_DICT[category]] && tag.Category == category)
-                            .First()
-                    );
+                    gallery.Tags.Add(Tag.GetTag(dict[CATEGORY_PROP_KEY_DICT[category]], category));
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
+using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.DbContexts {
@@ -26,39 +27,39 @@ namespace HitomiScrollViewerLib.DbContexts {
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
-        // TODO
-        //public async Task AddExampleTagFilterSetsAsync() {
-        //    tagFilters1[CATEGORY_INDEX_MAP["language"]].Tags.Add("english");
-        //    tagFilters1[CATEGORY_INDEX_MAP["tag"]].Tags.Add("full_color");
-        //    List<TagFilterV3> tagFilters2 = GetListInstance();
-        //    tagFilters2[CATEGORY_INDEX_MAP["type"]].Tags.Add("doujinshi");
-        //    tagFilters2[CATEGORY_INDEX_MAP["series"]].Tags.Add("naruto");
-        //    tagFilters2[CATEGORY_INDEX_MAP["language"]].Tags.Add("korean");
-        //    List<TagFilterV3> tagFilters3 = GetListInstance();
-        //    tagFilters3[CATEGORY_INDEX_MAP["series"]].Tags.Add("blue_archive");
-        //    tagFilters3[CATEGORY_INDEX_MAP["female"]].Tags.Add("sole_female");
-        //    List<TagFilterV3> tagFilters4 = GetListInstance();
-        //    tagFilters4[CATEGORY_INDEX_MAP["tag"]].Tags.Add("non-h_imageset");
-
-        //    await TagFilterSets.AddRangeAsync(
-        //        new TagFilterSet() {
-        //            Name = EXAMPLE_TAG_FILTER_SET_1,
-        //            Tags = tagFilters1
-        //        },
-        //        new TagFilterSet() {
-        //            Name = EXAMPLE_TAG_FILTER_SET_2,
-        //            Tags = tagFilters2
-        //        },
-        //        new TagFilterSet() {
-        //            Name = EXAMPLE_TAG_FILTER_SET_3,
-        //            Tags = tagFilters3
-        //        },
-        //        new TagFilterSet() {
-        //            Name = EXAMPLE_TAG_FILTER_SET_4,
-        //            Tags = tagFilters4
-        //        }
-        //    );
-        //    await SaveChangesAsync();
-        //}
+        public void AddExampleTagFilterSets() {
+            // TODO !!!
+            TagFilterSets.AddRange(
+                new() {
+                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Tags = [
+                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("full_color", Category.Tag),
+                    ]
+                },
+                new() {
+                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Tags = [
+                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("full_color", Category.Tag),
+                    ]
+                },
+                new() {
+                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Tags = [
+                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("full_color", Category.Tag),
+                    ]
+                },
+                new() {
+                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Tags = [
+                        Tag.GetTag("full_color", Category.Tag),
+                        Tag.GetTag("full_color", Category.Tag),
+                    ]
+                }
+            );
+            SaveChanges();
+        }
     }
 }

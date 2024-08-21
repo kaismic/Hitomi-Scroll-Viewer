@@ -1,5 +1,4 @@
-﻿using HitomiScrollViewerLib.DbContexts;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using static HitomiScrollViewerLib.SharedResources;
@@ -30,13 +29,7 @@ namespace HitomiScrollViewerLib.Entities {
                 }
                 List<string> tagValues = kvp.Value.ToList();
                 hasAnyTags |= tagValues.Count != 0;
-                includeTFSTags.AddRange(
-                    tagValues.Select(tagValue =>
-                        HitomiContext.Main.Tags
-                        .Where(tag => tag.Value.Equals(tagValue, System.StringComparison.CurrentCultureIgnoreCase) && tag.Category == INV_CATEGORY_PROP_KEY_DICT[kvp.Key])
-                        .First()
-                    )
-                );
+                includeTFSTags.AddRange(tagValues.Select(tagValue => Tag.GetTag(tagValue, INV_CATEGORY_PROP_KEY_DICT[kvp.Key])));
             }
             if (hasAnyTags) {
                 result.Add(
@@ -55,13 +48,7 @@ namespace HitomiScrollViewerLib.Entities {
                 }
                 List<string> tagValues = kvp.Value.ToList();
                 hasAnyTags |= tagValues.Count != 0;
-                excludeTFSTags.AddRange(
-                    tagValues.Select(tagValue =>
-                        HitomiContext.Main.Tags
-                        .Where(tag => tag.Value.Equals(tagValue, System.StringComparison.CurrentCultureIgnoreCase) && tag.Category == INV_CATEGORY_PROP_KEY_DICT[kvp.Key])
-                        .First()
-                    )
-                );
+                excludeTFSTags.AddRange(tagValues.Select(tagValue => Tag.GetTag(tagValue, INV_CATEGORY_PROP_KEY_DICT[kvp.Key])));
             }
             if (hasAnyTags) {
                 result.Add(
