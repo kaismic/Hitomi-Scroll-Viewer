@@ -70,8 +70,8 @@ namespace HitomiScrollViewerLib.Controls
                     reporter.LoadProgressBar.IsIndeterminate = true;
                     reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.LoadingDatabase);
                 });
-                bool tagFilterSetDbCreatedFirstTime = await TagFilterSetContext.Main.Database.EnsureCreatedAsync();
-                await TagFilterSetContext.Main.TagFilterSets.LoadAsync();
+                bool tagFilterSetDbCreatedFirstTime = await HitomiContext.Main.Database.EnsureCreatedAsync();
+                await HitomiContext.Main.TagFilterSets.LoadAsync();
                 //await GalleryContext.Main.Galleries.LoadAsync(); TODO uncomment when implemented
 
                 bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
@@ -89,14 +89,14 @@ namespace HitomiScrollViewerLib.Controls
                     );
                     await DispatcherQueue.EnqueueAsync(() => reporter.LoadProgressBar.Maximum = tagFilterV2.Count);
                     foreach (var pair in tagFilterV2) {
-                        TagFilterSetContext.Main.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+                        HitomiContext.Main.AddRange(pair.Value.ToTagFilterSet(pair.Key));
                         await DispatcherQueue.EnqueueAsync(() => {
                             lock (reporter.LoadProgressBar) {
                                 reporter.LoadProgressBar.Value++;
                             }
                         });
                     }
-                    TagFilterSetContext.Main.SaveChanges();
+                    HitomiContext.Main.SaveChanges();
                     File.Delete(TAG_FILTERS_FILE_PATH_V2);
                 }
 
@@ -106,7 +106,7 @@ namespace HitomiScrollViewerLib.Controls
                         reporter.LoadProgressBar.IsIndeterminate = true;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);
                     });
-                    await TagFilterSetContext.Main.AddExampleTagFilterSetsAsync();
+                    await HitomiContext.Main.AddExampleTagFilterSetsAsync();
                 }
 
                 // move images folder in roaming folder to local

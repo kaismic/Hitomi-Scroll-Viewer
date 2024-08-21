@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using static HitomiScrollViewerLib.SharedResources;
@@ -81,13 +82,14 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
 
         private async Task StartUploadAsync(UserDataType userDataType, Google.Apis.Drive.v3.Data.File file) {
             string uploadFileName = userDataType switch {
-                UserDataType.TagFilterSet => Path.GetFileName(TFS_MAIN_DATABASE_PATH_V3),
-                UserDataType.Gallery => Path.GetFileName(GALLERIES_MAIN_DATABASE_PATH_V3),
+                // TODO json file name
+                UserDataType.TagFilterSet => Path.GetFileName(TFS_SYNC_FILE_PATH),
+                UserDataType.Gallery => Path.GetFileName(GALLERIES_SYNC_FILE_PATH),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             string localSrcFilePath = userDataType switch {
-                UserDataType.TagFilterSet => TFS_MAIN_DATABASE_PATH_V3,
-                UserDataType.Gallery => GALLERIES_MAIN_DATABASE_PATH_V3,
+                UserDataType.TagFilterSet => TFS_SYNC_FILE_PATH,
+                UserDataType.Gallery => GALLERIES_SYNC_FILE_PATH,
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             InfoBar infoBar = userDataType switch {
@@ -102,22 +104,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
             };
 
             try {
-                switch (userDataType) {
-                    case UserDataType.TagFilterSet: {
-                        await TagFilterSetContext.Main.Database.CloseConnectionAsync();
-                        break;
-                    }
-                    case UserDataType.Gallery: {
-                        await GalleryContext.Main.Database.CloseConnectionAsync();
-                        break;
-                    }
-                }
+                await HitomiContext.Main.Database.CloseConnectionAsync();
 
                 using FileStream uploadStream = new(localSrcFilePath, FileMode.Open);
                 ResumableUpload mediaUpload =
                     file == null
-                    ? GetCreateMediaUpload(_driveService, uploadStream, uploadFileName, DB_MIME_TYPE)
-                    : GetUpdateMediaUpload(_driveService, uploadStream, file.Id, DB_MIME_TYPE);
+                    ? GetCreateMediaUpload(_driveService, uploadStream, uploadFileName, MediaTypeNames.Application.Json)
+                    : GetUpdateMediaUpload(_driveService, uploadStream, file.Id, MediaTypeNames.Application.Json);
                 AttachProgressChangedEventHandler(mediaUpload, mediaUpload.ContentStream.Length);
                 IUploadProgress uploadProgress = await mediaUpload.UploadAsync(_cts.Token);
                 if (uploadProgress.Exception != null) {
@@ -161,9 +154,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                 Google.Apis.Drive.v3.Data.FileList fileList = await GetListRequest(_driveService).ExecuteAsync(_cts.Token);
                 if (fileList != null) {
                     foreach (var file in fileList.Files) {
-                        if (file.Name == Path.GetFileName(TFS_MAIN_DATABASE_PATH_V3)) {
+                        if (file.Name == Path.GetFileName(TFS_SYNC_FILE_PATH)) {
                             tfssFile = file;
-                        } else if (file.Name == Path.GetFileName(GALLERIES_MAIN_DATABASE_PATH_V3)) {
+                        } else if (file.Name == Path.GetFileName(GALLERIES_SYNC_FILE_PATH)) {
                             galleriesFile = file;
                         }
                     }
@@ -198,53 +191,53 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                             // This operation must be atomic and not be cancelled because
                             // it is disposing and creating a new TagFilterSetContext.Main
                             if (FetchTagFilterOption1.SelectedIndex == 0) {
-                                await TagFilterSetContext.Main.DisposeAsync();
+                                await HitomiContext.Main.DisposeAsync();
                                 await DownloadAndWriteAsync(
                                     request,
-                                    TFS_MAIN_DATABASE_PATH_V3,
+                                    MAIN_DATABASE_PATH_V3,
                                     CancellationToken.None
                                 );
-                                TagFilterSetContext.Main = new(Path.GetFileName(TFS_MAIN_DATABASE_PATH_V3));
-                                await TagFilterSetContext.Main.TagFilterSets.LoadAsync(CancellationToken.None);
+                                HitomiContext.Main = new(Path.GetFileName(MAIN_DATABASE_PATH_V3));
+                                await HitomiContext.Main.TagFilterSets.LoadAsync(CancellationToken.None);
                                 await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
                             }
                             // Append tag filter sets
                             else {
                                 await DownloadAndWriteAsync(
                                     request,
-                                    TFS_TEMP_DATABASE_PATH_V3,
+                                    TEMP_DATABASE_PATH_V3,
                                     _cts.Token
                                 );
-                                using TagFilterSetContext tempCtx = new(Path.GetFileName(TFS_TEMP_DATABASE_PATH_V3));
+                                using HitomiContext tempCtx = new(Path.GetFileName(TEMP_DATABASE_PATH_V3));
                                 await tempCtx.TagFilterSets.LoadAsync(_cts.Token);
                                 IEnumerable<string> fetchedTFSNames = tempCtx.TagFilterSets.Select(tfs => tfs.Name);
                                 // Replace locally stored tfss with duplicate names from the cloud
                                 foreach (string fetchedTFSName in fetchedTFSNames) {
-                                    IQueryable<TagFilterSet> localDuplicateQuery = TagFilterSetContext.Main.TagFilterSets.Where(tfs => tfs.Name == fetchedTFSName);
+                                    IQueryable<TagFilterSet> localDuplicateQuery = HitomiContext.Main.TagFilterSets.Where(tfs => tfs.Name == fetchedTFSName);
                                     ICollection<TagFilterV3> fetchedTagFilters =
                                         tempCtx.TagFilterSets
                                         .Where(tfs => tfs.Name == fetchedTFSName)
-                                        .Include(tfs => tfs.TagFilters)
+                                        .Include(tfs => tfs.TagTags)
                                         .First()
-                                        .TagFilters
+                                        .TagTags
                                         .Select(tf => new TagFilterV3() { Category = tf.Category, Tags = tf.Tags})
                                         .ToList();
                                     // fetched tfs does not exist locally so just add
                                     if (!localDuplicateQuery.Any()) {
-                                        await TagFilterSetContext.Main.TagFilterSets.AddAsync(
+                                        await HitomiContext.Main.TagFilterSets.AddAsync(
                                             new() {
                                                 Name = fetchedTFSName,
-                                                TagFilters = fetchedTagFilters
+                                                TagTags = fetchedTagFilters
                                             },
                                             _cts.Token
                                         );
                                     }
                                     // replace local tfs with duplicate name
                                     else if (FetchTagFilterOption2.SelectedIndex == 0) {
-                                        localDuplicateQuery.First().TagFilters = fetchedTagFilters;
+                                        localDuplicateQuery.First().TagTags = fetchedTagFilters;
                                     }
                                 }
-                                await TagFilterSetContext.Main.SaveChangesAsync(CancellationToken.None);
+                                await HitomiContext.Main.SaveChangesAsync(CancellationToken.None);
                                 TagFilterSetEditor.Main.TagFilterSetComboBox.SelectedIndex = -1;
                             }
                             TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;

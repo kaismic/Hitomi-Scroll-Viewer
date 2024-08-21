@@ -30,13 +30,10 @@ namespace HitomiScrollViewerLib {
         public static readonly string NON_VIRTUAL_IMAGE_DIR_V3 = Path.Combine(NON_VIRTUAL_LOCAL_DIR_V3, IMAGE_DIR_NAME);
         public static readonly string LOGS_PATH_V3 = Path.Combine(LOCAL_DIR_V3, "logs.txt");
 
-        public static readonly string TFS_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tag_filter_sets.db");
-        public static readonly string TFS_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tag_filter_sets_temp.db");
+        public static readonly string MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "main.db");
 
-        public static readonly string GALLERIES_MAIN_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "galleries.db");
-        public static readonly string GALLERIES_TEMP_DATABASE_PATH_V3 = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "galleries_temp.db");
-
-        public static readonly string DB_MIME_TYPE = "application/vnd.sqlite3";
+        public static readonly string TFS_SYNC_FILE_PATH = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tag_filter_sets.json");
+        public static readonly string GALLERIES_SYNC_FILE_PATH = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "galleries.json");
 
         public enum UserDataType {
             TagFilterSet, Gallery

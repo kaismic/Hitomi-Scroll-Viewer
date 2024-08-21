@@ -34,7 +34,7 @@ namespace HitomiScrollViewerLib.Entities {
                 result.Add(
                     new TagFilterSet() {
                         Name = name + " - " + TEXT_INCLUDE,
-                        TagFilters = includeTagFilters
+                        TagTags = includeTagFilters
                     }
                 );
             }
@@ -49,7 +49,7 @@ namespace HitomiScrollViewerLib.Entities {
                 result.Add(
                     new TagFilterSet() {
                         Name = name + " - " + TEXT_INCLUDE,
-                        TagFilters = includeTagFilters
+                        TagTags = includeTagFilters
                     }
                 );
             }

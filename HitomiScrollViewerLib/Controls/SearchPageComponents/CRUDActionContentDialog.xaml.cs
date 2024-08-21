@@ -36,8 +36,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     ToggleDeleteAction(true);
                     var checkedTagFilterSets = DeletingTFSSelector.GetCheckedTagFilterSets();
                     DeletionCount = checkedTagFilterSets.Count();
-                    TagFilterSetContext.Main.TagFilterSets.RemoveRange(checkedTagFilterSets);
-                    TagFilterSetContext.Main.SaveChanges();
+                    HitomiContext.Main.TagFilterSets.RemoveRange(checkedTagFilterSets);
+                    HitomiContext.Main.SaveChanges();
                     ToggleDeleteAction(false);
                 }
             };
@@ -65,7 +65,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private bool CheckDuplicate(string name, TextBlock errorMsgTextBlock) {
-            if (TagFilterSetContext.Main.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == name)) {
+            if (HitomiContext.Main.TagFilterSets.Any(tagFilterSet => tagFilterSet.Name == name)) {
                 errorMsgTextBlock.Text = string.Format(
                     _resourceMap.GetValue("Error_Message_Duplicate").ValueAsString,
                     name

@@ -50,7 +50,7 @@ namespace HitomiScrollViewerLib.Controls {
                 }
                 ViewPage.ToggleAutoScroll(false);
                 ViewPage.SaveSettings();
-                TagFilterSetContext.Main.Dispose();
+                HitomiContext.Main.Dispose();
             };
         }
 

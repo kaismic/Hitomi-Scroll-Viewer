@@ -11,13 +11,20 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using static HitomiScrollViewerLib.Entities.TagFilterV3;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class TagFilterSetEditor : Grid {
+        public static readonly string[] CATEGORIES = [
+            "female", "male", "tag", "artist", "group", "series", "character"
+        ];
+        public static readonly Dictionary<string, int> CATEGORY_INDEX_MAP =
+            CATEGORIES
+            .Select((category, i) => new KeyValuePair<string, int>(category, i))
+            .ToDictionary();
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
+
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetEditor).Name);
         public static TagFilterSetEditor Main { get; set; }
 
@@ -110,7 +117,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         internal void Init() {
             ShowProgressRings(true);
             TagFilterSetComboBox.SelectedIndex = -1;
-            ObservableCollection<TagFilterSet> collection = TagFilterSetContext.Main.TagFilterSets.Local.ToObservableCollection();
+            ObservableCollection<TagFilterSet> collection = HitomiContext.Main.TagFilterSets.Local.ToObservableCollection();
             TagFilterSetComboBox.ItemsSource = null;
             TagFilterSetComboBox.ItemsSource = collection;
             IncludeTFSSelector.SetCollectionSource(collection);
@@ -160,12 +167,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
             RenameButton.IsEnabled = SaveButton.IsEnabled = true;
             InsertTagFilters(
-                TagFilterSetContext.Main
+                HitomiContext.Main
                     .TagFilterSets
                     .Where(tfs => tfs.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id)
-                    .Include(tfs => tfs.TagFilters)
+                    .Include(tfs => tfs.TagTags)
                     .First()
-                    .TagFilters
+                    .TagTags
             );
         }
 
@@ -177,7 +184,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             string name = _crudActionContentDialog.GetInputText();
             TagFilterSet tagFilterSet = new() {
                 Name = name,
-                TagFilters =
+                TagTags =
                     CATEGORIES
                     .Select(
                         category => new TagFilterV3() {
@@ -187,8 +194,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     )
                     .ToList()
             };
-            TagFilterSetContext.Main.TagFilterSets.Add(tagFilterSet);
-            TagFilterSetContext.Main.SaveChanges();
+            HitomiContext.Main.TagFilterSets.Add(tagFilterSet);
+            HitomiContext.Main.SaveChanges();
             TagFilterSetComboBox.SelectedItem = tagFilterSet;
             MainWindow.SearchPage.ShowInfoBar(
                 string.Format(
@@ -207,7 +214,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
             string newName = _crudActionContentDialog.GetInputText();
             selectedTFS.Name = newName;
-            TagFilterSetContext.Main.SaveChanges();
+            HitomiContext.Main.SaveChanges();
             MainWindow.SearchPage.ShowInfoBar(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
@@ -219,13 +226,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1) {
             TagFilterSet tagFilterSet =
-                TagFilterSetContext.Main
+                HitomiContext.Main
                 .TagFilterSets
                 .First(tagFilterSet => tagFilterSet.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id);
-            foreach (TagFilterV3 tagFilter in tagFilterSet.TagFilters) {
+            foreach (TagFilterV3 tagFilter in tagFilterSet.TagTags) {
                 tagFilter.Tags = GetTags(tagFilter.Category);
             }
-            TagFilterSetContext.Main.SaveChanges();
+            HitomiContext.Main.SaveChanges();
             MainWindow.SearchPage.ShowInfoBar(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
@@ -255,9 +262,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             IEnumerable<TagFilterSet> excludeTFSs = ExcludeTFSSelector.GetCheckedTagFilterSets();
             IEnumerable<long> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
             IEnumerable<long> excludeTFSIds = excludeTFSs.Select(tfs => tfs.Id);
-            TagFilterSetContext.Main.TagFilterSets
+            HitomiContext.Main.TagFilterSets
                 .Where(tfs => includeTFSIds.Contains(tfs.Id) || excludeTFSIds.Contains(tfs.Id))
-                .Include(tfs => tfs.TagFilters)
+                .Include(tfs => tfs.TagTags)
                 .Load();
             IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
             IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
@@ -269,7 +276,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 if (selectedTFS == null) {
                     foreach (TagFilterSet tagFilterSet in tagFilterSets) {
                         for (int i = 0; i < CATEGORIES.Length; i++) {
-                            tagFilters[i] = tagFilters[i].Union(tagFilterSet.TagFilters.Select(tagFilter => tagFilter.Tags).ToArray()[i]);
+                            tagFilters[i] = tagFilters[i].Union(tagFilterSet.TagTags.Select(tagFilter => tagFilter.Tags).ToArray()[i]);
                         }
                     }
                 } else {
@@ -277,7 +284,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                         IEnumerable<string>[] tagsArray =
                             tagFilterSet.Id == selectedTFS?.Id
                             ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
-                            : tagFilterSet.TagFilters.Select(tagFilter => tagFilter.Tags).ToArray();
+                            : tagFilterSet.TagTags.Select(tagFilter => tagFilter.Tags).ToArray();
                         for (int i = 0; i < CATEGORIES.Length; i++) {
                             tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
                         }
