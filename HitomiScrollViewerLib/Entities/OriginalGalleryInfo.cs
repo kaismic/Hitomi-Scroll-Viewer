@@ -1,6 +1,4 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
-using HitomiScrollViewerLib.Entities.Tags;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -42,44 +40,30 @@ namespace HitomiScrollViewerLib.Entities {
                 SceneIndexes = SceneIndexes,
                 Related = Related,
                 Files = Files, // TODO test this but I'm pretty sure it won't work and will have to create a new instance
+                Tags = []
             };
-            if (Artists != null) {
-                gallery.ArtistTags = [];
-                SetGalleryProperty(Artists, (ICollection<TagBase>)gallery.ArtistTags, (DbSet<TagBase>)(object)HitomiContext.Main.ArtistTags, "artist");
-            }
-            if (Groups != null) {
-                gallery.GroupTags = [];
-                SetGalleryProperty(Groups, (ICollection<TagBase>)gallery.GroupTags, (DbSet<TagBase>)(object)HitomiContext.Main.GroupTags, "group");
-            }
-            if (Characters != null) {
-                gallery.CharacterTags = [];
-                SetGalleryProperty(Characters, (ICollection<TagBase>)gallery.CharacterTags, (DbSet<TagBase>)(object)HitomiContext.Main.CharacterTags, "character");
-            }
-            if (Parodys != null) {
-                gallery.CharacterTags = [];
-                SetGalleryProperty(Parodys, (ICollection<TagBase>)gallery.CharacterTags, (DbSet<TagBase>)(object)HitomiContext.Main.CharacterTags, "parody");
-            }
+            SetGalleryProperty(Artists, gallery, Category.Artist);
+            SetGalleryProperty(Groups, gallery, Category.Group);
+            SetGalleryProperty(Characters, gallery, Category.Character);
+            SetGalleryProperty(Parodys, gallery, Category.Series);
 
-            gallery.MaleTags = [];
-            gallery.FemaleTags = [];
-            gallery.TagTags = [];
             foreach (var compositeTag in Tags) {
                 if (compositeTag.Male == 1) {
-                    gallery.MaleTags.Add(
-                        HitomiContext.Main.MaleTags
-                            .Where(tag => tag.Value == compositeTag.Tag)
+                    gallery.Tags.Add(
+                        HitomiContext.Main.Tags
+                            .Where(tag => tag.Value == compositeTag.Tag && tag.Category == Category.Male)
                             .First()
                     );
                 } else if (compositeTag.Female == 1) {
-                    gallery.FemaleTags.Add(
-                        HitomiContext.Main.FemaleTags
-                            .Where(tag => tag.Value == compositeTag.Tag)
+                    gallery.Tags.Add(
+                        HitomiContext.Main.Tags
+                            .Where(tag => tag.Value == compositeTag.Tag && tag.Category == Category.Female)
                             .First()
                     );
                 } else {
-                    gallery.TagTags.Add(
-                        HitomiContext.Main.TagTags
-                            .Where(tag => tag.Value == compositeTag.Tag)
+                    gallery.Tags.Add(
+                        HitomiContext.Main.Tags
+                            .Where(tag => tag.Value == compositeTag.Tag && tag.Category == Category.Tag)
                             .First()
                     );
                 }
@@ -90,16 +74,17 @@ namespace HitomiScrollViewerLib.Entities {
 
         private static void SetGalleryProperty(
             Dictionary<string, string>[] originalDictArr,
-            ICollection<TagBase> galleryTagCollection,
-            DbSet<TagBase> mainCtxDbSet,
-            string propertyKey
+            Gallery gallery,
+            Category category
         ) {
-            foreach (var dict in originalDictArr) {
-                galleryTagCollection.Add(
-                    mainCtxDbSet
-                        .Where(tag => tag.Value == dict[propertyKey])
-                        .First()
-                );
+            if (originalDictArr != null) {
+                foreach (var dict in originalDictArr) {
+                    gallery.Tags.Add(
+                        HitomiContext.Main.Tags
+                            .Where(tag => tag.Value == dict[Tag.CATEGORY_PROP_KEY_MAP[category]] && tag.Category == category)
+                            .First()
+                    );
+                }
             }
         }
     }

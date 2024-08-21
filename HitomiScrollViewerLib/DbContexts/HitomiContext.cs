@@ -1,23 +1,12 @@
 ﻿using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Entities.Tags;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.DbContexts {
     public class HitomiContext : DbContext {
         public DbSet<TagFilterSet> TagFilterSets { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
-        public DbSet<MaleTag> MaleTags { get; set; }
-        public DbSet<FemaleTag> FemaleTags { get; set; }
-        public DbSet<TagTag> TagTags { get; set; }
-        public DbSet<ArtistTag> ArtistTags { get; set; }
-        public DbSet<GroupTag> GroupTags { get; set; }
-        public DbSet<SeriesTag> SeriesTags { get; set; }
-        public DbSet<CharacterTag> CharacterTags { get; set; }
+        public DbSet<Tag> Tags { get; set; }
 
         private static HitomiContext _main;
         public static HitomiContext Main {
@@ -31,9 +20,6 @@ namespace HitomiScrollViewerLib.DbContexts {
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
-            modelBuilder.Entity<TagBase>()
-                .UseTpcMappingStrategy();
-
             modelBuilder.Entity<Gallery>()
                 .HasMany(t => t.Files)
                 .WithOne()

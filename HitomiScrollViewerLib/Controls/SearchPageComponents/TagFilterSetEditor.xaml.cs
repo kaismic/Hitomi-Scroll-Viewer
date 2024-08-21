@@ -16,13 +16,6 @@ using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class TagFilterSetEditor : Grid {
-        public static readonly string[] CATEGORIES = [
-            "female", "male", "tag", "artist", "group", "series", "character"
-        ];
-        public static readonly Dictionary<string, int> CATEGORY_INDEX_MAP =
-            CATEGORIES
-            .Select((category, i) => new KeyValuePair<string, int>(category, i))
-            .ToDictionary();
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
 
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetEditor).Name);

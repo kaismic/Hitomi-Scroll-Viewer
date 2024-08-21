@@ -1,5 +1,4 @@
-﻿using HitomiScrollViewerLib.Entities.Tags;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -28,13 +27,6 @@ namespace HitomiScrollViewerLib.Entities {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public virtual ICollection<TagTag> TagTags { get; set; }
-        public virtual ICollection<MaleTag> MaleTags { get; set; }
-        public virtual ICollection<FemaleTag> FemaleTags { get; set; }
-
-        public virtual ICollection<ArtistTag> ArtistTags { get; set; }
-        public virtual ICollection<GroupTag> GroupTags { get; set; }
-        public virtual ICollection<SeriesTag> SeriesTags { get; set; }
-        public virtual ICollection<CharacterTag> CharacterTags { get; set; }
+        public virtual ICollection<Tag> Tags { get; set; }
     }
 }
