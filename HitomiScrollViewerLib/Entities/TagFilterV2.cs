@@ -31,7 +31,7 @@ namespace HitomiScrollViewerLib.Entities {
                 includeTFSTags.AddRange(
                     tagValues.Select(tagValue =>
                         HitomiContext.Main.Tags
-                        .Where(tag => tag.Value == tagValue && tag.Category == INV_CATEGORY_PROP_KEY_DICT[kvp.Key])
+                        .Where(tag => tag.Value.Equals(tagValue, System.StringComparison.CurrentCultureIgnoreCase) && tag.Category == INV_CATEGORY_PROP_KEY_DICT[kvp.Key])
                         .First()
                     )
                 );
@@ -56,7 +56,7 @@ namespace HitomiScrollViewerLib.Entities {
                 excludeTFSTags.AddRange(
                     tagValues.Select(tagValue =>
                         HitomiContext.Main.Tags
-                        .Where(tag => tag.Value == tagValue && tag.Category == INV_CATEGORY_PROP_KEY_DICT[kvp.Key])
+                        .Where(tag => tag.Value.Equals(tagValue, System.StringComparison.CurrentCultureIgnoreCase) && tag.Category == INV_CATEGORY_PROP_KEY_DICT[kvp.Key])
                         .First()
                     )
                 );
