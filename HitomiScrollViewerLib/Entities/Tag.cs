@@ -11,16 +11,6 @@ namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Category))]
     [Index(nameof(Value))]
     public class Tag {
-        public static readonly Dictionary<Category, string> CATEGORY_PROP_KEY_MAP = new() {
-            { Category.Tag, "tag" },
-            { Category.Male, "male" },
-            { Category.Female, "female" },
-            { Category.Artist, "artist" },
-            { Category.Group, "group" },
-            { Category.Character, "character" },
-            { Category.Series, "parody" }
-        };
-
         public long Id { get; set; }
         [Required]
         public Category Category { get; set; }

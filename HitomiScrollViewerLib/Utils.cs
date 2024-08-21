@@ -48,9 +48,7 @@ namespace HitomiScrollViewerLib {
         public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
-        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS_V2 = new() {
-            IncludeFields = true
-        };
+        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS_V2 = new(JsonSerializerDefaults.Web);
         public static readonly StringSplitOptions DEFAULT_STR_SPLIT_OPTIONS = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
 
         public static string GetExceptionDetails(Exception e) {

@@ -4,6 +4,16 @@ using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
     public class OriginalGalleryInfo {
+        private static readonly Dictionary<Category, string> CATEGORY_PROP_KEY_DICT = new() {
+            { Category.Tag, "tag" },
+            { Category.Male, "male" },
+            { Category.Female, "female" },
+            { Category.Artist, "artist" },
+            { Category.Group, "group" },
+            { Category.Character, "character" },
+            { Category.Series, "parody" }
+        };
+
         public int Id { get; set; }
         public string Title { get; set; }
         public string JapaneseTitle { get; set; }
@@ -81,7 +91,7 @@ namespace HitomiScrollViewerLib.Entities {
                 foreach (var dict in originalDictArr) {
                     gallery.Tags.Add(
                         HitomiContext.Main.Tags
-                            .Where(tag => tag.Value == dict[Tag.CATEGORY_PROP_KEY_MAP[category]] && tag.Category == category)
+                            .Where(tag => tag.Value == dict[CATEGORY_PROP_KEY_DICT[category]] && tag.Category == category)
                             .First()
                     );
                 }
