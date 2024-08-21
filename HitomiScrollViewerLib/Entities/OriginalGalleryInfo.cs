@@ -1,17 +1,14 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities.Tags;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HitomiScrollViewerLib.Entities {
     public class OriginalGalleryInfo {
         public int Id { get; set; }
         public string Title { get; set; }
-        public string JapaneseTitle { get; set; };
+        public string JapaneseTitle { get; set; }
         public string Language { get; set; }
         public string Type { get; set; }
         public string Date { get; set; }
@@ -24,8 +21,13 @@ namespace HitomiScrollViewerLib.Entities {
         public Dictionary<string, string>[] Groups { get; set; }
         public Dictionary<string, string>[] Characters { get; set; }
         public Dictionary<string, string>[] Parodys { get; set; }
-        public Dictionary<string, object>[] Tags { get; set; }
+        public CompositeTag[] Tags { get; set; }
 
+        public struct CompositeTag {
+            public string Tag { get; set; }
+            public int? Male { get; set; }
+            public int? Female { get; set; }
+        }
 
         public Gallery ToGallery() {
             Gallery gallery = new() {
@@ -39,7 +41,7 @@ namespace HitomiScrollViewerLib.Entities {
                 LanguageLocalname = LanguageLocalname,
                 SceneIndexes = SceneIndexes,
                 Related = Related,
-                Files = Files, // TODO test this but I'm pretty sure it won't work and have to create a new instance
+                Files = Files, // TODO test this but I'm pretty sure it won't work and will have to create a new instance
             };
             if (Artists != null) {
                 gallery.ArtistTags = [];
@@ -58,8 +60,30 @@ namespace HitomiScrollViewerLib.Entities {
                 SetGalleryProperty(Parodys, (ICollection<TagBase>)gallery.CharacterTags, (DbSet<TagBase>)(object)HitomiContext.Main.CharacterTags, "parody");
             }
 
-            // TODO male female tag convert format
-
+            gallery.MaleTags = [];
+            gallery.FemaleTags = [];
+            gallery.TagTags = [];
+            foreach (var compositeTag in Tags) {
+                if (compositeTag.Male == 1) {
+                    gallery.MaleTags.Add(
+                        HitomiContext.Main.MaleTags
+                            .Where(tag => tag.Value == compositeTag.Tag)
+                            .First()
+                    );
+                } else if (compositeTag.Female == 1) {
+                    gallery.FemaleTags.Add(
+                        HitomiContext.Main.FemaleTags
+                            .Where(tag => tag.Value == compositeTag.Tag)
+                            .First()
+                    );
+                } else {
+                    gallery.TagTags.Add(
+                        HitomiContext.Main.TagTags
+                            .Where(tag => tag.Value == compositeTag.Tag)
+                            .First()
+                    );
+                }
+            }
 
             return gallery;
         }
