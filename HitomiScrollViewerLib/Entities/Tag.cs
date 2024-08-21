@@ -22,7 +22,10 @@ namespace HitomiScrollViewerLib.Entities {
 
         public static Tag GetTag(string value, Category category) {
             return HitomiContext.Main.Tags
-                .Where(tag => tag.Value.Equals(value, StringComparison.CurrentCultureIgnoreCase) && tag.Category == category)
+                .Where(tag =>
+                    tag.Value.Replace(' ', '_').Equals(value, StringComparison.CurrentCultureIgnoreCase) &&
+                    tag.Category == category
+                )
                 .First();
         }
     }
