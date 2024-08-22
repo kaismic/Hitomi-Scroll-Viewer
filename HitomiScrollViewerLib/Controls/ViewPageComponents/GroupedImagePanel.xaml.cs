@@ -7,6 +7,7 @@ using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Windows.Foundation;
 using static HitomiScrollViewerLib.Controls.ViewPage;
 using static HitomiScrollViewerLib.Utils;
@@ -35,7 +36,7 @@ namespace HitomiScrollViewerLib.Controls.ViewPageComponents {
                 string[] files = Directory.GetFiles(_imageDir, i.ToString() + ".*");
                 FrameworkElement imageContainer;
                 // playable image
-                if (gallery.Files[i].Name.Contains(".gif")) {
+                if (gallery.Files.First(imageInfo => imageInfo.Index == i).Name.Contains(".gif")) {
                     WebView2 webView2 = new() {
                         IsHitTestVisible = false
                     };
@@ -57,7 +58,7 @@ namespace HitomiScrollViewerLib.Controls.ViewPageComponents {
                     imageContainer = image;
                 }
                 _imageContainers.Add(imageContainer);
-                _imageInfos.Add(gallery.Files[i]);
+                _imageInfos.Add(gallery.Files.First(imageInfo => imageInfo.Index == i));
             }
             foreach (var image in _imageContainers) {
                 Children.Add(image);
