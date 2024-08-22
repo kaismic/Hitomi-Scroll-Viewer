@@ -184,78 +184,78 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                     }
                     // file exists
                     else {
-                        try {
-                            FilesResource.GetRequest request = _driveService.Files.Get(tfssFile.Id);
-                            AttachProgressChangedEventHandler(request, (long)tfssFile.Size);
-                            // Overwrite tag filter sets
-                            // This operation must be atomic and not be cancelled because
-                            // it is disposing and creating a new TagFilterSetContext.Main
-                            if (FetchTagFilterOption1.SelectedIndex == 0) {
-                                await HitomiContext.Main.DisposeAsync();
-                                await DownloadAndWriteAsync(
-                                    request,
-                                    MAIN_DATABASE_PATH_V3,
-                                    CancellationToken.None
-                                );
-                                HitomiContext.Main = new(Path.GetFileName(MAIN_DATABASE_PATH_V3));
-                                await HitomiContext.Main.TagFilterSets.LoadAsync(CancellationToken.None);
-                                await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
-                            }
-                            // Append tag filter sets
-                            else {
-                                await DownloadAndWriteAsync(
-                                    request,
-                                    TEMP_DATABASE_PATH_V3,
-                                    _cts.Token
-                                );
-                                using HitomiContext tempCtx = new(Path.GetFileName(TEMP_DATABASE_PATH_V3));
-                                await tempCtx.TagFilterSets.LoadAsync(_cts.Token);
-                                IEnumerable<string> fetchedTFSNames = tempCtx.TagFilterSets.Select(tfs => tfs.Name);
-                                // Replace locally stored tfss with duplicate names from the cloud
-                                foreach (string fetchedTFSName in fetchedTFSNames) {
-                                    IQueryable<TagFilterSet> localDuplicateQuery = HitomiContext.Main.TagFilterSets.Where(tfs => tfs.Name == fetchedTFSName);
-                                    ICollection<TagFilterV3> fetchedTagFilters =
-                                        tempCtx.TagFilterSets
-                                        .Where(tfs => tfs.Name == fetchedTFSName)
-                                        .Include(tfs => tfs.TagTags)
-                                        .First()
-                                        .TagTags
-                                        .Select(tf => new TagFilterV3() { Category = tf.Category, Tags = tf.Tags})
-                                        .ToList();
-                                    // fetched tfs does not exist locally so just add
-                                    if (!localDuplicateQuery.Any()) {
-                                        await HitomiContext.Main.TagFilterSets.AddAsync(
-                                            new() {
-                                                Name = fetchedTFSName,
-                                                TagTags = fetchedTagFilters
-                                            },
-                                            _cts.Token
-                                        );
-                                    }
-                                    // replace local tfs with duplicate name
-                                    else if (FetchTagFilterOption2.SelectedIndex == 0) {
-                                        localDuplicateQuery.First().TagTags = fetchedTagFilters;
-                                    }
-                                }
-                                await HitomiContext.Main.SaveChangesAsync(CancellationToken.None);
-                                TagFilterSetEditor.Main.TagFilterSetComboBox.SelectedIndex = -1;
-                            }
-                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-                            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
-                            TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
-                        } catch (TaskCanceledException) {
-                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-                            TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
-                            TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
-                        } catch (Exception e) {
-                            TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                            TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
-                            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                                TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
-                            } else {
-                                TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
-                            }
-                        }
+                        //try {
+                        //    FilesResource.GetRequest request = _driveService.Files.Get(tfssFile.Id);
+                        //    AttachProgressChangedEventHandler(request, (long)tfssFile.Size);
+                        //    // Overwrite tag filter sets
+                        //    // This operation must be atomic and not be cancelled because
+                        //    // it is disposing and creating a new TagFilterSetContext.Main
+                        //    if (FetchTagFilterOption1.SelectedIndex == 0) {
+                        //        await HitomiContext.Main.DisposeAsync();
+                        //        await DownloadAndWriteAsync(
+                        //            request,
+                        //            MAIN_DATABASE_PATH_V3,
+                        //            CancellationToken.None
+                        //        );
+                        //        HitomiContext.Main = new(Path.GetFileName(MAIN_DATABASE_PATH_V3));
+                        //        await HitomiContext.Main.TagFilterSets.LoadAsync(CancellationToken.None);
+                        //        await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
+                        //    }
+                        //    // Append tag filter sets
+                        //    else {
+                        //        await DownloadAndWriteAsync(
+                        //            request,
+                        //            TEMP_DATABASE_PATH_V3,
+                        //            _cts.Token
+                        //        );
+                        //        using HitomiContext tempCtx = new(Path.GetFileName(TEMP_DATABASE_PATH_V3));
+                        //        await tempCtx.TagFilterSets.LoadAsync(_cts.Token);
+                        //        IEnumerable<string> fetchedTFSNames = tempCtx.TagFilterSets.Select(tfs => tfs.Name);
+                        //        // Replace locally stored tfss with duplicate names from the cloud
+                        //        foreach (string fetchedTFSName in fetchedTFSNames) {
+                        //            IQueryable<TagFilterSet> localDuplicateQuery = HitomiContext.Main.TagFilterSets.Where(tfs => tfs.Name == fetchedTFSName);
+                        //            ICollection<TagFilterV3> fetchedTagFilters =
+                        //                tempCtx.TagFilterSets
+                        //                .Where(tfs => tfs.Name == fetchedTFSName)
+                        //                .Include(tfs => tfs.TagTags)
+                        //                .First()
+                        //                .TagTags
+                        //                .Select(tf => new TagFilterV3() { Category = tf.Category, Tags = tf.Tags})
+                        //                .ToList();
+                        //            // fetched tfs does not exist locally so just add
+                        //            if (!localDuplicateQuery.Any()) {
+                        //                await HitomiContext.Main.TagFilterSets.AddAsync(
+                        //                    new() {
+                        //                        Name = fetchedTFSName,
+                        //                        TagTags = fetchedTagFilters
+                        //                    },
+                        //                    _cts.Token
+                        //                );
+                        //            }
+                        //            // replace local tfs with duplicate name
+                        //            else if (FetchTagFilterOption2.SelectedIndex == 0) {
+                        //                localDuplicateQuery.First().TagTags = fetchedTagFilters;
+                        //            }
+                        //        }
+                        //        await HitomiContext.Main.SaveChangesAsync(CancellationToken.None);
+                        //        TagFilterSetEditor.Main.TagFilterSetComboBox.SelectedIndex = -1;
+                        //    }
+                        //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
+                        //    TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
+                        //    TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
+                        //} catch (TaskCanceledException) {
+                        //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
+                        //    TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
+                        //    TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
+                        //} catch (Exception e) {
+                        //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
+                        //    TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
+                        //    if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                        //        TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                        //    } else {
+                        //        TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                        //    }
+                        //}
                     }
                     TagFilterSyncResultInfoBar.IsOpen = true;
                 }

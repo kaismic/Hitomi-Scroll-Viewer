@@ -139,44 +139,44 @@ namespace HitomiScrollViewerLib.Controls {
         }
 
         private async Task AddGroupedImagePanels(int pageIndex) {
-            _imgIndexRangesPerPage.Clear();
-            PageNavigator.Items.Clear();
-            ImageFlipView.Items.Clear();
-            foreach (var panel in _groupedImagePanels) {
-                panel.Children.Clear();
-            }
-            _groupedImagePanels.Clear();
+            //_imgIndexRangesPerPage.Clear();
+            //PageNavigator.Items.Clear();
+            //ImageFlipView.Items.Clear();
+            //foreach (var panel in _groupedImagePanels) {
+            //    panel.Children.Clear();
+            //}
+            //_groupedImagePanels.Clear();
 
-            while (ImageFlipView.ActualWidth == 0 || ImageFlipView.ActualHeight == 0) {
-                await Task.Delay(100);
-            }
+            //while (ImageFlipView.ActualWidth == 0 || ImageFlipView.ActualHeight == 0) {
+            //    await Task.Delay(100);
+            //}
 
-            int? rangeIndexIncludingPageIndex = null;
-            // create _groupedImagePanels with size-adaptative image number allocation per page
-            double viewportAspectRatio = ImageFlipView.ActualWidth / ImageFlipView.ActualHeight;
-            double currRemainingAspectRatio = viewportAspectRatio - (double)CurrLoadedGallery.Files[0].Width / CurrLoadedGallery.Files[0].Height;
-            (int start, int end) currRange = (0, 1);
-            for (int i = 1; i < CurrLoadedGallery.Files.Length; i++) {
-                double imgAspectRatio = (double)CurrLoadedGallery.Files[i].Width / CurrLoadedGallery.Files[i].Height;
-                if (imgAspectRatio >= currRemainingAspectRatio) {
-                    if (currRange.start <= pageIndex && pageIndex < currRange.end) {
-                        rangeIndexIncludingPageIndex = _imgIndexRangesPerPage.Count;
-                    }
-                    AddRangeItems(currRange.start..currRange.end);
-                    currRange = (i, i);
-                    currRemainingAspectRatio = viewportAspectRatio;
-                }
-                currRemainingAspectRatio -= imgAspectRatio;
-                currRange.end++;
-            }
-            // add last range
-            AddRangeItems(currRange.start..currRange.end);
+            //int? rangeIndexIncludingPageIndex = null;
+            //// create _groupedImagePanels with size-adaptative image number allocation per page
+            //double viewportAspectRatio = ImageFlipView.ActualWidth / ImageFlipView.ActualHeight;
+            //double currRemainingAspectRatio = viewportAspectRatio - (double)CurrLoadedGallery.Files[0].Width / CurrLoadedGallery.Files[0].Height;
+            //(int start, int end) currRange = (0, 1);
+            //for (int i = 1; i < CurrLoadedGallery.Files.Length; i++) {
+            //    double imgAspectRatio = (double)CurrLoadedGallery.Files[i].Width / CurrLoadedGallery.Files[i].Height;
+            //    if (imgAspectRatio >= currRemainingAspectRatio) {
+            //        if (currRange.start <= pageIndex && pageIndex < currRange.end) {
+            //            rangeIndexIncludingPageIndex = _imgIndexRangesPerPage.Count;
+            //        }
+            //        AddRangeItems(currRange.start..currRange.end);
+            //        currRange = (i, i);
+            //        currRemainingAspectRatio = viewportAspectRatio;
+            //    }
+            //    currRemainingAspectRatio -= imgAspectRatio;
+            //    currRange.end++;
+            //}
+            //// add last range
+            //AddRangeItems(currRange.start..currRange.end);
 
-            SetCurrPageText(_imgIndexRangesPerPage[(int)rangeIndexIncludingPageIndex]);
-            await AttachPageEventHandlers(false);
-            ImageFlipView.SelectedIndex = (int)rangeIndexIncludingPageIndex;
-            PageNavigator.SelectedIndex = (int)rangeIndexIncludingPageIndex;
-            await AttachPageEventHandlers(true);
+            //SetCurrPageText(_imgIndexRangesPerPage[(int)rangeIndexIncludingPageIndex]);
+            //await AttachPageEventHandlers(false);
+            //ImageFlipView.SelectedIndex = (int)rangeIndexIncludingPageIndex;
+            //PageNavigator.SelectedIndex = (int)rangeIndexIncludingPageIndex;
+            //await AttachPageEventHandlers(true);
 
             await SetImageOrientationAndSize();
         }
@@ -248,7 +248,7 @@ namespace HitomiScrollViewerLib.Controls {
         }
 
         private void SetCurrPageText(Range range) {
-            PageNumTextBlock.Text = $"{GetPageIndexText(range)} / {CurrLoadedGallery.Files.Length}";
+            //PageNumTextBlock.Text = $"{GetPageIndexText(range)} / {CurrLoadedGallery.Files.Length}";
         }
 
         private void ShowActionIndicator(Symbol? symbol, string glyph) {
