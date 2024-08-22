@@ -21,12 +21,13 @@ namespace HitomiScrollViewerLib.Entities {
         public virtual ICollection<Gallery> Galleries { get; set; }
 
         public static Tag GetTag(string value, Category category) {
-            return HitomiContext.Main.Tags
-                .Where(tag =>
+            Tag tag = HitomiContext.Main.Tags
+                .FirstOrDefault(tag =>
                     tag.Value.Replace(' ', '_').Equals(value, StringComparison.CurrentCultureIgnoreCase) &&
                     tag.Category == category
-                )
-                .First();
+                );
+            tag ??= new() { Value = value, Category = category };
+            return tag;
         }
     }
 }
