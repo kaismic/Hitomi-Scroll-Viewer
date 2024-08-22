@@ -12,6 +12,7 @@ namespace HitomiScrollViewerLib.Entities {
 
     [Index(nameof(Value))]
     public class Tag {
+        public static readonly int CATEGORY_NUM = Enum.GetNames(typeof(Category)).Length;
         public long Id { get; set; }
         [Required]
         public Category Category { get; set; }
