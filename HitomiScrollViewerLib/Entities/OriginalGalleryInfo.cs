@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
     public class OriginalGalleryInfo {
@@ -47,7 +48,14 @@ namespace HitomiScrollViewerLib.Entities {
                 LanguageLocalname = LanguageLocalname,
                 SceneIndexes = SceneIndexes,
                 Related = Related,
-                Files = Files, // TODO test this but I'm pretty sure it won't work and will have to create a new instance
+                Files =
+                    Files
+                    .Select((imageInfo, i) => {
+                        ImageInfo clone = imageInfo.Clone();
+                        clone.Index = i;
+                        return clone;
+                    })
+                    .ToHashSet(),
                 Tags = []
             };
             SetGalleryProperty(Artists, gallery, Category.Artist);
