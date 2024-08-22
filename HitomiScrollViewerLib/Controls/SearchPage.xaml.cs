@@ -106,6 +106,7 @@ namespace HitomiScrollViewerLib.Controls
                         reporter.LoadProgressBar.IsIndeterminate = true;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);
                     });
+                    HitomiContext.InitAddDatabaseTags();
                     HitomiContext.Main.AddExampleTagFilterSets();
                 }
 
