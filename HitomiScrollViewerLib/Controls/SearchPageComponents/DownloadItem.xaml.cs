@@ -203,7 +203,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
                 try {
                     _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS);
-                    DownloadProgressBar.Maximum = _gallery.Files.Length;
+                    DownloadProgressBar.Maximum = _gallery.Files.Count;
                     Description.Text += $" - {_gallery.Title}"; // add title to description
                 } catch (JsonException e) {
                     SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message);
@@ -235,9 +235,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 }
             } catch (DirectoryNotFoundException) {
                 // need to download all images
-                missingIndexes = Enumerable.Range(0, _gallery.Files.Length).ToList();
+                missingIndexes = Enumerable.Range(0, _gallery.Files.Count).ToList();
             }
-            DownloadProgressBar.Value = _gallery.Files.Length - missingIndexes.Count;
+            DownloadProgressBar.Value = _gallery.Files.Count - missingIndexes.Count;
             DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
 
             if (!_ggjsInitFetched) {
@@ -357,8 +357,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private static string GetImageFormat(ImageInfo imageInfo) {
-            return imageInfo.HasWebp == 1 ? "webp" :
-                   imageInfo.HasAvif == 1 ? "avif" :
+            return imageInfo.Haswebp == 1 ? "webp" :
+                   imageInfo.Hasavif == 1 ? "avif" :
                    "jxl";
         }
 
@@ -416,7 +416,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             FetchInfo[] fetchInfos =
                 missingIndexes
                 .Select(missingIndex => {
-                    ImageInfo imageInfo = _gallery.Files[missingIndex];
+                    ImageInfo imageInfo = (_gallery.Files as List<ImageInfo>)[missingIndex];
                     string imageFormat = GetImageFormat(imageInfo);
                     return new FetchInfo() {
                         Idx = missingIndex,
@@ -485,7 +485,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private List<int> GetMissingIndexes() {
             string imageDir = Path.Combine(IMAGE_DIR_V2, _id.ToString());
             List<int> missingIndexes = [];
-            for (int i = 0; i < _gallery.Files.Length; i++) {
+            for (int i = 0; i < _gallery.Files.Count; i++) {
                 string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
                 if (file.Length == 0) {
                     missingIndexes.Add(i);
