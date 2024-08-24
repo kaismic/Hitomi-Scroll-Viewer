@@ -103,10 +103,20 @@ namespace HitomiScrollViewerLib.Controls
                 // User installed app (v3) for the first time and created TagFilterSetContext database for the first time
                 if (!v2TagFilterExists && tagFilterSetDbCreatedFirstTime) {
                     await DispatcherQueue.EnqueueAsync(() => {
+                        reporter.LoadProgressBar.IsIndeterminate = false;
+                        reporter.LoadProgressBar.Value = 0;
+                        reporter.LoadProgressBar.Maximum = HitomiContext.TAG_DATABASE_INIT_NUM;
+                        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingDatabaseTags);
+                    });
+                    HitomiContext.Main.AddtDatabaseTagsProgressChanged += (object _, int e) => {
+                        DispatcherQueue.TryEnqueue(() => reporter.LoadProgressBar.Value = e);
+                    };
+                    HitomiContext.AddDatabaseTags();
+                    HitomiContext.ClearInvocationList();
+                    await DispatcherQueue.EnqueueAsync(() => {
                         reporter.LoadProgressBar.IsIndeterminate = true;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);
                     });
-                    HitomiContext.InitAddDatabaseTags();
                     HitomiContext.Main.AddExampleTagFilterSets();
                 }
 
@@ -132,7 +142,7 @@ namespace HitomiScrollViewerLib.Controls
 
                 await DispatcherQueue.EnqueueAsync(() => {
                     reporter.LoadProgressBar.IsIndeterminate = true;
-                    reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.Initialising);
+                    reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.InitialisingApp);
                 });
                 await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
                 await SyncManager.Init();
