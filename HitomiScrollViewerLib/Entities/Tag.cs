@@ -23,7 +23,7 @@ namespace HitomiScrollViewerLib.Entities {
         public virtual ICollection<Gallery> Galleries { get; set; }
 
         public static Tag GetTag(string value, Category category) {
-            string formattedValue = value.Replace(' ', '_').ToLower();
+            string formattedValue = value.ToLower();
             Tag tag = HitomiContext.Main.Tags
                 .FirstOrDefault(tag =>
                     tag.Value == formattedValue &&
