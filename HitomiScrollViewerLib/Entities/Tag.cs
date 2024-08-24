@@ -29,9 +29,11 @@ namespace HitomiScrollViewerLib.Entities {
                     tag.Value == formattedValue &&
                     tag.Category == category
                 );
-            tag ??= new() { Value = formattedValue, Category = category };
-            HitomiContext.Main.Tags.Add(tag);
-            HitomiContext.Main.SaveChanges();
+            if (tag == null) {
+                tag = new() { Value = formattedValue, Category = category };
+                HitomiContext.Main.Tags.Add(tag);
+                HitomiContext.Main.SaveChanges();
+            }
             return tag;
         }
     }
