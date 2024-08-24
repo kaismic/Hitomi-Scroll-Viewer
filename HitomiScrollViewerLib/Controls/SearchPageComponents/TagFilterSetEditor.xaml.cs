@@ -74,15 +74,18 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 categoryHeaderBorder.Child = categoryHeader;
 
                 _tfsTextBoxes[i] = new() {
+                    Category = (Category)i,
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(0),
                     Padding = new Thickness(0),
                     IsEnabled = false
                 };
-                SetRow(_tfsTextBoxes[i], 1);
-                SetColumn(_tfsTextBoxes[i], i);
-                TextBoxesGrid.Children.Add(_tfsTextBoxes[i]);
+                StackPanel tfsTextBoxWrapper = new();
+                tfsTextBoxWrapper.Children.Add(_tfsTextBoxes[i]);
+                SetRow(tfsTextBoxWrapper, 1);
+                SetColumn(tfsTextBoxWrapper, i);
+                TextBoxesGrid.Children.Add(tfsTextBoxWrapper);
             }
 
             IncludeTFSSelector.RegisterPropertyChangedCallback(
@@ -95,6 +98,14 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             );
 
             Loaded += TagFilterSetEditor_Loaded;
+            SizeChanged += (object sender, SizeChangedEventArgs e) => {
+                foreach (TagTokenizingTextBox tttb in _tfsTextBoxes) {
+                    double maxHeight = TTTBsRowDef.ActualHeight - 16;
+                    if (maxHeight >= 0) {
+                        tttb.MaxHeight = maxHeight;
+                    }
+                }
+            };
         }
 
         private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
@@ -136,14 +147,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 .ToHashSet();
         }
 
-        private void ClearTextBoxes() {
+        private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             foreach (var textBox in _tfsTextBoxes) {
                 textBox.SelectedTags.Clear();
             }
-        }
-
-        private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            ClearTextBoxes();
             if (TagFilterSetComboBox.SelectedIndex == -1) {
                 RenameButton.IsEnabled = SaveButton.IsEnabled = false;
                 return;

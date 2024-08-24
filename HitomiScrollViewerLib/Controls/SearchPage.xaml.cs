@@ -120,12 +120,12 @@ namespace HitomiScrollViewerLib.Controls
                     HitomiContext.Main.AddExampleTagFilterSets();
                 }
 
-                // move images folder in roaming folder to local
-                await DispatcherQueue.EnqueueAsync(() => {
-                    reporter.LoadProgressBar.IsIndeterminate = true;
-                    reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MovingImageFolder);
-                });
                 if (Directory.Exists(IMAGE_DIR_V2)) {
+                    // move images folder in roaming folder to local
+                    await DispatcherQueue.EnqueueAsync(() => {
+                        reporter.LoadProgressBar.IsIndeterminate = true;
+                        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MovingImageFolder);
+                    });
                     Directory.Move(IMAGE_DIR_V2, IMAGE_DIR_V3);
                 }
 

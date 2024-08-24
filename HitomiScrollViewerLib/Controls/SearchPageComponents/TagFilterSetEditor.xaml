@@ -73,7 +73,7 @@
           VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition x:Name="TTTBsRowDef" Height="*"/>
         </Grid.RowDefinitions>
     </Grid>
     <Grid Grid.Row="2" ColumnSpacing="8">
