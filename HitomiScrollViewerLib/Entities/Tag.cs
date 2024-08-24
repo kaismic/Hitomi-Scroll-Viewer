@@ -30,6 +30,8 @@ namespace HitomiScrollViewerLib.Entities {
                     tag.Category == category
                 );
             tag ??= new() { Value = formattedValue, Category = category };
+            HitomiContext.Main.Tags.Add(tag);
+            HitomiContext.Main.SaveChanges();
             return tag;
         }
     }
