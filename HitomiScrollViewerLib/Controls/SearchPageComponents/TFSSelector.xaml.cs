@@ -70,7 +70,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     var removingTFSs = e.OldItems.Cast<TagFilterSet>();
                     foreach (var tfs in removingTFSs) {
                         _checkedBoxes.Remove(tfs.Id);
-                        var removingCheckBox = _tfsCheckBoxes.FirstOrDefault(checkBox => checkBox.TagFilterSet == tfs, null);
+                        var removingCheckBox = _tfsCheckBoxes.FirstOrDefault(checkBox => checkBox.TagFilterSet == tfs);
                         if (removingCheckBox != null) {
                             _tfsCheckBoxes.Remove(removingCheckBox);
                         }
