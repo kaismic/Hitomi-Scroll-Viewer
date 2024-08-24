@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ctk:TokenizingTextBox
+    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.TagTokenizingTextBox"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctk="using:CommunityToolkit.WinUI.Controls"
+    xmlns:entities="using:HitomiScrollViewerLib.Entities"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    ItemsSource="{x:Bind SelectedTags, Mode=TwoWay}"
+    TextChanged="TokenizingTextBox_TextChanged"
+    TokenDelimiter="">
+    <ctk:TokenizingTextBox.SuggestedItemTemplate>
+        <DataTemplate x:DataType="entities:Tag">
+            <TextBlock Text="{x:Bind Value}" />
+        </DataTemplate>
+    </ctk:TokenizingTextBox.SuggestedItemTemplate>
+    <ctk:TokenizingTextBox.TokenItemTemplate>
+        <DataTemplate x:DataType="entities:Tag">
+            <TextBlock Text="{x:Bind Value}" />
+        </DataTemplate>
+    </ctk:TokenizingTextBox.TokenItemTemplate>
+</ctk:TokenizingTextBox>
