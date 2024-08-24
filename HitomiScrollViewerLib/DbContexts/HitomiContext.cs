@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,9 +32,10 @@ namespace HitomiScrollViewerLib.DbContexts {
         }
 
         private static readonly string[] ALPHABETS_WITH_123 =
-            Enumerable.Concat(["123"], Enumerable.Range('a', 26)
-                .Select(letter => letter.ToString()))
-                .ToArray();
+            Enumerable.Concat(
+                ["123"],
+                Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())
+            ).ToArray();
 
         private const string TAG_RES_ROOT_DIR = "TagResources";
         private static readonly Dictionary<Category, string> CATEGORY_DIR_DICT = new() {
@@ -46,7 +48,10 @@ namespace HitomiScrollViewerLib.DbContexts {
             { Category.Series, "Series" }
         };
 
-        public static void InitAddDatabaseTags() {
+        public static readonly int TAG_DATABASE_INIT_NUM = Tag.CATEGORY_NUM * ALPHABETS_WITH_123.Length;
+        public event EventHandler<int> AddtDatabaseTagsProgressChanged;
+        public static void AddDatabaseTags() {
+            int progressValue = 0;
             for (int i = 0; i < Tag.CATEGORY_NUM; i++) {
                 Category category = (Category)i;
                 string categoryStr = CATEGORY_DIR_DICT[category];
@@ -56,11 +61,22 @@ namespace HitomiScrollViewerLib.DbContexts {
                     categoryStr
                 );
                 foreach (string alphanumStr in ALPHABETS_WITH_123) {
-                    string[] tagValues = File.ReadAllLines(Path.Combine(dir, $"{categoryStr.ToLower()}-{alphanumStr}.txt"));
+                    string path = Path.Combine(dir, $"{categoryStr.ToLower()}-{alphanumStr}.txt");
+                    string[] tagValues = File.ReadAllLines(path);
                     Main.Tags.AddRange(tagValues.Select(tagValue => new Tag() { Category = category, Value = tagValue }));
+                    Main.AddtDatabaseTagsProgressChanged?.Invoke(null, ++progressValue);
                 }
             }
             Main.SaveChanges();
+        }
+
+        public static void ClearInvocationList() {
+            var invocList = Main.AddtDatabaseTagsProgressChanged?.GetInvocationList();
+            if (invocList != null) {
+                foreach (Delegate d in invocList) {
+                    Main.AddtDatabaseTagsProgressChanged -= (EventHandler<int>)d;
+                }
+            }
         }
 
         public void AddExampleTagFilterSets() {
