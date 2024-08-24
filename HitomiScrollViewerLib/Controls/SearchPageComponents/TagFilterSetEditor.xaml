@@ -44,6 +44,7 @@
                   SelectedValuePath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                  Visibility="Collapsed"
                   >
         </ComboBox>
         <Button x:Name="SaveButton"
@@ -92,16 +93,18 @@
                       VerticalAlignment="Center"
                       />
         <spc:PairedTFSSelector x:Name="IncludeTFSSelector"
-                                  HeaderTextRes="HeaderText_Include"
-                                  HeaderForeground="Green"
-                                  OtherPairedSelector="{x:Bind ExcludeTFSSelector}"
-                                  Grid.Column="0"
+                               HeaderTextRes="HeaderText_Include"
+                               HeaderForeground="Green"
+                               OtherPairedSelector="{x:Bind ExcludeTFSSelector}"
+                               Grid.Column="0"
+                               Visibility="Collapsed"
                                   />
         <spc:PairedTFSSelector x:Name="ExcludeTFSSelector"
-                                  HeaderTextRes="HeaderText_Exclude"
-                                  HeaderForeground="Red"
-                                  OtherPairedSelector="{x:Bind IncludeTFSSelector}"
-                                  Grid.Column="1"
+                               HeaderTextRes="HeaderText_Exclude"
+                               HeaderForeground="Red"
+                               OtherPairedSelector="{x:Bind IncludeTFSSelector}"
+                               Grid.Column="1"
+                               Visibility="Collapsed"
                                   />
     </Grid>
 </Grid>

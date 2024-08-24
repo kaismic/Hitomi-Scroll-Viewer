@@ -12,16 +12,25 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class TagFilterSetEditor : Grid {
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
+        private static readonly Dictionary<Category, string> CATEGORY_SEARCH_PARAM_DICT = new() {
+            { Category.Tag, "tag" },
+            { Category.Male, "male" },
+            { Category.Female, "female" },
+            { Category.Artist, "artist" },
+            { Category.Group, "group" },
+            { Category.Character, "character" },
+            { Category.Series, "series" }
+        };
 
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetEditor).Name);
         public static TagFilterSetEditor Main { get; set; }
 
-        private readonly TextBox[] _tagFilterTextBoxes = new TextBox[Entities.Tag.CATEGORY_NUM];
+        private readonly TagTokenizingTextBox[] _tfsTextBoxes = new TagTokenizingTextBox[Entities.Tag.CATEGORY_NUM];
+
         private readonly CRUDActionContentDialog _crudActionContentDialog = new();
         internal Button HyperlinkCreateButton { get; set; }
 
@@ -64,17 +73,16 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 };
                 categoryHeaderBorder.Child = categoryHeader;
 
-                _tagFilterTextBoxes[i] = new() {
+                _tfsTextBoxes[i] = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
-                    AcceptsReturn = true,
-                    TextWrapping = TextWrapping.Wrap,
                     CornerRadius = new CornerRadius(0),
-                    Padding = new Thickness(0)
+                    Padding = new Thickness(0),
+                    IsEnabled = false
                 };
-                SetRow(_tagFilterTextBoxes[i], 1);
-                SetColumn(_tagFilterTextBoxes[i], i);
-                TextBoxesGrid.Children.Add(_tagFilterTextBoxes[i]);
+                SetRow(_tfsTextBoxes[i], 1);
+                SetColumn(_tfsTextBoxes[i], i);
+                TextBoxesGrid.Children.Add(_tfsTextBoxes[i]);
             }
 
             IncludeTFSSelector.RegisterPropertyChangedCallback(
@@ -89,26 +97,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             Loaded += TagFilterSetEditor_Loaded;
         }
 
-        private void ShowProgressRings(bool show) {
-            if (show) {
-                TagFilterSetComboBox.Visibility = Visibility.Collapsed;
-                IncludeTFSSelector.Visibility = Visibility.Collapsed;
-                ExcludeTFSSelector.Visibility = Visibility.Collapsed;
-                _comboBoxProgRing.Visibility = Visibility.Visible;
-                IncludeTFSSelectorProgRing.Visibility = Visibility.Visible;
-                ExcludeTFSSelectorProgRing.Visibility = Visibility.Visible;
-            } else {
-                _comboBoxProgRing.Visibility = Visibility.Collapsed;
-                IncludeTFSSelectorProgRing.Visibility = Visibility.Collapsed;
-                ExcludeTFSSelectorProgRing.Visibility = Visibility.Collapsed;
-                TagFilterSetComboBox.Visibility = Visibility.Visible; 
-                IncludeTFSSelector.Visibility = Visibility.Visible;
-                ExcludeTFSSelector.Visibility = Visibility.Visible;
-            }
+        private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
+            _crudActionContentDialog.XamlRoot = MainWindow.SearchPage.XamlRoot;
+            Loaded -= TagFilterSetEditor_Loaded;
         }
 
         internal void Init() {
-            ShowProgressRings(true);
             TagFilterSetComboBox.SelectedIndex = -1;
             ObservableCollection<TagFilterSet> collection = HitomiContext.Main.TagFilterSets.Local.ToObservableCollection();
             TagFilterSetComboBox.ItemsSource = null;
@@ -116,86 +110,74 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             IncludeTFSSelector.SetCollectionSource(collection);
             ExcludeTFSSelector.SetCollectionSource(collection);
             _crudActionContentDialog.DeletingTFSSelector.SetCollectionSource(collection);
-
             CreateButton.IsEnabled = true;
             DeleteButton.IsEnabled = true;
-            ShowProgressRings(false);
+            for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
+                _tfsTextBoxes[i].IsEnabled = true;
+            }
+            _comboBoxProgRing.Visibility = Visibility.Collapsed;
+            IncludeTFSSelectorProgRing.Visibility = Visibility.Collapsed;
+            ExcludeTFSSelectorProgRing.Visibility = Visibility.Collapsed;
+            TagFilterSetComboBox.Visibility = Visibility.Visible;
+            IncludeTFSSelector.Visibility = Visibility.Visible;
+            ExcludeTFSSelector.Visibility = Visibility.Visible;
         }
 
         private void EnableHyperlinkCreateButton(DependencyObject _0, DependencyProperty _1) {
             HyperlinkCreateButton.IsEnabled = IncludeTFSSelector.AnyChecked || ExcludeTFSSelector.AnyChecked;
         }
 
-        private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
-            _crudActionContentDialog.XamlRoot = MainWindow.SearchPage.XamlRoot;
-            Loaded -= TagFilterSetEditor_Loaded;
+        private HashSet<Tag> GetCurrentTags() {
+            return
+                Enumerable
+                .Range(0, Entities.Tag.CATEGORY_NUM)
+                .Select(i => _tfsTextBoxes[i].SelectedTags)
+                .SelectMany(tags => tags)
+                .ToHashSet();
         }
 
-        //internal void InsertTagFilters(ICollection<TagFilterV3> tagFilters) {
-        //    foreach (TagFilterV3 tagFilter in tagFilters) {
-        //        _tagFilterTextBoxes[CATEGORY_INDEX_MAP[tagFilter.Category]].Text = string.Join(Environment.NewLine, tagFilter.Tags);
-        //    }
-        //}
-
-        //private List<string> GetTags(Category category) {
-        //    return
-        //        _tagFilterTextBoxes[CATEGORY_INDEX_MAP[category]]
-        //        .Text
-        //        .Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS)
-        //        .Distinct()
-        //        .ToList();
-        //}
-
         private void ClearTextBoxes() {
-            foreach (var textBox in _tagFilterTextBoxes) {
-                textBox.Text = "";
+            foreach (var textBox in _tfsTextBoxes) {
+                textBox.SelectedTags.Clear();
             }
         }
 
         private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            //if (TagFilterSetComboBox.SelectedIndex == -1) {
-            //    RenameButton.IsEnabled = SaveButton.IsEnabled = false;
-            //    ClearTextBoxes();
-            //    return;
-            //}
-            //RenameButton.IsEnabled = SaveButton.IsEnabled = true;
-            //InsertTagFilters(
-            //    HitomiContext.Main
-            //        .TagFilterSets
-            //        .Where(tfs => tfs.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id)
-            //        .Include(tfs => tfs.TagTags)
-            //        .First()
-            //        .TagTags
-            //);
+            ClearTextBoxes();
+            if (TagFilterSetComboBox.SelectedIndex == -1) {
+                RenameButton.IsEnabled = SaveButton.IsEnabled = false;
+                return;
+            }
+            RenameButton.IsEnabled = SaveButton.IsEnabled = true;
+            ICollection<Tag> selectedTFSTags = HitomiContext.Main
+                .TagFilterSets
+                .Include(tfs => tfs.Tags)
+                .First(tfs => tfs.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id)
+                .Tags;
+            foreach (Tag tag in selectedTFSTags) {
+                _tfsTextBoxes[(int)tag.Category].SelectedTags.Add(tag);
+            }
         }
 
         private async void CreateButton_Click(object _0, RoutedEventArgs _1) {
-            //_crudActionContentDialog.SetDialogAction(CRUDActionContentDialog.Action.Create);
-            //if (await _crudActionContentDialog.ShowAsync() != ContentDialogResult.Primary) {
-            //    return;
-            //}
-            //string name = _crudActionContentDialog.GetInputText();
-            //TagFilterSet tagFilterSet = new() {
-            //    Name = name,
-            //    TagTags =
-            //        CATEGORIES
-            //        .Select(
-            //            category => new TagFilterV3() {
-            //                Category = category,
-            //                Tags = GetTags(category)
-            //            }
-            //        )
-            //        .ToList()
-            //};
-            //HitomiContext.Main.TagFilterSets.Add(tagFilterSet);
-            //HitomiContext.Main.SaveChanges();
-            //TagFilterSetComboBox.SelectedItem = tagFilterSet;
-            //MainWindow.SearchPage.ShowInfoBar(
-            //    string.Format(
-            //        _resourceMap.GetValue("InfoBar_Message_Create_Complete").ValueAsString,
-            //        name
-            //    )
-            //);
+            _crudActionContentDialog.SetDialogAction(CRUDActionContentDialog.Action.Create);
+            if (await _crudActionContentDialog.ShowAsync() != ContentDialogResult.Primary) {
+                return;
+            }
+            string name = _crudActionContentDialog.GetInputText();
+            TagFilterSet tagFilterSet = new() {
+                Name = name,
+                Tags = GetCurrentTags()
+            };
+            HitomiContext.Main.TagFilterSets.Add(tagFilterSet);
+            HitomiContext.Main.SaveChanges();
+            TagFilterSetComboBox.SelectedItem = tagFilterSet;
+            MainWindow.SearchPage.ShowInfoBar(
+                string.Format(
+                    _resourceMap.GetValue("InfoBar_Message_Create_Complete").ValueAsString,
+                    name
+                )
+            );
         }
 
         private async void RenameButton_Click(object _0, RoutedEventArgs _1) {
@@ -218,20 +200,17 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void SaveButton_Click(object _0, RoutedEventArgs _1) {
-            //TagFilterSet tagFilterSet =
-            //    HitomiContext.Main
-            //    .TagFilterSets
-            //    .First(tagFilterSet => tagFilterSet.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id);
-            //foreach (TagFilterV3 tagFilter in tagFilterSet.TagTags) {
-            //    tagFilter.Tags = GetTags(tagFilter.Category);
-            //}
-            //HitomiContext.Main.SaveChanges();
-            //MainWindow.SearchPage.ShowInfoBar(
-            //    string.Format(
-            //        _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
-            //        tagFilterSet.Name
-            //    )
-            //);
+            TagFilterSet tfs =
+                HitomiContext.Main.TagFilterSets
+                .First(tagFilterSet => tagFilterSet.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id);
+            tfs.Tags = GetCurrentTags();
+            HitomiContext.Main.SaveChanges();
+            MainWindow.SearchPage.ShowInfoBar(
+                string.Format(
+                    _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
+                    tfs.Name
+                )
+            );
         }
 
         // Special exception case for delete action: Handle delete action in _crudActionContentDialog PrimaryButtonClick event
@@ -249,115 +228,73 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         internal SearchLinkItem GetSearchLinkItem(ObservableCollection<SearchLinkItem> searchLinkItems) {
-            //TagFilterSet selectedTFS = (TagFilterSet)TagFilterSetComboBox.SelectedItem;
+            TagFilterSet selectedTFS = (TagFilterSet)TagFilterSetComboBox.SelectedItem;
 
-            //IEnumerable<TagFilterSet> includeTFSs = IncludeTFSSelector.GetCheckedTagFilterSets();
-            //IEnumerable<TagFilterSet> excludeTFSs = ExcludeTFSSelector.GetCheckedTagFilterSets();
-            //IEnumerable<long> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
-            //IEnumerable<long> excludeTFSIds = excludeTFSs.Select(tfs => tfs.Id);
-            //HitomiContext.Main.TagFilterSets
-            //    .Where(tfs => includeTFSIds.Contains(tfs.Id) || excludeTFSIds.Contains(tfs.Id))
-            //    .Include(tfs => tfs.TagTags)
-            //    .Load();
-            //IEnumerable<string>[] includeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
-            //IEnumerable<string>[] excludeTagFilters = CATEGORIES.Select(category => Enumerable.Empty<string>()).ToArray();
+            IEnumerable<TagFilterSet> includeTFSs = IncludeTFSSelector.GetCheckedTagFilterSets();
+            IEnumerable<TagFilterSet> excludeTFSs = ExcludeTFSSelector.GetCheckedTagFilterSets();
+            IEnumerable<int> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
+            IEnumerable<int> excludeTFSIds = excludeTFSs.Select(tfs => tfs.Id);
+            HitomiContext.Main.TagFilterSets
+                .Where(tfs => includeTFSIds.Contains(tfs.Id) || excludeTFSIds.Contains(tfs.Id))
+                .Include(tfs => tfs.Tags)
+                .Load();
+            IEnumerable<Tag> includeTags = includeTFSs.SelectMany(tfs => tfs.Tags);
+            IEnumerable<Tag> excludeTags = excludeTFSs.SelectMany(tfs => tfs.Tags);
 
-            //KeyValuePair<string, IEnumerable<string>>[] dupTagFiltersDict = new KeyValuePair<string, IEnumerable<string>>[CATEGORIES.Length];
-            //IEnumerable<string>[] currTagFiltersInTextBox = CATEGORIES.Select(GetTags).ToArray();
+            // check if all selected TFSs are all empty
+            if (!includeTags.Any() && !excludeTags.Any()) {
+                MainWindow.CurrentMainWindow.NotifyUser(
+                    _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString,
+                    ""
+                );
+                return null;
+            }
 
-            //void TakeTagFilterSetsUnion(IEnumerable<TagFilterSet> tagFilterSets, IEnumerable<string>[] tagFilters) {
-            //    if (selectedTFS == null) {
-            //        foreach (TagFilterSet tagFilterSet in tagFilterSets) {
-            //            for (int i = 0; i < CATEGORIES.Length; i++) {
-            //                tagFilters[i] = tagFilters[i].Union(tagFilterSet.TagTags.Select(tagFilter => tagFilter.Tags).ToArray()[i]);
-            //            }
-            //        }
-            //    } else {
-            //        foreach (TagFilterSet tagFilterSet in tagFilterSets) {
-            //            IEnumerable<string>[] tagsArray =
-            //                tagFilterSet.Id == selectedTFS?.Id
-            //                ? currTagFiltersInTextBox // use the current tags in the TagFilterEditControl textboxes instead
-            //                : tagFilterSet.TagTags.Select(tagFilter => tagFilter.Tags).ToArray();
-            //            for (int i = 0; i < CATEGORIES.Length; i++) {
-            //                tagFilters[i] = tagFilters[i].Union(tagsArray[i]);
-            //            }
-            //        }
-            //    }
-            //}
-            //TakeTagFilterSetsUnion(includeTFSs, includeTagFilters);
-            //TakeTagFilterSetsUnion(excludeTFSs, excludeTagFilters);
+            // update to use current tags in text boxes if a TFS is selected in combobox
+            if (selectedTFS != null) {
+                HashSet<Tag> currentTags = GetCurrentTags();
+                if (includeTFSIds.Contains(selectedTFS.Id)) {
+                    includeTags = includeTags.Except(selectedTFS.Tags).Union(currentTags);
+                } else if (excludeTFSIds.Contains(selectedTFS.Id)) {
+                    excludeTags = excludeTags.Except(selectedTFS.Tags).Union(currentTags);
+                }
+            }
+            IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
 
-            //for (int i = 0; i < CATEGORIES.Length; i++) {
-            //    dupTagFiltersDict[i] = new(CATEGORIES[i], includeTagFilters[i].Intersect(excludeTagFilters[i]));
-            //}
+            if (dupTags.Any()) {
+                IEnumerable<string> dupTagStrs =
+                    Enumerable
+                    .Range(0, Entities.Tag.CATEGORY_NUM)
+                    .Select(i => {
+                        Category category = (Category)i;
+                        string joinedValues = string.Join(", ", dupTags.Where(tag => tag.Category == category).Select(tag => tag.Value));
+                        return category.ToString() + ": " + joinedValues;
+                    });
+                MainWindow.CurrentMainWindow.NotifyUser(
+                    _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
+                    string.Join(Environment.NewLine, dupTagStrs)
+                );
+                return null;
+            }
 
-            //string overlappingTagFiltersText =
-            //    dupTagFiltersDict.Aggregate(
-            //        "",
-            //        (result, dupTagFiltersPair) =>
-            //            dupTagFiltersPair.Value.Any()
-            //                ? (
-            //                    result +=
-            //                        dupTagFiltersPair.Key[0].ToString().ToUpper() + dupTagFiltersPair.Key[1..] + ": " +
-            //                        string.Join(", ", dupTagFiltersPair.Value) +
-            //                        Environment.NewLine
-            //                )
-            //                : result
+            string searchLink = SEARCH_ADDRESS +
+                string.Join(' ', includeTags.Select(tag => CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.Value))
+                + ' ' +
+                string.Join(' ', excludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.Value))
+                .Trim();
 
-            //    );
-            //if (overlappingTagFiltersText.Length != 0) {
-            //    MainWindow.CurrentMainWindow.NotifyUser(
-            //        _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
-            //        overlappingTagFiltersText
-            //    );
-            //    return null;
-            //}
+            string[] displayTexts = new string[Entities.Tag.CATEGORY_NUM];
+            for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
+                string includeValues = string.Join(", ", includeTags.Where(tag => tag.Category == (Category)i).Select(tag => tag.Value));
+                string excludeValues = string.Join(", ", excludeTags.Where(tag => tag.Category == (Category)i).Select(tag => '-' + tag.Value));
+                displayTexts[i] = ((Category)i).ToString() + ": " + string.Join(", ", [includeValues, excludeValues]);
+            }
 
-            //string searchParams = string.Join(
-            //    ' ',
-            //    CATEGORIES.Select(
-            //        (category, i) =>
-            //            (
-            //                string.Join(' ', includeTagFilters[i].Select(tag => category + ':' + tag.Replace(' ', '_')))
-            //                + ' ' +
-            //                string.Join(' ', excludeTagFilters[i].Select(tag => '-' + category + ':' + tag.Replace(' ', '_')))
-            //            ).Trim()
-            //    ).Where(searchParam => searchParam.Length != 0)
-            //);
-            //if (searchParams.Length == 0) {
-            //    MainWindow.CurrentMainWindow.NotifyUser(
-            //        _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString,
-            //        ""
-            //    );
-            //    return null;
-            //}
-            //string searchLink = SEARCH_ADDRESS + searchParams;
-
-            //string displayText = string.Join(
-            //    Environment.NewLine,
-            //    CATEGORIES.Select(
-            //        (category, i) => {
-            //            string displayTextPart =
-            //                (
-            //                    string.Join(' ', includeTagFilters[i].Select(tag => tag.Replace(' ', '_')))
-            //                    + ' ' +
-            //                    string.Join(' ', excludeTagFilters[i].Select(tag => '-' + tag.Replace(' ', '_')))
-            //                ).Trim();
-            //            if (displayTextPart.Length != 0) {
-            //                return char.ToUpper(category[0]) + category[1..] + ": " + displayTextPart;
-            //            } else {
-            //                return "";
-            //            }
-            //        }
-            //    ).Where(displayTagTexts => displayTagTexts.Length != 0)
-            //);
-
-            //return new(
-            //    searchLink,
-            //    displayText,
-            //    (_, arg) => searchLinkItems.Remove((SearchLinkItem)arg.Parameter)
-            //);
-            return null;
+            return new(
+                searchLink,
+                string.Join(Environment.NewLine, displayTexts),
+                (_, arg) => searchLinkItems.Remove((SearchLinkItem)arg.Parameter)
+            );
         }
     }
 }
