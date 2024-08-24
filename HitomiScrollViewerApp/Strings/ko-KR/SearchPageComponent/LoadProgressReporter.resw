@@ -117,11 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Text_AddingDatabaseTags" xml:space="preserve">
+    <value>데이터베이스에 태그를 추가하는 중...</value>
+  </data>
   <data name="Text_AddingExampleTFSs" xml:space="preserve">
     <value>예시 태그 필터 모음들을 생성하는 중...</value>
   </data>
-  <data name="Text_Initialising" xml:space="preserve">
-    <value>시작하는 중...</value>
+  <data name="Text_InitialisingApp" xml:space="preserve">
+    <value>앱을 시작하는 중...</value>
   </data>
   <data name="Text_LoadingDatabase" xml:space="preserve">
     <value>데이터베이스를 불러오는 중...</value>

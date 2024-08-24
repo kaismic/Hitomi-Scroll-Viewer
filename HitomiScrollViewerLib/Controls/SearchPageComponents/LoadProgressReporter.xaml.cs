@@ -21,18 +21,20 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             MigratingTFSs,
             MigratingGalleries,
             MovingImageFolder,
+            AddingDatabaseTags,
             AddingExampleTFSs,
-            Initialising
+            InitialisingApp
         }
 
         public void SetStatusMessage(LoadingStatus loadingStatus) {
             ProgressStatusTextBlock.Text = loadingStatus switch {
-                LoadingStatus.LoadingDatabase => _resourceMap.GetValue("Text_LoadingDatabase").ValueAsString,
-                LoadingStatus.MigratingTFSs => _resourceMap.GetValue("Text_MigratingTFSs").ValueAsString,
-                LoadingStatus.AddingExampleTFSs => _resourceMap.GetValue("Text_AddingExampleTFSs").ValueAsString,
-                LoadingStatus.MigratingGalleries => _resourceMap.GetValue("Text_MigratingGalleries").ValueAsString,
-                LoadingStatus.MovingImageFolder => _resourceMap.GetValue("Text_MovingImageFolder").ValueAsString,
-                LoadingStatus.Initialising => _resourceMap.GetValue("Text_Initialising").ValueAsString,
+                LoadingStatus.LoadingDatabase => _resourceMap.GetValue("Text_" + LoadingStatus.LoadingDatabase.ToString()).ValueAsString,
+                LoadingStatus.MigratingTFSs => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingTFSs.ToString()).ValueAsString,
+                LoadingStatus.MigratingGalleries => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingGalleries.ToString()).ValueAsString,
+                LoadingStatus.MovingImageFolder => _resourceMap.GetValue("Text_" + LoadingStatus.MovingImageFolder.ToString()).ValueAsString,
+                LoadingStatus.AddingDatabaseTags => _resourceMap.GetValue("Text_" + LoadingStatus.AddingDatabaseTags.ToString()).ValueAsString,
+                LoadingStatus.AddingExampleTFSs => _resourceMap.GetValue("Text_" + LoadingStatus.AddingExampleTFSs.ToString()).ValueAsString,
+                LoadingStatus.InitialisingApp => _resourceMap.GetValue("Text_" + LoadingStatus.InitialisingApp.ToString()).ValueAsString,
                 _ => throw new InvalidOperationException($"Invalid {nameof(LoadingStatus)}: {loadingStatus}"),
             };
         }

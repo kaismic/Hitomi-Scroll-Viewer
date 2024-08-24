@@ -117,11 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Text_AddingDatabaseTags" xml:space="preserve">
+    <value>Adding tags to database...</value>
+  </data>
   <data name="Text_AddingExampleTFSs" xml:space="preserve">
     <value>Creating example tag filter sets....</value>
   </data>
-  <data name="Text_Initialising" xml:space="preserve">
-    <value>Initialising...</value>
+  <data name="Text_InitialisingApp" xml:space="preserve">
+    <value>Initialising app...</value>
   </data>
   <data name="Text_LoadingDatabase" xml:space="preserve">
     <value>Loading database...</value>
