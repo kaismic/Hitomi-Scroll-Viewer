@@ -135,4 +135,7 @@
   <data name="Text_BookmarkNumPerPage" xml:space="preserve">
     <value>Bookmark per page</value>
   </data>
+  <data name="Exit_Confirm_Title_Text" xml:space="preserve">
+    <value>There are remaining galleries which are downloading. Exit anyway?</value>
+  </data>
 </root>
