@@ -61,7 +61,7 @@
                 >
             <SymbolIcon Symbol="Delete"/>
         </Button>
-        <Border/>
+        <CheckBox x:Name="AutoSaveCheckBox"/>
     </Grid>
     <Grid x:Name="TextBoxesGrid"
           Grid.Row="1"

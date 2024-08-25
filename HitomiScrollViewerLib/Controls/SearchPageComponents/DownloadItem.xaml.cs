@@ -14,7 +14,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static HitomiScrollViewerLib.Controls.SearchPage;
+using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
@@ -46,8 +46,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private CancellationTokenSource _cts = new();
 
         private Gallery _gallery;
-        private int _id;
-        internal BookmarkItem BookmarkItem;
+        internal int Id { get; private set; }
+        internal BookmarkItem BookmarkItem { get; set; }
 
         private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
 
@@ -62,12 +62,15 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private int _retryByHttp404Count = 0;
         private static readonly List<DownloadItem> _waitingDownloadItems = [];
 
+        public event TypedEventHandler<DownloadItem, int> RemoveDownloadItemEvent;
+        public delegate void UpdateIdEventHandler(int oldId, int newId);
+        public event UpdateIdEventHandler UpdateIdEvent;
+
         public DownloadItem(int id, BookmarkItem bookmarkItem = null) {
-            _id = id;
+            Id = id;
             BookmarkItem = bookmarkItem;
             InitializeComponent();
             Description.Text = id.ToString();
-            InitDownload();
         }
 
         private void CancelDownloadButton_Click(object _0, RoutedEventArgs _1) {
@@ -87,8 +90,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 BookmarkItem.IsDownloading = false;
                 BookmarkItem.EnableRemoveBtn(true);
             }
-            DownloadingGalleryIds.TryRemove(_id, out _);
-            MainWindow.SearchPage.DownloadingItems.Remove(this);
+            RemoveDownloadItemEvent?.Invoke(this, Id);
         }
 
         private void DownloadControlButton_Clicked(object _0, RoutedEventArgs _1) {
@@ -172,7 +174,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
         }
 
-        private async void InitDownload() {
+        internal async void InitDownload() {
             _cts = new();
             CancellationToken ct = _cts.Token;
             SetStateAndText(DownloadStatus.Downloading, "");
@@ -187,7 +189,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                         _ = File.AppendAllTextAsync(
                             LOGS_PATH_V2,
                             '{' + Environment.NewLine +
-                            $"  {_id}," + Environment.NewLine +
+                            $"  {Id}," + Environment.NewLine +
                             GetExceptionDetails(e) + Environment.NewLine +
                             "}," + Environment.NewLine,
                             ct
@@ -212,10 +214,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
 
             // sometimes gallery id is different to the id in ltn.hitomi.la/galleries/{id}.js but points to the same gallery
-            if (_id != _gallery.Id) {
-                DownloadingGalleryIds.TryAdd(_gallery.Id, 0);
-                DownloadingGalleryIds.TryRemove(_id, out _);
-                _id = _gallery.Id;
+            if (Id != _gallery.Id) {
+                UpdateIdEvent?.Invoke(Id, _gallery.Id);
+                Id = _gallery.Id;
                 Description.Text += $"{_gallery.Id} - {_gallery.Title}";
             }
 
@@ -287,7 +288,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
          * <exception cref="TaskCanceledException"></exception>
         */
         private async Task<string> GetGalleryInfo(CancellationToken ct) {
-            string address = GALLERY_INFO_DOMAIN + _id + ".js";
+            string address = GALLERY_INFO_DOMAIN + Id + ".js";
             HttpRequestMessage galleryInfoRequest = new() {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(address)
@@ -386,13 +387,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                         throw;
                     }
                     Debug.WriteLine(e.Message);
-                    Debug.WriteLine($"Fetching {_id} at index = {fetchInfo.Idx} failed. Status Code: {e.StatusCode}");
+                    Debug.WriteLine($"Fetching {Id} at index = {fetchInfo.Idx} failed. Status Code: {e.StatusCode}");
                     return false;
                 }
                 try {
                     byte[] imageBytes = await response.Content.ReadAsByteArrayAsync(ct);
                     await File.WriteAllBytesAsync(
-                        Path.Combine(IMAGE_DIR_V2, _id.ToString(), fetchInfo.Idx.ToString()) + '.' + fetchInfo.ImageFormat,
+                        Path.Combine(IMAGE_DIR_V2, Id.ToString(), fetchInfo.Idx.ToString()) + '.' + fetchInfo.ImageFormat,
                         imageBytes,
                         CancellationToken.None
                     );
@@ -411,7 +412,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
          * <exception cref="TaskCanceledException"></exception>
         */
         private Task DownloadImages(CancellationToken ct) {
-            Directory.CreateDirectory(Path.Combine(IMAGE_DIR_V2, _id.ToString()));
+            Directory.CreateDirectory(Path.Combine(IMAGE_DIR_V2, Id.ToString()));
             List<int> missingIndexes = GetMissingIndexes();
             FetchInfo[] fetchInfos =
                 missingIndexes
@@ -483,7 +484,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
          * <exception cref="DirectoryNotFoundException"></exception>
          */
         private List<int> GetMissingIndexes() {
-            string imageDir = Path.Combine(IMAGE_DIR_V2, _id.ToString());
+            string imageDir = Path.Combine(IMAGE_DIR_V2, Id.ToString());
             List<int> missingIndexes = [];
             for (int i = 0; i < _gallery.Files.Count; i++) {
                 string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");

@@ -2,6 +2,7 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -11,10 +12,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
-    public sealed partial class TagFilterSetEditor : Grid {
+    public sealed partial class TagFilterSetEditor : Grid, IAppWindowClosingHandler {
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Dictionary<Category, string> CATEGORY_SEARCH_PARAM_DICT = new() {
             { Category.Tag, "tag" },
@@ -25,6 +27,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             { Category.Character, "character" },
             { Category.Series, "series" }
         };
+        private static readonly string AUTO_SAVE_SETTING_KEY = "AutoSave";
 
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetEditor).Name);
         public static TagFilterSetEditor Main { get; set; }
@@ -41,6 +44,14 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
         public TagFilterSetEditor() {
             InitializeComponent();
+
+            AutoSaveCheckBox.Content = _resourceMap.GetValue("AutoSaveCheckBox_Content").ValueAsString;
+            AutoSaveCheckBox.IsChecked = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
+            void SaveAutoSaveSettingValue() {
+                ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = AutoSaveCheckBox.IsChecked;
+            }
+            AutoSaveCheckBox.Checked += (_, _) => SaveAutoSaveSettingValue();
+            AutoSaveCheckBox.Unchecked += (_, _) => SaveAutoSaveSettingValue();
 
             for (int i = 0; i < TagFilterSetControlGrid.Children.Count; i++) {
                 FrameworkElement elem = TagFilterSetControlGrid.Children[i] as FrameworkElement;
@@ -108,6 +119,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             };
         }
 
+        public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
+            if (TagFilterSetComboBox.SelectedItem is TagFilterSet tfs) {
+                SaveTFS(tfs);
+            }
+        }
+
         private void TagFilterSetEditor_Loaded(object sender, RoutedEventArgs e) {
             _crudActionContentDialog.XamlRoot = MainWindow.SearchPage.XamlRoot;
             Loaded -= TagFilterSetEditor_Loaded;
@@ -148,6 +165,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if (e.RemovedItems.Count > 0 && AutoSaveCheckBox.IsChecked == true) {
+                TagFilterSet prevTFS = e.RemovedItems[0] as TagFilterSet;
+                SaveTFS(prevTFS);
+            }
             foreach (var textBox in _tfsTextBoxes) {
                 textBox.SelectedTags.Clear();
             }
@@ -206,10 +227,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             );
         }
 
-        private void SaveButton_Click(object _0, RoutedEventArgs _1) {
-            TagFilterSet tfs =
-                HitomiContext.Main.TagFilterSets
-                .First(tagFilterSet => tagFilterSet.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id);
+        private void SaveTFS(TagFilterSet tfs) {
             tfs.Tags = GetCurrentTags();
             HitomiContext.Main.SaveChanges();
             MainWindow.SearchPage.ShowInfoBar(
@@ -217,6 +235,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
                     tfs.Name
                 )
+            );
+        }
+
+        private void SaveButton_Click(object _0, RoutedEventArgs _1) {
+            SaveTFS(
+                HitomiContext.Main.TagFilterSets
+                .First(tagFilterSet => tagFilterSet.Id == ((TagFilterSet)TagFilterSetComboBox.SelectedItem).Id)
             );
         }
 

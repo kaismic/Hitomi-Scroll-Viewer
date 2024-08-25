@@ -106,7 +106,7 @@
                                 <SymbolIcon Symbol="Download"></SymbolIcon>
                             </Button>
                         </Grid>
-                        <ListView x:Name="DownloadItemsListView" ItemsSource="{x:Bind DownloadingItems}"
+                        <ListView x:Name="DownloadItemsListView" ItemsSource="{x:Bind DownloadManager.DownloadItems}"
                                   SelectionMode="None" IsItemClickEnabled="False">
                             <ListView.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -159,7 +159,7 @@
         </ScrollViewer>
         <ListView x:Name="PopupInfoBarStackPanel"
                   VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                  ItemsSource="{x:Bind _popupMsgInfoBars, Mode=OneWay}"
+                  ItemsSource="{x:Bind _popupMsgInfoBars}"
                   SelectionMode="None" IsItemClickEnabled="False">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>

@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerLib.Controls.ViewPageComponents;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -19,7 +20,7 @@ using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Controls {
-    public sealed partial class ViewPage : Page {
+    public sealed partial class ViewPage : Page, IAppWindowClosingHandler, IWindowSizeChangedHandler {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ViewPage");
         private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Array_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
         private readonly string[] VIEW_DIRECTION_NAMES = _resourceMap.GetValue("Array_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
@@ -108,7 +109,8 @@ namespace HitomiScrollViewerLib.Controls {
             ImageFlipView.Loaded += FlipView_Loaded;
         }
 
-        public void SaveSettings() {
+        public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
+            ToggleAutoScroll(false);
             _settings.Values[SCROLL_DIRECTION_SETTING_KEY] = (int)_scrollDirection;
             _settings.Values[VIEW_DIRECTION_SETTING_KEY] = (int)_viewDirection;
             _settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] = _autoScrollInterval;
@@ -116,11 +118,22 @@ namespace HitomiScrollViewerLib.Controls {
             _settings.Values[USE_PAGE_FLIP_EFFECT_SETTING_KEY] = ImageFlipView.UseTouchAnimationsForAllNavigation;
         }
 
-        private static readonly string Text_Notification_NoImagesToLoad_Title = _resourceMap.GetValue("Text_Notification_NoImagesToLoad_Title").ValueAsString;
+        private DateTime _lastWindowSizeChangeTime;
+        public async void HandleWindowSizeChanged(WindowSizeChangedEventArgs args) {
+            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.UtcNow;
+            // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
+            await Task.Delay(200);
+            if (_lastWindowSizeChangeTime != thisDateTime) {
+                return;
+            }
+            if (CurrLoadedGallery != null) {
+                await AddGroupedImagePanels(_imgIndexRangesPerPage[ImageFlipView.SelectedIndex].Start.Value);
+            }
+        }
 
         public async void LoadGallery(Gallery gallery) {
             if (!Directory.Exists(Path.Combine(IMAGE_DIR_V2, gallery.Id.ToString()))) {
-                MainWindow.NotifyUser(Text_Notification_NoImagesToLoad_Title, "");
+                MainWindow.NotifyUser(_resourceMap.GetValue("Text_Notification_NoImagesToLoad_Title").ValueAsString, "");
                 return;
             }
             MainWindow.SwitchPage();
@@ -441,19 +454,6 @@ namespace HitomiScrollViewerLib.Controls {
             ImageFlipView.SelectedIndex = PageNavigator.SelectedIndex;
             SetCurrPageText(_imgIndexRangesPerPage[PageNavigator.SelectedIndex]);
             await AttachPageEventHandlers(true);
-        }
-
-        private DateTime _lastWindowSizeChangeTime;
-        public async void Window_SizeChanged() {
-            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.UtcNow;
-            // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
-            await Task.Delay(200);
-            if (_lastWindowSizeChangeTime != thisDateTime) {
-                return;
-            }
-            if (CurrLoadedGallery != null) {
-                await AddGroupedImagePanels(_imgIndexRangesPerPage[ImageFlipView.SelectedIndex].Start.Value);
-            }
         }
     }
 }

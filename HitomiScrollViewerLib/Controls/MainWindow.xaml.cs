@@ -8,8 +8,6 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Controls {
     public sealed partial class MainWindow : Window {
-        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("MainWindow");
-
         private static MainWindow _currentMainWindow;
         public static MainWindow CurrentMainWindow {
             get => _currentMainWindow ??= new MainWindow();
@@ -17,41 +15,23 @@ namespace HitomiScrollViewerLib.Controls {
         public static SearchPage SearchPage { get; private set; }
         public static ViewPage ViewPage { get; private set; }
 
+        private readonly IWindowSizeChangedHandler[] _windowSizeChangedHandlers;
+
+        private readonly IAppWindowClosingHandler[] _appWindowClosingHandlers;
+
         private MainWindow() {
             InitializeComponent();
             SearchPage = new();
             ViewPage = new();
+            _appWindowClosingHandlers = [SearchPage, ViewPage];
+            _windowSizeChangedHandlers = [SearchPage, ViewPage];
             RootFrame.Content = SearchPage;
-            SizeChanged += (object _, WindowSizeChangedEventArgs e) => {
-                if (RootFrame.Content is SearchPage) {
-                    SearchPage.Window_SizeChanged(e);
-                } else {
-                    ViewPage.Window_SizeChanged();
-                }
-            };
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
 
             Title = APP_DISPLAY_NAME;
 
-            // Handle window closing
-            AppWindow.Closing += async (AppWindow _, AppWindowClosingEventArgs e) => {
-                if (!SearchPage.DownloadingGalleryIds.IsEmpty) {
-                    ContentDialog dialog = new() {
-                        DefaultButton = ContentDialogButton.Close,
-                        Title = ResourceMap.GetValue("Exit_Confirm_Title_Text").ValueAsString,
-                        PrimaryButtonText = TEXT_EXIT,
-                        CloseButtonText = TEXT_CANCEL,
-                        XamlRoot = Content.XamlRoot
-                    };
-                    if (await dialog.ShowAsync() == ContentDialogResult.None) {
-                        e.Cancel = true;
-                        return;
-                    }
-                }
-                ViewPage.ToggleAutoScroll(false);
-                ViewPage.SaveSettings();
-                HitomiContext.Main.Dispose();
-            };
+            SizeChanged += MainWindow_SizeChanged;
+            AppWindow.Closing += AppWindow_Closing;
         }
 
         public void SwitchPage() {
@@ -80,6 +60,22 @@ namespace HitomiScrollViewerLib.Controls {
             ((TextBlock)_notification.Content).Text = content;
             _notification.XamlRoot = RootFrame.XamlRoot;
             await _notification.ShowAsync();
+        }
+
+        private void AppWindow_Closing(AppWindow _, AppWindowClosingEventArgs args) {
+            foreach (IAppWindowClosingHandler handler in _appWindowClosingHandlers) {
+                handler.HandleAppWindowClosing(args);
+                if (args.Cancel) {
+                    return;
+                }
+            }
+            HitomiContext.Main.Dispose();
+        }
+
+        private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args) {
+            foreach (IWindowSizeChangedHandler handler in _windowSizeChangedHandlers) {
+                handler.HandleWindowSizeChanged(args);
+            }
         }
     }
 }

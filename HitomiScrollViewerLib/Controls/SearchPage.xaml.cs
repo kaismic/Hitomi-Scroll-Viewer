@@ -4,12 +4,12 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -21,9 +21,8 @@ using Windows.ApplicationModel.DataTransfer;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
-namespace HitomiScrollViewerLib.Controls
-{
-    public sealed partial class SearchPage : Page {
+namespace HitomiScrollViewerLib.Controls {
+    public sealed partial class SearchPage : Page, IAppWindowClosingHandler, IWindowSizeChangedHandler {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SearchPage).Name);
 
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
@@ -38,16 +37,50 @@ namespace HitomiScrollViewerLib.Controls
         };
 
         private readonly ObservableCollection<SearchLinkItem> _searchLinkItems = [];
+        internal DownloadManager DownloadManager { get; } = new();
 
-        internal readonly ObservableCollection<DownloadItem> DownloadingItems = [];
-        internal static readonly ConcurrentDictionary<int, byte> DownloadingGalleryIds = [];
+        private readonly IAppWindowClosingHandler[] _appWindowClosingHandlers;
 
         public SearchPage() {
             InitializeComponent();
             DownloadInputTextBox.TextChanged += (_, _) => { DownloadButton.IsEnabled = DownloadInputTextBox.Text.Length != 0; };
             TagFilterSetEditor.Main = TagFilterSetEditor;
+            _appWindowClosingHandlers = [TagFilterSetEditor];
             Loaded += SearchPage_Loaded;
             DownloadButton.SizeChanged += (object sender, SizeChangedEventArgs e) => { DownloadInputTextBox.Height = e.NewSize.Height; };
+        }
+
+        public async void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
+            foreach (IAppWindowClosingHandler handler in _appWindowClosingHandlers) {
+                handler.HandleAppWindowClosing(args);
+                if (args.Cancel) {
+                    return;
+                }
+            }
+            if (DownloadManager.HasAnyDownloads()) {
+                ContentDialog dialog = new() {
+                    DefaultButton = ContentDialogButton.Close,
+                    Title = _resourceMap.GetValue("Exit_Confirm_Title_Text").ValueAsString,
+                    PrimaryButtonText = TEXT_EXIT,
+                    CloseButtonText = TEXT_CANCEL,
+                    XamlRoot = MainWindow.CurrentMainWindow.Content.XamlRoot
+                };
+                if (await dialog.ShowAsync() == ContentDialogResult.None) {
+                    args.Cancel = true;
+                    return;
+                }
+            }
+        }
+
+        private DateTime _lastWindowSizeChangeTime;
+        public async void HandleWindowSizeChanged(WindowSizeChangedEventArgs args) {
+            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.UtcNow;
+            // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
+            await Task.Delay(200);
+            if (_lastWindowSizeChangeTime != thisDateTime) {
+                return;
+            }
+            MainControlGrid.Height = args.Size.Height - MainContainerStackPanel.Padding.Top - MainContainerStackPanel.Padding.Bottom;
         }
 
         private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
@@ -58,7 +91,7 @@ namespace HitomiScrollViewerLib.Controls
             // if app upgraded from v2 -> v3:
             // 1. Migrate tag filter set - DONE
             // 2. Migrate galleries (bookmarks)
-            // 3. Migrate images from roaming to local folder
+            // 3. Migrate images from roaming to local folder - DONE
 
             _ = Task.Run(async () => {
                 LoadProgressReporter reporter = await DispatcherQueue.EnqueueAsync(() => {
@@ -184,18 +217,9 @@ namespace HitomiScrollViewerLib.Controls
             }
             DownloadInputTextBox.Text = "";
             
-            // only download if the gallery is not already downloading
             foreach (int id in extractedIds) {
-                TryDownload(id);
+                DownloadManager.TryDownload(id);
             }
-        }
-
-        internal bool TryDownload(int id, BookmarkItem bookmarkItem = null) {
-            if (DownloadingGalleryIds.TryAdd(id, 0)) {
-                DownloadingItems.Add(new(id, bookmarkItem));
-                return true;
-            }
-            return false;
         }
 
         private const int POPUP_MSG_DISPLAY_DURATION = 5000;
@@ -229,17 +253,6 @@ namespace HitomiScrollViewerLib.Controls
                     });
                 }
             );
-        }
-
-        private DateTime _lastWindowSizeChangeTime;
-        internal async void Window_SizeChanged(WindowSizeChangedEventArgs e) {
-            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.UtcNow;
-            // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
-            await Task.Delay(200);
-            if (_lastWindowSizeChangeTime != thisDateTime) {
-                return;
-            }
-            MainControlGrid.Height = e.Size.Height - MainContainerStackPanel.Padding.Top - MainContainerStackPanel.Padding.Bottom;
         }
 
         //public BookmarkItem AddBookmark(Gallery gallery) {
