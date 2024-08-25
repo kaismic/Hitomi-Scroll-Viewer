@@ -25,13 +25,12 @@ namespace HitomiScrollViewerLib.Controls {
             ViewPage = new();
             _appWindowClosingHandlers = [SearchPage, ViewPage];
             _windowSizeChangedHandlers = [SearchPage, ViewPage];
-            RootFrame.Content = SearchPage;
-            ((OverlappedPresenter)AppWindow.Presenter).Maximize();
-
-            Title = APP_DISPLAY_NAME;
-
             SizeChanged += MainWindow_SizeChanged;
             AppWindow.Closing += AppWindow_Closing;
+
+            RootFrame.Content = SearchPage;
+            ((OverlappedPresenter)AppWindow.Presenter).Maximize();
+            Title = APP_DISPLAY_NAME;
         }
 
         public void SwitchPage() {
