@@ -72,14 +72,7 @@ namespace HitomiScrollViewerLib.Controls {
             }
         }
 
-        private DateTime _lastWindowSizeChangeTime;
-        public async void HandleWindowSizeChanged(WindowSizeChangedEventArgs args) {
-            DateTime thisDateTime = _lastWindowSizeChangeTime = DateTime.UtcNow;
-            // wait for a short time to check if there is a later SizeChanged event to prevent unnecessary rapid method calls
-            await Task.Delay(200);
-            if (_lastWindowSizeChangeTime != thisDateTime) {
-                return;
-            }
+        public void HandleWindowSizeChanged(WindowSizeChangedEventArgs args) {
             MainControlGrid.Height = args.Size.Height - MainContainerStackPanel.Padding.Top - MainContainerStackPanel.Padding.Bottom;
         }
 
