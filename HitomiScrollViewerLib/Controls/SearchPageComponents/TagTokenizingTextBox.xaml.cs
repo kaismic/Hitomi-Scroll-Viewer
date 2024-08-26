@@ -41,7 +41,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private IEnumerable<Tag> GetSuggestionTags() {
+        private IEnumerable<Tag> GetSuggestions() {
             return
                 HitomiContext.Main.Tags
                 .Where(tag => tag.Category == Category && tag.Value.StartsWith(Text))
@@ -50,7 +50,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void TokenizingTextBox_GotFocus(object _0, RoutedEventArgs _1) {
-            SuggestedItemsSource = GetSuggestionTags();
+            SuggestedItemsSource = GetSuggestions();
         }
 
         private void TokenizingTextBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
@@ -58,7 +58,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             // otherwise assume the value got filled in by TextMemberPath 
             // or the handler for SuggestionChosen.
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput) {
-                SuggestedItemsSource = GetSuggestionTags();
+                SuggestedItemsSource = GetSuggestions();
             }
         }
 
