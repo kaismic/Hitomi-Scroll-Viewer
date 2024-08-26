@@ -78,6 +78,9 @@
                                         <Setter Property="Padding" Value="0"/>
                                     </Style>
                                 </ListView.ItemContainerStyle>
+                                <ListView.ItemContainerTransitions>
+                                    <TransitionCollection/>
+                                </ListView.ItemContainerTransitions>
                             </ListView>
                         </Grid>
                     </Grid>
@@ -121,6 +124,9 @@
                                     <Setter Property="Padding" Value="0"/>
                                 </Style>
                             </ListView.ItemContainerStyle>
+                            <ListView.ItemContainerTransitions>
+                                <TransitionCollection/>
+                            </ListView.ItemContainerTransitions>
                         </ListView>
                     </StackPanel>
                 </Grid>
