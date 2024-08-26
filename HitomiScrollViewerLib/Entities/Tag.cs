@@ -17,8 +17,18 @@ namespace HitomiScrollViewerLib.Entities {
         public long Id { get; set; }
         [Required]
         public Category Category { get; set; }
+
+        private string _value;
         [Required]
-        public string Value { get; set; }
+        public string Value {
+            get => _value;
+            set {
+                _value = value;
+                SearchParamValue = value.Replace(' ', '_');
+            }
+        }
+        public string SearchParamValue { get; set; }
+
         public virtual ICollection<TagFilterSet> TagFilterSets { get; set; }
         public virtual ICollection<Gallery> Galleries { get; set; }
 

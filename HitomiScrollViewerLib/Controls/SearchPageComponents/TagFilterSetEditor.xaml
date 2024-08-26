@@ -11,13 +11,11 @@
     >
     <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
         <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
-    <Grid x:Name="TagFilterSetControlGrid"
-          Grid.Row="0"
-          ColumnSpacing="8"
-          >
+    <Grid x:Name="TagFilterSetControlGrid" ColumnSpacing="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="Auto"/>
@@ -41,7 +39,6 @@
         <ComboBox x:Name="TagFilterSetComboBox" x:FieldModifier="internal"
                   x:DefaultBindMode="OneWay"
                   DisplayMemberPath="Name"
-                  SelectedValuePath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                   Visibility="Collapsed"
@@ -63,8 +60,34 @@
         </Button>
         <CheckBox x:Name="AutoSaveCheckBox"/>
     </Grid>
+    <Grid x:Name="GalleryLanguageTypeGrid" ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="16*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="16*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Select Language:"
+                   VerticalAlignment="Center"/>
+        <ComboBox x:Name="GalleryLanguageComboBox"
+                  HorizontalAlignment="Stretch">
+            <ComboBoxItem>Any</ComboBoxItem>
+            <ComboBoxItem>English</ComboBoxItem>
+            <ComboBoxItem>Korean</ComboBoxItem>
+            <ComboBoxItem>Chinese</ComboBoxItem>
+            <ComboBoxItem>Japanese</ComboBoxItem>
+        </ComboBox>
+        <Border/>
+        <TextBlock Text="Select Type:"
+                   VerticalAlignment="Center"/>
+        <ComboBox x:Name="GalleryTypeComboBox" ItemsSource="{x:Bind _galleryTypes}"
+                  HorizontalAlignment="Stretch"
+                  DisplayMemberPath="DisplayName"
+                  SelectedIndex="0">
+        </ComboBox>
+    </Grid>
     <Grid x:Name="TextBoxesGrid"
-          Grid.Row="1"
           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
           CornerRadius="{StaticResource OverlayCornerRadius}"
@@ -76,7 +99,7 @@
             <RowDefinition x:Name="TTTBsRowDef" Height="*"/>
         </Grid.RowDefinitions>
     </Grid>
-    <Grid Grid.Row="2" ColumnSpacing="8">
+    <Grid ColumnSpacing="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
@@ -98,13 +121,13 @@
                                OtherPairedSelector="{x:Bind ExcludeTFSSelector}"
                                Grid.Column="0"
                                Visibility="Collapsed"
-                                  />
+                               />
         <spc:PairedTFSSelector x:Name="ExcludeTFSSelector"
                                HeaderTextRes="HeaderText_Exclude"
                                HeaderForeground="Red"
                                OtherPairedSelector="{x:Bind IncludeTFSSelector}"
                                Grid.Column="1"
                                Visibility="Collapsed"
-                                  />
+                               />
     </Grid>
 </Grid>

@@ -42,9 +42,22 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             VerticalAlignment = VerticalAlignment.Center
         };
 
+        private readonly IEnumerable<GalleryType> _galleryTypes =
+            GalleryType.DisplayNames
+            .Select(
+                displayName => new GalleryType() {
+                    DisplayName = displayName,
+                    SearchParamValue = displayName.ToLower()
+                }
+            );
+
         public TagFilterSetEditor() {
             InitializeComponent();
 
+            for (int i = 0; i < Children.Count; i++) {
+                SetRow(Children[i] as FrameworkElement, i);
+            }
+            
             AutoSaveCheckBox.Content = _resourceMap.GetValue("AutoSaveCheckBox_Content").ValueAsString;
             AutoSaveCheckBox.IsChecked = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
             void SaveAutoSaveSettingValue() {
@@ -52,6 +65,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
             AutoSaveCheckBox.Checked += (_, _) => SaveAutoSaveSettingValue();
             AutoSaveCheckBox.Unchecked += (_, _) => SaveAutoSaveSettingValue();
+
+            for (int i = 0; i < GalleryLanguageTypeGrid.Children.Count; i++) {
+                SetColumn(GalleryLanguageTypeGrid.Children[i] as FrameworkElement, i);
+            }
 
             for (int i = 0; i < TagFilterSetControlGrid.Children.Count; i++) {
                 FrameworkElement elem = TagFilterSetControlGrid.Children[i] as FrameworkElement;
@@ -294,14 +311,15 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
 
             if (dupTags.Any()) {
-                IEnumerable<string> dupTagStrs =
-                    Enumerable
-                    .Range(0, Entities.Tag.CATEGORY_NUM)
-                    .Select(i => {
-                        Category category = (Category)i;
-                        string joinedValues = string.Join(", ", dupTags.Where(tag => tag.Category == category).Select(tag => tag.Value));
-                        return category.ToString() + ": " + joinedValues;
-                    });
+                List<string> dupTagStrs = new(Entities.Tag.CATEGORY_NUM);
+                for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
+                    Category category = (Category)i;
+                    IEnumerable<string> dupStrs = dupTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
+                    if (!dupStrs.Any()) {
+                        continue;
+                    }
+                    dupTagStrs.Add(category.ToString() + ": " + string.Join(", ", dupStrs));
+                }
                 MainWindow.CurrentMainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
                     string.Join(Environment.NewLine, dupTagStrs)
@@ -309,22 +327,39 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 return null;
             }
 
-            string searchLink = SEARCH_ADDRESS +
-                string.Join(' ', includeTags.Select(tag => CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.Value))
-                + ' ' +
-                string.Join(' ', excludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.Value))
-                .Trim();
+            List<string> searchParamStrs = new(4); // 2 for joined include and exclude tags. 2 for language and type
+            List<string> displayTexts = new(Entities.Tag.CATEGORY_NUM + 2); // + 2 for language and type
 
-            string[] displayTexts = new string[Entities.Tag.CATEGORY_NUM];
+            // TODO add language search param str and display text
+
+            // only add type if !(nothing selected: -1 || "Any" type is selected: 0)
+            if (GalleryTypeComboBox.SelectedIndex > 0) {
+                GalleryType galleryType = GalleryTypeComboBox.SelectedItem as GalleryType;
+                searchParamStrs.Add("type:" + galleryType.SearchParamValue);
+                displayTexts.Add("Type: " + galleryType.SearchParamValue);
+            }
+            
+            // add joined include exclude search param strs
+            searchParamStrs.Add(string.Join(' ', includeTags.Select(tag => CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
+            searchParamStrs.Add(string.Join(' ', excludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
+
+            // add display texts for each tag category
             for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
-                string includeValues = string.Join(", ", includeTags.Where(tag => tag.Category == (Category)i).Select(tag => tag.Value));
-                string excludeValues = string.Join(", ", excludeTags.Where(tag => tag.Category == (Category)i).Select(tag => '-' + tag.Value));
-                displayTexts[i] = ((Category)i).ToString() + ": " + string.Join(", ", [includeValues, excludeValues]);
+                IEnumerable<string> includeValues = includeTags.Where(tag => tag.Category == (Category)i).Select(tag => tag.Value);
+                IEnumerable<string> excludeValues = excludeTags.Where(tag => tag.Category == (Category)i).Select(tag => tag.Value);
+                if (!includeValues.Any() && !excludeValues.Any()) {
+                    continue;
+                }
+                IEnumerable<string> withoutEmptyStrs = new string[] {
+                    string.Join(", ", includeValues),
+                    string.Join(", ", excludeValues)
+                }.Where(s => !string.IsNullOrEmpty(s));
+                displayTexts.Add(((Category)i).ToString() + ": " + string.Join(", ", withoutEmptyStrs));
             }
 
             return new(
-                searchLink,
-                string.Join(Environment.NewLine, displayTexts),
+                SEARCH_ADDRESS + string.Join(' ', searchParamStrs.Where(s => !string.IsNullOrEmpty(s))),
+                string.Join(Environment.NewLine, displayTexts.Where(s => !string.IsNullOrEmpty(s))),
                 (_, arg) => searchLinkItems.Remove((SearchLinkItem)arg.Parameter)
             );
         }
