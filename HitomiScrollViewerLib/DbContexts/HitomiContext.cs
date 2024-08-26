@@ -39,6 +39,11 @@ namespace HitomiScrollViewerLib.DbContexts {
             ).ToArray();
 
         private const string TAG_RES_ROOT_DIR = "TagResources";
+        private static readonly string DELIMITER_FILE_PATH = Path.Combine(
+            Windows.ApplicationModel.Package.Current.InstalledPath,
+            TAG_RES_ROOT_DIR,
+            "delimiter.txt"
+        );
         private static readonly Dictionary<Category, string> CATEGORY_DIR_DICT = new() {
             { Category.Tag, "Tags" },
             { Category.Male, "Males" },
@@ -52,6 +57,7 @@ namespace HitomiScrollViewerLib.DbContexts {
         public static readonly int TAG_DATABASE_INIT_NUM = Tag.CATEGORY_NUM * ALPHABETS_WITH_123.Length;
         public event EventHandler<int> AddtDatabaseTagsProgressChanged;
         public static void AddDatabaseTags() {
+            string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             int progressValue = 0;
             for (int i = 0; i < Tag.CATEGORY_NUM; i++) {
                 Category category = (Category)i;
@@ -63,8 +69,17 @@ namespace HitomiScrollViewerLib.DbContexts {
                 );
                 foreach (string alphanumStr in ALPHABETS_WITH_123) {
                     string path = Path.Combine(dir, $"{categoryStr.ToLower()}-{alphanumStr}.txt");
-                    string[] tagValues = File.ReadAllLines(path);
-                    Main.Tags.AddRange(tagValues.Select(tagValue => new Tag() { Category = category, Value = tagValue }));
+                    string[] tagInfoStrs = File.ReadAllLines(path);
+                    Main.Tags.AddRange(tagInfoStrs.Select(
+                        tagInfoStr => {
+                            string[] tagInfoArr = tagInfoStr.Split(delimiter);
+                            return new Tag() {
+                                Category = category,
+                                Value = tagInfoArr[0],
+                                GalleryCount = int.Parse(tagInfoArr[1])
+                            };
+                        }
+                    ));
                     Main.AddtDatabaseTagsProgressChanged?.Invoke(null, ++progressValue);
                 }
             }
