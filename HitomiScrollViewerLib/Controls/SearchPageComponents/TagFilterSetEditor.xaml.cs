@@ -115,11 +115,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
 
             IncludeTFSSelector.RegisterPropertyChangedCallback(
                 TFSSelector.AnyCheckedProperty,
-                EnableHyperlinkCreateButton
+                (_, _) => EnableHyperlinkCreateButton()
             );
             ExcludeTFSSelector.RegisterPropertyChangedCallback(
                 TFSSelector.AnyCheckedProperty,
-                EnableHyperlinkCreateButton
+                (_, _) => EnableHyperlinkCreateButton()
             );
 
             Loaded += TagFilterSetEditor_Loaded;
@@ -165,8 +165,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             ExcludeTFSSelector.Visibility = Visibility.Visible;
         }
 
-        private void EnableHyperlinkCreateButton(DependencyObject _0, DependencyProperty _1) {
-            HyperlinkCreateButton.IsEnabled = IncludeTFSSelector.AnyChecked || ExcludeTFSSelector.AnyChecked;
+        private void EnableHyperlinkCreateButton() {
+            HyperlinkCreateButton.IsEnabled = GalleryTypeComboBox.SelectedIndex > 0 || IncludeTFSSelector.AnyChecked || ExcludeTFSSelector.AnyChecked;
+        }
+
+        private void GalleryTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            EnableHyperlinkCreateButton();
         }
 
         private HashSet<Tag> GetCurrentTags() {
@@ -288,7 +292,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             IEnumerable<Tag> excludeTags = excludeTFSs.SelectMany(tfs => tfs.Tags);
 
             // check if all selected TFSs are all empty
-            if (!includeTags.Any() && !excludeTags.Any()) {
+            if (!includeTags.Any() && !excludeTags.Any() && GalleryTypeComboBox.SelectedIndex <= 0) {
                 MainWindow.CurrentMainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString,
                     ""

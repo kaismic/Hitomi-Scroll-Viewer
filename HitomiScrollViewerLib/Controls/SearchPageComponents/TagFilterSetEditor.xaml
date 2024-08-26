@@ -84,7 +84,8 @@
         <ComboBox x:Name="GalleryTypeComboBox" ItemsSource="{x:Bind _galleryTypes}"
                   HorizontalAlignment="Stretch"
                   DisplayMemberPath="DisplayName"
-                  SelectedIndex="0">
+                  SelectedIndex="0"
+                  SelectionChanged="GalleryTypeComboBox_SelectionChanged">
         </ComboBox>
     </Grid>
     <Grid x:Name="TextBoxesGrid"
