@@ -134,11 +134,13 @@ namespace HitomiScrollViewerLib.Controls {
                         reporter.LoadProgressBar.Maximum = HitomiContext.TAG_DATABASE_INIT_NUM;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingDatabaseTags);
                     });
-                    HitomiContext.Main.AddtDatabaseTagsProgressChanged += (object _, int e) => {
+                    HitomiContext.Main.AddDatabaseTagsProgressChanged += (object _, int e) => {
                         DispatcherQueue.TryEnqueue(() => reporter.LoadProgressBar.Value = e);
                     };
+                    HitomiContext.Main.ChangeToIndeterminateEvent += (object _, EventArgs _) => {
+                        DispatcherQueue.TryEnqueue(() => reporter.LoadProgressBar.IsIndeterminate = true);
+                    };
                     HitomiContext.AddDatabaseTags();
-                    HitomiContext.ClearInvocationList();
                     await DispatcherQueue.EnqueueAsync(() => {
                         reporter.LoadProgressBar.IsIndeterminate = true;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);

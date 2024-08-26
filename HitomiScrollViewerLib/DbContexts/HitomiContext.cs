@@ -55,7 +55,8 @@ namespace HitomiScrollViewerLib.DbContexts {
         };
 
         public static readonly int TAG_DATABASE_INIT_NUM = Tag.CATEGORY_NUM * ALPHABETS_WITH_123.Length;
-        public event EventHandler<int> AddtDatabaseTagsProgressChanged;
+        public event EventHandler<int> AddDatabaseTagsProgressChanged;
+        public event EventHandler ChangeToIndeterminateEvent;
         public static void AddDatabaseTags() {
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             int progressValue = 0;
@@ -80,17 +81,25 @@ namespace HitomiScrollViewerLib.DbContexts {
                             };
                         }
                     ));
-                    Main.AddtDatabaseTagsProgressChanged?.Invoke(null, ++progressValue);
+                    Main.AddDatabaseTagsProgressChanged?.Invoke(null, ++progressValue);
                 }
             }
+            Main.ChangeToIndeterminateEvent?.Invoke(null, null);
             Main.SaveChanges();
+            ClearInvocationList();
         }
 
-        public static void ClearInvocationList() {
-            var invocList = Main.AddtDatabaseTagsProgressChanged?.GetInvocationList();
+        private static void ClearInvocationList() {
+            var invocList = Main.AddDatabaseTagsProgressChanged?.GetInvocationList();
             if (invocList != null) {
                 foreach (Delegate d in invocList) {
-                    Main.AddtDatabaseTagsProgressChanged -= (EventHandler<int>)d;
+                    Main.AddDatabaseTagsProgressChanged -= (EventHandler<int>)d;
+                }
+            }
+            invocList = Main.ChangeToIndeterminateEvent?.GetInvocationList();
+            if (invocList != null) {
+                foreach (Delegate d in invocList) {
+                    Main.ChangeToIndeterminateEvent -= (EventHandler)d;
                 }
             }
         }
