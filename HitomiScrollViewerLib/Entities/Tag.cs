@@ -11,7 +11,8 @@ namespace HitomiScrollViewerLib.Entities {
     }
 
     [Index(nameof(Value))]
-    [Index(nameof(Category), nameof(Value), nameof(GalleryCount))]
+    [Index(nameof(Category), nameof(Value))]
+    [Index(nameof(GalleryCount))]
     public class Tag {
         public static readonly int CATEGORY_NUM = Enum.GetNames(typeof(Category)).Length;
         public long Id { get; set; }
