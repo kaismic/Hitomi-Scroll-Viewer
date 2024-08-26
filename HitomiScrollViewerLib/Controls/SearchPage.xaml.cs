@@ -12,7 +12,6 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -78,7 +77,6 @@ namespace HitomiScrollViewerLib.Controls {
         }
 
         private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
-            Trace.WriteLine("yaaa loaded");
             Loaded -= SearchPage_Loaded;
             PopupInfoBarStackPanel.Margin = new Thickness(0, 0, 0, ActualHeight / 16);
 
