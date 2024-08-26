@@ -18,10 +18,5 @@ namespace HitomiScrollViewerLib {
         public static readonly string TEXT_PAGE = _resourceMap.GetValue("Text_Page").ValueAsString;
         public static readonly string TEXT_INCLUDE = _resourceMap.GetValue("Text_Include").ValueAsString;
         public static readonly string TEXT_EXCLUDE = _resourceMap.GetValue("Text_Exclude").ValueAsString;
-
-        public static readonly string EXAMPLE_TAG_FILTER_SET_1 = _resourceMap.GetValue("ExampleTagFilterSet_1").ValueAsString;
-        public static readonly string EXAMPLE_TAG_FILTER_SET_2 = _resourceMap.GetValue("ExampleTagFilterSet_2").ValueAsString;
-        public static readonly string EXAMPLE_TAG_FILTER_SET_3 = _resourceMap.GetValue("ExampleTagFilterSet_3").ValueAsString;
-        public static readonly string EXAMPLE_TAG_FILTER_SET_4 = _resourceMap.GetValue("ExampleTagFilterSet_4").ValueAsString;
     }
 }

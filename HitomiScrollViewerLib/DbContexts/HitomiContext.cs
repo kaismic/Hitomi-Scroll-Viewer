@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -80,30 +81,31 @@ namespace HitomiScrollViewerLib.DbContexts {
         }
 
         public void AddExampleTagFilterSets() {
+            ResourceMap resourceMap = MainResourceMap.GetSubtree("ExampleTFSNames");
             TagFilterSets.AddRange(
                 new() {
-                    Name = EXAMPLE_TAG_FILTER_SET_1,
+                    Name = resourceMap.GetValue("ExampleTagFilterSet_1").ValueAsString,
                     Tags = [
                         Tag.GetTag("full color", Category.Tag),
                         Tag.GetTag("very long hair", Category.Female),
                     ]
                 },
                 new() {
-                    Name = EXAMPLE_TAG_FILTER_SET_2,
+                    Name = resourceMap.GetValue("ExampleTagFilterSet_2").ValueAsString,
                     Tags = [
                         Tag.GetTag("glasses", Category.Female),
                         Tag.GetTag("sole male", Category.Male),
                     ]
                 },
                 new() {
-                    Name = EXAMPLE_TAG_FILTER_SET_3,
+                    Name = resourceMap.GetValue("ExampleTagFilterSet_3").ValueAsString,
                     Tags = [
                         Tag.GetTag("naruto", Category.Series),
                         Tag.GetTag("big breasts", Category.Tag),
                     ]
                 },
                 new() {
-                    Name = EXAMPLE_TAG_FILTER_SET_4,
+                    Name = resourceMap.GetValue("ExampleTagFilterSet_4").ValueAsString,
                     Tags = [
                         Tag.GetTag("non-h imageset", Category.Tag)
                     ]
