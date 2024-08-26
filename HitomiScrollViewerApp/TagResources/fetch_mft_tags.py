@@ -4,11 +4,13 @@ import string
 import os
 
 cwd = os.getcwd()
+with open(os.path.join(cwd, "delimiter.txt"), "r") as delimiter_file:
+    DELIMITER = delimiter_file.read()
+print("DELIMITER characters:", [ord(c) for c in DELIMITER])
+
 categories = ["males", "females", "tags"]
 alphabetsWith123 = list(string.ascii_lowercase)
 alphabetsWith123.insert(0, "123")
-
-print(alphabetsWith123)
 
 # write male, female and tag tags
 MALE_SYMBOL = "♂"
@@ -24,20 +26,24 @@ for i in range(len(categories)):
 
 # iterate over 123 and alphabets
 for letterOr123 in alphabetsWith123:
-    tags_list = [[] for _ in range(len(categories))]
+    outputs_list = [[] for _ in range(len(categories))]
     file_names = [f"{category}-{letterOr123}.txt" for category in categories]
     html = requests.get(f'https://hitomi.la/alltags-{letterOr123}.html').text
     content: str = re.findall(r"""<div class="content">(.+?)</div>""", html)[0]
-    tags: list[str] = re.findall(r"""<a href="[^"]+">(.+?)</a>""", content)
-    for tag in tags:
-        if tag.endswith(MALE_SYMBOL):
-            tags_list[0].append(tag[:-2])
-        elif tag.endswith(FEMALE_SYMBOL):
-            tags_list[1].append(tag[:-2])
+    tagInfoTuples: list[tuple[str, str]] = re.findall(r"""<a href="[^"]+">(.+?)</a> \((\d+)\)""", content)
+    for tagInfoTuple in tagInfoTuples:
+        tag_with_symbol = tagInfoTuple[0]
+        gallery_count = tagInfoTuple[1]
+        if tag_with_symbol.endswith(MALE_SYMBOL):
+            outputs_list[0].append(tag_with_symbol[:-2] + DELIMITER + gallery_count)
+        elif tag_with_symbol.endswith(FEMALE_SYMBOL):
+            outputs_list[1].append(tag_with_symbol[:-2] + DELIMITER + gallery_count)
         else:
-            tags_list[2].append(tag)
+            outputs_list[2].append(tag_with_symbol + DELIMITER + gallery_count)
 
     for i in range(len(file_names)):
         print(f"Writing to {file_names[i]}...")
         with open(os.path.join(dir_paths[i], file_names[i]), "w") as file:
-            file.write('\n'.join(tags_list[i]))
+            file.write('\n'.join(outputs_list[i]))
+
+print("All Done.")

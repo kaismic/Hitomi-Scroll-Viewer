@@ -4,11 +4,13 @@ import string
 import os
 
 cwd = os.getcwd()
+with open(os.path.join(cwd, "delimiter.txt"), "r") as delimiter_file:
+    DELIMITER = delimiter_file.read()
+print("DELIMITER characters:", [ord(c) for c in DELIMITER])
+
 categories = ["artists", "groups", "characters", "series"]
 alphabetsWith123 = list(string.ascii_lowercase)
 alphabetsWith123.insert(0, "123")
-
-print(alphabetsWith123)
 
 for category in categories:
     # create directories for each category
@@ -24,7 +26,10 @@ for category in categories:
             continue
         html = requests.get(f'https://hitomi.la/all{category}-{letterOr123}.html').text
         content = re.findall(r"""<div class="content">(.+?)</div>""", html)[0]
-        tags = re.findall(r"""<a href="[^"]+">(.+?)</a>""", content)
+        tagInfoTuples: list[tuple[str, str]] = re.findall(r"""<a href="[^"]+">(.+?)</a> \((\d+)\)""", content)
+        tagInfoStrs: list[str] = [DELIMITER.join(tagInfoTuple) for tagInfoTuple in tagInfoTuples]
         print(f"Writing to {file_path}...")
         with open(file_path, "w") as file:
-            file.write('\n'.join(tags))
+            file.write('\n'.join(tagInfoStrs))
+
+print("All Done.")
