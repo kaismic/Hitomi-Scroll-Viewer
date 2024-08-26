@@ -14,6 +14,7 @@
     <None Remove="Controls\SearchPageComponents\BookmarkItem.xaml" />
     <None Remove="Controls\SearchPageComponents\CRUDActionContentDialog.xaml" />
     <None Remove="Controls\SearchPageComponents\DownloadItem.xaml" />
+    <None Remove="Controls\SearchPageComponents\GLASBWrapper.xaml" />
     <None Remove="Controls\SearchPageComponents\InputValidation.xaml" />
     <None Remove="Controls\SearchPageComponents\LoadProgressReporter.xaml" />
     <None Remove="Controls\SearchPageComponents\SearchLinkItem.xaml" />
@@ -40,12 +41,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Controls\SearchPageComponents\InputValidation.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
     <Page Update="Controls\Pages\SearchPage.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
@@ -54,7 +49,6 @@
     </Page>
     <Page Update="Controls\SearchPageComponents\CRUDActionContentDialog.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
     </Page>
     <Page Update="Controls\SearchPageComponents\BookmarkItem.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
@@ -62,20 +56,23 @@
     <Page Update="Controls\SearchPageComponents\DownloadItem.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
+	<Page Update="Controls\SearchPageComponents\GLASBWrapper.xaml">
+	  <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	</Page>
+	<Page Update="Controls\SearchPageComponents\InputValidation.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+	</Page>
     <Page Update="Controls\SearchPageComponents\LoadProgressReporter.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
     </Page>
     <Page Update="Controls\SearchPageComponents\SearchLinkItem.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
     <Page Update="Controls\SearchPageComponents\SyncContentDialog.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
     </Page>
     <Page Update="Controls\SearchPageComponents\SyncManager.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
     </Page>
     <Page Update="Controls\SearchPageComponents\TFSCheckBox.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
@@ -91,7 +88,6 @@
     </Page>
     <Page Update="MainWindow.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
 </Project>
