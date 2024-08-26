@@ -45,6 +45,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             return
                 HitomiContext.Main.Tags
                 .Where(tag => tag.Category == Category && tag.Value.StartsWith(Text))
+                .OrderByDescending(tag => tag.GalleryCount)
                 .Take(MAX_SUGGESTION_NUM);
         }
 
