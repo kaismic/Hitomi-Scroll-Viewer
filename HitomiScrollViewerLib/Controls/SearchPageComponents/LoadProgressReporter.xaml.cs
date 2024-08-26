@@ -21,7 +21,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             MigratingTFSs,
             MigratingGalleries,
             MovingImageFolder,
-            AddingDatabaseTags,
+            InitialisingDatabase,
             AddingExampleTFSs,
             InitialisingApp
         }
@@ -32,7 +32,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 LoadingStatus.MigratingTFSs => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingTFSs.ToString()).ValueAsString,
                 LoadingStatus.MigratingGalleries => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingGalleries.ToString()).ValueAsString,
                 LoadingStatus.MovingImageFolder => _resourceMap.GetValue("Text_" + LoadingStatus.MovingImageFolder.ToString()).ValueAsString,
-                LoadingStatus.AddingDatabaseTags => _resourceMap.GetValue("Text_" + LoadingStatus.AddingDatabaseTags.ToString()).ValueAsString,
+                LoadingStatus.InitialisingDatabase => _resourceMap.GetValue("Text_" + LoadingStatus.InitialisingDatabase.ToString()).ValueAsString,
                 LoadingStatus.AddingExampleTFSs => _resourceMap.GetValue("Text_" + LoadingStatus.AddingExampleTFSs.ToString()).ValueAsString,
                 LoadingStatus.InitialisingApp => _resourceMap.GetValue("Text_" + LoadingStatus.InitialisingApp.ToString()).ValueAsString,
                 _ => throw new InvalidOperationException($"Invalid {nameof(LoadingStatus)}: {loadingStatus}"),
