@@ -11,6 +11,7 @@ using Soluling;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
@@ -183,9 +184,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (e.RemovedItems.Count > 0 && AutoSaveCheckBox.IsChecked == true) {
-                TagFilterSet prevTFS = e.RemovedItems[0] as TagFilterSet;
-                SaveTFS(prevTFS);
+            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TagFilterSet prevTFS && AutoSaveCheckBox.IsChecked == true) {
+                // do not save if this selection change occurred due to deletion of currently selected tfs
+                if (_crudActionContentDialog.DeletedTFSIds == null) {
+                    SaveTFS(prevTFS);
+                } else if (!_crudActionContentDialog.DeletedTFSIds.Contains(prevTFS.Id)) {
+                    SaveTFS(prevTFS);
+                }
             }
             foreach (var textBox in _tfsTextBoxes) {
                 textBox.SelectedTags.Clear();
@@ -272,7 +277,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             MainWindow.SearchPage.ShowInfoBar(
                 MultiPattern.Format(
                     _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,
-                    _crudActionContentDialog.DeletionCount
+                    _crudActionContentDialog.DeletedTFSIds.Count
                 )
             );
         }

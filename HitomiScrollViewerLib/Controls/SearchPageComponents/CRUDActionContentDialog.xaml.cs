@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
@@ -18,7 +19,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private readonly InputValidation _inputValidation = new();
         public readonly TFSSelector DeletingTFSSelector = new();
         private bool _isInAction = false;
-        internal int DeletionCount { get; set; }
+        internal HashSet<int> DeletedTFSIds { get; private set; }
 
         public CRUDActionContentDialog() {
             InitializeComponent();
@@ -35,7 +36,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 if (_currAction == Action.Delete) {
                     ToggleDeleteAction(true);
                     var checkedTagFilterSets = DeletingTFSSelector.GetCheckedTagFilterSets();
-                    DeletionCount = checkedTagFilterSets.Count();
+                    DeletedTFSIds = checkedTagFilterSets.Select(tfs => tfs.Id).ToHashSet();
                     HitomiContext.Main.TagFilterSets.RemoveRange(checkedTagFilterSets);
                     HitomiContext.Main.SaveChanges();
                     ToggleDeleteAction(false);
@@ -45,7 +46,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             CloseButtonClick += (ContentDialog _, ContentDialogButtonClickEventArgs args) => {
                 if (_isInAction) args.Cancel = true;
             };
-            _inputValidation.InputTextBox.TextChanged += (_, _) => { IsPrimaryButtonEnabled = _inputValidation.InputTextBox.Text.Length != 0;  };
+            _inputValidation.InputTextBox.TextChanged += (_, _) => { IsPrimaryButtonEnabled = _inputValidation.InputTextBox.Text.Length != 0; };
             _inputValidation.InputTextBox.MaxLength = TagFilterSet.TAG_FILTER_SET_NAME_MAX_LEN;
             DeletingTFSSelector.RegisterPropertyChangedCallback(
                 TFSSelector.AnyCheckedProperty,
