@@ -5,7 +5,14 @@ namespace HitomiScrollViewerLib.Entities {
         public static IEnumerable<string> DisplayNames { get; } = [
             "Any", "Doujinshi", "Manga", "ArtistCG", "GameCG", "Imageset"
         ];
-        public string DisplayName { get; set; }
+        private string _displayName;
+        public string DisplayName {
+            get => _displayName;
+            set {
+                _displayName = value;
+                SearchParamValue = value.ToLower();
+            }
+        }
         public string SearchParamValue { get; set; }
     }
 }

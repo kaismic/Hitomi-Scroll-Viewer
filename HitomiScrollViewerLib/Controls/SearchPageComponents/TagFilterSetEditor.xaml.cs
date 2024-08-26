@@ -45,10 +45,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private readonly IEnumerable<GalleryType> _galleryTypes =
             GalleryType.DisplayNames
             .Select(
-                displayName => new GalleryType() {
-                    DisplayName = displayName,
-                    SearchParamValue = displayName.ToLower()
-                }
+                displayName => new GalleryType() { DisplayName = displayName }
             );
 
         public TagFilterSetEditor() {
