@@ -13,6 +13,7 @@ namespace HitomiScrollViewerLib.DbContexts {
         public DbSet<TagFilterSet> TagFilterSets { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<Tag> Tags { get; set; }
+        public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
 
         private static HitomiContext _main;
         public static HitomiContext Main {
@@ -44,6 +45,11 @@ namespace HitomiScrollViewerLib.DbContexts {
             TAG_RES_ROOT_DIR,
             "delimiter.txt"
         );
+        private static readonly string LANGUAGES_FILE_PATH = Path.Combine(
+            Windows.ApplicationModel.Package.Current.InstalledPath,
+            TAG_RES_ROOT_DIR,
+            "languages.txt"
+        );
         private static readonly Dictionary<Category, string> CATEGORY_DIR_DICT = new() {
             { Category.Tag, "Tags" },
             { Category.Male, "Males" },
@@ -54,12 +60,13 @@ namespace HitomiScrollViewerLib.DbContexts {
             { Category.Series, "Series" }
         };
 
-        public static readonly int TAG_DATABASE_INIT_NUM = Tag.CATEGORY_NUM * ALPHABETS_WITH_123.Length;
-        public event EventHandler<int> AddDatabaseTagsProgressChanged;
+        public static readonly int DATABASE_INIT_OP_NUM = Tag.CATEGORY_NUM * ALPHABETS_WITH_123.Length + 1;
+        public event EventHandler<int> DatabaseInitProgressChanged;
         public event EventHandler ChangeToIndeterminateEvent;
-        public static void AddDatabaseTags() {
+        public static void InitDatabase() {
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             int progressValue = 0;
+            // add tags
             for (int i = 0; i < Tag.CATEGORY_NUM; i++) {
                 Category category = (Category)i;
                 string categoryStr = CATEGORY_DIR_DICT[category];
@@ -81,19 +88,35 @@ namespace HitomiScrollViewerLib.DbContexts {
                             };
                         }
                     ));
-                    Main.AddDatabaseTagsProgressChanged?.Invoke(null, ++progressValue);
+                    Main.DatabaseInitProgressChanged?.Invoke(null, ++progressValue);
                 }
             }
+            // add languages
+            string[] languages = File.ReadAllLines(LANGUAGES_FILE_PATH);
+            Main.GalleryLanguages.AddRange(languages.Select(
+                language => {
+                    return new GalleryLanguage() {
+                        SearchParamValue = language
+                    };
+                }
+            ));
+
+            /*
+             * this line isn't actually meaningful to the user because
+             * Main.ChangeToIndeterminateEvent?.Invoke(); is
+             * called straight after it
+            */
+            // Main.DatabaseInitProgressChanged?.Invoke(null, ++progressValue);
             Main.ChangeToIndeterminateEvent?.Invoke(null, null);
             Main.SaveChanges();
             ClearInvocationList();
         }
 
         private static void ClearInvocationList() {
-            var invocList = Main.AddDatabaseTagsProgressChanged?.GetInvocationList();
+            var invocList = Main.DatabaseInitProgressChanged?.GetInvocationList();
             if (invocList != null) {
                 foreach (Delegate d in invocList) {
-                    Main.AddDatabaseTagsProgressChanged -= (EventHandler<int>)d;
+                    Main.DatabaseInitProgressChanged -= (EventHandler<int>)d;
                 }
             }
             invocList = Main.ChangeToIndeterminateEvent?.GetInvocationList();

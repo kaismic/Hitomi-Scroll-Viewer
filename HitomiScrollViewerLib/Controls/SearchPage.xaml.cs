@@ -12,6 +12,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -77,6 +78,7 @@ namespace HitomiScrollViewerLib.Controls {
         }
 
         private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
+            Trace.WriteLine("yaaa loaded");
             Loaded -= SearchPage_Loaded;
             PopupInfoBarStackPanel.Margin = new Thickness(0, 0, 0, ActualHeight / 16);
 
@@ -96,9 +98,9 @@ namespace HitomiScrollViewerLib.Controls {
                     reporter.LoadProgressBar.IsIndeterminate = true;
                     reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.LoadingDatabase);
                 });
-                bool tagFilterSetDbCreatedFirstTime = await HitomiContext.Main.Database.EnsureCreatedAsync();
-                await HitomiContext.Main.TagFilterSets.LoadAsync();
-                //await GalleryContext.Main.Galleries.LoadAsync(); TODO uncomment when implemented
+                bool tagFilterSetDbCreatedFirstTime = HitomiContext.Main.Database.EnsureCreated();
+                HitomiContext.Main.TagFilterSets.Load();
+                //GalleryContext.Main.Galleries.Load(); TODO uncomment when implemented
 
                 bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
                 // User upgraded from v2 to v3
@@ -131,16 +133,16 @@ namespace HitomiScrollViewerLib.Controls {
                     await DispatcherQueue.EnqueueAsync(() => {
                         reporter.LoadProgressBar.IsIndeterminate = false;
                         reporter.LoadProgressBar.Value = 0;
-                        reporter.LoadProgressBar.Maximum = HitomiContext.TAG_DATABASE_INIT_NUM;
-                        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingDatabaseTags);
+                        reporter.LoadProgressBar.Maximum = HitomiContext.DATABASE_INIT_OP_NUM;
+                        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.InitialisingDatabase);
                     });
-                    HitomiContext.Main.AddDatabaseTagsProgressChanged += (object _, int e) => {
+                    HitomiContext.Main.DatabaseInitProgressChanged += (object _, int e) => {
                         DispatcherQueue.TryEnqueue(() => reporter.LoadProgressBar.Value = e);
                     };
                     HitomiContext.Main.ChangeToIndeterminateEvent += (object _, EventArgs _) => {
                         DispatcherQueue.TryEnqueue(() => reporter.LoadProgressBar.IsIndeterminate = true);
                     };
-                    HitomiContext.AddDatabaseTags();
+                    HitomiContext.InitDatabase();
                     await DispatcherQueue.EnqueueAsync(() => {
                         reporter.LoadProgressBar.IsIndeterminate = true;
                         reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.AddingExampleTFSs);

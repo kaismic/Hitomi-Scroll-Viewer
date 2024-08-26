@@ -11,7 +11,6 @@ using Soluling;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
@@ -55,8 +54,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             for (int i = 0; i < Children.Count; i++) {
                 SetRow(Children[i] as FrameworkElement, i);
             }
-            
-            AutoSaveCheckBox.Content = _resourceMap.GetValue("AutoSaveCheckBox_Content").ValueAsString;
+
+            AutoSaveCheckBox.Content = new TextBlock() {
+                Text = _resourceMap.GetValue("AutoSaveCheckBox_Content").ValueAsString,
+                TextWrapping = TextWrapping.WrapWholeWords
+            };
             AutoSaveCheckBox.IsChecked = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
             void SaveAutoSaveSettingValue() {
                 ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = AutoSaveCheckBox.IsChecked;
@@ -64,16 +66,15 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             AutoSaveCheckBox.Checked += (_, _) => SaveAutoSaveSettingValue();
             AutoSaveCheckBox.Unchecked += (_, _) => SaveAutoSaveSettingValue();
 
-            for (int i = 0; i < GalleryLanguageTypeGrid.Children.Count; i++) {
-                SetColumn(GalleryLanguageTypeGrid.Children[i] as FrameworkElement, i);
-            }
-
             for (int i = 0; i < TagFilterSetControlGrid.Children.Count; i++) {
                 FrameworkElement elem = TagFilterSetControlGrid.Children[i] as FrameworkElement;
                 SetColumn(elem, i);
                 if (elem is Button button) {
+                    button.SizeChanged += (object sender, SizeChangedEventArgs args) => {
+                        button.Width = args.NewSize.Height;
+                    };
                     button.IsEnabled = false;
-                    button.Padding = new(16);
+                    button.VerticalAlignment = VerticalAlignment.Stretch;
                 }
             }
             SetColumn(_comboBoxProgRing, GetColumn(TagFilterSetComboBox));
@@ -123,6 +124,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 (_, _) => EnableHyperlinkCreateButton()
             );
 
+            GLASBWrapper.AutoSuggestBox.TextChanged += (_, _) => EnableHyperlinkCreateButton();
+
             Loaded += TagFilterSetEditor_Loaded;
             SizeChanged += (object sender, SizeChangedEventArgs e) => {
                 foreach (TagTokenizingTextBox tttb in _tfsTextBoxes) {
@@ -146,15 +149,17 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         internal void Init() {
-            TagFilterSetComboBox.SelectedIndex = -1;
+            CreateButton.IsEnabled = true;
+            DeleteButton.IsEnabled = true;
+            CreateButton.Focus(FocusState.Programmatic);
             ObservableCollection<TagFilterSet> collection = HitomiContext.Main.TagFilterSets.Local.ToObservableCollection();
             TagFilterSetComboBox.ItemsSource = null;
             TagFilterSetComboBox.ItemsSource = collection;
             IncludeTFSSelector.SetCollectionSource(collection);
             ExcludeTFSSelector.SetCollectionSource(collection);
             _crudActionContentDialog.DeletingTFSSelector.SetCollectionSource(collection);
-            CreateButton.IsEnabled = true;
-            DeleteButton.IsEnabled = true;
+            GLASBWrapper.AutoSuggestBox.IsEnabled = true;
+            GalleryTypeComboBox.IsEnabled = true;
             for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
                 _tfsTextBoxes[i].IsEnabled = true;
             }
@@ -167,7 +172,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void EnableHyperlinkCreateButton() {
-            HyperlinkCreateButton.IsEnabled = GalleryTypeComboBox.SelectedIndex > 0 || IncludeTFSSelector.AnyChecked || ExcludeTFSSelector.AnyChecked;
+            HyperlinkCreateButton.IsEnabled =
+                GalleryTypeComboBox.SelectedIndex > 0 ||
+                GLASBWrapper.SelectedGL != null ||
+                IncludeTFSSelector.AnyChecked || ExcludeTFSSelector.AnyChecked;
         }
 
         private void GalleryTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
@@ -297,7 +305,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             IEnumerable<Tag> excludeTags = excludeTFSs.SelectMany(tfs => tfs.Tags);
 
             // check if all selected TFSs are all empty
-            if (!includeTags.Any() && !excludeTags.Any() && GalleryTypeComboBox.SelectedIndex <= 0) {
+            if (!includeTags.Any() && !excludeTags.Any() && GalleryTypeComboBox.SelectedIndex <= 0 && GLASBWrapper.SelectedGL == null) {
                 MainWindow.CurrentMainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString,
                     ""
@@ -336,13 +344,16 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             List<string> searchParamStrs = new(4); // 2 for joined include and exclude tags. 2 for language and type
             List<string> displayTexts = new(Entities.Tag.CATEGORY_NUM + 2); // + 2 for language and type
 
-            // TODO add language search param str and display text
+            if (GLASBWrapper.SelectedGL != null) {
+                searchParamStrs.Add("language:" + GLASBWrapper.SelectedGL.SearchParamValue);
+                displayTexts.Add("Language: " + GLASBWrapper.SelectedGL.DisplayName);
+            }
 
             // only add type if !(nothing selected: -1 || "Any" type is selected: 0)
             if (GalleryTypeComboBox.SelectedIndex > 0) {
                 GalleryType galleryType = GalleryTypeComboBox.SelectedItem as GalleryType;
                 searchParamStrs.Add("type:" + galleryType.SearchParamValue);
-                displayTexts.Add("Type: " + galleryType.SearchParamValue);
+                displayTexts.Add("Type: " + galleryType.DisplayName);
             }
             
             // add joined include exclude search param strs
