@@ -6,7 +6,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    PreviewKeyDown="ViewPage_PreviewKeyDown">
+    PreviewKeyDown="ViewPage_PreviewKeyDown"
+    NavigationCacheMode="Required">
     <Grid>
         <FlipView x:Name="ImageFlipView" UseTouchAnimationsForAllNavigation="False"
                   FocusVisualPrimaryThickness="0" IsTabStop="True"

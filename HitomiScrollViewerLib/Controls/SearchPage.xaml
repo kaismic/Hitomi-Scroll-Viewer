@@ -6,7 +6,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:spc="using:HitomiScrollViewerLib.Controls.SearchPageComponents"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    NavigationCacheMode="Required"
+    >
     <Grid>
         <ScrollViewer>
             <StackPanel x:Name="MainContainerStackPanel"
