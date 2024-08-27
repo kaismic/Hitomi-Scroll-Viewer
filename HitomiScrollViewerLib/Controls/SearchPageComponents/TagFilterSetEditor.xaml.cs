@@ -55,6 +55,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 SetRow(Children[i] as FrameworkElement, i);
             }
 
+            for (int i = 0; i < LanguageTypeKeywordGrid.Children.Count; i++) {
+                SetColumn(LanguageTypeKeywordGrid.Children[i] as FrameworkElement, i);
+            }
+
             AutoSaveCheckBox.Content = new TextBlock() {
                 Text = _resourceMap.GetValue("AutoSaveCheckBox_Content").ValueAsString,
                 TextWrapping = TextWrapping.WrapWholeWords
@@ -70,11 +74,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 FrameworkElement elem = TagFilterSetControlGrid.Children[i] as FrameworkElement;
                 SetColumn(elem, i);
                 if (elem is Button button) {
-                    button.SizeChanged += (object sender, SizeChangedEventArgs args) => {
-                        button.Width = args.NewSize.Height;
-                    };
                     button.IsEnabled = false;
-                    button.VerticalAlignment = VerticalAlignment.Stretch;
+                    button.Padding = new Thickness(12);
                 }
             }
             SetColumn(_comboBoxProgRing, GetColumn(TagFilterSetComboBox));
@@ -125,6 +126,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             );
 
             GLASBWrapper.AutoSuggestBox.TextChanged += (_, _) => EnableHyperlinkCreateButton();
+            ExtraKeywordsTextBox.TextChanged += (_, _) => EnableHyperlinkCreateButton();
 
             Loaded += TagFilterSetEditor_Loaded;
             SizeChanged += (object sender, SizeChangedEventArgs e) => {
@@ -175,6 +177,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             HyperlinkCreateButton.IsEnabled =
                 GalleryTypeComboBox.SelectedIndex > 0 ||
                 GLASBWrapper.SelectedGL != null ||
+                ExtraKeywordsTextBox.Text.Length > 0 ||
                 IncludeTFSSelector.AnyChecked || ExcludeTFSSelector.AnyChecked;
         }
 
@@ -305,7 +308,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             IEnumerable<Tag> excludeTags = excludeTFSs.SelectMany(tfs => tfs.Tags);
 
             // check if all selected TFSs are all empty
-            if (!includeTags.Any() && !excludeTags.Any() && GalleryTypeComboBox.SelectedIndex <= 0 && GLASBWrapper.SelectedGL == null) {
+            if (!includeTags.Any() && !excludeTags.Any() &&
+                GalleryTypeComboBox.SelectedIndex <= 0 &&
+                GLASBWrapper.SelectedGL == null &&
+                ExtraKeywordsTextBox.Text.Length == 0
+            ) {
                 MainWindow.CurrentMainWindow.NotifyUser(
                     _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString,
                     ""
@@ -341,8 +348,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 return null;
             }
 
-            List<string> searchParamStrs = new(4); // 2 for joined include and exclude tags. 2 for language and type
-            List<string> displayTexts = new(Entities.Tag.CATEGORY_NUM + 2); // + 2 for language and type
+            List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and extra keywords
+            List<string> displayTexts = new(Entities.Tag.CATEGORY_NUM + 3); // + 3 for language, type and extra keywords
 
             if (GLASBWrapper.SelectedGL != null) {
                 searchParamStrs.Add("language:" + GLASBWrapper.SelectedGL.SearchParamValue);
@@ -372,6 +379,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     string.Join(", ", excludeValues)
                 }.Where(s => !string.IsNullOrEmpty(s));
                 displayTexts.Add(((Category)i).ToString() + ": " + string.Join(", ", withoutEmptyStrs));
+            }
+
+            if (ExtraKeywordsTextBox.Text.Length > 0) {
+                searchParamStrs.Add(ExtraKeywordsTextBox.Text);
+                displayTexts.Add("Keywords: " + ExtraKeywordsTextBox.Text);
             }
 
             return new(

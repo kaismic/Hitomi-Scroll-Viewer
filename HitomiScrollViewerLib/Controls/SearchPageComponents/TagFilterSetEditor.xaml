@@ -11,12 +11,13 @@
     >
     <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
         <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
     <Grid x:Name="TagFilterSetControlGrid" ColumnSpacing="8">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="3*"/>
@@ -24,31 +25,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
-        <Grid RowSpacing="4" ColumnSpacing="16" Margin="0 0 32 0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Select Type:" Grid.Row="0" Grid.Column="0"
-                       VerticalAlignment="Center"/>
-            <ComboBox x:Name="GalleryTypeComboBox" ItemsSource="{x:Bind _galleryTypes}"
-                      Grid.Row="0" Grid.Column="1"
-                      HorizontalAlignment="Stretch"
-                      DisplayMemberPath="DisplayName"
-                      SelectedIndex="0"
-                      SelectionChanged="GalleryTypeComboBox_SelectionChanged"
-                      IsEnabled="False"/>
-            <TextBlock Text="Select Language:" Grid.Row="1" Grid.Column="0"
-                       VerticalAlignment="Center"/>
-            <spc:GLASBWrapper x:Name="GLASBWrapper"
-                              Grid.Row="1" Grid.Column="1"
-                              HorizontalAlignment="Stretch"
-                              />
-        </Grid>
+        <Border/>
         <Button x:Name="CreateButton"
                 Click="CreateButton_Click">
             <SymbolIcon Symbol="Add"/>
@@ -85,6 +62,27 @@
                   Padding="16 0"
                   HorizontalAlignment="Center"
                   VerticalContentAlignment="Center"/>
+    </Grid>
+    <Grid x:Name="LanguageTypeKeywordGrid" ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Select Language:"/>
+        <spc:GLASBWrapper x:Name="GLASBWrapper" HorizontalAlignment="Stretch"/>
+        <TextBlock Text="Select Type:"/>
+        <ComboBox x:Name="GalleryTypeComboBox" ItemsSource="{x:Bind _galleryTypes}"
+                  HorizontalAlignment="Stretch"
+                  DisplayMemberPath="DisplayName"
+                  SelectedIndex="0"
+                  SelectionChanged="GalleryTypeComboBox_SelectionChanged"
+                  IsEnabled="False"/>
+        <TextBlock Text="Additional Search Keywords:"/>
+        <TextBox x:Name="ExtraKeywordsTextBox" HorizontalAlignment="Stretch"/>
     </Grid>
     <Grid x:Name="TextBoxesGrid"
           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
