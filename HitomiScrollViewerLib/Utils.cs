@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Threading;
 using Google.Apis.Download;
+using System.Text;
 
 namespace HitomiScrollViewerLib {
     public static class Utils {
@@ -73,7 +74,7 @@ namespace HitomiScrollViewerLib {
 
         public static FilesResource.CreateMediaUpload GetCreateMediaUpload(
             DriveService driveService,
-            FileStream uploadStream,
+            string content,
             string fileName,
             string contentType
         ) {
@@ -83,21 +84,21 @@ namespace HitomiScrollViewerLib {
             };
             return driveService.Files.Create(
                 fileMetaData,
-                uploadStream,
+                new MemoryStream(Encoding.UTF8.GetBytes(content)),
                 contentType
             );
         }
 
         public static FilesResource.UpdateMediaUpload GetUpdateMediaUpload(
             DriveService driveService,
-            FileStream uploadStream,
+            string content,
             string fileId,
             string contentType
         ) {
             return driveService.Files.Update(
                 new(),
                 fileId,
-                uploadStream,
+                new MemoryStream(Encoding.UTF8.GetBytes(content)),
                 contentType
             );
         }

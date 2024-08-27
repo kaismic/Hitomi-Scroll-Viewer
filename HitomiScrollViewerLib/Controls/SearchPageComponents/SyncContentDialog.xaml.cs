@@ -1,11 +1,9 @@
-using CommunityToolkit.WinUI;
 using Google;
 using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Upload;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -14,13 +12,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
-namespace HitomiScrollViewerLib.Controls.SearchPageComponents
-{
+namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
     public sealed partial class SyncContentDialog : ContentDialog {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SyncContentDialog");
 
@@ -82,14 +80,13 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
 
         private async Task StartUploadAsync(UserDataType userDataType, Google.Apis.Drive.v3.Data.File file) {
             string uploadFileName = userDataType switch {
-                // TODO json file name
                 UserDataType.TagFilterSet => Path.GetFileName(TFS_SYNC_FILE_PATH),
                 UserDataType.Gallery => Path.GetFileName(GALLERIES_SYNC_FILE_PATH),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
-            string localSrcFilePath = userDataType switch {
-                UserDataType.TagFilterSet => TFS_SYNC_FILE_PATH,
-                UserDataType.Gallery => GALLERIES_SYNC_FILE_PATH,
+            string uploadFileContent = userDataType switch {
+                UserDataType.TagFilterSet => JsonSerializer.Serialize(HitomiContext.Main.TagFilterSets),
+                UserDataType.Gallery => JsonSerializer.Serialize(HitomiContext.Main.Galleries),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             InfoBar infoBar = userDataType switch {
@@ -104,43 +101,56 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
             };
 
             try {
-                await HitomiContext.Main.Database.CloseConnectionAsync();
-
-                using FileStream uploadStream = new(localSrcFilePath, FileMode.Open);
                 ResumableUpload mediaUpload =
                     file == null
-                    ? GetCreateMediaUpload(_driveService, uploadStream, uploadFileName, MediaTypeNames.Application.Json)
-                    : GetUpdateMediaUpload(_driveService, uploadStream, file.Id, MediaTypeNames.Application.Json);
+                    ? GetCreateMediaUpload(_driveService, uploadFileContent, uploadFileName, MediaTypeNames.Application.Json)
+                    : GetUpdateMediaUpload(_driveService, uploadFileContent, file.Id, MediaTypeNames.Application.Json);
                 AttachProgressChangedEventHandler(mediaUpload, mediaUpload.ContentStream.Length);
                 IUploadProgress uploadProgress = await mediaUpload.UploadAsync(_cts.Token);
                 if (uploadProgress.Exception != null) {
                     throw uploadProgress.Exception;
                 }
 
-                infoBar.Severity = InfoBarSeverity.Success;
-                infoBar.Title = infoBarTitle;
-                infoBar.Message = _resourceMap.GetValue("InfoBar_Upload_Success_Message").ValueAsString;
+                SetInfoBar(
+                    infoBar,
+                    InfoBarSeverity.Success,
+                    infoBarTitle,
+                    _resourceMap.GetValue("InfoBar_Upload_Success_Message").ValueAsString
+                );
             } catch (TaskCanceledException) {
-                infoBar.Severity = InfoBarSeverity.Informational;
-                infoBar.Title = infoBarTitle;
-                infoBar.Message = _resourceMap.GetValue("InfoBar_Upload_Canceled_Message").ValueAsString;
+                SetInfoBar(
+                    infoBar,
+                    InfoBarSeverity.Informational,
+                    infoBarTitle,
+                    _resourceMap.GetValue("InfoBar_Upload_Canceled_Message").ValueAsString
+                );
             } catch (Exception e) {
-                infoBar.Severity = InfoBarSeverity.Error;
-                infoBar.Title = TEXT_ERROR;
+                string message;
                 if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                    infoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                    message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
                 } else {
-                    infoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                    message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
                 }
+                SetInfoBar(
+                    infoBar,
+                    InfoBarSeverity.Error,
+                    TEXT_ERROR,
+                    message
+                );
             } finally {
                 infoBar.IsOpen = true;
             }
         }
 
-        private static void HandleFileNotUploaded(InfoBar infoBar, string infoBarTitle) {
-            infoBar.Severity = InfoBarSeverity.Error;
-            infoBar.Title = infoBarTitle;
-            infoBar.Message = _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString;
+        private static void SetInfoBar(
+            InfoBar infoBar,
+            InfoBarSeverity severity,
+            string title,
+            string message
+        ) {
+            infoBar.Severity = severity;
+            infoBar.Title = title;
+            infoBar.Message = message;
         }
 
         private async void ContentDialog_PrimaryButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
@@ -180,82 +190,77 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                 if (TagFilterOptionCheckBox.IsChecked == true) {
                     // file is not uploaded yet
                     if (tfssFile == null) {
-                        HandleFileNotUploaded(TagFilterSyncResultInfoBar, TEXT_TAG_FILTER_SETS);
+                        SetInfoBar(
+                            TagFilterSyncResultInfoBar,
+                            InfoBarSeverity.Error,
+                            TEXT_TAG_FILTER_SETS,
+                            _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString
+                        );
                     }
                     // file exists
                     else {
-                        //try {
-                        //    FilesResource.GetRequest request = _driveService.Files.Get(tfssFile.Id);
-                        //    AttachProgressChangedEventHandler(request, (long)tfssFile.Size);
-                        //    // Overwrite tag filter sets
-                        //    // This operation must be atomic and not be cancelled because
-                        //    // it is disposing and creating a new TagFilterSetContext.Main
-                        //    if (FetchTagFilterOption1.SelectedIndex == 0) {
-                        //        await HitomiContext.Main.DisposeAsync();
-                        //        await DownloadAndWriteAsync(
-                        //            request,
-                        //            MAIN_DATABASE_PATH_V3,
-                        //            CancellationToken.None
-                        //        );
-                        //        HitomiContext.Main = new(Path.GetFileName(MAIN_DATABASE_PATH_V3));
-                        //        await HitomiContext.Main.TagFilterSets.LoadAsync(CancellationToken.None);
-                        //        await DispatcherQueue.EnqueueAsync(TagFilterSetEditor.Main.Init);
-                        //    }
-                        //    // Append tag filter sets
-                        //    else {
-                        //        await DownloadAndWriteAsync(
-                        //            request,
-                        //            TEMP_DATABASE_PATH_V3,
-                        //            _cts.Token
-                        //        );
-                        //        using HitomiContext tempCtx = new(Path.GetFileName(TEMP_DATABASE_PATH_V3));
-                        //        await tempCtx.TagFilterSets.LoadAsync(_cts.Token);
-                        //        IEnumerable<string> fetchedTFSNames = tempCtx.TagFilterSets.Select(tfs => tfs.Name);
-                        //        // Replace locally stored tfss with duplicate names from the cloud
-                        //        foreach (string fetchedTFSName in fetchedTFSNames) {
-                        //            IQueryable<TagFilterSet> localDuplicateQuery = HitomiContext.Main.TagFilterSets.Where(tfs => tfs.Name == fetchedTFSName);
-                        //            ICollection<TagFilterV3> fetchedTagFilters =
-                        //                tempCtx.TagFilterSets
-                        //                .Where(tfs => tfs.Name == fetchedTFSName)
-                        //                .Include(tfs => tfs.TagTags)
-                        //                .First()
-                        //                .TagTags
-                        //                .Select(tf => new TagFilterV3() { Category = tf.Category, Tags = tf.Tags})
-                        //                .ToList();
-                        //            // fetched tfs does not exist locally so just add
-                        //            if (!localDuplicateQuery.Any()) {
-                        //                await HitomiContext.Main.TagFilterSets.AddAsync(
-                        //                    new() {
-                        //                        Name = fetchedTFSName,
-                        //                        TagTags = fetchedTagFilters
-                        //                    },
-                        //                    _cts.Token
-                        //                );
-                        //            }
-                        //            // replace local tfs with duplicate name
-                        //            else if (FetchTagFilterOption2.SelectedIndex == 0) {
-                        //                localDuplicateQuery.First().TagTags = fetchedTagFilters;
-                        //            }
-                        //        }
-                        //        await HitomiContext.Main.SaveChangesAsync(CancellationToken.None);
-                        //        TagFilterSetEditor.Main.TagFilterSetComboBox.SelectedIndex = -1;
-                        //    }
-                        //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-                        //    TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
-                        //    TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
-                        //} catch (TaskCanceledException) {
-                        //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-                        //    TagFilterSyncResultInfoBar.Title = TEXT_TAG_FILTER_SETS;
-                        //    TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
-                        //} catch (Exception e) {
-                        //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                        //    TagFilterSyncResultInfoBar.Title = TEXT_ERROR;
-                        //    if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                        //        TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
-                        //    } else {
-                        //        TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
-                        //    }
-                        //}
+                        try {
+                            FilesResource.GetRequest request = _driveService.Files.Get(tfssFile.Id);
+                            AttachProgressChangedEventHandler(request, (long)tfssFile.Size);
+                            await DownloadAndWriteAsync(
+                                request,
+                                TFS_SYNC_FILE_PATH,
+                                _cts.Token
+                            );
+                            string fetchedFileContent = await File.ReadAllTextAsync(TFS_SYNC_FILE_PATH, _cts.Token);
+                            IEnumerable<TagFilterSet> fetchedTFSs =
+                                JsonSerializer
+                                .Deserialize<IEnumerable<TagFilterSet>>
+                                (fetchedFileContent, DEFAULT_SERIALIZER_OPTIONS);
+                            // Overwrite
+                            if (FetchTagFilterOption1.SelectedIndex == 0) {
+                                HitomiContext.Main.TagFilterSets.RemoveRange(HitomiContext.Main.TagFilterSets);
+                                HitomiContext.Main.TagFilterSets.AddRange(fetchedTFSs);
+                                HitomiContext.Main.SaveChanges();
+                            }
+                            // Append
+                            else {
+                                foreach (TagFilterSet fetchedTFS in fetchedTFSs) {
+                                    TagFilterSet existingTFS = HitomiContext.Main.TagFilterSets.FirstOrDefault(tfs => tfs.Name == fetchedTFS.Name);
+                                    // no duplicate name so just add
+                                    if (existingTFS == null) {
+                                        HitomiContext.Main.TagFilterSets.Add(fetchedTFS);
+                                    }
+                                    // if replace option is selected, replace local tfs tags with duplicate name
+                                    else if (FetchTagFilterOption2.SelectedIndex == 0) {
+                                        existingTFS.Tags = fetchedTFS.Tags;
+                                    }
+                                }
+                                HitomiContext.Main.SaveChanges();
+                                TagFilterSetEditor.Main.TagFilterSetComboBox.SelectedIndex = -1; // to indicate that the sync has completed
+                            }
+                            SetInfoBar(
+                                TagFilterSyncResultInfoBar,
+                                InfoBarSeverity.Success,
+                                TEXT_TAG_FILTER_SETS,
+                                _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString
+                            );
+                        } catch (TaskCanceledException) {
+                            SetInfoBar(
+                                TagFilterSyncResultInfoBar,
+                                InfoBarSeverity.Informational,
+                                TEXT_TAG_FILTER_SETS,
+                                _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString
+                            );
+                        } catch (Exception e) {
+                            string message;
+                            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                                message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                            } else {
+                                message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                            }
+                            SetInfoBar(
+                                TagFilterSyncResultInfoBar,
+                                InfoBarSeverity.Error,
+                                TEXT_ERROR,
+                                message
+                            );
+                        }
                     }
                     TagFilterSyncResultInfoBar.IsOpen = true;
                 }
@@ -263,7 +268,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents
                 if (BookmarkOptionCheckBox.IsChecked == true) {
                     // file is not uploaded yet
                     if (tfssFile == null) {
-                        HandleFileNotUploaded(BookmarkSyncResultInfoBar, TEXT_GALLERIES);
+                        SetInfoBar(
+                            TagFilterSyncResultInfoBar,
+                            InfoBarSeverity.Error,
+                            TEXT_TAG_FILTER_SETS,
+                            _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString
+                        );
                     }
                     // file exists
                     else {
