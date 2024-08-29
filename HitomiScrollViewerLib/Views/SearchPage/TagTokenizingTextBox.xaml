@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ct:TokenizingTextBox
-    x:Name="TTTB"
-    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.TagTokenizingTextBox"
+    x:Name="Root"
+    x:Class="HitomiScrollViewerLib.Views.SearchPage.TagTokenizingTextBox"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ct="using:CommunityToolkit.WinUI.Controls"
@@ -9,10 +9,14 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    ItemsSource="{x:Bind SelectedTags, Mode=TwoWay}"
-    TextChanged="TokenizingTextBox_TextChanged"
-    GotFocus="TokenizingTextBox_GotFocus"
-    TokenItemAdding="TokenizingTextBox_TokenItemAdding"
+    
+    ItemsSource="{x:Bind ViewModel.SelectedTags, Mode=TwoWay}"
+    SuggestedItemsSource="{x:Bind ViewModel.SuggestedItemsSource, Mode=OneWay}"
+    SizeChanged="{x:Bind ViewModel.TagTokenizingTextBox_SizeChanged}"
+    TextChanged="{x:Bind ViewModel.TokenizingTextBox_TextChanged}"
+    GotFocus="{x:Bind ViewModel.TokenizingTextBox_GotFocus}"
+    TokenItemAdding="{x:Bind ViewModel.TokenizingTextBox_TokenItemAdding}"
+    Text="{x:Bind ViewModel.Text}"
     TokenDelimiter=""
     >
     <ct:TokenizingTextBox.QueryIcon>
@@ -21,14 +25,14 @@
     <ct:TokenizingTextBox.SuggestedItemTemplate>
         <DataTemplate x:DataType="entities:Tag">
             <TextBlock Text="{x:Bind Value}"
-                       MaxWidth="{Binding Path=TokenTextBlockMaxWidth, ElementName=TTTB, Mode=OneWay}"
+                       MaxWidth="{Binding Path=ViewModel.TokenTextBlockMaxWidth, ElementName=Root, Mode=OneWay}"
                        TextWrapping="Wrap"/>
         </DataTemplate>
     </ct:TokenizingTextBox.SuggestedItemTemplate>
     <ct:TokenizingTextBox.TokenItemTemplate>
         <DataTemplate x:DataType="entities:Tag">
             <TextBlock Text="{x:Bind Value}"
-                       MaxWidth="{Binding Path=TokenTextBlockMaxWidth, ElementName=TTTB, Mode=OneWay}"
+                       MaxWidth="{Binding Path=ViewModel.TokenTextBlockMaxWidth, ElementName=Root, Mode=OneWay}"
                        TextWrapping="Wrap"/>
         </DataTemplate>
     </ct:TokenizingTextBox.TokenItemTemplate>
