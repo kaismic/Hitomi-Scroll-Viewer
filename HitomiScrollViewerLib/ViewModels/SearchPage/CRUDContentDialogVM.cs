@@ -21,9 +21,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         private TFSSelectorVM _tfsSelectorVM;
 
         [ObservableProperty]
-        public string _titleText;
+        private string _titleText;
         [ObservableProperty]
-        public string _primaryButtonText;
+        private string _primaryButtonText;
         public string CloseButtonText { get; } = TEXT_CANCEL;
 
         [ObservableProperty]
