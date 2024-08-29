@@ -3,10 +3,17 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace HitomiScrollViewerLib.Views.SearchPage {
     public sealed partial class InputValidation : Grid {
-        public InputValidationVM ViewModel => (InputValidationVM)DataContext;
-        public InputValidation(InputValidationVM viewModel) {
+        private InputValidationVM _viewModel;
+        public InputValidationVM ViewModel {
+            get => _viewModel;
+            set {
+                _viewModel = value;
+                DataContext = value;
+            }
+        }
+
+        public InputValidation() {
             InitializeComponent();
-            DataContext = viewModel;
         }
     }
 }
