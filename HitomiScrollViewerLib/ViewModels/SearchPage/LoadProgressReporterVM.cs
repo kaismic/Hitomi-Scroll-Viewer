@@ -1,20 +1,24 @@
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using HitomiScrollViewerLib.Views.SearchPage;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using static HitomiScrollViewerLib.SharedResources;
 
-namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
-    public sealed partial class LoadProgressReporter : ContentDialog {
+namespace HitomiScrollViewerLib.ViewModels.SearchPage {
+    public partial class LoadProgressReporterVM : ObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(LoadProgressReporter).Name);
-        public LoadProgressReporter() {
-            InitializeComponent();
-            Title = new TextBlock() {
-                Text = _resourceMap.GetValue("Text_Title").ValueAsString,
-                TextWrapping = TextWrapping.WrapWholeWords
-            };
-            PleaseWaitTextBlock.Text = _resourceMap.GetValue("Text_PleaseWait").ValueAsString;
-        }
+
+        public string TitleText { get; } = _resourceMap.GetValue("Text_Title").ValueAsString;
+        public string PleaseWaitText { get; } = _resourceMap.GetValue("Text_PleaseWait").ValueAsString;
+
+        [ObservableProperty]
+        private string _progressText;
+        [ObservableProperty]
+        private double _progressBarValue;
+        [ObservableProperty]
+        private double _progressBarMaximum;
+        [ObservableProperty]
+        private bool _isIndeterminate;
 
         public enum LoadingStatus {
             LoadingDatabase,
@@ -27,7 +31,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         public void SetStatusMessage(LoadingStatus loadingStatus) {
-            ProgressStatusTextBlock.Text = loadingStatus switch {
+            ProgressText = loadingStatus switch {
                 LoadingStatus.LoadingDatabase => _resourceMap.GetValue("Text_" + LoadingStatus.LoadingDatabase.ToString()).ValueAsString,
                 LoadingStatus.MigratingTFSs => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingTFSs.ToString()).ValueAsString,
                 LoadingStatus.MigratingGalleries => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingGalleries.ToString()).ValueAsString,
@@ -35,7 +39,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 LoadingStatus.InitialisingDatabase => _resourceMap.GetValue("Text_" + LoadingStatus.InitialisingDatabase.ToString()).ValueAsString,
                 LoadingStatus.AddingExampleTFSs => _resourceMap.GetValue("Text_" + LoadingStatus.AddingExampleTFSs.ToString()).ValueAsString,
                 LoadingStatus.InitialisingApp => _resourceMap.GetValue("Text_" + LoadingStatus.InitialisingApp.ToString()).ValueAsString,
-                _ => throw new InvalidOperationException($"Invalid {nameof(LoadingStatus)}: {loadingStatus}"),
+                _ => throw new ArgumentException($"Invalid {nameof(LoadingStatus)}: {loadingStatus}", nameof(loadingStatus)),
             };
         }
     }
