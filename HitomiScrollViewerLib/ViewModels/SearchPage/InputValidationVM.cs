@@ -13,7 +13,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         }
 
         [ObservableProperty]
-        private string _inputText;
+        private string _inputText = "";
         partial void OnInputTextChanged(string value) {
             UpdateInputText();
         }
