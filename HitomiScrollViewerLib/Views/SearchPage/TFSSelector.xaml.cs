@@ -4,10 +4,10 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace HitomiScrollViewerLib.Views.SearchPage {
     public partial class TFSSelector : Grid {
-        public TFSSelectorVM ViewModel => (TFSSelectorVM)DataContext;
-        public TFSSelector(TFSSelectorVM viewModel) {
+        public TFSSelectorVM ViewModel { get; set; }
+
+        public TFSSelector() {
             InitializeComponent();
-            DataContext = viewModel;
         }
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e) {
