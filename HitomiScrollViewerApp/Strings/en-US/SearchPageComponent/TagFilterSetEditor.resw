@@ -138,4 +138,10 @@
   <data name="AutoSaveCheckBox_Content" xml:space="preserve">
     <value>Auto Save Tag Filters</value>
   </data>
+  <data name="PairedTFSSelector_Subtitle_Exclude" xml:space="preserve">
+    <value>Select tag filter sets to exclude</value>
+  </data>
+  <data name="PairedTFSSelector_Subtitle_Include" xml:space="preserve">
+    <value>Select tag filter sets to include</value>
+  </data>
 </root>

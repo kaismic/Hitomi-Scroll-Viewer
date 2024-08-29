@@ -138,4 +138,10 @@
   <data name="AutoSaveCheckBox_Content" xml:space="preserve">
     <value>태그 필터 자동 저장</value>
   </data>
+  <data name="PairedTFSSelector_Subtitle_Exclude" xml:space="preserve">
+    <value>제외할 태그 필터 모음들을 선택하세요</value>
+  </data>
+  <data name="PairedTFSSelector_Subtitle_Include" xml:space="preserve">
+    <value>포함할 태그 필터 모음들을 선택하세요</value>
+  </data>
 </root>
