@@ -118,27 +118,27 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Error_Message_Duplicate" xml:space="preserve">
-    <value>"{0}" already exists.</value>
+    <value>"{0}"은(는) 이미 존재하는 이름입니다.</value>
   </data>
-  <data name="Error_Message_SameName" xml:space="preserve">
-    <value>Cannot rename to the same name.</value>
+  <data name="Error_Message_SameNameAsBefore" xml:space="preserve">
+    <value>같은 이름으로 변경할 수 없습니다.</value>
   </data>
-	<data name="Title_Create" xml:space="preserve">
-    <value>Enter a name to create a new tag filter set:</value>
+  <data name="Text_Create" xml:space="preserve">
+    <value>생성</value>
   </data>
-	<data name="Title_Delete" xml:space="preserve">
-    <value>Select tag filter sets to delete:</value>
+  <data name="Text_Delete" xml:space="preserve">
+    <value>삭제</value>
   </data>
-	<data name="Title_Rename" xml:space="preserve">
-    <value>Enter a new name:</value>
+  <data name="Text_Rename" xml:space="preserve">
+    <value>이름 변경</value>
   </data>
-	<data name="Text_Create" xml:space="preserve">
-    <value>Create</value>
+  <data name="Title_Create" xml:space="preserve">
+    <value>새롭게 생성할 태그 필터 모음의 이름을 입력해주세요:</value>
   </data>
-	<data name="Text_Delete" xml:space="preserve">
-    <value>Delete</value>
+  <data name="Title_Delete" xml:space="preserve">
+    <value>삭제할 태그 필터 모음들을 선택해주세요:</value>
   </data>
-	<data name="Text_Rename" xml:space="preserve">
-    <value>Rename</value>
+  <data name="Title_Rename" xml:space="preserve">
+    <value>새로운 이름을 입력해주세요:</value>
   </data>
 </root>
