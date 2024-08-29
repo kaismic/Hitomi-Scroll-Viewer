@@ -41,7 +41,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
 
         public CRUDContentDialogVM(CRUDAction action) {
             if (action == CRUDAction.Rename) {
-                throw new ArgumentNullException(nameof(action), $"{nameof(CRUDAction)} must be {CRUDAction.Create} or {CRUDAction.Delete}");
+                throw new ArgumentException($"{nameof(CRUDAction)} must be {CRUDAction.Create} or {CRUDAction.Delete}", nameof(action));
             }
             _action = action;
             Init();
@@ -49,7 +49,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
 
         public CRUDContentDialogVM(CRUDAction action, string oldName) {
             if (action != CRUDAction.Rename) {
-                throw new ArgumentNullException(nameof(action), $"{nameof(CRUDAction)} must be {CRUDAction.Rename}");
+                throw new ArgumentException($"{nameof(CRUDAction)} must be {CRUDAction.Rename}", nameof(action));
             }
             _action = action;
             _oldName = oldName;
