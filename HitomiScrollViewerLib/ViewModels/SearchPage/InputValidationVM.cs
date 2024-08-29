@@ -24,6 +24,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         [ObservableProperty]
         private string _inputLengthDisplayText;
 
+        public InputValidationVM(int maxInputLength) {
+            MaxInputLength = maxInputLength;
+        }
+
         public bool Validate() {
             foreach (var validator in _validators) {
                 if (!validator(InputText, out string errorMessage)) {
