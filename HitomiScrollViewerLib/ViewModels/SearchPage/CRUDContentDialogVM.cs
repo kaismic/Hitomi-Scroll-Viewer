@@ -36,7 +36,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         // TODO test if this works (enables/disables button)
         private bool CanClickPrimaryButton() {
             if (_action == CRUDAction.Delete) {
-                return _tfsSelectorVM.AnyChecked;
+                return _tfsSelectorVM.AnySelected;
             }
             return _inputValidationVM.Validate();
         }
