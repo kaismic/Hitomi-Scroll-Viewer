@@ -21,19 +21,19 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                 tfsCheckBox.Unchecked += TFSCheckBox_Unchecked;
                 TfsCheckBoxes.Add(tfsCheckBox);
             }
-            CheckedCheckBoxes = [];
-            CheckedCheckBoxes.CollectionChanged += CheckedCheckBoxes_CollectionChanged;
-            AnyChecked = false;
+            SelectedCheckBoxes = [];
+            SelectedCheckBoxes.CollectionChanged += SelectedCheckBoxes_CollectionChanged;
+            AnySelected = false;
         }
 
         [ObservableProperty]
         private ObservableCollection<TFSCheckBox> _tfsCheckBoxes;
 
         [ObservableProperty]
-        private ObservableConcurrentDictionary<int, TFSCheckBox> _checkedCheckBoxes;
+        private ObservableConcurrentDictionary<int, TFSCheckBox> _selectedCheckBoxes;
 
         [ObservableProperty]
-        private bool _anyChecked;
+        private bool _anySelected;
 
         private void TagFilterSets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
@@ -53,7 +53,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                         if (removingCheckBox != null) {
                             TfsCheckBoxes.Remove(removingCheckBox);
                         }
-                        CheckedCheckBoxes.Remove(tfs.Id);
+                        SelectedCheckBoxes.Remove(tfs.Id);
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
@@ -69,21 +69,21 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
             }
         }
 
-        private void CheckedCheckBoxes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-            AnyChecked = CheckedCheckBoxes.Any();
+        private void SelectedCheckBoxes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+            AnySelected = SelectedCheckBoxes.Any();
         }
 
         public virtual void TFSCheckBox_Checked(object sender, RoutedEventArgs e) {
             TFSCheckBox tFSCheckBox = sender as TFSCheckBox;
-            CheckedCheckBoxes.Add(tFSCheckBox.TagFilterSet.Id, tFSCheckBox);
+            SelectedCheckBoxes.Add(tFSCheckBox.TagFilterSet.Id, tFSCheckBox);
         }
 
         public virtual void TFSCheckBox_Unchecked(object sender, RoutedEventArgs e) {
-            CheckedCheckBoxes.Remove((sender as TFSCheckBox).TagFilterSet.Id);
+            SelectedCheckBoxes.Remove((sender as TFSCheckBox).TagFilterSet.Id);
         }
 
         public IEnumerable<TagFilterSet> GetSelectedTFSs() {
-            return CheckedCheckBoxes.Values.Select(tfscb => tfscb.TagFilterSet);
+            return SelectedCheckBoxes.Values.Select(tfscb => tfscb.TagFilterSet);
         }
     }
 }
