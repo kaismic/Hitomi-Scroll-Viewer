@@ -129,18 +129,6 @@
   <data name="Text_Yes" xml:space="preserve">
     <value>예</value>
   </data>
-  <data name="ExampleTagFilterSet_1" xml:space="preserve">
-    <value>태그: 풀컬러, 여성: 긴 머리카락</value>
-  </data>
-  <data name="ExampleTagFilterSet_2" xml:space="preserve">
-    <value>여성: 안경, 남성: 1인 남성</value>
-  </data>
-  <data name="ExampleTagFilterSet_3" xml:space="preserve">
-    <value>시리즈: 나루토, 여성: 거유</value>
-  </data>
-  <data name="ExampleTagFilterSet_4" xml:space="preserve">
-    <value>태그: Non-H</value>
-  </data>
   <data name="Text_Galleries" xml:space="preserve">
     <value>갤러리</value>
   </data>
@@ -150,8 +138,8 @@
   <data name="Text_No" xml:space="preserve">
     <value>아니오</value>
   </data>
-  <data name="Text_TagFilterSets" xml:space="preserve">
-    <value>태그 필터 모음</value>
+  <data name="Text_TagFilters" xml:space="preserve">
+    <value>태그 필터</value>
   </data>
   <data name="Text_Page" xml:space="preserve">
     <value>페이지</value>
@@ -161,5 +149,8 @@
   </data>
   <data name="Text_Include" xml:space="preserve">
     <value>포함</value>
+  </data>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>히토미 스크롤 뷰어</value>
   </data>
 </root>

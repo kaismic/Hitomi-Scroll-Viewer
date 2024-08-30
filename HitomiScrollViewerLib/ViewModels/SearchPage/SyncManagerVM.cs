@@ -25,6 +25,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         private const string USER_EMAIL_FILE_NAME = "user_email.txt";
         private static readonly string USER_EMAIL_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, USER_EMAIL_FILE_NAME);
         private static readonly string USER_EMAIL_FILE_PATH_V3 = Path.Combine(ROAMING_DIR_V3, USER_EMAIL_FILE_NAME);
+        // WARNING: Do not replace this with SharedResources.APP_DISPLAY_NAME because app name not in English will throw eror
+        private const string USER_AGENT_HEADER_APP_NAME = "Hitomi Scroll Viewer";
 
         private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
         private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
@@ -48,9 +50,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         private bool _isSyncButtonEnabled = false;
 
         private SyncContentDialog _syncContentDialog;
-        public SyncContentDialog SyncContentDialog {
-            get => _syncContentDialog ??= new(new(_initializer)) { XamlRoot = MainWindow.SearchPage.XamlRoot };
-        }
+        private SyncContentDialog SyncContentDialog =>
+            _syncContentDialog ??= new(new(new(_initializer))) { XamlRoot = MainWindow.SearchPage.XamlRoot };
 
         public SyncManagerVM() {
             _ = Task.Run(async () => {
@@ -72,7 +73,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                     );
                     _initializer = new BaseClientService.Initializer() {
                         HttpClientInitializer = _userCredential,
-                        ApplicationName = APP_DISPLAY_NAME
+                        ApplicationName = USER_AGENT_HEADER_APP_NAME
                     };
                     if (File.Exists(USER_EMAIL_FILE_PATH_V2)) {
                         File.Move(USER_EMAIL_FILE_PATH_V2, USER_EMAIL_FILE_PATH_V3);
@@ -145,7 +146,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                             _userCredential = await authTask;
                             _initializer = new() {
                                 HttpClientInitializer = _userCredential,
-                                ApplicationName = APP_DISPLAY_NAME
+                                ApplicationName = USER_AGENT_HEADER_APP_NAME
                             };
                             Userinfo userInfo = await new Oauth2Service(_initializer).Userinfo.Get().ExecuteAsync();
                             await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V2, userInfo.Email);
