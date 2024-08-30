@@ -72,7 +72,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                     Content = new InputValidation() { ViewModel = _inputValidationVM };
                     break;
                 case CRUDAction.Delete:
-                    _tfsSelectorVM = new() { TagFilterSets = HitomiContext.Main.TagFilterSets.Local.ToObservableCollection() };
+                    _tfsSelectorVM = new(HitomiContext.Main.TagFilterSets.Local.ToObservableCollection());
                     Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
                     break;
             }

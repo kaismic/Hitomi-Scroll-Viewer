@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPage {
-    public partial class TagTokenizingTextBoxVM : ObservableObject {
+    public partial class TagTokenizingTextBoxVM(Category category) : ObservableObject {
         private const int MAX_SUGGESTION_NUM = 8;
 
         [ObservableProperty]
@@ -18,7 +18,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         [ObservableProperty]
         private string _text;
 
-        public Category Category { get; set; }
+        public Category Category { get; } = category;
         public ObservableCollection<Tag> SelectedTags { get; set; } = [];
 
         public IEnumerable<Tag> SuggestedItemsSource { get; private set; }

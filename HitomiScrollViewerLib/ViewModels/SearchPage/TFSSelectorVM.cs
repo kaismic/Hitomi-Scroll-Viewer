@@ -10,20 +10,20 @@ using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPage {
     public partial class TFSSelectorVM : ObservableObject {
-        [ObservableProperty]
-        private ObservableCollection<TagFilterSet> _tagFilterSets;
-        partial void OnTagFilterSetsChanged(ObservableCollection<TagFilterSet> value) {
-            value.CollectionChanged += TagFilterSets_CollectionChanged;
-            TfsCheckBoxes = [];
-            foreach (TagFilterSet tfs in value) {
-                TFSCheckBox tfsCheckBox = new(tfs);
-                tfsCheckBox.Checked += TFSCheckBox_Checked;
-                tfsCheckBox.Unchecked += TFSCheckBox_Unchecked;
-                TfsCheckBoxes.Add(tfsCheckBox);
+        private ObservableCollection<TagFilterSet> TagFilterSets {
+            set {
+                value.CollectionChanged += TagFilterSets_CollectionChanged;
+                TfsCheckBoxes = [];
+                foreach (TagFilterSet tfs in value) {
+                    TFSCheckBox tfsCheckBox = new(tfs);
+                    tfsCheckBox.Checked += TFSCheckBox_Checked;
+                    tfsCheckBox.Unchecked += TFSCheckBox_Unchecked;
+                    TfsCheckBoxes.Add(tfsCheckBox);
+                }
+                SelectedCheckBoxes = [];
+                SelectedCheckBoxes.CollectionChanged += SelectedCheckBoxes_CollectionChanged;
+                AnySelected = false;
             }
-            SelectedCheckBoxes = [];
-            SelectedCheckBoxes.CollectionChanged += SelectedCheckBoxes_CollectionChanged;
-            AnySelected = false;
         }
 
         [ObservableProperty]
@@ -35,11 +35,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         [ObservableProperty]
         private bool _anySelected;
 
+        public TFSSelectorVM(ObservableCollection<TagFilterSet> tagFilterSets) {
+            TagFilterSets = tagFilterSets;
+        }
+
         private void TagFilterSets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Add:
                     foreach (var tfs in e.NewItems.Cast<TagFilterSet>()) {
-                        TagFilterSets.Add(tfs);
                         TFSCheckBox tfsCheckBox = new(tfs);
                         tfsCheckBox.Checked += TFSCheckBox_Checked;
                         tfsCheckBox.Unchecked += TFSCheckBox_Unchecked;
@@ -48,7 +51,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     foreach (var tfs in e.OldItems.Cast<TagFilterSet>()) {
-                        TagFilterSets.Remove(tfs);
                         TFSCheckBox removingCheckBox = TfsCheckBoxes.FirstOrDefault(tfscb => tfscb.TagFilterSet.Id == tfs.Id);
                         if (removingCheckBox != null) {
                             TfsCheckBoxes.Remove(removingCheckBox);
