@@ -1,3 +1,4 @@
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -6,6 +7,8 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using HitomiScrollViewerLib.Views.SearchPage;
+using HitomiScrollViewerLib.Windows;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -17,98 +20,98 @@ using System.Threading.Tasks;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
-namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
-    public sealed partial class SyncManager : Grid {
+namespace HitomiScrollViewerLib.ViewModels.SearchPage {
+    public partial class SyncManagerVM : ObservableObject {
         private const string USER_EMAIL_FILE_NAME = "user_email.txt";
         private static readonly string USER_EMAIL_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, USER_EMAIL_FILE_NAME);
         private static readonly string USER_EMAIL_FILE_PATH_V3 = Path.Combine(ROAMING_DIR_V3, USER_EMAIL_FILE_NAME);
 
-        private static readonly ResourceMap ResourceMap = MainResourceMap.GetSubtree("SyncManager");
-
-        private static readonly ResourceMap CredentialsResourceMap = MainResourceMap.GetSubtree("Credentials");
-        private static readonly string CLIENT_ID = CredentialsResourceMap.GetValue("OAuthAppClientId").ValueAsString;
-        private static readonly string CLIENT_SECRET = CredentialsResourceMap.GetValue("OAuthAppClientSecret").ValueAsString;
-
-        private static readonly string BUTTON_TEXT_NOT_SIGNED_IN = ResourceMap.GetValue("ButtonText_NotSignedIn").ValueAsString;
-        private static readonly string BUTTON_TEXT_SIGNED_IN = ResourceMap.GetValue("ButtonText_SignedIn").ValueAsString;
-        private static readonly string NOTIFICATION_SIGN_IN_TITLE = ResourceMap.GetValue("Notification_SignIn_Title").ValueAsString;
-        private static readonly string NOTIFICATION_SIGN_IN_CONTENT = ResourceMap.GetValue("Notification_SignIn_Content").ValueAsString;
-        private static readonly string NOTIFICATION_SIGN_OUT_TITLE = ResourceMap.GetValue("Notification_SignOut_Title").ValueAsString;
-
         private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
         private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
 
-        private static bool _isSignedIn = false;
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SyncManager");
+        private static readonly ResourceMap _credentialsResourceMap = MainResourceMap.GetSubtree("Credentials");
+
         private static UserCredential _userCredential;
         private static BaseClientService.Initializer _initializer;
 
+        [ObservableProperty]
+        private string _signInButtonText;
+        [ObservableProperty]
+        private bool _isSignInButtonEnabled = false;
+        [ObservableProperty]
+        private bool _isSignedIn = false;
+        partial void OnIsSignedInChanged(bool value) {
+            IsSyncButtonEnabled = value;
+        }
+        [ObservableProperty]
+        private bool _isSyncButtonEnabled = false;
+
         private SyncContentDialog _syncContentDialog;
         public SyncContentDialog SyncContentDialog {
-            get => _syncContentDialog ??= new(new(_initializer)) { XamlRoot = XamlRoot };
+            get => _syncContentDialog ??= new(new(_initializer)) { XamlRoot = MainWindow.SearchPage.XamlRoot };
         }
 
-        public SyncManager() {
-            InitializeComponent();
-        }
-
-        public async Task Init() {
-            TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
-            bool tokenExists = tokenResponse != null;
-            string userEmail = null;
-            if (tokenExists) {
-                _userCredential = new(
-                    new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
-                        ClientSecrets = new ClientSecrets {
-                            ClientId = CLIENT_ID,
-                            ClientSecret = CLIENT_SECRET
-                        },
-                        Scopes = SCOPES,
-                        DataStore = FILE_DATA_STORE
-                    }),
-                    Environment.UserName,
-                    tokenResponse
-                );
-                _initializer = new BaseClientService.Initializer() {
-                    HttpClientInitializer = _userCredential,
-                    ApplicationName = APP_DISPLAY_NAME
-                };
-                if (File.Exists(USER_EMAIL_FILE_PATH_V2)) {
-                    File.Move(USER_EMAIL_FILE_PATH_V2, USER_EMAIL_FILE_PATH_V3);
+        public SyncManagerVM() {
+            _ = Task.Run(async () => {
+                TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
+                bool tokenExists = tokenResponse != null;
+                string userEmail = null;
+                if (tokenExists) {
+                    _userCredential = new(
+                        new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
+                            ClientSecrets = new ClientSecrets {
+                                ClientId = _credentialsResourceMap.GetValue("OAuthAppClientId").ValueAsString,
+                                ClientSecret = _credentialsResourceMap.GetValue("OAuthAppClientSecret").ValueAsString
+                            },
+                            Scopes = SCOPES,
+                            DataStore = FILE_DATA_STORE
+                        }),
+                        Environment.UserName,
+                        tokenResponse
+                    );
+                    _initializer = new BaseClientService.Initializer() {
+                        HttpClientInitializer = _userCredential,
+                        ApplicationName = APP_DISPLAY_NAME
+                    };
+                    if (File.Exists(USER_EMAIL_FILE_PATH_V2)) {
+                        File.Move(USER_EMAIL_FILE_PATH_V2, USER_EMAIL_FILE_PATH_V3);
+                    }
+                    userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH_V3);
                 }
-                userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH_V3);
-            }
-            DispatcherQueue.TryEnqueue(() => {
-                SignInBtnTextBlock.Text = tokenExists && userEmail != null ? string.Format(BUTTON_TEXT_SIGNED_IN, userEmail) : BUTTON_TEXT_NOT_SIGNED_IN;
-                ToggleSignInState(tokenExists);
-                SignInBtn.IsEnabled = true;
+                IsSignInButtonEnabled = true;
+                IsSignedIn = tokenExists && userEmail != null;
+                SignInButtonText =
+                    IsSignedIn ?
+                    string.Format(_resourceMap.GetValue("ButtonText_SignedIn").ValueAsString, userEmail) :
+                    _resourceMap.GetValue("ButtonText_NotSignedIn").ValueAsString;
             });
         }
 
-        private async void SignInBtn_Clicked(object _0, RoutedEventArgs _1) {
-            SignInBtn.IsEnabled = false;
+        public async void SignInBtn_Clicked(object _0, RoutedEventArgs _1) {
+            IsSignInButtonEnabled = false;
             try {
-                if (_isSignedIn) {
+                if (IsSignedIn) {
                     ContentDialog contentDialog = new() {
                         DefaultButton = ContentDialogButton.Primary,
                         Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
-                        Title = NOTIFICATION_SIGN_OUT_TITLE,
+                        Title = _resourceMap.GetValue("Notification_SignOut_Title").ValueAsString,
                         PrimaryButtonText = TEXT_YES,
                         CloseButtonText = TEXT_CANCEL,
-                        XamlRoot = XamlRoot
+                        XamlRoot = MainWindow.SearchPage.XamlRoot
                     };
                     ContentDialogResult cdr = await contentDialog.ShowAsync();
                     if (cdr != ContentDialogResult.Primary) {
                         return;
                     }
-                    ToggleSignInState(false);
+                    IsSignedIn = false;
+                    SignInButtonText = _resourceMap.GetValue("ButtonText_NotSignedIn").ValueAsString;
 
                     try {
                         await _userCredential.RevokeTokenAsync(CancellationToken.None);
-                    } catch (TokenResponseException) {}
+                    } catch (TokenResponseException) { }
                     await FILE_DATA_STORE.DeleteAsync<TokenResponse>(Environment.UserName);
-                    File.Delete(USER_EMAIL_FILE_PATH_V2);
-
-                    SignInBtnTextBlock.Text = BUTTON_TEXT_NOT_SIGNED_IN;
+                    File.Delete(USER_EMAIL_FILE_PATH_V3);
                 } else {
                     bool isWindowFocused = false;
                     CancellationTokenSource cts = new();
@@ -119,19 +122,19 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                             CloseButtonText = TEXT_CANCEL,
                             Title = new TextBlock() {
                                 TextWrapping = TextWrapping.WrapWholeWords,
-                                Text = NOTIFICATION_SIGN_IN_TITLE
+                                Text = _resourceMap.GetValue("Notification_SignIn_Title").ValueAsString
                             },
                             Content = new TextBlock() {
                                 TextWrapping = TextWrapping.WrapWholeWords,
-                                Text = NOTIFICATION_SIGN_IN_CONTENT
+                                Text = _resourceMap.GetValue("Notification_SignIn_Content").ValueAsString
                             },
-                            XamlRoot = XamlRoot
+                            XamlRoot = MainWindow.SearchPage.XamlRoot
                         };
                         Task manualCancelTask = manualCancelDialog.ShowAsync().AsTask();
                         Task<UserCredential> authTask = GoogleWebAuthorizationBroker.AuthorizeAsync(
                             new ClientSecrets {
-                                ClientId = CLIENT_ID,
-                                ClientSecret = CLIENT_SECRET
+                                ClientId = _credentialsResourceMap.GetValue("OAuthAppClientId").ValueAsString,
+                                ClientSecret = _credentialsResourceMap.GetValue("OAuthAppClientSecret").ValueAsString
                             },
                             SCOPES,
                             Environment.UserName,
@@ -145,9 +148,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                                 ApplicationName = APP_DISPLAY_NAME
                             };
                             Userinfo userInfo = await new Oauth2Service(_initializer).Userinfo.Get().ExecuteAsync();
-                            SignInBtnTextBlock.Text = string.Format(BUTTON_TEXT_SIGNED_IN, userInfo.Email);
                             await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V2, userInfo.Email);
-                            ToggleSignInState(true);
+                            SignInButtonText = string.Format(_resourceMap.GetValue("ButtonText_SignedIn").ValueAsString, userInfo.Email);
+                            IsSignedIn = true;
                         } else {
                             isWindowFocused = true;
                             cts.Cancel();
@@ -161,8 +164,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                         // App.MainWindow.Activate(); alone doesn't work and instead we need to
                         // minimize then activate the window because of this bug https://github.com/microsoft/microsoft-ui-xaml/issues/7595
                         if (!isWindowFocused) {
-                            (MainWindow.CurrentMainWindow.AppWindow.Presenter as OverlappedPresenter).Minimize();
-                            MainWindow.CurrentMainWindow.Activate();
+                            (MainWindow.CurrMW.AppWindow.Presenter as OverlappedPresenter).Minimize();
+                            MainWindow.CurrMW.Activate();
                             if (!cts.IsCancellationRequested) {
                                 cts.Dispose();
                             }
@@ -170,19 +173,14 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     }
                 }
             } finally {
-                SignInBtn.IsEnabled = true;
+                IsSignInButtonEnabled = true;
             }
         }
 
-        private async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
-            SyncBtn.IsEnabled = false;
+        public async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
+            IsSyncButtonEnabled = false;
             await SyncContentDialog.ShowAsync();
-            SyncBtn.IsEnabled = true;
-        }
-
-        private void ToggleSignInState(bool isSignedIn) {
-            _isSignedIn = isSignedIn;
-            SyncBtn.IsEnabled = isSignedIn;
+            IsSyncButtonEnabled = true;
         }
     }
 }
