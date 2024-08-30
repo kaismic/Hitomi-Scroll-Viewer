@@ -1,11 +1,11 @@
 <Grid
-    x:Class="HitomiScrollViewerLib.Controls.SearchPageComponents.TagFilterSetEditor"
+    x:Class="HitomiScrollViewerLib.Views.SearchPage.TagFilterSetEditor"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:entities="using:HitomiScrollViewerLib.Entities"
-    xmlns:spc="using:HitomiScrollViewerLib.Controls.SearchPageComponents"
+    xmlns:sp="using:HitomiScrollViewerLib.Views.SearchPage"
     mc:Ignorable="d"
     RowSpacing="8"
     >
@@ -27,26 +27,28 @@
         </Grid.ColumnDefinitions>
         <Border/>
         <Button x:Name="CreateButton"
-                Click="CreateButton_Click">
+                Click="CreateButton_Click"
+                Command="{x:Bind ViewModel.CreateButtonCommand}">
             <SymbolIcon Symbol="Add"/>
         </Button>
         <Button x:Name="RenameButton"
                 Click="RenameButton_Click"
                 IsEnabled="False"
+                Command="{x:Bind ViewModel.RenameButtonCommand}"
                 >
             <SymbolIcon Symbol="Edit"/>
         </Button>
-        <ComboBox x:Name="TagFilterSetComboBox" x:FieldModifier="internal"
-                  x:DefaultBindMode="OneWay"
-                  DisplayMemberPath="Name"
+        <ComboBox DisplayMemberPath="Name"
                   SelectionChanged="TagFilterSetComboBox_SelectionChanged"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                   Visibility="Collapsed"
+                  SelectedItem="{x:Bind ViewModel.SelectedTFS, Mode=TwoWay}"
                   >
         </ComboBox>
         <Button x:Name="SaveButton"
                 Click="SaveButton_Click"
                 IsEnabled="False"
+                Command="{x:Bind ViewModel.SaveButtonCommand}"
                 >
             <SymbolIcon Symbol="Save"/>
             <Button.KeyboardAccelerators>
@@ -55,13 +57,19 @@
         </Button>
         <Button x:Name="DeleteButton"
                 Click="DeleteButton_Click"
+                Command="{x:Bind ViewModel.DeleteButtonCommand}"
                 >
             <SymbolIcon Symbol="Delete"/>
         </Button>
         <CheckBox x:Name="AutoSaveCheckBox"
                   Padding="16 0"
                   HorizontalAlignment="Center"
-                  VerticalContentAlignment="Center"/>
+                  VerticalContentAlignment="Center"
+                  IsChecked="{x:Bind ViewModel.IsAutoSaveEnabled, Mode=TwoWay}"
+                  Checked="{x:Bind ViewModel.SaveAutoSaveEnabledValue}"
+                  Unchecked="{x:Bind ViewModel.SaveAutoSaveEnabledValue}">
+            <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.AutoSaveCheckBoxText}"/>
+        </CheckBox>
     </Grid>
     <Grid x:Name="LanguageTypeKeywordGrid" ColumnSpacing="16">
         <Grid.ColumnDefinitions>
@@ -73,18 +81,17 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <TextBlock Text="Select Language:"/>
-        <spc:GLASBWrapper x:Name="GLASBWrapper" HorizontalAlignment="Stretch"/>
+        <sp:GalleryLanguageASBWrapper HorizontalAlignment="Stretch" ViewModel="{x:Bind ViewModel.GLASBWrapperVM}"/>
         <TextBlock Text="Select Type:"/>
-        <ComboBox x:Name="GalleryTypeComboBox" ItemsSource="{x:Bind _galleryTypes}"
-                  HorizontalAlignment="Stretch"
+        <ComboBox HorizontalAlignment="Stretch"
                   DisplayMemberPath="DisplayName"
-                  SelectedIndex="0"
-                  SelectionChanged="GalleryTypeComboBox_SelectionChanged"
-                  IsEnabled="False"/>
+                  ItemsSource="{x:Bind ViewModel.GalleryTypes}"
+                  SelectedIndex="{x:Bind ViewModel.GalleryTypeComboBoxSelectedIndex, Mode=TwoWay}"
+                  />
         <TextBlock Text="Additional Search Keywords:"/>
-        <TextBox x:Name="ExtraKeywordsTextBox" HorizontalAlignment="Stretch"/>
+        <TextBox HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.ExtraKeywordsText, Mode=TwoWay}" />
     </Grid>
-    <Grid x:Name="TextBoxesGrid"
+    <Grid x:Name="TTTextBoxesGrid"
           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
           CornerRadius="{StaticResource OverlayCornerRadius}"
@@ -93,38 +100,13 @@
           VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition x:Name="TTTBsRowDef" Height="*"/>
-        </Grid.RowDefinitions>
-    </Grid>
-    <Grid ColumnSpacing="8">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ProgressRing x:Name="IncludeTFSSelectorProgRing" Grid.Column="0"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      />
-        <ProgressRing x:Name="ExcludeTFSSelectorProgRing" Grid.Column="1"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      />
-        <spc:PairedTFSSelector x:Name="IncludeTFSSelector"
-                               HeaderTextRes="HeaderText_Include"
-                               HeaderForeground="Green"
-                               OtherPairedSelector="{x:Bind ExcludeTFSSelector}"
-                               Grid.Column="0"
-                               Visibility="Collapsed"
-                               />
-        <spc:PairedTFSSelector x:Name="ExcludeTFSSelector"
-                               HeaderTextRes="HeaderText_Exclude"
-                               HeaderForeground="Red"
-                               OtherPairedSelector="{x:Bind IncludeTFSSelector}"
-                               Grid.Column="1"
-                               Visibility="Collapsed"
-                               />
+    </Grid>
+    <Grid ColumnSpacing="8"
+          ColumnDefinitions="*,*"
+          RowDefinitions="*">
+        <sp:TFSSelector Grid.Column="0" ViewModel="{x:Bind ViewModel.IncludeTFSSelectorVM}"/>
+        <sp:TFSSelector Grid.Column="1" ViewModel="{x:Bind ViewModel.ExcludeTFSSelectorVM}"/>
     </Grid>
 </Grid>
