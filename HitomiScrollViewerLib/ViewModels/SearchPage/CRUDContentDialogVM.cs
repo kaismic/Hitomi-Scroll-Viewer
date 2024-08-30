@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views.SearchPage;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using static HitomiScrollViewerLib.SharedResources;
@@ -95,6 +97,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
             }
             errorMessage = "";
             return true;
+        }
+
+        public string GetInputText() {
+            return _inputValidationVM.InputText;
+        }
+
+        public IEnumerable<TagFilterSet> GetSelectedTFSs() {
+            return _tfsSelectorVM.GetSelectedTFSs();
         }
     }
 }
