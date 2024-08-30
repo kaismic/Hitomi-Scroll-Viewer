@@ -117,25 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="FetchBookmarkOption1TextBlock.Text" xml:space="preserve">
+  <data name="RadioButtons_4_TextBlock.Text" xml:space="preserve">
     <value>Start downloading the galleries after fetching?</value>
   </data>
-  <data name="FetchTagFilterOption1RadioButton1.Content" xml:space="preserve">
+  <data name="RadioButtons_2_1.Content" xml:space="preserve">
     <value>Overwrite</value>
   </data>
-  <data name="FetchTagFilterOption1RadioButton2.Content" xml:space="preserve">
+  <data name="RadioButtons_2_2.Content" xml:space="preserve">
     <value>Append</value>
   </data>
-  <data name="FetchTagFilterOption1TextBlock.Text" xml:space="preserve">
+  <data name="RadioButtons_2_TextBlock.Text" xml:space="preserve">
     <value>Select how to sync tag filters after fetching them</value>
   </data>
-  <data name="FetchTagFilterOption2RadioButton1.Content" xml:space="preserve">
+  <data name="RadioButtons_3_1.Content" xml:space="preserve">
     <value>Replace local tag filters</value>
   </data>
-  <data name="FetchTagFilterOption2RadioButton2.Content" xml:space="preserve">
+  <data name="RadioButtons_3_2.Content" xml:space="preserve">
     <value>Keep local tag filters</value>
   </data>
-  <data name="FetchTagFilterOption2TextBlock.Text" xml:space="preserve">
+  <data name="RadioButtons_3_TextBlock.Text" xml:space="preserve">
     <value>Select how to sync tag filters with duplicate names</value>
   </data>
   <data name="InfoBar_Error_FileNotUploaded_Message" xml:space="preserve">
@@ -162,19 +162,25 @@
   <data name="SyncContentDialog.PrimaryButtonText" xml:space="preserve">
     <value>Sync</value>
   </data>
-  <data name="SyncDirectionRadioButton1.Content" xml:space="preserve">
+  <data name="RadioButton_1_1.Content" xml:space="preserve">
     <value>Upload</value>
   </data>
-  <data name="SyncDirectionRadioButton2.Content" xml:space="preserve">
+  <data name="RadioButton_1_2.Content" xml:space="preserve">
     <value>Fetch</value>
   </data>
   <data name="TitleTextBlock.Text" xml:space="preserve">
     <value>Select Sync Options</value>
   </data>
   <data name="UploadWarningInfoBar.Message" xml:space="preserve">
-    <value>Uploading files will overwrite the currently synced tag Filters / bookmarks in the cloud.</value>
+    <value>Uploading files will overwrite the currently synced tag Filters / galleriess in the cloud.</value>
   </data>
   <data name="UploadWarningInfoBar.Title" xml:space="preserve">
     <value>Warning</value>
+  </data>
+  <data name="TFCheckBox.Content" xml:space="preserve">
+    <value>Tag filters</value>
+  </data>
+  <data name="GalleryCheckBox.Content" xml:space="preserve">
+    <value>Galleries</value>
   </data>
 </root>
