@@ -1,48 +1,48 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.Pages;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using static HitomiScrollViewerLib.SharedResources;
 
-namespace HitomiScrollViewerLib.Controls {
+namespace HitomiScrollViewerLib.Windows {
     public sealed partial class MainWindow : Window {
-        private static MainWindow _currentMainWindow;
-        public static MainWindow CurrentMainWindow {
-            get => _currentMainWindow ??= new MainWindow();
+        private static MainWindow _currMW;
+        public static MainWindow CurrMW {
+            get => _currMW ??= new MainWindow();
         }
         public static SearchPage SearchPage { get; private set; }
+        public static BrowsePage BrowsePage { get; private set; }
         public static ViewPage ViewPage { get; private set; }
-
-        private readonly IWindowSizeChangedHandler[] _windowSizeChangedHandlers;
 
         private readonly IAppWindowClosingHandler[] _appWindowClosingHandlers;
 
         private MainWindow() {
             InitializeComponent();
             SearchPage = new();
+            BrowsePage = new();
             ViewPage = new();
             _appWindowClosingHandlers = [SearchPage, ViewPage];
-            _windowSizeChangedHandlers = [SearchPage, ViewPage];
-            SizeChanged += MainWindow_SizeChanged;
             AppWindow.Closing += AppWindow_Closing;
-
-            RootFrame.Content = SearchPage;
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             Title = APP_DISPLAY_NAME;
         }
 
-        public void SwitchPage() {
-            if (RootFrame.Content is ViewPage) {
-                if (ViewPage.IsAutoScrolling) {
-                    ViewPage.ToggleAutoScroll(false);
-                }
-                RootFrame.Content = SearchPage;
-            } else {
-                RootFrame.Content = ViewPage;
-            }
+        private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args) {
+            int currSelectedIdx = sender.Items.IndexOf(sender.SelectedItem);
+            RootFrame.Content = currSelectedIdx switch {
+                0 => SearchPage,
+                1 => BrowsePage,
+                2 => ViewPage,
+                _ => throw new InvalidOperationException($"{currSelectedIdx} is an invalid Page index.")
+            };
+
+            //var slideNavigationTransitionEffect = currSelectedIdx - previousSelectedIndex > 0 ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromLeft;
+            //RootFrame.Navigate(,);
+            //previousSelectedIndex = currSelectedIdx;
         }
+
 
         private static readonly ContentDialog _notification = new() {
             CloseButtonText = TEXT_CLOSE,
@@ -69,12 +69,6 @@ namespace HitomiScrollViewerLib.Controls {
                 }
             }
             HitomiContext.Main.Dispose();
-        }
-
-        private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args) {
-            foreach (IWindowSizeChangedHandler handler in _windowSizeChangedHandlers) {
-                handler.HandleWindowSizeChanged(args);
-            }
         }
     }
 }
