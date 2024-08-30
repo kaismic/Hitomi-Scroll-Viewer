@@ -5,7 +5,6 @@ using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views.SearchPage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using Soluling;
@@ -51,6 +50,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         private string _extraKeywordsText;
         [ObservableProperty]
         private bool _isAutoSaveEnabled;
+        partial void OnIsAutoSaveEnabledChanged(bool value) {
+            ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = value;
+        }
         [ObservableProperty]
         private TagFilterSet _selectedTFS;
 
@@ -78,10 +80,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
             }
         }
 
-        public void SaveAutoSaveEnabledValue(object _0, RoutedEventArgs _1) {
-            ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = IsAutoSaveEnabled;
-        }
-
         public void HandleAppWindowClosing(AppWindowClosingEventArgs _0) {
             if (SelectedTFS != null) {
                 SaveTFS(SelectedTFS);
@@ -97,7 +95,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                 .ToHashSet();
         }
 
-        private void TagFilterSetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+        private void TagFilterSetComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
             if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TagFilterSet prevTFS && IsAutoSaveEnabled) {
                 // do not save if this selection change occurred due to deletion of currently selected tfs
                 if (DeletedTFSIds == null) {

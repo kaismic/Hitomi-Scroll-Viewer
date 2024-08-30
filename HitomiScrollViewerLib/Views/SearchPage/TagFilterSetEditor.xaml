@@ -65,9 +65,7 @@
                   Padding="16 0"
                   HorizontalAlignment="Center"
                   VerticalContentAlignment="Center"
-                  IsChecked="{x:Bind ViewModel.IsAutoSaveEnabled, Mode=TwoWay}"
-                  Checked="{x:Bind ViewModel.SaveAutoSaveEnabledValue}"
-                  Unchecked="{x:Bind ViewModel.SaveAutoSaveEnabledValue}">
+                  IsChecked="{x:Bind ViewModel.IsAutoSaveEnabled, Mode=TwoWay}">
             <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.AutoSaveCheckBoxText}"/>
         </CheckBox>
     </Grid>
