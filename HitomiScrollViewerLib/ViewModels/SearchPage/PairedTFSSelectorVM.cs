@@ -1,8 +1,10 @@
 ﻿using HitomiScrollViewerLib.Controls.SearchPageComponents;
+using HitomiScrollViewerLib.Entities;
 using Microsoft.UI.Xaml;
+using System.Collections.ObjectModel;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPage {
-    public partial class PairedTFSSelectorVM : TFSSelectorVM {
+    public partial class PairedTFSSelectorVM(ObservableCollection<TagFilterSet> tfss) : TFSSelectorVM(tfss) {
         public PairedTFSSelectorVM OtherTFSSelectorVM { private get; set; }
 
         private void EnableCheckBox(int i, bool enable) {
