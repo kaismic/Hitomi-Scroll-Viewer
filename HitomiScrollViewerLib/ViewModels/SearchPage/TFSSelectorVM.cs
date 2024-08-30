@@ -82,7 +82,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
             CheckedCheckBoxes.Remove((sender as TFSCheckBox).TagFilterSet.Id);
         }
 
-        public IEnumerable<TagFilterSet> GetCheckedTFSs() {
+        public IEnumerable<TagFilterSet> GetSelectedTFSs() {
             return CheckedCheckBoxes.Values.Select(tfscb => tfscb.TagFilterSet);
         }
     }
