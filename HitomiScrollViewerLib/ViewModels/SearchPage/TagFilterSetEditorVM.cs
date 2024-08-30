@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views.SearchPage;
+using HitomiScrollViewerLib.Windows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
