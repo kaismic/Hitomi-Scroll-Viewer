@@ -31,7 +31,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
         private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
         private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
 
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("SyncManager");
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SyncManager).Name);
         private static readonly ResourceMap _credentialsResourceMap = MainResourceMap.GetSubtree("Credentials");
 
         private static UserCredential _userCredential;
