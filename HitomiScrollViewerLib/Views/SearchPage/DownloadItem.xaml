@@ -41,13 +41,14 @@
     <Button x:Name="DownloadControlButton" Grid.Row="0" Grid.Column="1"
             HorizontalAlignment="Stretch"
             IsEnabled="{x:Bind ViewModel.IsEnabled}"
-            Command="{x:Bind ViewModel.DownloadToggleButtonCommand, Mode=OneTime}"
+            Click="{x:Bind ViewModel.DownloadToggleButton_Clicked, Mode=OneTime}"
+            ToolTipService.ToolTip="{x:Bind ViewModel.DownloadToggleButtonToolTip}"
             />
-    <Button x:Name="CancelDownloadButton" Grid.Row="0" Grid.Column="2"
+    <Button Grid.Row="0" Grid.Column="2"
             x:Uid="/DownloadItem/CancelBtn"
             HorizontalAlignment="Stretch"
             IsEnabled="{x:Bind ViewModel.IsEnabled}"
-            ToolTipService.ToolTip="{x:Bind ViewModel.DownloadToggleButtonToolTip}"
+            Click="{x:Bind ViewModel.CancelDownloadButton_Click, Mode=OneTime}"
             >
         <SymbolIcon Symbol="Delete"/>
     </Button>

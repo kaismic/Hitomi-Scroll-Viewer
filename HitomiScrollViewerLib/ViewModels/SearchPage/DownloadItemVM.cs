@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views.BrowsePage;
 using HitomiScrollViewerLib.Views.SearchPage;
@@ -19,7 +18,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
@@ -118,7 +116,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
             GalleryDescriptionText = id.ToString();
         }
 
-        private void CancelDownloadButton_Click(object _0, RoutedEventArgs _1) {
+        public void CancelDownloadButton_Click(object _0, RoutedEventArgs _1) {
             IsEnabled = false;
             _cts.Cancel();
             RemoveSelf();
@@ -132,9 +130,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
             RemoveDownloadItemEvent?.Invoke(this, Id);
         }
 
-        public ICommand DownloadToggleButtonCommand => new RelayCommand(DownloadToggleButton_Clicked);
-
-        private void DownloadToggleButton_Clicked() {
+        public void DownloadToggleButton_Clicked(object _0, RoutedEventArgs _1) {
             switch (DownloadState) {
                 case DownloadStatus.Downloading:
                     CancelDownloadTask(TaskCancelReason.PausedByUser);
