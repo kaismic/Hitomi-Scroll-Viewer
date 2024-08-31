@@ -1,4 +1,9 @@
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.Views.BrowsePage;
+using HitomiScrollViewerLib.Views.SearchPage;
+using HitomiScrollViewerLib.Windows;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -14,13 +19,15 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
-namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
-    public sealed partial class DownloadItem : Grid {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("DownloadItem");
+
+namespace HitomiScrollViewerLib.ViewModels.SearchPage {
+    public partial class DownloadItemVM : ObservableObject{
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(DownloadItem).Name);
 
         private const string REFERER = "https://hitomi.la/";
         private const string BASE_DOMAIN = "hitomi.la";
@@ -36,12 +43,32 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             Timeout = TimeSpan.FromSeconds(15)
         };
 
+        [ObservableProperty]
+        private string _currentVisualState;
+
         private enum DownloadStatus {
             Downloading,
             Paused,
             Failed
         }
+        [ObservableProperty]
         private DownloadStatus _downloadState;
+        partial void OnDownloadStateChanged(DownloadStatus value) {
+            switch (value) {
+                case DownloadStatus.Downloading:
+                    DownloadToggleButtonSymbol = Symbol.Pause;
+                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Pause").ValueAsString;
+                    break;
+                case DownloadStatus.Paused:
+                    DownloadToggleButtonSymbol = Symbol.Play;
+                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Resume").ValueAsString;
+                    break;
+                case DownloadStatus.Failed:
+                    DownloadToggleButtonSymbol = Symbol.Refresh;
+                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_TryAgain").ValueAsString;
+                    break;
+            }
+        }
 
         private CancellationTokenSource _cts = new();
 
@@ -49,7 +76,26 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         internal int Id { get; private set; }
         internal BookmarkItem BookmarkItem { get; set; }
 
-        private readonly int[] _threadNums = Enumerable.Range(1, 8).ToArray();
+        public int[] ThreadNums => Enumerable.Range(1, 8).ToArray();
+        [ObservableProperty]
+        private int _threadNum = 1;
+
+        [ObservableProperty]
+        private string _galleryDescriptionText;
+        [ObservableProperty]
+        private string _progressText;
+        [ObservableProperty]
+        private double _progressBarValue;
+        [ObservableProperty]
+        private double _progressBarMaximum;
+
+        [ObservableProperty]
+        private bool _isEnabled;
+
+        [ObservableProperty]
+        private Symbol _downloadToggleButtonSymbol;
+        [ObservableProperty]
+        private string _downloadToggleButtonToolTip;
 
         private static readonly object _ggjsFetchLock = new();
         private static bool _ggjsInitFetched = false;
@@ -60,29 +106,22 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private const int MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404 = 2;
         private const int MAX_HTTP_404_ERROR_NUM_LIMIT = 3;
         private int _retryByHttp404Count = 0;
-        private static readonly List<DownloadItem> _waitingDownloadItems = [];
+        private static readonly List<DownloadItemVM> _waitingDownloadItemVMs = [];
 
-        public event TypedEventHandler<DownloadItem, int> RemoveDownloadItemEvent;
+        public event TypedEventHandler<DownloadItemVM, int> RemoveDownloadItemEvent;
         public delegate void UpdateIdEventHandler(int oldId, int newId);
         public event UpdateIdEventHandler UpdateIdEvent;
 
-        public DownloadItem(int id, BookmarkItem bookmarkItem = null) {
+        public DownloadItemVM(int id, BookmarkItem bookmarkItem = null) {
             Id = id;
             BookmarkItem = bookmarkItem;
-            InitializeComponent();
-            Description.Text = id.ToString();
+            GalleryDescriptionText = id.ToString();
         }
 
         private void CancelDownloadButton_Click(object _0, RoutedEventArgs _1) {
-            EnableButtons(false);
+            IsEnabled = false;
             _cts.Cancel();
             RemoveSelf();
-        }
-
-        private void EnableButtons(bool enable) {
-            DownloadControlButton.IsEnabled = enable;
-            CancelDownloadButton.IsEnabled = enable;
-            ThreadNumComboBox.IsEnabled = enable;
         }
 
         private void RemoveSelf() {
@@ -93,8 +132,10 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             RemoveDownloadItemEvent?.Invoke(this, Id);
         }
 
-        private void DownloadControlButton_Clicked(object _0, RoutedEventArgs _1) {
-            switch (_downloadState) {
+        public ICommand DownloadToggleButtonCommand => new RelayCommand(DownloadToggleButton_Clicked);
+
+        private void DownloadToggleButton_Clicked() {
+            switch (DownloadState) {
                 case DownloadStatus.Downloading:
                     CancelDownloadTask(TaskCancelReason.PausedByUser);
                     break;
@@ -106,27 +147,9 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             }
         }
 
-        private void SetDownloadControlBtnState() {
-            switch (_downloadState) {
-                case DownloadStatus.Downloading:
-                    DownloadControlButton.Content = new SymbolIcon(Symbol.Pause);
-                    ToolTipService.SetToolTip(DownloadControlButton, _resourceMap.GetValue("ToolTipText_Pause").ValueAsString);
-                    break;
-                case DownloadStatus.Paused:
-                    DownloadControlButton.Content = new SymbolIcon(Symbol.Play);
-                    ToolTipService.SetToolTip(DownloadControlButton, _resourceMap.GetValue("ToolTipText_Resume").ValueAsString);
-                    break;
-                case DownloadStatus.Failed:
-                    DownloadControlButton.Content = new SymbolIcon(Symbol.Refresh);
-                    ToolTipService.SetToolTip(DownloadControlButton, _resourceMap.GetValue("ToolTipText_TryAgain").ValueAsString);
-                    break;
-            }
-        }
-
         private void SetStateAndText(DownloadStatus state, string text) {
-            _downloadState = state;
-            DownloadStatusTextBlock.Text = text;
-            SetDownloadControlBtnState();
+            DownloadState = state;
+            ProgressText = text;
         }
 
         private enum TaskCancelReason {
@@ -137,7 +160,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         private TaskCancelReason _taskCancelReason;
 
         private void CancelDownloadTask(TaskCancelReason taskCancelReason) {
-            EnableButtons(false);
+            IsEnabled = false;
             _taskCancelReason = taskCancelReason;
             _cts.Cancel();
         }
@@ -155,13 +178,12 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     _retryByHttp404Count++;
                     if (_retryByHttp404Count >= MAX_DOWNLOAD_RETRY_NUM_BY_HTTP_404) {
                         SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_Unknown_Error").ValueAsString);
-                    }
-                    else {
+                    } else {
                         await TryGetGgjsInfo(true);
                     }
                     break;
             }
-            EnableButtons(true);
+            IsEnabled = true;
         }
 
         private void ThreadNumComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
@@ -169,7 +191,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             if (e.RemovedItems.Count == 0) {
                 return;
             }
-            if (_downloadState == DownloadStatus.Downloading) {
+            if (DownloadState == DownloadStatus.Downloading) {
                 CancelDownloadTask(TaskCancelReason.ThreadNumChanged);
             }
         }
@@ -180,7 +202,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             SetStateAndText(DownloadStatus.Downloading, "");
             BookmarkItem?.EnableRemoveBtn(false);
             if (_gallery == null) {
-                DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
+                ProgressText = _resourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
                 string galleryInfo;
                 try {
                     galleryInfo = await GetGalleryInfo(ct);
@@ -202,11 +224,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                     return;
                 }
 
-                DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
+                ProgressText = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
                 try {
                     _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS);
-                    DownloadProgressBar.Maximum = _gallery.Files.Count;
-                    Description.Text += $" - {_gallery.Title}"; // add title to description
+                    ProgressBarMaximum = _gallery.Files.Count;
+                    GalleryDescriptionText += $" - {_gallery.Title}"; // add title to description
                 } catch (JsonException e) {
                     SetStateAndText(DownloadStatus.Failed, _resourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message);
                     return;
@@ -217,7 +239,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             if (Id != _gallery.Id) {
                 UpdateIdEvent?.Invoke(Id, _gallery.Id);
                 Id = _gallery.Id;
-                Description.Text += $"{_gallery.Id} - {_gallery.Title}";
+                GalleryDescriptionText += $"{_gallery.Id} - {_gallery.Title}";
             }
 
             // TODO uncomment and modify
@@ -225,7 +247,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             //    BookmarkItem = MainWindow.SearchPage.AddBookmark(_gallery);
             //}
 
-            DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_CalculatingDownloadNumber").ValueAsString;
+            ProgressText = _resourceMap.GetValue("StatusText_CalculatingDownloadNumber").ValueAsString;
             List<int> missingIndexes;
             try {
                 missingIndexes = GetMissingIndexes();
@@ -238,8 +260,8 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 // need to download all images
                 missingIndexes = Enumerable.Range(0, _gallery.Files.Count).ToList();
             }
-            DownloadProgressBar.Value = _gallery.Files.Count - missingIndexes.Count;
-            DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
+            ProgressBarValue = _gallery.Files.Count - missingIndexes.Count;
+            ProgressText = _resourceMap.GetValue("StatusText_FetchingServerTime").ValueAsString;
 
             if (!_ggjsInitFetched) {
                 // this DownloadItem is the first DownloadItem so fetch ggjs
@@ -249,18 +271,18 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                 await TryGetGgjsInfo(false);
             }
 
-            lock (_waitingDownloadItems) {
+            lock (_waitingDownloadItemVMs) {
                 if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
                     Monitor.Exit(_ggjsFetchLock);
                 } else {
                     // another thread is already fetching ggjs so add to download waiting list
-                    _waitingDownloadItems.Add(this);
+                    _waitingDownloadItemVMs.Add(this);
                     return;
                 }
             }
 
             // at here, no thread is fetching ggjs so just start download
-            DownloadStatusTextBlock.Text = _resourceMap.GetValue("StatusText_Downloading").ValueAsString;
+            ProgressText = _resourceMap.GetValue("StatusText_Downloading").ValueAsString;
             try {
                 await DownloadImages(ct);
             } catch (TaskCanceledException) {
@@ -271,7 +293,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
         }
 
         private void FinishDownload(List<int> missingIndexes = null) {
-            EnableButtons(false);
+            IsEnabled = false;
             missingIndexes ??= GetMissingIndexes();
             if (missingIndexes.Count > 0) {
                 SetStateAndText(DownloadStatus.Failed, MultiPattern.Format(_resourceMap.GetValue("StatusText_Failed").ValueAsString, missingIndexes.Count));
@@ -317,11 +339,11 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
             if (startSelfDownload) {
                 InitDownload();
             }
-            lock (_waitingDownloadItems) {
-                foreach (var downloadItem in _waitingDownloadItems) {
+            lock (_waitingDownloadItemVMs) {
+                foreach (var downloadItem in _waitingDownloadItemVMs) {
                     downloadItem.InitDownload();
                 }
-                _waitingDownloadItems.Clear();
+                _waitingDownloadItemVMs.Clear();
             }
         }
 
@@ -437,7 +459,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                  4     10    17
                  5     11
             */
-            int concurrentTaskNum = (int)ThreadNumComboBox.SelectedItem;
+            int concurrentTaskNum = ThreadNum;
             int quotient = fetchInfos.Length / concurrentTaskNum;
             int remainder = fetchInfos.Length % concurrentTaskNum;
             Task[] tasks = new Task[concurrentTaskNum];
@@ -456,9 +478,7 @@ namespace HitomiScrollViewerLib.Controls.SearchPageComponents {
                             if (success) {
                                 MainWindow.SearchPage.DispatcherQueue.TryEnqueue(() => {
                                     BookmarkItem.UpdateSingleImage(missingIndexes[k]);
-                                    lock (DownloadProgressBar) {
-                                        DownloadProgressBar.Value++;
-                                    }
+                                    ProgressBarValue++;
                                 });
                             }
                         }
