@@ -120,9 +120,6 @@
   <data name="CancelBtn.ToolTipService.ToolTip" xml:space="preserve">
     <value>다운로드 취소</value>
   </data>
-  <data name="StatusText_CalculatingDownloadNumber" xml:space="preserve">
-    <value>다운로드 해야하는 이미지의 수를 계산하는 중...</value>
-  </data>
   <data name="StatusText_Downloading" xml:space="preserve">
     <value>다운로드 중...</value>
   </data>
@@ -165,5 +162,8 @@
   </data>
   <data name="ToolTipText_TryAgain" xml:space="preserve">
     <value>재시도</value>
+  </data>
+  <data name="StatusText_TooManyDownloadFails" xml:space="preserve">
+    <value>너무 많은 다운로드 시도가 실패했습니다. 나중에 다시 시도하세요.</value>
   </data>
 </root>
