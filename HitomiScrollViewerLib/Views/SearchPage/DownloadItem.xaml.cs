@@ -5,9 +5,8 @@ namespace HitomiScrollViewerLib.Views.SearchPage {
     public sealed partial class DownloadItem : Grid {
         public DownloadItemVM ViewModel { get; set; }
 
-        public DownloadItem(DownloadItemVM viewModel) {
+        public DownloadItem() {
             InitializeComponent();
-            ViewModel = viewModel;
         }
     }
 }

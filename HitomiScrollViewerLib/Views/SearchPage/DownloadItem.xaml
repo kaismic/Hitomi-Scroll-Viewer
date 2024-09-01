@@ -48,7 +48,7 @@
             x:Uid="/DownloadItem/CancelBtn"
             HorizontalAlignment="Stretch"
             IsEnabled="{x:Bind ViewModel.IsEnabled}"
-            Click="{x:Bind ViewModel.CancelDownloadButton_Click, Mode=OneTime}"
+            Click="{x:Bind ViewModel.RemoveDownloadButton_Click, Mode=OneTime}"
             >
         <SymbolIcon Symbol="Delete"/>
     </Button>
