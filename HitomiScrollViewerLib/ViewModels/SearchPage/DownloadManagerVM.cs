@@ -1,20 +1,21 @@
 ﻿using HitomiScrollViewerLib.Controls.SearchPageComponents;
+using HitomiScrollViewerLib.Views.BrowsePage;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace HitomiScrollViewerLib {
-    internal class DownloadManager {
-        internal ObservableCollection<DownloadItem> DownloadItems { get; } = [];
+namespace HitomiScrollViewerLib.ViewModels.SearchPage {
+    internal class DownloadManagerVM {
+        internal ObservableCollection<DownloadItemVM> DownloadItemVMs { get; } = [];
         private readonly ConcurrentDictionary<int, byte> _downloadingGalleryIds = [];
 
-        internal bool TryDownload(int id, BookmarkItem bookmarkItem = null) {
+        public bool TryDownload(int id, BookmarkItem bookmarkItem = null) {
             if (_downloadingGalleryIds.TryAdd(id, 0)) {
-                DownloadItem downloadItem = new(id, bookmarkItem);
-                DownloadItems.Add(downloadItem);
-                downloadItem.RemoveDownloadItemEvent += RemoveDownloadItem;
-                downloadItem.UpdateIdEvent += UpdateId;
-                downloadItem.InitDownload();
+                DownloadItemVM vm = new(id, bookmarkItem);
+                DownloadItemVMs.Add(vm);
+                vm.RemoveDownloadItemEvent += RemoveDownloadItem;
+                vm.UpdateIdEvent += UpdateId;
+                vm.StartDownload();
                 return true;
             }
             return false;
@@ -25,9 +26,9 @@ namespace HitomiScrollViewerLib {
             _downloadingGalleryIds.TryAdd(newId, 0);
         }
 
-        private void RemoveDownloadItem(DownloadItem sender, int id) {
+        private void RemoveDownloadItem(DownloadItemVM sender, int id) {
             _downloadingGalleryIds.Remove(id, out _);
-            DownloadItems.Remove(sender);
+            DownloadItemVMs.Remove(sender);
         }
 
         public bool HasAnyDownloads() {
