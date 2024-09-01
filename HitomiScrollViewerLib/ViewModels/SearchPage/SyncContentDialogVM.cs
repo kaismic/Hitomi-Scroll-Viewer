@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Google;
+using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Upload;
 using HitomiScrollViewerLib.DbContexts;
@@ -15,6 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -184,6 +186,69 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPage {
                 _cts.Dispose();
                 ProgressBarVisibility = Visibility.Collapsed;
                 CloseButtonText = TEXT_CLOSE;
+            }
+        }
+
+        public enum UserDataType {
+            TagFilterSet, Gallery
+        }
+
+        public static FilesResource.ListRequest GetListRequest(DriveService driveService) {
+            FilesResource.ListRequest listRequest = driveService.Files.List();
+            listRequest.Spaces = "appDataFolder";
+            listRequest.Fields = "nextPageToken, files(id, name, size)";
+            listRequest.PageSize = 8;
+            return listRequest;
+        }
+
+        public static FilesResource.CreateMediaUpload GetCreateMediaUpload(
+            DriveService driveService,
+            string content,
+            string fileName,
+            string contentType
+        ) {
+            Google.Apis.Drive.v3.Data.File fileMetaData = new() {
+                Name = fileName,
+                Parents = ["appDataFolder"]
+            };
+            return driveService.Files.Create(
+                fileMetaData,
+                new MemoryStream(Encoding.UTF8.GetBytes(content)),
+                contentType
+            );
+        }
+
+        public static FilesResource.UpdateMediaUpload GetUpdateMediaUpload(
+            DriveService driveService,
+            string content,
+            string fileId,
+            string contentType
+        ) {
+            return driveService.Files.Update(
+                new(),
+                fileId,
+                new MemoryStream(Encoding.UTF8.GetBytes(content)),
+                contentType
+            );
+        }
+
+        /**
+         * <returns>The file content from Google Drive<c>string</c>.</returns>
+         * <exception cref="Exception"/>
+         * <exception cref="TaskCanceledException"/>
+         * <exception cref="Google.GoogleApiException"/>
+         */
+        public static async Task DownloadAndWriteAsync(
+            FilesResource.GetRequest request,
+            string filePath,
+            CancellationToken ct
+        ) {
+            using FileStream fileStream = new(filePath, FileMode.Create, FileAccess.Write) {
+                Position = 0
+            };
+            IDownloadProgress result = await request.DownloadAsync(fileStream, ct);
+            if (result.Exception != null) {
+                throw result.Exception;
             }
         }
 
