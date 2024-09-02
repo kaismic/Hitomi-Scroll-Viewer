@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="HitomiScrollViewerLib.Views.PageViews.BrowsePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+
+    <!--<Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="BookmarkHeader"
+                        Grid.Column="0"
+                        Style="{StaticResource TitleTextBlockStyle}"
+                        VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                        Spacing="8">
+                <TextBlock x:Name="BookmarkPageSelectorHeader"
+                            VerticalAlignment="Center"/>
+                <ComboBox x:Name="BookmarkPageSelector"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                        Spacing="8">
+                <TextBlock x:Name="BookmarkNumPerPageSelectorHeader"
+                            VerticalAlignment="Center"/>
+                <ComboBox x:Name="BookmarkNumPerPageSelector"
+                            ItemsSource="{x:Bind _bookmarkNumPerPageRange}"
+                            SelectionChanged="BookmarkNumPerPageSelector_SelectionChanged"/>
+            </StackPanel>
+        </Grid>
+        <StackPanel x:Name="BookmarkPanel" Orientation="Vertical" Spacing="16"/>
+    
+    -->
+    <Grid>
+
+    </Grid>
+</Page>

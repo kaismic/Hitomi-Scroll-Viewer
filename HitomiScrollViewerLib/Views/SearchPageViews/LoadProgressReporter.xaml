@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="HitomiScrollViewerLib.Views.SearchPageViews.LoadProgressReporter"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    
+    Style="{StaticResource DefaultContentDialogStyle}">
+    <ContentDialog.Title>
+        <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.TitleText}"/>
+    </ContentDialog.Title>
+    <StackPanel>
+        <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.PleaseWaitText}"/>
+        <ProgressBar Margin="0 30 0 10"
+                     Value="{x:Bind ViewModel.ProgressBarValue, Mode=OneWay}"
+                     IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
+                     Maximum="{x:Bind ViewModel.ProgressBarMaximum, Mode=OneWay}"
+                     />
+        <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"/>
+    </StackPanel>
+</ContentDialog>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Grid
+    x:Class="HitomiScrollViewerLib.Views.SearchPageViews.SyncManager"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    ColumnSpacing="8"
+    ColumnDefinitions="*,Auto">
+    <Button Grid.Column="0"
+            Padding="12 10" HorizontalAlignment="Stretch"
+            Click="{x:Bind ViewModel.SignInBtn_Clicked}"
+            IsEnabled="{x:Bind ViewModel.IsSignInButtonEnabled, Mode=OneWay}">
+        <Grid ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image Grid.Column="0"
+                   Source="/Assets/Google-g-logo.svg"
+                   VerticalAlignment="Center"/>
+            <TextBlock x:Name="SignInBtnTextBlock"
+                       Grid.Column="1"
+                       TextWrapping="WrapWholeWords"
+                       FontSize="16"
+                       HorizontalTextAlignment="Center"
+                       Text="{x:Bind ViewModel.SignInButtonText, Mode=OneWay}"/>
+        </Grid>
+    </Button>
+    <Button x:Name="SyncBtn"
+            Grid.Column="1"
+            Padding="16"
+            Click="{x:Bind ViewModel.SyncBtn_Clicked}"
+            IsEnabled="{x:Bind ViewModel.IsSyncButtonEnabled}">
+        <SymbolIcon Symbol="Sync"/>
+    </Button>
+</Grid>

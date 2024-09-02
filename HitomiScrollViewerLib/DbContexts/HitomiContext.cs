@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Windows.ApplicationModel;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
@@ -41,12 +42,12 @@ namespace HitomiScrollViewerLib.DbContexts {
 
         private const string TAG_RES_ROOT_DIR = "TagResources";
         private static readonly string DELIMITER_FILE_PATH = Path.Combine(
-            Windows.ApplicationModel.Package.Current.InstalledPath,
+            Package.Current.InstalledPath,
             TAG_RES_ROOT_DIR,
             "delimiter.txt"
         );
         private static readonly string LANGUAGES_FILE_PATH = Path.Combine(
-            Windows.ApplicationModel.Package.Current.InstalledPath,
+            Package.Current.InstalledPath,
             TAG_RES_ROOT_DIR,
             "languages.txt"
         );
@@ -71,7 +72,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                 Category category = (Category)i;
                 string categoryStr = CATEGORY_DIR_DICT[category];
                 string dir = Path.Combine(
-                    Windows.ApplicationModel.Package.Current.InstalledPath,
+                    Package.Current.InstalledPath,
                     TAG_RES_ROOT_DIR,
                     categoryStr
                 );

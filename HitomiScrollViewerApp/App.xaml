@@ -5,7 +5,7 @@
     xmlns:local="using:HitomiScrollViewerApp">
     <Application.Resources>
         <ResourceDictionary>
-            <x:Double x:Key="ProgressBarTrackHeight">3</x:Double>
+            <!--<x:Double x:Key="ProgressBarTrackHeight">3</x:Double> if setting this at Page doesn't work, revert-->
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <!-- Other merged dictionaries here -->

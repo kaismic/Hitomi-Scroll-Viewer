@@ -23,7 +23,7 @@ namespace HitomiScrollViewerApp {
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs args) {
-            MainWindow.CurrentMainWindow.Activate();
+            MainWindow.CurrMW.Activate();
         }
     }
 }

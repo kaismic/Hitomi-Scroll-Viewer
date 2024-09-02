@@ -117,22 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DownloadInputTextBox.PlaceholderText" xml:space="preserve">
-    <value>Enter Gallery ID(s) or URL(s) here. For example: 2058075 or https://hitomi.la/...</value>
-  </data>
-  <data name="HyperlinkCreateButtonTextBlock.Text" xml:space="preserve">
-    <value>Create and copy search link</value>
-  </data>
-  <data name="Notification_DownloadInputTextBox_Empty_Title" xml:space="preserve">
-    <value>Enter ID(s) or URL(s)</value>
-  </data>
-  <data name="Notification_DownloadInputTextBox_Invalid_Title" xml:space="preserve">
-    <value>Invalid ID(s) or URL(s)</value>
-  </data>
-  <data name="TagFilterSelectionDescTextBlock.Text" xml:space="preserve">
-    <value>Select tag filter(s) to create search links</value>
-  </data>
-  <data name="Text_BookmarkNumPerPage" xml:space="preserve">
-    <value>Bookmark per page</value>
+  <data name="Text_DownloadRemaining" xml:space="preserve">
+    <value>There are remaining galleries which are still downloading. Exit anyway?</value>
   </data>
 </root>

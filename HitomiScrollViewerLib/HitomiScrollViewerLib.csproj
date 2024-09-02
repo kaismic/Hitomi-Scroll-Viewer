@@ -9,26 +9,7 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Controls\Pages\SearchPage.xaml" />
-    <None Remove="Controls\Pages\ViewPage.xaml" />
-    <None Remove="Controls\SearchPageComponents\BookmarkItem.xaml" />
-    <None Remove="Controls\SearchPageComponents\CRUDActionContentDialog.xaml" />
-    <None Remove="Controls\SearchPageComponents\DownloadItem.xaml" />
-    <None Remove="Controls\SearchPageComponents\GLASBWrapper.xaml" />
-    <None Remove="Controls\SearchPageComponents\InputValidation.xaml" />
-    <None Remove="Controls\SearchPageComponents\LoadProgressReporter.xaml" />
-    <None Remove="Controls\SearchPageComponents\SearchLinkItem.xaml" />
-    <None Remove="Controls\SearchPageComponents\SyncContentDialog.xaml" />
-    <None Remove="Controls\SearchPageComponents\SyncManager.xaml" />
-    <None Remove="Controls\SearchPageComponents\TagFilterSetEditor.xaml" />
-    <None Remove="Controls\SearchPageComponents\TagTokenizingTextBox.xaml" />
-    <None Remove="Controls\SearchPageComponents\TFSCheckBox.xaml" />
-    <None Remove="Controls\SearchPageComponents\TFSSelector.xaml" />
-    <None Remove="Controls\ViewPageComponents\GroupedImagePanel.xaml" />
-    <None Remove="MainWindow.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.0" />
       <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240821" />
       <PackageReference Include="CommunityToolkit.WinUI.Controls.TokenizingTextBox" Version="8.1.240821" />
       <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3508" />
@@ -38,56 +19,5 @@
       <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" />
       <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" />
       <PackageReference Include="Soluling" Version="1.0.71" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Controls\Pages\SearchPage.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\Pages\ViewPage.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\CRUDActionContentDialog.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\BookmarkItem.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\DownloadItem.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-	<Page Update="Controls\SearchPageComponents\GLASBWrapper.xaml">
-	  <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-	</Page>
-	<Page Update="Controls\SearchPageComponents\InputValidation.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-	</Page>
-    <Page Update="Controls\SearchPageComponents\LoadProgressReporter.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\SearchLinkItem.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\SyncContentDialog.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\SyncManager.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\TFSCheckBox.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\TagFilterSetEditor.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\SearchPageComponents\TFSSelector.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Controls\ViewPageComponents\GroupedImagePanel.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="MainWindow.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
   </ItemGroup>
 </Project>
