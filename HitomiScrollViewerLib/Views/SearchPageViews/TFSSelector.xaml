@@ -25,6 +25,7 @@
                               IsChecked="{x:Bind IsChecked, Mode=TwoWay}"
                               IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
                               Command="{x:Bind CheckBoxToggleCommand}"
+                              CommandParameter="{x:Bind}"
                               >
                         <TextBlock TextWrapping="Wrap"
                                    Text="{x:Bind TagFilterSet.Name, Mode=OneWay}"/>
