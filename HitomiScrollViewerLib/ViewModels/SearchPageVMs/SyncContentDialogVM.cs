@@ -6,7 +6,7 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Upload;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.ViewModels.SearchPage.SyncContentDialogVMs;
+using HitomiScrollViewerLib.Models.SearchPageModels;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -59,8 +59,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private Visibility _border_2_Visibility;
 
         [ObservableProperty]
-        private bool _isTFCheckBoxChecked;
-        partial void OnIsTFCheckBoxCheckedChanged(bool value) {
+        private bool isTFOptionChecked;
+        partial void OnIsTFOptionCheckedChanged(bool value) {
             // if checked and option is fetch
             if (value && RadioButtons_1_SelectedIndex == 1) {
                 FetchTFOptionsVisibility = Visibility.Visible;
@@ -81,8 +81,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private Visibility _radioButtons_3_Visibility;
 
         [ObservableProperty]
-        private bool _isGalleryCheckBoxChecked;
-        partial void OnIsGalleryCheckBoxCheckedChanged(bool value) {
+        private bool _isGalleryOptionChecked;
+        partial void OnIsGalleryOptionCheckedChanged(bool value) {
             // if checked and option is fetch
             if (value && RadioButtons_1_SelectedIndex == 1) {
                 FetchGalleryOptionsVisibility = Visibility.Visible;
@@ -108,10 +108,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             if (value == -1) {
                 return;
             }
-            TFInfoBarVM.IsOpen = false;
-            GalleryInfoBarVM.IsOpen = false;
-            IsTFCheckBoxChecked = false;
-            IsGalleryCheckBoxChecked = false;
+            TFInfoBarModel.IsOpen = false;
+            GalleryInfoBarModel.IsOpen = false;
+            IsTFOptionChecked = false;
+            IsGalleryOptionChecked = false;
             Border_1_Visibility = Visibility.Visible;
             Border_2_Visibility = Visibility.Collapsed;
             TfCheckBoxVisibility = Visibility.Visible;
@@ -127,8 +127,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 // Fetch option selected
                 case 1: {
                     IsUploadWarningInfoBarOpen = false;
-                    FetchTFOptionsVisibility = IsTFCheckBoxChecked ? Visibility.Visible : Visibility.Collapsed;
-                    FetchGalleryOptionsVisibility = IsGalleryCheckBoxChecked ? Visibility.Visible : Visibility.Collapsed;
+                    FetchTFOptionsVisibility = IsTFOptionChecked ? Visibility.Visible : Visibility.Collapsed;
+                    FetchGalleryOptionsVisibility = IsGalleryOptionChecked ? Visibility.Visible : Visibility.Collapsed;
                     Border_2_Visibility = Visibility.Visible;
                     break;
                 }
@@ -158,8 +158,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [ObservableProperty]
         private int _radioButtons_4_SelectedIndex;
 
-        public InfoBarVM TFInfoBarVM { get; } = new() { IsOpen = false };
-        public InfoBarVM GalleryInfoBarVM { get; } = new() { IsOpen = false };
+        public InfoBarModel TFInfoBarModel { get; } = new() { IsOpen = false };
+        public InfoBarModel GalleryInfoBarModel { get; } = new() { IsOpen = false };
 
         public void ContentDialog_CloseButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs _1) {
             if (_isSyncing) {
@@ -180,8 +180,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 ProgressBarVisibility = Visibility.Visible;
                 IsProgressBarIndeterminate = true;
                 CloseButtonText = TEXT_CANCEL;
-                TFInfoBarVM.IsOpen = false;
-                GalleryInfoBarVM.IsOpen = false;
+                TFInfoBarModel.IsOpen = false;
+                GalleryInfoBarModel.IsOpen = false;
             } else {
                 _cts.Dispose();
                 ProgressBarVisibility = Visibility.Collapsed;
@@ -263,9 +263,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 UserDataType.Gallery => JsonSerializer.Serialize(HitomiContext.Main.Galleries),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
-            InfoBarVM infoBarVM = userDataType switch {
-                UserDataType.TagFilterSet => TFInfoBarVM,
-                UserDataType.Gallery => GalleryInfoBarVM,
+            InfoBarModel infoBarModel = userDataType switch {
+                UserDataType.TagFilterSet => TFInfoBarModel,
+                UserDataType.Gallery => GalleryInfoBarModel,
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             string infoBarTitle = userDataType switch {
@@ -285,15 +285,15 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     throw uploadProgress.Exception;
                 }
 
-                SetInfoBarVM(
-                    infoBarVM,
+                SetInfoBarModel(
+                    infoBarModel,
                     InfoBarSeverity.Success,
                     infoBarTitle,
                     _resourceMap.GetValue("InfoBar_Upload_Success_Message").ValueAsString
                 );
             } catch (TaskCanceledException) {
-                SetInfoBarVM(
-                    infoBarVM,
+                SetInfoBarModel(
+                    infoBarModel,
                     InfoBarSeverity.Informational,
                     infoBarTitle,
                     _resourceMap.GetValue("InfoBar_Upload_Canceled_Message").ValueAsString
@@ -305,21 +305,21 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 } else {
                     message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
                 }
-                SetInfoBarVM(
-                    infoBarVM,
+                SetInfoBarModel(
+                    infoBarModel,
                     InfoBarSeverity.Error,
                     TEXT_ERROR,
                     message
                 );
             } finally {
-                infoBarVM.IsOpen = true;
+                infoBarModel.IsOpen = true;
             }
         }
 
-        private static void SetInfoBarVM(InfoBarVM infoBarVM, InfoBarSeverity severity, string title, string message) {
-            infoBarVM.Severity = severity;
-            infoBarVM.Title = title;
-            infoBarVM.Message = message;
+        private static void SetInfoBarModel(InfoBarModel infoBarModel, InfoBarSeverity severity, string title, string message) {
+            infoBarModel.Severity = severity;
+            infoBarModel.Title = title;
+            infoBarModel.Message = message;
         }
 
         public ICommand PrimaryButtonCommand => new RelayCommand(HandlePrimaryButtonClick, CanClickPrimaryButton);
@@ -347,22 +347,22 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             // Upload
             if (RadioButtons_1_SelectedIndex == 0) {
                 // Upload tag filter sets
-                if (IsTFCheckBoxChecked) {
+                if (IsTFOptionChecked) {
                     await StartUploadAsync(UserDataType.TagFilterSet, tfssFile);
                 }
                 // Upload galleries
-                if (IsGalleryCheckBoxChecked) {
+                if (IsGalleryOptionChecked) {
                     await StartUploadAsync(UserDataType.Gallery, galleriesFile);
                 }
             }
             // Fetch
             else {
                 // Fetch tag filter sets
-                if (IsTFCheckBoxChecked) {
+                if (IsTFOptionChecked) {
                     // file is not uploaded yet
                     if (tfssFile == null) {
-                        SetInfoBarVM(
-                            TFInfoBarVM,
+                        SetInfoBarModel(
+                            TFInfoBarModel,
                             InfoBarSeverity.Error,
                             TEXT_TAG_FILTERS,
                             _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString
@@ -404,15 +404,15 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                 }
                                 HitomiContext.Main.SaveChanges();
                             }
-                            SetInfoBarVM(
-                                TFInfoBarVM,
+                            SetInfoBarModel(
+                                TFInfoBarModel,
                                 InfoBarSeverity.Success,
                                 TEXT_TAG_FILTERS,
                                 _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString
                             );
                         } catch (TaskCanceledException) {
-                            SetInfoBarVM(
-                                TFInfoBarVM,
+                            SetInfoBarModel(
+                                TFInfoBarModel,
                                 InfoBarSeverity.Informational,
                                 TEXT_TAG_FILTERS,
                                 _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString
@@ -424,22 +424,22 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             } else {
                                 message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
                             }
-                            SetInfoBarVM(
-                                TFInfoBarVM,
+                            SetInfoBarModel(
+                                TFInfoBarModel,
                                 InfoBarSeverity.Error,
                                 TEXT_ERROR,
                                 message
                             );
                         }
                     }
-                    TFInfoBarVM.IsOpen = true;
+                    TFInfoBarModel.IsOpen = true;
                 }
                 // Fetch bookmarks
-                if (IsGalleryCheckBoxChecked) {
+                if (IsGalleryOptionChecked) {
                     // file is not uploaded yet
                     if (tfssFile == null) {
-                        SetInfoBarVM(
-                            TFInfoBarVM,
+                        SetInfoBarModel(
+                            TFInfoBarModel,
                             InfoBarSeverity.Error,
                             TEXT_TAG_FILTERS,
                             _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString
@@ -484,29 +484,33 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         //    }
                         //}
                     }
-                    GalleryInfoBarVM.IsOpen = true;
+                    GalleryInfoBarModel.IsOpen = true;
                 }
             }
             StartStopSync(false);
         }
 
         private bool CanClickPrimaryButton() {
+            // Nothing selected
+            if (RadioButtons_1_SelectedIndex == -1) {
+                return false;
+            }
             // Upload option selected
-            if (RadioButtons_1_SelectedIndex == 0) {
-                return IsTFCheckBoxChecked || IsGalleryCheckBoxChecked;
+            else if (RadioButtons_1_SelectedIndex == 0) {
+                return IsTFOptionChecked || IsGalleryOptionChecked;
             }
             // Fetch option selected
             else {
-                if (!IsTFCheckBoxChecked && IsGalleryCheckBoxChecked) {
+                if (!IsTFOptionChecked && !IsGalleryOptionChecked) {
                     return false;
                 }
                 bool enable = true;
-                if (IsTFCheckBoxChecked) {
+                if (IsTFOptionChecked) {
                     enable &=
                         RadioButtons_2_SelectedIndex != -1 &&
                         (RadioButtons_2_SelectedIndex == 0 || RadioButtons_3_SelectedIndex != -1);
                 }
-                if (IsGalleryCheckBoxChecked) {
+                if (IsGalleryOptionChecked) {
                     enable &= RadioButtons_4_SelectedIndex != -1;
                 }
                 return enable;

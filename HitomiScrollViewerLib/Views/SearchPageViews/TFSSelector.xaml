@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ct="using:CommunityToolkit.WinUI.Controls"
+    xmlns:spmodels="using:HitomiScrollViewerLib.Models.SearchPageModels"
     mc:Ignorable="d"
     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -13,10 +14,23 @@
     BorderThickness="1"
     Padding="16">
     <ScrollViewer>
-        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TfsCheckBoxes, Mode=OneWay}">
+        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TfsCheckBoxModels, Mode=OneWay}">
             <ItemsRepeater.Layout>
                 <ct:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
             </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="spmodels:TFSCheckBoxModel">
+                    <CheckBox MinWidth="0"
+                              Style="{StaticResource DefaultCheckBoxStyle}"
+                              IsChecked="{x:Bind IsChecked, Mode=TwoWay}"
+                              IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                              Command="{x:Bind CheckBoxToggleCommand}"
+                              >
+                        <TextBlock TextWrapping="Wrap"
+                                   Text="{x:Bind TagFilterSet.Name, Mode=OneWay}"/>
+                    </CheckBox>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
         </ItemsRepeater>
     </ScrollViewer>
 </Grid>

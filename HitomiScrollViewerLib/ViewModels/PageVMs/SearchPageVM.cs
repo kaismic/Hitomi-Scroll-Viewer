@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HitomiScrollViewerLib.Models.SearchPageModels;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
@@ -101,9 +101,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         private const int POPUP_MSG_DISPLAY_DURATION = 5000;
         private const int POPUP_MSG_MAX_DISPLAY_NUM = 3;
-        public ObservableCollection<InfoBarVM> PopupMsgInfoBarVMs { get; } = [];
+        public ObservableCollection<InfoBarModel> PopupMsgInfoBarVMs { get; } = [];
         public void AddPopupMsgInfoBarVM(string message) {
-            InfoBarVM vm = new() {
+            InfoBarModel vm = new() {
                 Message = message,
                 Width = PageSize.Width / 4,
             };

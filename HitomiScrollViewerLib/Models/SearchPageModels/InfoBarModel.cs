@@ -1,10 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using System.Windows.Input;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
-    public partial class InfoBarVM : ObservableObject {
+namespace HitomiScrollViewerLib.Models.SearchPageModels {
+    public partial class InfoBarModel : ObservableObject {
         [ObservableProperty]
         private bool _isOpen;
         [ObservableProperty]
