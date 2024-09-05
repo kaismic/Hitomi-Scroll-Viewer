@@ -12,11 +12,11 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         public string PleaseWaitText { get; } = _resourceMap.GetValue("Text_PleaseWait").ValueAsString;
 
         [ObservableProperty]
-        private string _progressText;
+        private string _text;
         [ObservableProperty]
-        private double _progressBarValue;
+        private double _value;
         [ObservableProperty]
-        private double _progressBarMaximum;
+        private double _maximum;
         [ObservableProperty]
         private bool _isIndeterminate;
 
@@ -30,8 +30,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             InitialisingApp
         }
 
-        public void SetStatusMessage(LoadingStatus loadingStatus) {
-            ProgressText = loadingStatus switch {
+        public void SetText(LoadingStatus loadingStatus) {
+            Text = loadingStatus switch {
                 LoadingStatus.LoadingDatabase => _resourceMap.GetValue("Text_" + LoadingStatus.LoadingDatabase.ToString()).ValueAsString,
                 LoadingStatus.MigratingTFSs => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingTFSs.ToString()).ValueAsString,
                 LoadingStatus.MigratingGalleries => _resourceMap.GetValue("Text_" + LoadingStatus.MigratingGalleries.ToString()).ValueAsString,

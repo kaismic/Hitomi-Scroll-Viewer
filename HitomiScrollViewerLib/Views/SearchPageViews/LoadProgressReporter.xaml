@@ -14,10 +14,10 @@
     <StackPanel>
         <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.PleaseWaitText}"/>
         <ProgressBar Margin="0 30 0 10"
-                     Value="{x:Bind ViewModel.ProgressBarValue, Mode=OneWay}"
+                     Value="{x:Bind ViewModel.Value, Mode=OneWay}"
                      IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
-                     Maximum="{x:Bind ViewModel.ProgressBarMaximum, Mode=OneWay}"
+                     Maximum="{x:Bind ViewModel.Maximum, Mode=OneWay}"
                      />
-        <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}"/>
+        <TextBlock Text="{x:Bind ViewModel.Text, Mode=OneWay}"/>
     </StackPanel>
 </ContentDialog>
