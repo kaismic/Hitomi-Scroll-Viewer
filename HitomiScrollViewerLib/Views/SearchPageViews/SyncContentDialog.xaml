@@ -24,80 +24,79 @@
     <ContentDialog.Title>
         <TextBlock x:Uid="/SyncContentDialog/TitleTextBlock" TextWrapping="WrapWholeWords" />
     </ContentDialog.Title>
-    <StackPanel Spacing="8" MinWidth="700" x:DefaultBindMode="OneWay">
-        <InfoBar x:Uid="/SyncContentDialog/UploadWarningInfoBar"
+    <UserControl IsEnabled="{x:Bind ViewModel.IsEnabled}">
+        <StackPanel x:Name="MainStackPanel" Spacing="8" MinWidth="700" x:DefaultBindMode="OneWay">
+            <InfoBar x:Uid="/SyncContentDialog/UploadWarningInfoBar"
                  IsOpen="{x:Bind ViewModel.IsUploadWarningInfoBarOpen, Mode=TwoWay}"
                  Severity="Warning"
-                 IsClosable="False"
-                 IsEnabled="{x:Bind ViewModel.CanUserInteract}"/>
-        <RadioButtons MaxColumns="2"
+                 IsClosable="False"/>
+            <RadioButtons MaxColumns="2"
                       SelectedIndex="{x:Bind ViewModel.RadioButtons_1_SelectedIndex, Mode=TwoWay}"
-                      IsEnabled="{x:Bind ViewModel.CanUserInteract}">
-            <RadioButton x:Uid="/SyncContentDialog/RadioButton_1_1"/>
-            <RadioButton x:Uid="/SyncContentDialog/RadioButton_1_2"/>
-        </RadioButtons>
-        <Border BorderThickness="2"
+                      >
+                <RadioButton x:Uid="/SyncContentDialog/RadioButton_1_1"/>
+                <RadioButton x:Uid="/SyncContentDialog/RadioButton_1_2"/>
+            </RadioButtons>
+            <Border BorderThickness="2"
                 BorderBrush="{StaticResource DividerStrokeColorDefaultBrush}"
                 Visibility="{x:Bind ViewModel.Border_1_Visibility}"/>
-        <CheckBox x:Uid="/SyncContentDialog/TFCheckBox"
-                  IsChecked="{x:Bind ViewModel.IsTFCheckBoxChecked, Mode=TwoWay}"
+            <CheckBox x:Uid="/SyncContentDialog/TFCheckBox"
+                  IsChecked="{x:Bind ViewModel.IsTFOptionChecked, Mode=TwoWay}"
                   Visibility="{x:Bind ViewModel.TfCheckBoxVisibility}"
-                  IsEnabled="{x:Bind ViewModel.CanUserInteract}"/>
-        <StackPanel Visibility="{x:Bind ViewModel.FetchTFOptionsVisibility}"
+                  />
+            <StackPanel Visibility="{x:Bind ViewModel.FetchTFOptionsVisibility}"
                     Spacing="16">
-            <StackPanel>
-                <TextBlock x:Uid="/SyncContentDialog/RadioButtons_2_TextBlock"
+                <StackPanel>
+                    <TextBlock x:Uid="/SyncContentDialog/RadioButtons_2_TextBlock"
                            Style="{StaticResource BaseTextBlockStyle}"/>
-                <RadioButtons MaxColumns="2"
+                    <RadioButtons MaxColumns="2"
                               SelectedIndex="{x:Bind ViewModel.RadioButtons_2_SelectedIndex, Mode=TwoWay}"
-                              IsEnabled="{x:Bind ViewModel.CanUserInteract}">
-                    <RadioButton x:Uid="/SyncContentDialog/RadioButtons_2_1"/>
-                    <RadioButton x:Uid="/SyncContentDialog/RadioButtons_2_2"/>
-                </RadioButtons>
-            </StackPanel>
-            <StackPanel Visibility="{x:Bind ViewModel.RadioButtons_3_Visibility}">
-                <TextBlock x:Uid="/SyncContentDialog/RadioButtons_3_TextBlock"
+                              >
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_2_1"/>
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_2_2"/>
+                    </RadioButtons>
+                </StackPanel>
+                <StackPanel Visibility="{x:Bind ViewModel.RadioButtons_3_Visibility}">
+                    <TextBlock x:Uid="/SyncContentDialog/RadioButtons_3_TextBlock"
                            Style="{StaticResource BaseTextBlockStyle}"/>
-                <RadioButtons MaxColumns="2"
+                    <RadioButtons MaxColumns="2"
                               SelectedIndex="{x:Bind ViewModel.RadioButtons_3_SelectedIndex, Mode=TwoWay}"
-                              IsEnabled="{x:Bind ViewModel.CanUserInteract}">
-                    <RadioButton x:Uid="/SyncContentDialog/RadioButtons_3_1"/>
-                    <RadioButton x:Uid="/SyncContentDialog/RadioButtons_3_2"/>
-                </RadioButtons>
+                              >
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_3_1"/>
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_3_2"/>
+                    </RadioButtons>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
-        <Border BorderThickness="1"
+            <Border BorderThickness="1"
                 BorderBrush="{StaticResource DividerStrokeColorDefaultBrush}"
                 Visibility="{x:Bind ViewModel.Border_2_Visibility}"/>
-        <CheckBox x:Uid="/SyncContentDialog/GalleryCheckBox"
-                  IsChecked="{x:Bind ViewModel.IsGalleryCheckBoxChecked, Mode=TwoWay}"
+            <CheckBox x:Uid="/SyncContentDialog/GalleryCheckBox"
+                  IsChecked="{x:Bind ViewModel.IsGalleryOptionChecked, Mode=TwoWay}"
                   Visibility="{x:Bind ViewModel.GalleryCheckBoxVisibility}"
-                  IsEnabled="{x:Bind ViewModel.CanUserInteract}"/>
-        <StackPanel Visibility="{x:Bind ViewModel.FetchGalleryOptionsVisibility}">
-            <TextBlock x:Uid="/SyncContentDialog/RadioButtons_4_TextBlock"
+                  />
+            <StackPanel Visibility="{x:Bind ViewModel.FetchGalleryOptionsVisibility}">
+                <TextBlock x:Uid="/SyncContentDialog/RadioButtons_4_TextBlock"
                        Style="{StaticResource BaseTextBlockStyle}"/>
-            <RadioButtons x:Name="RadioButtons_4" MaxColumns="2"
+                <RadioButtons x:Name="RadioButtons_4" MaxColumns="2"
                           SelectedIndex="{x:Bind ViewModel.RadioButtons_4_SelectedIndex, Mode=TwoWay}"
-                          IsEnabled="{x:Bind ViewModel.CanUserInteract}"/>
-        </StackPanel>
-        <ProgressBar Visibility="{x:Bind ViewModel.ProgressBarVisibility}"
+                          />
+            </StackPanel>
+            <ProgressBar Visibility="{x:Bind ViewModel.ProgressBarVisibility}"
                      IsIndeterminate="{x:Bind ViewModel.IsProgressBarIndeterminate}"
                      Maximum="{x:Bind ViewModel.ProgressBarMaximum}"
                      Value="{x:Bind ViewModel.ProgressBarValue}"
                      />
-        <InfoBar IsOpen="{x:Bind ViewModel.TFInfoBarVM.IsOpen}"
-                 Severity="{x:Bind ViewModel.TFInfoBarVM.Severity}"
-                 Title="{x:Bind ViewModel.TFInfoBarVM.Title}"
-                 Message="{x:Bind ViewModel.TFInfoBarVM.Message}"
+            <InfoBar IsOpen="{x:Bind ViewModel.TFInfoBarModel.IsOpen}"
+                 Severity="{x:Bind ViewModel.TFInfoBarModel.Severity}"
+                 Title="{x:Bind ViewModel.TFInfoBarModel.Title}"
+                 Message="{x:Bind ViewModel.TFInfoBarModel.Message}"
                  IsClosable="False"
-                 IsEnabled="{x:Bind ViewModel.CanUserInteract}"
                  />
-        <InfoBar IsOpen="{x:Bind ViewModel.GalleryInfoBarVM.IsOpen}"
-                 Severity="{x:Bind ViewModel.GalleryInfoBarVM.Severity}"
-                 Title="{x:Bind ViewModel.GalleryInfoBarVM.Title}"
-                 Message="{x:Bind ViewModel.GalleryInfoBarVM.Message}"
+            <InfoBar IsOpen="{x:Bind ViewModel.GalleryInfoBarModel.IsOpen}"
+                 Severity="{x:Bind ViewModel.GalleryInfoBarModel.Severity}"
+                 Title="{x:Bind ViewModel.GalleryInfoBarModel.Title}"
+                 Message="{x:Bind ViewModel.GalleryInfoBarModel.Message}"
                  IsClosable="False"
-                 IsEnabled="{x:Bind ViewModel.CanUserInteract}"
                  />
-    </StackPanel>
+        </StackPanel>
+    </UserControl>
 </ContentDialog>

@@ -33,7 +33,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private CancellationTokenSource _cts;
 
         [ObservableProperty]
-        private bool _canUserInteract;
+        private bool _isEnabled;
 
         [ObservableProperty]
         private string _closeButtonText = TEXT_CLOSE;
@@ -175,7 +175,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private void StartStopSync(bool start) {
             _isSyncing = start;
-            CanUserInteract = !start;
+            IsEnabled = !start;
             if (start) {
                 ProgressBarVisibility = Visibility.Visible;
                 IsProgressBarIndeterminate = true;
