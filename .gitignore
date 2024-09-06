@@ -5,8 +5,8 @@
 
 
 # ignore downloaded tag resources but include python scripts
-HitomiScrollViewerApp/TagResources/*
-!HitomiScrollViewerApp/TagResources/*.py
+HitomiScrollViewerApp/DatabaseResources/*
+!HitomiScrollViewerApp/DatabaseResources/*.py
 
 # ignore test app
 HitomiScrollViewerTestApp/
