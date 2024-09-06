@@ -1,18 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Windows.ApplicationModel.Resources;
+using System.Collections.Generic;
+using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
     public class GalleryType {
-        public static IEnumerable<string> DisplayNames { get; } = [
-            "Any", "Doujinshi", "Manga", "ArtistCG", "GameCG", "Imageset"
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(GalleryType).Name);
+        public static IEnumerable<string> SearchParamValues { get; } = [
+            "all", "doujinshi", "manga", "artistcg", "gamecg", "imageset"
         ];
-        private string _displayName;
-        public string DisplayName {
-            get => _displayName;
+
+        public int Id { get; set; }
+        public string DisplayName { get; set; }
+
+        private string _searchParamValue;
+        public string SearchParamValue {
+            get => _searchParamValue;
             set {
-                _displayName = value;
-                SearchParamValue = value.ToLower();
+                _searchParamValue = value;
+                DisplayName = _resourceMap.GetValue(value).ValueAsString;
             }
         }
-        public string SearchParamValue { get; set; }
+
+        public virtual Gallery Gallery { get; set; }
     }
 }

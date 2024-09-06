@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -15,6 +16,7 @@ namespace HitomiScrollViewerLib.Entities {
         public int Hasavif { get; set; }
         public int Hasjxl { get; set; }
         public string Hash { get; set; }
+        [Required]
         public virtual Gallery Gallery { get; set; }
 
         public ImageInfo Clone() {

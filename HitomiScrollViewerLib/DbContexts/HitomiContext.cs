@@ -27,28 +27,21 @@ namespace HitomiScrollViewerLib.DbContexts {
             optionsBuilder.UseSqlite($"Data Source={MAIN_DATABASE_PATH_V3}");
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder) {
-            modelBuilder.Entity<Gallery>()
-                .HasMany(t => t.Files)
-                .WithOne()
-                .OnDelete(DeleteBehavior.Cascade);
-        }
-
         private static readonly string[] ALPHABETS_WITH_123 =
             Enumerable.Concat(
                 ["123"],
                 Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())
             ).ToArray();
 
-        private const string TAG_RES_ROOT_DIR = "TagResources";
+        private const string DB_RES_ROOT_DIR = "DatabaseResources";
         private static readonly string DELIMITER_FILE_PATH = Path.Combine(
             Package.Current.InstalledPath,
-            TAG_RES_ROOT_DIR,
+            DB_RES_ROOT_DIR,
             "delimiter.txt"
         );
         private static readonly string LANGUAGES_FILE_PATH = Path.Combine(
             Package.Current.InstalledPath,
-            TAG_RES_ROOT_DIR,
+            DB_RES_ROOT_DIR,
             "languages.txt"
         );
         private static readonly Dictionary<Category, string> CATEGORY_DIR_DICT = new() {
@@ -73,7 +66,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                 string categoryStr = CATEGORY_DIR_DICT[category];
                 string dir = Path.Combine(
                     Package.Current.InstalledPath,
-                    TAG_RES_ROOT_DIR,
+                    DB_RES_ROOT_DIR,
                     categoryStr
                 );
                 foreach (string alphanumStr in ALPHABETS_WITH_123) {
@@ -92,12 +85,13 @@ namespace HitomiScrollViewerLib.DbContexts {
                     Main.DatabaseInitProgressChanged?.Invoke(null, ++progressValue);
                 }
             }
-            // add languages
-            string[] languages = File.ReadAllLines(LANGUAGES_FILE_PATH);
+            // add languages and its local names
+            string[][] languages = File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter)).ToArray();
             Main.GalleryLanguages.AddRange(languages.Select(
-                language => {
+                pair => {
                     return new GalleryLanguage() {
-                        SearchParamValue = language
+                        SearchParamValue = pair[0],
+                        LocalName = pair[1]
                     };
                 }
             ));

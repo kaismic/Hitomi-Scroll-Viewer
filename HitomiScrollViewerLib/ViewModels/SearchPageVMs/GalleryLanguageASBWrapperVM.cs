@@ -14,13 +14,29 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [ObservableProperty]
         private string _text;
 
+        [ObservableProperty]
+        private string _memberPath;
+
         public IEnumerable<GalleryLanguage> ItemsSource { get; private set; }
 
         private IEnumerable<GalleryLanguage> GetSuggestions() {
-            return
-                HitomiContext.Main.GalleryLanguages
-                .Where(gl => gl.DisplayName.StartsWith(Text))
-                .Take(MAX_SUGGESTION_NUM);
+            // The user is searching in language other than English ascii characters
+            // i.e. the input text contains non-ascii characters
+            if (Text.Any((c) => !char.IsAsciiLetter(c))) {
+                MemberPath = nameof(GalleryLanguage.LocalName);
+                return
+                    HitomiContext.Main.GalleryLanguages
+                    .Where(gl => gl.LocalName.StartsWith(Text, System.StringComparison.OrdinalIgnoreCase))
+                    .Take(MAX_SUGGESTION_NUM);
+            }
+            // The user is searching only with english ascii characters
+            else {
+                MemberPath = nameof(GalleryLanguage.EnglishName);
+                return
+                    HitomiContext.Main.GalleryLanguages
+                    .Where(gl => gl.EnglishName.StartsWith(Text, System.StringComparison.OrdinalIgnoreCase))
+                    .Take(MAX_SUGGESTION_NUM);
+            }
         }
 
         public void AutoSuggestBox_GotFocus(object _0, RoutedEventArgs _1) {

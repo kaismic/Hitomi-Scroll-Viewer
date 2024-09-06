@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HitomiScrollViewerLib.DbContexts;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -41,21 +42,20 @@ namespace HitomiScrollViewerLib.Entities {
                 Id = Id,
                 Title = Title,
                 JapaneseTitle = JapaneseTitle,
-                Language = Language,
+                GalleryLanguage = HitomiContext.Main.GalleryLanguages.First(l => l.SearchParamValue == Language),
                 Type = Type,
                 Date = Date,
-                LanguageUrl = LanguageUrl,
-                LanguageLocalname = LanguageLocalname,
                 SceneIndexes = SceneIndexes,
                 Related = Related,
                 Files =
-                    Files
-                    .Select((imageInfo, i) => {
-                        ImageInfo clone = imageInfo.Clone();
-                        clone.Index = i;
-                        return clone;
-                    })
-                    .ToHashSet(),
+                    Files,
+                    //.Select((imageInfo, i) => {
+                    //    ImageInfo clone = imageInfo.Clone();
+                    //    clone.Index = i;
+                    //    return clone;
+                    //})
+                    //.ToHashSet(),
+                    // TODO test if above is enough
                 Tags = []
             };
             SetGalleryProperty(Artists, gallery, Category.Artist);

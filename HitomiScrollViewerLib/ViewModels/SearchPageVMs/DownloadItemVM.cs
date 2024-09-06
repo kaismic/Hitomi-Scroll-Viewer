@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.Views;
 using HitomiScrollViewerLib.Views.BrowsePageViews;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
@@ -464,10 +465,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         try {
                             bool success = await GetImage(fetchInfos[k], ct);
                             if (success) {
-                                MainWindow.SearchPageVM.DispatcherQueue.TryEnqueue(() => {
-                                    BookmarkItem.UpdateSingleImage(missingIndexes[k]);
-                                    ProgressBarValue++;
-                                });
+                                ProgressBarValue++;
                             }
                         }
                         // HttpRequestException.StatusCode should and must be HttpStatusCode.NotFound

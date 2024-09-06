@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -16,12 +15,10 @@ namespace HitomiScrollViewerLib.Entities {
     public class Tag {
         public static readonly int CATEGORY_NUM = Enum.GetNames(typeof(Category)).Length;
         public long Id { get; set; }
-        [Required]
-        public Category Category { get; set; }
+        public required Category Category { get; set; }
 
         private string _value;
-        [Required]
-        public string Value {
+        public required string Value {
             get => _value;
             set {
                 _value = value;

@@ -11,7 +11,6 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using Soluling;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using Windows.Storage;
@@ -32,10 +31,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         };
 
         public List<GalleryType> GalleryTypes =>
-            GalleryType.DisplayNames
-            .Select(
-                displayName => new GalleryType() { DisplayName = displayName }
-            ).ToList();
+            GalleryType.SearchParamValues
+            .Select(value => new GalleryType() { SearchParamValue = value })
+            .ToList();
         public string AutoSaveCheckBoxText => _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
         public GalleryLanguageASBWrapperVM GLASBWrapperVM => new();
         public TagTokenizingTextBoxVM[] TTTextBoxVMs => new TagTokenizingTextBoxVM[Tag.CATEGORY_NUM];
@@ -241,8 +239,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
 
             if (dupTags.Any()) {
-                List<string> dupTagStrs = new(Entities.Tag.CATEGORY_NUM);
-                for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
+                List<string> dupTagStrs = new(Tag.CATEGORY_NUM);
+                for (int i = 0; i < Tag.CATEGORY_NUM; i++) {
                     Category category = (Category)i;
                     IEnumerable<string> dupStrs = dupTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
                     if (!dupStrs.Any()) {
@@ -258,11 +256,11 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             }
 
             List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and extra keywords
-            List<string> displayTexts = new(Entities.Tag.CATEGORY_NUM + 3); // + 3 for language, type and extra keywords
+            List<string> displayTexts = new(Tag.CATEGORY_NUM + 3); // + 3 for language, type and extra keywords
 
             if (GLASBWrapperVM.SelectedGalleryLanguage != null) {
                 searchParamStrs.Add("language:" + GLASBWrapperVM.SelectedGalleryLanguage.SearchParamValue);
-                displayTexts.Add("Language: " + GLASBWrapperVM.SelectedGalleryLanguage.DisplayName);
+                displayTexts.Add("Language: " + GLASBWrapperVM.SelectedGalleryLanguage.LocalName);
             }
 
             // only add type if !(nothing selected: -1 || "Any" type is selected: 0)
@@ -277,7 +275,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             searchParamStrs.Add(string.Join(' ', excludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
 
             // add display texts for each tag category
-            for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
+            for (int i = 0; i < Tag.CATEGORY_NUM; i++) {
                 IEnumerable<string> includeValues = includeTags.Where(tag => tag.Category == (Category)i).Select(tag => tag.Value);
                 IEnumerable<string> excludeValues = excludeTags.Where(tag => tag.Category == (Category)i).Select(tag => tag.Value);
                 if (!includeValues.Any() && !excludeValues.Any()) {

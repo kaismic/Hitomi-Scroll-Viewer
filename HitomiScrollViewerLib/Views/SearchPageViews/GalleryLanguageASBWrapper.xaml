@@ -12,7 +12,7 @@
                     TextChanged="{x:Bind ViewModel.AutoSuggestBox_TextChanged}"
                     QuerySubmitted="{x:Bind ViewModel.AutoSuggestBox_QuerySubmitted}"
                     Text="{x:Bind ViewModel.Text, Mode=TwoWay}"
-                    DisplayMemberPath="DisplayName"
-                    TextMemberPath="DisplayName"
+                    DisplayMemberPath="{x:Bind ViewModel.MemberPath, Mode=OneWay}"
+                    TextMemberPath="{x:Bind ViewModel.MemberPath, Mode=OneWay}"
                     />
 </StackPanel>
