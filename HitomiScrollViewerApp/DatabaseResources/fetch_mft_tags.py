@@ -7,6 +7,7 @@ cwd = os.getcwd()
 with open(os.path.join(cwd, "delimiter.txt"), "r") as delimiter_file:
     DELIMITER = delimiter_file.read()
 print("DELIMITER characters:", [ord(c) for c in DELIMITER])
+print()
 
 categories = ["males", "females", "tags"]
 alphabetsWith123 = list(string.ascii_lowercase)
