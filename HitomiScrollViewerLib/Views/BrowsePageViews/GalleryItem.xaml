@@ -7,8 +7,56 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="DoujinshiAccentFillColor1Brush" Color="#663333"/>
+        <SolidColorBrush x:Key="DoujinshiAccentFillColor2Brush" Color="#cc9999"/>
+        <SolidColorBrush x:Key="DoujinshiAccentFillColor3Brush" Color="#ffcccc"/>
 
-    <Grid>
+        <SolidColorBrush x:Key="MangaAccentFillColor1Brush" Color="#663366"/>
+        <SolidColorBrush x:Key="MangaAccentFillColor2Brush" Color="#cc99cc"/>
+        <SolidColorBrush x:Key="MangaAccentFillColor3Brush" Color="#ffccff"/>
+
+        <SolidColorBrush x:Key="ArtistCGAccentFillColor1Brush" Color="#336666"/>
+        <SolidColorBrush x:Key="ArtistCGAccentFillColor2Brush" Color="#99cccc"/>
+        <SolidColorBrush x:Key="ArtistCGAccentFillColor3Brush" Color="#ccffff"/>
+
+        <SolidColorBrush x:Key="GameCGAccentFillColor1Brush" Color="#333366"/>
+        <SolidColorBrush x:Key="GameCGAccentFillColor2Brush" Color="#9999cc"/>
+        <SolidColorBrush x:Key="GameCGAccentFillColor3Brush" Color="#ccccff"/>
+
+        <SolidColorBrush x:Key="ImageSetAccentFillColor1Brush" Color="#696969"/>
+        <SolidColorBrush x:Key="ImageSetAccentFillColor2Brush" Color="#999999"/>
+        <SolidColorBrush x:Key="ImageSetAccentFillColor3Brush" Color="#cccccc"/>
+
+        <SolidColorBrush x:Key="AnimeAccentFillColor1Brush" Color="#336633"/>
+        <SolidColorBrush x:Key="AnimeAccentFillColor2Brush" Color="#99cc99"/>
+        <SolidColorBrush x:Key="AnimeAccentFillColor3Brush" Color="#ccffcc"/>
+    </UserControl.Resources>
+
+    <Grid Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          CornerRadius="{StaticResource OverlayCornerRadius}"
+          BorderThickness="1"
+          Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="200"/>
+        </Grid.RowDefinitions>
+        <Border Padding="8 2" Background="{StaticResource MangaAccentFillColor2Brush}">
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                               Text="Secret Territory | 시크릿 테리토리"/>
+        </Border>
+        <Border Padding="8 2" Background="{StaticResource MangaAccentFillColor3Brush}">
+            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                               Foreground="{StaticResource MangaAccentFillColor1Brush}"
+                               Text="Yuzuto Sen"/>
+        </Border>
+        <StackPanel Orientation="Horizontal">
+            <Image Source="ms-appx:///Assets/LockScreenLogo.scale-200.png"/>
+            <Image Source="ms-appx:///Assets/LockScreenLogo.scale-200.png"/>
+            <Image Source="ms-appx:///Assets/LockScreenLogo.scale-200.png"/>
+        </StackPanel>
 
     </Grid>
 </UserControl>
