@@ -153,4 +153,7 @@
   <data name="Text_Include" xml:space="preserve">
     <value>Include</value>
   </data>
+  <data name="Text_All" xml:space="preserve">
+    <value>All</value>
+  </data>
 </root>

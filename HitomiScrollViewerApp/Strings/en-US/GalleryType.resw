@@ -117,22 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="all" xml:space="preserve">
-    <value>All</value>
-  </data>
-  <data name="doujinshi" xml:space="preserve">
+  <data name="Doujinshi" xml:space="preserve">
     <value>Doujinshi</value>
   </data>
-  <data name="gamecg" xml:space="preserve">
+  <data name="GameCG" xml:space="preserve">
     <value>Game CG</value>
   </data>
-  <data name="artistcg" xml:space="preserve">
+  <data name="ArtistCG" xml:space="preserve">
     <value>Artist CG</value>
   </data>
-  <data name="manga" xml:space="preserve">
+  <data name="Manga" xml:space="preserve">
     <value>Manga</value>
   </data>
-  <data name="imageset" xml:space="preserve">
+  <data name="ImageSet" xml:space="preserve">
     <value>Image Set</value>
+  </data>
+  <data name="Anime" xml:space="preserve">
+    <value>Anime</value>
   </data>
 </root>
