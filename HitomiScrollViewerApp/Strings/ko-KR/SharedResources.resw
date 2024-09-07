@@ -153,4 +153,7 @@
   <data name="AppDisplayName" xml:space="preserve">
     <value>히토미 스크롤 뷰어</value>
   </data>
+  <data name="Text_All" xml:space="preserve">
+    <value>전체</value>
+  </data>
 </root>
