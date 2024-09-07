@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -16,7 +17,9 @@ namespace HitomiScrollViewerLib.Entities {
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime LastDownloadTime { get; set; }
 
+        [Required]
         public virtual GalleryType GalleryType { get; set; }
+        [Required]
         public virtual GalleryLanguage GalleryLanguage { get; set; }
         public virtual ICollection<ImageInfo> Files { get; set; }
         public virtual ICollection<Tag> Tags { get; set; }
