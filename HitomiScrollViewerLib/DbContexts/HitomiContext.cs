@@ -15,7 +15,7 @@ namespace HitomiScrollViewerLib.DbContexts {
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
-        public DbSet<GalleryType> GalleryTypes { get; set; }
+        public DbSet<GalleryTypeEntity> GalleryTypes { get; set; }
 
         private static HitomiContext _main;
         public static HitomiContext Main {
@@ -45,25 +45,24 @@ namespace HitomiScrollViewerLib.DbContexts {
             DB_RES_ROOT_DIR,
             "languages.txt"
         );
-        private static readonly Dictionary<Category, string> CATEGORY_DIR_DICT = new() {
-            { Category.Tag, "Tags" },
-            { Category.Male, "Males" },
-            { Category.Female, "Females" },
-            { Category.Artist, "Artists" },
-            { Category.Group, "Groups" },
-            { Category.Character, "Characters" },
-            { Category.Series, "Series" }
+        private static readonly Dictionary<TagCategory, string> CATEGORY_DIR_DICT = new() {
+            { TagCategory.Tag, "Tags" },
+            { TagCategory.Male, "Males" },
+            { TagCategory.Female, "Females" },
+            { TagCategory.Artist, "Artists" },
+            { TagCategory.Group, "Groups" },
+            { TagCategory.Character, "Characters" },
+            { TagCategory.Series, "Series" }
         };
 
-        public static readonly int DATABASE_INIT_OP_NUM = Tag.CATEGORY_NUM * ALPHABETS_WITH_123.Length + 1;
+        public static readonly int DATABASE_INIT_OP_NUM = Tag.TAG_CATEGORIES.Length * ALPHABETS_WITH_123.Length + 1;
         public event EventHandler<int> DatabaseInitProgressChanged;
         public event EventHandler ChangeToIndeterminateEvent;
         public static void InitDatabase() {
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             int progressValue = 0;
             // add tags
-            for (int i = 0; i < Tag.CATEGORY_NUM; i++) {
-                Category category = (Category)i;
+            foreach (TagCategory category in Tag.TAG_CATEGORIES) {
                 string categoryStr = CATEGORY_DIR_DICT[category];
                 string dir = Path.Combine(
                     Package.Current.InstalledPath,
@@ -98,8 +97,8 @@ namespace HitomiScrollViewerLib.DbContexts {
             ));
             // add gallery types
             Main.GalleryTypes.AddRange(
-                GalleryType.SearchParamValues
-                .Select(value => new GalleryType() { SearchParamValue = value })
+                Enumerable.Range(0, Enum.GetNames(typeof(GalleryType)).Length)
+                .Select(i => new GalleryTypeEntity() { GalleryType = (GalleryType)i })
             );
 
             /*
@@ -134,28 +133,28 @@ namespace HitomiScrollViewerLib.DbContexts {
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterSet_1").ValueAsString,
                     Tags = [
-                        Tag.GetTag("full color", Category.Tag),
-                        Tag.GetTag("very long hair", Category.Female),
+                        Tag.GetTag("full color", TagCategory.Tag),
+                        Tag.GetTag("very long hair", TagCategory.Female),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterSet_2").ValueAsString,
                     Tags = [
-                        Tag.GetTag("glasses", Category.Female),
-                        Tag.GetTag("sole male", Category.Male),
+                        Tag.GetTag("glasses", TagCategory.Female),
+                        Tag.GetTag("sole male", TagCategory.Male),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterSet_3").ValueAsString,
                     Tags = [
-                        Tag.GetTag("naruto", Category.Series),
-                        Tag.GetTag("big breasts", Category.Tag),
+                        Tag.GetTag("naruto", TagCategory.Series),
+                        Tag.GetTag("big breasts", TagCategory.Tag),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterSet_4").ValueAsString,
                     Tags = [
-                        Tag.GetTag("non-h imageset", Category.Tag)
+                        Tag.GetTag("non-h imageset", TagCategory.Tag)
                     ]
                 }
             );

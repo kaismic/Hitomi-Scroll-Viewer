@@ -19,7 +19,7 @@ namespace HitomiScrollViewerLib.Views.SearchPageViews {
             }
         }
 
-        private readonly TagTokenizingTextBox[] _tfsTextBoxes = new TagTokenizingTextBox[Entities.Tag.CATEGORY_NUM];
+        private readonly TagTokenizingTextBox[] _tfsTextBoxes = new TagTokenizingTextBox[Entities.Tag.TAG_CATEGORIES.Length];
 
         public TagFilterSetEditor() {
             InitializeComponent();
@@ -40,7 +40,7 @@ namespace HitomiScrollViewerLib.Views.SearchPageViews {
                 SetColumn(LanguageTypeKeywordGrid.Children[i] as FrameworkElement, i);
             }
 
-            for (int i = 0; i < Entities.Tag.CATEGORY_NUM; i++) {
+            for (int i = 0; i < Entities.Tag.TAG_CATEGORIES.Length; i++) {
                 Border categoryHeaderBorder = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
@@ -52,7 +52,7 @@ namespace HitomiScrollViewerLib.Views.SearchPageViews {
                 TextBlock categoryHeader = new() {
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
-                    Text = Enum.GetName((Category)i)
+                    Text = Enum.GetName((TagCategory)i)
                 };
                 categoryHeaderBorder.Child = categoryHeader;
 

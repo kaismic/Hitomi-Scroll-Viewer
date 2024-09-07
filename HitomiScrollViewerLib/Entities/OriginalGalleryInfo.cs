@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
     public class OriginalGalleryInfo {
-        private static readonly Dictionary<Category, string> CATEGORY_PROP_KEY_DICT = new() {
-            { Category.Tag, "tag" },
-            { Category.Male, "male" },
-            { Category.Female, "female" },
-            { Category.Artist, "artist" },
-            { Category.Group, "group" },
-            { Category.Character, "character" },
-            { Category.Series, "parody" }
+        private static readonly Dictionary<TagCategory, string> CATEGORY_PROP_KEY_DICT = new() {
+            { TagCategory.Tag, "tag" },
+            { TagCategory.Male, "male" },
+            { TagCategory.Female, "female" },
+            { TagCategory.Artist, "artist" },
+            { TagCategory.Group, "group" },
+            { TagCategory.Character, "character" },
+            { TagCategory.Series, "parody" }
         };
 
         public int Id { get; set; }
@@ -58,17 +58,17 @@ namespace HitomiScrollViewerLib.Entities {
                     // TODO test if above is enough
                 Tags = []
             };
-            SetGalleryProperty(Artists, gallery, Category.Artist);
-            SetGalleryProperty(Groups, gallery, Category.Group);
-            SetGalleryProperty(Characters, gallery, Category.Character);
-            SetGalleryProperty(Parodys, gallery, Category.Series);
+            SetGalleryProperty(Artists, gallery, TagCategory.Artist);
+            SetGalleryProperty(Groups, gallery, TagCategory.Group);
+            SetGalleryProperty(Characters, gallery, TagCategory.Character);
+            SetGalleryProperty(Parodys, gallery, TagCategory.Series);
 
             foreach (var compositeTag in Tags) {
                 gallery.Tags.Add(Tag.GetTag(
                     compositeTag.Tag,
-                    compositeTag.Male == 1   ? Category.Male   :
-                    compositeTag.Female == 1 ? Category.Female :
-                                               Category.Tag
+                    compositeTag.Male == 1   ? TagCategory.Male   :
+                    compositeTag.Female == 1 ? TagCategory.Female :
+                                               TagCategory.Tag
                 ));
             }
 
@@ -78,7 +78,7 @@ namespace HitomiScrollViewerLib.Entities {
         private static void SetGalleryProperty(
             Dictionary<string, string>[] originalDictArr,
             Gallery gallery,
-            Category category
+            TagCategory category
         ) {
             if (originalDictArr != null) {
                 foreach (var dict in originalDictArr) {

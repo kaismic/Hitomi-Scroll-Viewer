@@ -5,14 +5,14 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
     internal class TagFilterV2 {
-        private static readonly Dictionary<string, Category> INV_CATEGORY_PROP_KEY_DICT = new() {
-            { "tag", Category.Tag },
-            { "male", Category.Male },
-            { "female", Category.Female },
-            { "artist", Category.Artist },
-            { "group", Category.Group },
-            { "character", Category.Character },
-            { "series", Category.Series }
+        private static readonly Dictionary<string, TagCategory> INV_CATEGORY_PROP_KEY_DICT = new() {
+            { "tag", TagCategory.Tag },
+            { "male", TagCategory.Male },
+            { "female", TagCategory.Female },
+            { "artist", TagCategory.Artist },
+            { "group", TagCategory.Group },
+            { "character", TagCategory.Character },
+            { "series", TagCategory.Series }
         };
         private static readonly string[] TAGS_WITH_UNDERSCORES = [
             "bna_v5",
@@ -34,7 +34,7 @@ namespace HitomiScrollViewerLib.Entities {
         public Dictionary<string, IEnumerable<string>> ExcludeTags { get; set; }
 
 
-        private static void ConvertV2TagValuesToV3Tags(List<string> tagValues, List<Tag> tags, Category category) {
+        private static void ConvertV2TagValuesToV3Tags(List<string> tagValues, List<Tag> tags, TagCategory category) {
             tags.AddRange(
                 tagValues.Select(
                     tagValue => {

@@ -8,49 +8,64 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <SolidColorBrush x:Key="DoujinshiAccentFillColor1Brush" Color="#663333"/>
-        <SolidColorBrush x:Key="DoujinshiAccentFillColor2Brush" Color="#cc9999"/>
-        <SolidColorBrush x:Key="DoujinshiAccentFillColor3Brush" Color="#ffcccc"/>
+        <SolidColorBrush x:Key="DoujinshiBrush1" Color="#663333"/>
+        <SolidColorBrush x:Key="DoujinshiBrush2" Color="#cc9999"/>
+        <SolidColorBrush x:Key="DoujinshiBrush3" Color="#ffcccc"/>
 
-        <SolidColorBrush x:Key="MangaAccentFillColor1Brush" Color="#663366"/>
-        <SolidColorBrush x:Key="MangaAccentFillColor2Brush" Color="#cc99cc"/>
-        <SolidColorBrush x:Key="MangaAccentFillColor3Brush" Color="#ffccff"/>
+        <SolidColorBrush x:Key="MangaBrush1" Color="#663366"/>
+        <SolidColorBrush x:Key="MangaBrush2" Color="#cc99cc"/>
+        <SolidColorBrush x:Key="MangaBrush3" Color="#ffccff"/>
 
-        <SolidColorBrush x:Key="ArtistCGAccentFillColor1Brush" Color="#336666"/>
-        <SolidColorBrush x:Key="ArtistCGAccentFillColor2Brush" Color="#99cccc"/>
-        <SolidColorBrush x:Key="ArtistCGAccentFillColor3Brush" Color="#ccffff"/>
+        <SolidColorBrush x:Key="ArtistCGBrush1" Color="#336666"/>
+        <SolidColorBrush x:Key="ArtistCGBrush2" Color="#99cccc"/>
+        <SolidColorBrush x:Key="ArtistCGBrush3" Color="#ccffff"/>
 
-        <SolidColorBrush x:Key="GameCGAccentFillColor1Brush" Color="#333366"/>
-        <SolidColorBrush x:Key="GameCGAccentFillColor2Brush" Color="#9999cc"/>
-        <SolidColorBrush x:Key="GameCGAccentFillColor3Brush" Color="#ccccff"/>
+        <SolidColorBrush x:Key="GameCGBrush1" Color="#333366"/>
+        <SolidColorBrush x:Key="GameCGBrush2" Color="#9999cc"/>
+        <SolidColorBrush x:Key="GameCGBrush3" Color="#ccccff"/>
 
-        <SolidColorBrush x:Key="ImageSetAccentFillColor1Brush" Color="#696969"/>
-        <SolidColorBrush x:Key="ImageSetAccentFillColor2Brush" Color="#999999"/>
-        <SolidColorBrush x:Key="ImageSetAccentFillColor3Brush" Color="#cccccc"/>
+        <SolidColorBrush x:Key="ImageSetBrush1" Color="#696969"/>
+        <SolidColorBrush x:Key="ImageSetBrush2" Color="#999999"/>
+        <SolidColorBrush x:Key="ImageSetBrush3" Color="#cccccc"/>
 
-        <SolidColorBrush x:Key="AnimeAccentFillColor1Brush" Color="#336633"/>
-        <SolidColorBrush x:Key="AnimeAccentFillColor2Brush" Color="#99cc99"/>
-        <SolidColorBrush x:Key="AnimeAccentFillColor3Brush" Color="#ccffcc"/>
+        <SolidColorBrush x:Key="AnimeBrush1" Color="#336633"/>
+        <SolidColorBrush x:Key="AnimeBrush2" Color="#99cc99"/>
+        <SolidColorBrush x:Key="AnimeBrush3" Color="#ccffcc"/>
+
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <x:String x:Key="TitleBackgroundBrushNumber">2</x:String>
+                    <x:String x:Key="ArtistBackgroundBrushNumber">3</x:String>
+                    <x:String x:Key="TextForegroundBrushNumber">1</x:String>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <x:String x:Key="TitleBackgroundBrushNumber">2</x:String>
+                    <x:String x:Key="ArtistBackgroundBrushNumber">1</x:String>
+                    <x:String x:Key="TextForegroundBrushNumber">3</x:String>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-          CornerRadius="{StaticResource OverlayCornerRadius}"
+          CornerRadius="{StaticResource ControlCornerRadius}"
           BorderThickness="1"
           Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="200"/>
+            <RowDefinition Height="300"/>
         </Grid.RowDefinitions>
-        <Border Padding="8 2" Background="{StaticResource MangaAccentFillColor2Brush}">
+        <Border Padding="8 2" Background="{x:Bind TitleBackgroundBrush}">
             <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                               Text="Secret Territory | 시크릿 테리토리"/>
+                       Text="{x:Bind ViewModel.Gallery.Title}"/>
         </Border>
-        <Border Padding="8 2" Background="{StaticResource MangaAccentFillColor3Brush}">
+        <Border Padding="8 2" Background="{x:Bind ArtistBackgroundBrush}">
             <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
-                               Foreground="{StaticResource MangaAccentFillColor1Brush}"
-                               Text="Yuzuto Sen"/>
+                       Foreground="{x:Bind TextForegroundBrush}"
+                       Text="Artist 1, Artist 2, Artist 3..."/>
         </Border>
         <StackPanel Orientation="Horizontal">
             <Image Source="ms-appx:///Assets/LockScreenLogo.scale-200.png"/>

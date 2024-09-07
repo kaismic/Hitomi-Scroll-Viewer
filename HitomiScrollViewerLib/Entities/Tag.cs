@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
-    public enum Category {
+    public enum TagCategory {
         Tag, Male, Female, Artist, Group, Character, Series
     }
 
@@ -13,9 +13,13 @@ namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Category), nameof(Value))]
     [Index(nameof(GalleryCount))]
     public class Tag {
-        public static readonly int CATEGORY_NUM = Enum.GetNames(typeof(Category)).Length;
+        public static readonly TagCategory[] TAG_CATEGORIES =
+            Enumerable.Range(0, Enum.GetNames(typeof(TagCategory)).Length)
+            .Select(i => (TagCategory)i)
+            .ToArray();
+
         public long Id { get; set; }
-        public required Category Category { get; set; }
+        public required TagCategory Category { get; set; }
 
         private string _value;
         public required string Value {
@@ -33,7 +37,7 @@ namespace HitomiScrollViewerLib.Entities {
 
 
         /// <returns><see cref="Tag"/> or <c>null</c></returns>
-        public static Tag GetTag(string value, Category category) {
+        public static Tag GetTag(string value, TagCategory category) {
             string formattedValue = value.ToLower();
             Tag tag = HitomiContext.Main.Tags
                 .FirstOrDefault(tag =>
@@ -43,7 +47,7 @@ namespace HitomiScrollViewerLib.Entities {
             return tag;
         }
 
-        public static Tag CreateTag(string value, Category category) {
+        public static Tag CreateTag(string value, TagCategory category) {
             Tag tag = new() { Value = value, Category = category };
             HitomiContext.Main.Tags.Add(tag);
             HitomiContext.Main.SaveChanges();

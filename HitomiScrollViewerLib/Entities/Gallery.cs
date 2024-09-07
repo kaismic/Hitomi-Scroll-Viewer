@@ -16,9 +16,8 @@ namespace HitomiScrollViewerLib.Entities {
         public int[] Related { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime LastDownloadTime { get; set; }
-
         [Required]
-        public virtual GalleryType GalleryType { get; set; }
+        public virtual GalleryTypeEntity GalleryType { get; set; }
         [Required]
         public virtual GalleryLanguage GalleryLanguage { get; set; }
         public virtual ICollection<ImageInfo> Files { get; set; }
