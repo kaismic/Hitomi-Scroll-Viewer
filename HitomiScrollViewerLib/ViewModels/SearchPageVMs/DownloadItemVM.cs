@@ -267,7 +267,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
                 ProgressText = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
                 try {
-                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, DEFAULT_SERIALIZER_OPTIONS);
+                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, GALLERY_SERIALIZER_OPTIONS);
                     ProgressBarMaximum = _gallery.Files.Count;
                     GalleryDescriptionText += $" - {_gallery.Title}"; // add title to description
                 } catch (JsonException e) {

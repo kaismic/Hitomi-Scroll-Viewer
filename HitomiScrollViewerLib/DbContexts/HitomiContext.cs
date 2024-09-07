@@ -15,6 +15,7 @@ namespace HitomiScrollViewerLib.DbContexts {
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
+        public DbSet<GalleryType> GalleryTypes { get; set; }
 
         private static HitomiContext _main;
         public static HitomiContext Main {
@@ -85,7 +86,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                     Main.DatabaseInitProgressChanged?.Invoke(null, ++progressValue);
                 }
             }
-            // add languages and its local names
+            // add gallery languages and its local names
             string[][] languages = File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter)).ToArray();
             Main.GalleryLanguages.AddRange(languages.Select(
                 pair => {
@@ -95,13 +96,18 @@ namespace HitomiScrollViewerLib.DbContexts {
                     };
                 }
             ));
+            // add gallery types
+            Main.GalleryTypes.AddRange(
+                GalleryType.SearchParamValues
+                .Select(value => new GalleryType() { SearchParamValue = value })
+            );
 
             /*
              * this line isn't actually meaningful to the user because
              * Main.ChangeToIndeterminateEvent?.Invoke(); is
              * called straight after it
-            */
             // Main.DatabaseInitProgressChanged?.Invoke(null, ++progressValue);
+            */
             Main.ChangeToIndeterminateEvent?.Invoke(null, null);
             Main.SaveChanges();
             ClearInvocationList();

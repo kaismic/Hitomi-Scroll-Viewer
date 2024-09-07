@@ -36,9 +36,10 @@ namespace HitomiScrollViewerLib {
          * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
         */
         public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
-        public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
+        public static readonly JsonSerializerOptions GALLERY_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
+        public static readonly JsonSerializerOptions TF_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web);
         public static readonly StringSplitOptions DEFAULT_STR_SPLIT_OPTIONS = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
     }
 }

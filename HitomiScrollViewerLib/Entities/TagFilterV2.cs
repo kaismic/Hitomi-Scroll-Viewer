@@ -30,9 +30,6 @@ namespace HitomiScrollViewerLib.Entities {
         private static readonly string[] TAGS_WITH_UNDERSCORES_SPACES_REPLACED =
             TAGS_WITH_UNDERSCORES.Select(tag => tag.Replace(' ', '_')).ToArray();
 
-        public static readonly JsonSerializerOptions DEFAULT_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web);
-
-
         public Dictionary<string, IEnumerable<string>> IncludeTags { get; set; }
         public Dictionary<string, IEnumerable<string>> ExcludeTags { get; set; }
 

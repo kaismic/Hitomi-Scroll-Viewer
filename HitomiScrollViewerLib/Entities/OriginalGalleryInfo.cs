@@ -43,7 +43,7 @@ namespace HitomiScrollViewerLib.Entities {
                 Title = Title,
                 JapaneseTitle = JapaneseTitle,
                 GalleryLanguage = HitomiContext.Main.GalleryLanguages.First(l => l.SearchParamValue == Language),
-                Type = Type,
+                GalleryType = HitomiContext.Main.GalleryTypes.First(t => t.SearchParamValue == Type),
                 Date = Date,
                 SceneIndexes = SceneIndexes,
                 Related = Related,

@@ -30,10 +30,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             { Category.Series, "series" }
         };
 
-        public List<GalleryType> GalleryTypes =>
-            GalleryType.SearchParamValues
-            .Select(value => new GalleryType() { SearchParamValue = value })
-            .ToList();
+        public List<GalleryType> GalleryTypes => HitomiContext.Main.GalleryTypes.ToList();
+
         public string AutoSaveCheckBoxText => _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
         public GalleryLanguageASBWrapperVM GLASBWrapperVM => new();
         public TagTokenizingTextBoxVM[] TTTextBoxVMs => new TagTokenizingTextBoxVM[Tag.CATEGORY_NUM];

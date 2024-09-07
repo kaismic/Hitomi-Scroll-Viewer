@@ -5,7 +5,6 @@ using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views.PageViews;
 using HitomiScrollViewerLib.Views.SearchPageViews;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -72,11 +71,11 @@ namespace HitomiScrollViewerLib.Views {
                     Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
                         File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
                         typeof(Dictionary<string, TagFilterV2>),
-                        TagFilterV2.DEFAULT_SERIALIZER_OPTIONS
+                        TF_SERIALIZER_OPTIONS
                     );
                     vm.Maximum = tagFilterV2.Count;
                     foreach (var pair in tagFilterV2) {
-                        HitomiContext.Main.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+                        HitomiContext.Main.TagFilterSets.AddRange(pair.Value.ToTagFilterSet(pair.Key));
                         vm.Value++;
                     }
                     HitomiContext.Main.SaveChanges();
@@ -91,35 +90,50 @@ namespace HitomiScrollViewerLib.Views {
                     HitomiContext.Main.AddExampleTagFilterSets();
                 }
 
+                // move images folder in roaming folder to local
                 if (Directory.Exists(IMAGE_DIR_V2)) {
-                    // move images folder in roaming folder to local
                     vm.IsIndeterminate = true;
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.MovingImageFolder);
                     Directory.Move(IMAGE_DIR_V2, IMAGE_DIR_V3);
                 }
 
-                // TODO
-                //if (File.Exists(BOOKMARKS_FILE_PATH_V2)) {
-                //    await DispatcherQueue.EnqueueAsync(() => {
-                //        reporter.SetProgressBarType(false);
-                //        reporter.ResetValue();
-                //        reporter.SetStatusMessage(LoadProgressReporter.LoadingStatus.MigratingGalleries);
-                //    });
+                // migrate existing galleries (p.k.a. bookmarks) from v2
+                if (File.Exists(BOOKMARKS_FILE_PATH_V2)) {
+                    vm.IsIndeterminate = false;
+                    vm.Value = 0;
+                    vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingGalleries);
+                    List<OriginalGalleryInfo> originalGalleryInfos = (List<OriginalGalleryInfo>)JsonSerializer.Deserialize(
+                        File.ReadAllText(BOOKMARKS_FILE_PATH_V2),
+                        typeof(List<OriginalGalleryInfo>),
+                        GALLERY_SERIALIZER_OPTIONS
+                    );
+                    vm.Maximum = originalGalleryInfos.Count;
+                    foreach (var ogi in originalGalleryInfos) {
+                        HitomiContext.Main.Galleries.AddRange(ogi.ToGallery());
+                        vm.Value++;
+                    }
+                    HitomiContext.Main.SaveChanges();
+                    File.Delete(BOOKMARKS_FILE_PATH_V2);
+                }
 
-                //    await DispatcherQueue.EnqueueAsync(() => reporter.SetMaximum());
-                //}
+                if (Directory.Exists(ROOT_DIR_V2)) {
+                    Directory.Delete(ROOT_DIR_V2);
+                }
 
-                vm.IsIndeterminate = false;
-                vm.Value = 0;
-                vm.Maximum = 4;
-                vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
-                HitomiContext.Main.Tags.Load();
-                vm.Value++;
-                HitomiContext.Main.GalleryLanguages.Load();
-                vm.Value++;
-                HitomiContext.Main.TagFilterSets.Load();
-                vm.Value++;
-                HitomiContext.Main.Galleries.Load();
+                // TODO test if this is necessary
+                //vm.IsIndeterminate = false;
+                //vm.Value = 0;
+                //vm.Maximum = 5;
+                //vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
+                //HitomiContext.Main.Tags.Load();
+                //vm.Value++;
+                //HitomiContext.Main.GalleryLanguages.Load();
+                //vm.Value++;
+                //HitomiContext.Main.TagFilterSets.Load();
+                //vm.Value++;
+                //HitomiContext.Main.Galleries.Load();
+                //vm.Value++;
+                //HitomiContext.Main.GalleryTypes.Load();
                 
                 vm.IsIndeterminate = true;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);

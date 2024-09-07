@@ -259,8 +259,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             string uploadFileContent = userDataType switch {
-                UserDataType.TagFilterSet => JsonSerializer.Serialize(HitomiContext.Main.TagFilterSets),
-                UserDataType.Gallery => JsonSerializer.Serialize(HitomiContext.Main.Galleries),
+                UserDataType.TagFilterSet => JsonSerializer.Serialize(HitomiContext.Main.TagFilterSets, TF_SERIALIZER_OPTIONS),
+                UserDataType.Gallery => JsonSerializer.Serialize(HitomiContext.Main.Galleries, TF_SERIALIZER_OPTIONS),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             InfoBarModel infoBarModel = userDataType switch {
@@ -382,7 +382,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             IEnumerable<TagFilterSet> fetchedTFSs =
                                 JsonSerializer
                                 .Deserialize<IEnumerable<TagFilterSet>>
-                                (fetchedFileContent, DEFAULT_SERIALIZER_OPTIONS);
+                                (fetchedFileContent, TF_SERIALIZER_OPTIONS);
                             // Overwrite
                             if (RadioButtons_2_SelectedIndex == 0) {
                                 HitomiContext.Main.TagFilterSets.RemoveRange(HitomiContext.Main.TagFilterSets);

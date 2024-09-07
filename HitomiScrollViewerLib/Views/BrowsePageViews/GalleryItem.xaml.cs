@@ -18,6 +18,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
     public sealed partial class GalleryItem : UserControl {
         public GalleryItem() {
             InitializeComponent();
+            // https://learn.microsoft.com/en-us/dotnet/communitytoolkit/windows/sizers/gridsplitter
         }
     }
 }
