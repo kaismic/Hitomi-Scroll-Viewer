@@ -162,4 +162,7 @@
   <data name="Text_Type" xml:space="preserve">
     <value>종류</value>
   </data>
+  <data name="Text_Recommended" xml:space="preserve">
+    <value>권장됨</value>
+  </data>
 </root>

@@ -162,4 +162,7 @@
   <data name="Text_Type" xml:space="preserve">
     <value>Type</value>
   </data>
+  <data name="Text_Recommended" xml:space="preserve">
+    <value>Recommended</value>
+  </data>
 </root>
