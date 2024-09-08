@@ -117,25 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Text_Tag" xml:space="preserve">
+  <data name="Tag" xml:space="preserve">
     <value>태그</value>
   </data>
-  <data name="Text_Male" xml:space="preserve">
+  <data name="Male" xml:space="preserve">
     <value>남성</value>
   </data>
-  <data name="Text_Female" xml:space="preserve">
+  <data name="Female" xml:space="preserve">
     <value>여성</value>
   </data>
-  <data name="Text_Artist" xml:space="preserve">
+  <data name="Artist" xml:space="preserve">
     <value>작가</value>
   </data>
-  <data name="Text_Group" xml:space="preserve">
+  <data name="Group" xml:space="preserve">
     <value>그룹</value>
   </data>
-  <data name="Text_Character" xml:space="preserve">
+  <data name="Character" xml:space="preserve">
     <value>캐릭터</value>
   </data>
-  <data name="Text_Series" xml:space="preserve">
+  <data name="Series" xml:space="preserve">
     <value>시리즈</value>
   </data>
 </root>
