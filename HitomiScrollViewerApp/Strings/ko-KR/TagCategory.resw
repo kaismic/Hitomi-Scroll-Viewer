@@ -117,22 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Doujinshi" xml:space="preserve">
-    <value>동인지</value>
+  <data name="Text_Tag" xml:space="preserve">
+    <value>태그</value>
   </data>
-  <data name="GameCG" xml:space="preserve">
-    <value>게임 CG</value>
+  <data name="Text_Male" xml:space="preserve">
+    <value>남성</value>
   </data>
-  <data name="ArtistCG" xml:space="preserve">
-    <value>작가 CG</value>
+  <data name="Text_Female" xml:space="preserve">
+    <value>여성</value>
   </data>
-  <data name="Manga" xml:space="preserve">
-    <value>망가</value>
+  <data name="Text_Artist" xml:space="preserve">
+    <value>작가</value>
   </data>
-  <data name="ImageSet" xml:space="preserve">
-    <value>이미지 모음</value>
+  <data name="Text_Group" xml:space="preserve">
+    <value>그룹</value>
   </data>
-  <data name="Anime" xml:space="preserve">
-    <value>애니메이션</value>
+  <data name="Text_Character" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="Text_Series" xml:space="preserve">
+    <value>시리즈</value>
   </data>
 </root>
