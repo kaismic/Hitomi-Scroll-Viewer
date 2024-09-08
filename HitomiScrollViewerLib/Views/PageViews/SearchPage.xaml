@@ -6,16 +6,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:spviews="using:HitomiScrollViewerLib.Views.SearchPageViews"
     xmlns:spvms="using:HitomiScrollViewerLib.ViewModels.SearchPageVMs"
+    xmlns:spms="using:HitomiScrollViewerLib.Models.SearchPageModels"
+    
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     SizeChanged="SearchPage_SizeChanged"
     >
-    
-    <Page.Resources>
-        <ResourceDictionary>
-            <x:Double x:Key="ProgressBarTrackHeight">3</x:Double>
-        </ResourceDictionary>
-    </Page.Resources>
     <Grid>
         <StackPanel x:Name="MainContainerStackPanel"
                     Orientation="Vertical"
@@ -173,7 +169,7 @@
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
-                <DataTemplate x:DataType="spvms:InfoBarVM">
+                <DataTemplate x:DataType="spms:InfoBarModel">
                     <InfoBar IsOpen="True"
                              Background="{StaticResource CardBackgroundFillColorDefaultBrush}"
                              Message="{x:Bind Message}"

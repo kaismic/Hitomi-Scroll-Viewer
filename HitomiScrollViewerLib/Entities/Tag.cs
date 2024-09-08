@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
     public enum TagCategory {
-        Tag, Male, Female, Artist, Group, Character, Series
+        Artist, Group, Character, Series, Male, Female, Tag
     }
 
     [Index(nameof(Value))]

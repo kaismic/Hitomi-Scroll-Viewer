@@ -19,5 +19,7 @@ namespace HitomiScrollViewerLib {
         public static readonly string TEXT_INCLUDE = _resourceMap.GetValue("Text_Include").ValueAsString;
         public static readonly string TEXT_EXCLUDE = _resourceMap.GetValue("Text_Exclude").ValueAsString;
         public static readonly string TEXT_ALL = _resourceMap.GetValue("Text_All").ValueAsString;
+        public static readonly string TEXT_LANGUAGE = _resourceMap.GetValue("Text_Language").ValueAsString;
+        public static readonly string TEXT_TYPE = _resourceMap.GetValue("Text_Type").ValueAsString;
     }
 }

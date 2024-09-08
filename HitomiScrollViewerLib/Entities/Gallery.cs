@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Title))]
@@ -22,5 +24,13 @@ namespace HitomiScrollViewerLib.Entities {
         public virtual GalleryLanguage GalleryLanguage { get; set; }
         public virtual ICollection<ImageInfo> Files { get; set; }
         public virtual ICollection<Tag> Tags { get; set; }
+
+        public List<Tag> GetTagsByCategory(TagCategory category, bool sort) {
+            IEnumerable<Tag> tags = Tags.Where(t => t.Category == category);
+            if (sort) {
+                tags = tags.OrderBy(t => t.Value);
+            }
+            return tags.ToList();
+        }
     }
 }
