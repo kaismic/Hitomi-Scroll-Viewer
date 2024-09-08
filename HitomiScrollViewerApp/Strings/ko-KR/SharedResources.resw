@@ -156,4 +156,10 @@
   <data name="Text_All" xml:space="preserve">
     <value>전체</value>
   </data>
+  <data name="Text_Language" xml:space="preserve">
+    <value>언어</value>
+  </data>
+  <data name="Text_Type" xml:space="preserve">
+    <value>종류</value>
+  </data>
 </root>
