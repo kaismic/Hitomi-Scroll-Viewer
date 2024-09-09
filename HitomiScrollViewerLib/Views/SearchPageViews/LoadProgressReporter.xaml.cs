@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace HitomiScrollViewerLib.Views.SearchPageViews {
     public sealed partial class LoadProgressReporter : ContentDialog {
-        public LoadProgressReporterVM ViewModel => new();
+        public LoadProgressReporterVM ViewModel { get; set; }
         public LoadProgressReporter() {
             InitializeComponent();
         }

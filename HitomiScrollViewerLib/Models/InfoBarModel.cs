@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using System.Windows.Input;
 
-namespace HitomiScrollViewerLib.Models.SearchPageModels {
+namespace HitomiScrollViewerLib.Models {
     public partial class InfoBarModel : ObservableObject {
         [ObservableProperty]
         private bool _isOpen;
@@ -12,8 +12,6 @@ namespace HitomiScrollViewerLib.Models.SearchPageModels {
         private string _title;
         [ObservableProperty]
         private string _message;
-        [ObservableProperty]
-        private double _width;
         [ObservableProperty]
         private ICommand _closeButtonCommand;
     }

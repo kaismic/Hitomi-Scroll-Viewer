@@ -30,6 +30,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             { TagCategory.Series, "series" }
         };
 
+        private static TagFilterSetEditorVM _main;
+        public static TagFilterSetEditorVM Main => _main ??= new();
+
+
         [ObservableProperty]
         private int _galleryTypeSelectedIndex;
         public GalleryTypeEntity[] GalleryTypeEntities =>
@@ -62,7 +66,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private TagFilterSet _selectedTFS;
 
 
-        private bool HyperlinkCreateButtonEnabled {
+        public bool AnyFilterSelected {
             get => GalleryLanguageSelectedIndex > 0 ||
                 GalleryTypeSelectedIndex > 0 ||
                 ExtraKeywordsText.Length > 0 ||
@@ -74,7 +78,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private HashSet<int> DeletedTFSIds { get; set; }
 
-        public TagFilterSetEditorVM() {
+        private TagFilterSetEditorVM() {
             IncludeTFSSelectorVM.OtherTFSSelectorVM = ExcludeTFSSelectorVM;
             ExcludeTFSSelectorVM.OtherTFSSelectorVM = IncludeTFSSelectorVM;
 

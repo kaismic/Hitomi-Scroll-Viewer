@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:HitomiScrollViewerLib.Models"
     mc:Ignorable="d">
     <StackPanel>
         <SelectorBar SelectionChanged="SelectorBar_SelectionChanged">
@@ -23,7 +24,34 @@
                 </SelectorBarItem.Icon>
             </SelectorBarItem>
         </SelectorBar>
-        <Frame x:Name="RootFrame"
-               IsNavigationStackEnabled="False"/>
+        <Grid>
+            <Frame x:Name="RootFrame"
+                   IsNavigationStackEnabled="False"
+                   x:FieldModifier="public"
+                   SizeChanged="RootFrame_SizeChanged"/>
+            <ListView x:Name="PopupInfoBarStackPanel"
+                  VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                  ItemsSource="{x:Bind ViewModel.PopupMessages}"
+                  SelectionMode="None" IsItemClickEnabled="False">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Spacing="4"></StackPanel>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:InfoBarModel">
+                        <InfoBar IsOpen="True"
+                                 Background="{StaticResource CardBackgroundFillColorDefaultBrush}"
+                                 Message="{x:Bind Message}"
+                                 CloseButtonCommand="{x:Bind CloseButtonCommand}"
+                                 HorizontalAlignment="Stretch"
+                                 />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection/>
+                </ListView.ItemContainerTransitions>
+            </ListView>
+        </Grid>
     </StackPanel>
 </Window>

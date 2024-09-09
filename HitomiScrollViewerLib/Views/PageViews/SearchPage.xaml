@@ -54,11 +54,11 @@
                         </Grid.RowDefinitions>
                         <Button x:Name="HyperlinkCreateButton"
                                 Grid.Row="0"
-                                Click="HyperlinkCreateButton_Clicked"
                                 BorderBrush="DeepPink"
                                 HorizontalAlignment="Stretch"
-                                IsEnabled="False"
-                                Padding="16">
+                                Padding="16"
+                                Command="{x:Bind ViewModel.HyperlinkCreateButtonCommand}"
+                                >
                             <TextBlock x:Uid="/SearchPage/HyperlinkCreateButtonTextBlock"
                                        FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                         </Button>
@@ -158,27 +158,5 @@
                 </StackPanel>
             </Grid>
         </StackPanel>
-        <ListView x:Name="PopupInfoBarStackPanel"
-                  VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                  Margin="{x:Bind PopupInfoBarStackPanelMargin}"
-                  ItemsSource="{x:Bind ViewModel.PopupMsgInfoBarVMs}"
-                  SelectionMode="None" IsItemClickEnabled="False">
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Spacing="4"></StackPanel>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="spms:InfoBarModel">
-                    <InfoBar IsOpen="True"
-                             Background="{StaticResource CardBackgroundFillColorDefaultBrush}"
-                             Message="{x:Bind Message}"
-                             CloseButtonCommand="{x:Bind CloseButtonCommand}"/>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <ListView.ItemContainerTransitions>
-                <TransitionCollection/>
-            </ListView.ItemContainerTransitions>
-        </ListView>
     </Grid>
 </Page>

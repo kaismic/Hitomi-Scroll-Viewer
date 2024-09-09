@@ -22,8 +22,7 @@ using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
-    public sealed partial class ViewPage : Page, IAppWindowClosingHandler {
-        public ViewPageVM ViewModel { get; set; }
+    public sealed partial class ViewPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ViewPage");
         private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Array_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
         private readonly string[] VIEW_DIRECTION_NAMES = _resourceMap.GetValue("Array_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
@@ -51,7 +50,9 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         private ViewDirection _viewDirection;
 
         private static readonly object _actionLock = new();
-        internal MainWindow MainWindow { get; set; }
+
+        public ViewPageVM ViewModel { get; set; }
+
 
         public ViewPage() {
             InitializeComponent();
@@ -116,14 +117,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
             ViewModel = (ViewPageVM)e.Parameter;
         }
 
-        public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
-            ToggleAutoScroll(false);
-            _settings.Values[SCROLL_DIRECTION_SETTING_KEY] = (int)_scrollDirection;
-            _settings.Values[VIEW_DIRECTION_SETTING_KEY] = (int)_viewDirection;
-            _settings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] = _autoScrollInterval;
-            _settings.Values[IS_LOOPING_SETTING_KEY] = LoopBtn.IsChecked;
-            _settings.Values[USE_PAGE_FLIP_EFFECT_SETTING_KEY] = ImageFlipView.UseTouchAnimationsForAllNavigation;
-        }
+
 
         private DateTime _lastWindowSizeChangeTime;
         public async void HandleWindowSizeChanged(WindowSizeChangedEventArgs args) {

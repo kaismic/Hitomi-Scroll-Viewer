@@ -1,10 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using HitomiScrollViewerLib.Models.SearchPageModels;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
-using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
@@ -12,10 +9,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Windows.ApplicationModel.DataTransfer;
-using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Utils;
 
@@ -24,34 +19,30 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(Views.PageViews.SearchPage).Name);
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
+        private static SearchPageVM _main;
+        public static SearchPageVM Main => _main ??= new SearchPageVM();
+
         public ObservableCollection<SearchLinkItemVM> SearchLinkItemVMs { get; } = [];
-        public TagFilterSetEditorVM TagFilterSetEditorVM { get; } = new();
+        public TagFilterSetEditorVM TagFilterSetEditorVM { get; set; }
         public SyncManagerVM SyncManagerVM { get; } = new();
-        public DownloadManagerVM DownloadManagerVM { get; } = new();
-        private readonly IEnumerable<IAppWindowClosingHandler> _appWindowClosingHandlers;
 
         [ObservableProperty]
         private string _downloadInputText;
 
-        public SearchPageVM() {
-            _appWindowClosingHandlers = [DownloadManagerVM, TagFilterSetEditorVM];
+        private SearchPageVM() {
+            HyperlinkCreateButtonCommand = new RelayCommand(
+                HyperlinkCreateButton_Clicked,
+                () => TagFilterSetEditorVM.AnyFilterSelected
+            );
             DownloadButtonCommand = new RelayCommand(
                 ExecuteDownloadButtonCommand,
                 () => DownloadInputText.Length != 0
             );
         }
 
-        public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
-            foreach (IAppWindowClosingHandler hanlder in _appWindowClosingHandlers) {
-                hanlder.HandleAppWindowClosing(args);
-                if (args.Cancel) {
-                    return;
-                }
-            }
-        }
+        public ICommand HyperlinkCreateButtonCommand { get; }
 
-
-        public void HyperlinkCreateButton_Clicked(object _0, RoutedEventArgs _1) {
+        public void HyperlinkCreateButton_Clicked() {
             SearchLinkItemVM vm = TagFilterSetEditorVM.GetSearchLinkItemVM();
             if (vm != null) {
                 // copy link to clipboard
@@ -93,31 +84,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             DownloadInputText = "";
 
             foreach (int id in extractedIds) {
-                DownloadManagerVM.TryDownload(id);
+                DownloadManagerVM.Main.TryDownload(id);
             }
-        }
-
-        public Size PageSize { get; set; }
-
-        private const int POPUP_MSG_DISPLAY_DURATION = 5000;
-        private const int POPUP_MSG_MAX_DISPLAY_NUM = 3;
-        public ObservableCollection<InfoBarModel> PopupMsgInfoBarVMs { get; } = [];
-        public void AddPopupMsgInfoBarVM(string message) {
-            InfoBarModel vm = new() {
-                Message = message,
-                Width = PageSize.Width / 4,
-            };
-            vm.CloseButtonCommand = new RelayCommand(() => PopupMsgInfoBarVMs.Remove(vm));
-            PopupMsgInfoBarVMs.Add(vm);
-            if (PopupMsgInfoBarVMs.Count > POPUP_MSG_MAX_DISPLAY_NUM) {
-                PopupMsgInfoBarVMs.RemoveAt(0);
-            }
-            Task.Run(
-                async () => {
-                    await Task.Delay(POPUP_MSG_DISPLAY_DURATION);
-                    PopupMsgInfoBarVMs.Remove(vm);
-                }
-            );
         }
     }
 }

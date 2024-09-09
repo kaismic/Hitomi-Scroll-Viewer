@@ -18,16 +18,5 @@ namespace HitomiScrollViewerLib.Views.PageViews {
             base.OnNavigatedTo(e);
             ViewModel = (SearchPageVM)e.Parameter;
         }
-
-        private void SearchPage_Loaded(object _0, RoutedEventArgs _1) {
-            Loaded -= SearchPage_Loaded;
-            ViewModel.PageSize = new Size(ActualWidth, ActualHeight);
-            PopupInfoBarStackPanelMargin.Bottom = ActualHeight / 16;
-        }
-
-        private void SearchPage_SizeChanged(object _0, SizeChangedEventArgs e) {
-            ViewModel.PageSize = e.NewSize;
-            PopupInfoBarStackPanelMargin.Bottom = ActualHeight / 16;
-        }
     }
 }

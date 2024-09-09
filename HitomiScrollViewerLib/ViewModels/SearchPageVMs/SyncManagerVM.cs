@@ -8,7 +8,6 @@ using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using HitomiScrollViewerLib.Views.SearchPageViews;
-using HitomiScrollViewerLib.Windows;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

@@ -2,7 +2,7 @@
 using HitomiScrollViewerLib.Entities;
 using System.Windows.Input;
 
-namespace HitomiScrollViewerLib.Models.SearchPageModels {
+namespace HitomiScrollViewerLib.Models {
     public partial class TFSCheckBoxModel(
         TagFilterSet tagFilterSet,
         ICommand checkBoxToggleCommand
