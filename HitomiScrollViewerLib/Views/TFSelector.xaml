@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Grid
-    x:Class="HitomiScrollViewerLib.Views.SearchPageViews.TFSSelector"
+    x:Class="HitomiScrollViewerLib.Views.TFSSelector"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ct="using:CommunityToolkit.WinUI.Controls"
-    xmlns:spmodels="using:HitomiScrollViewerLib.Models.SearchPageModels"
+    xmlns:models="using:HitomiScrollViewerLib.Models"
     mc:Ignorable="d"
     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -19,7 +19,7 @@
                 <ct:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
-                <DataTemplate x:DataType="spmodels:TFSCheckBoxModel">
+                <DataTemplate x:DataType="models:TFSCheckBoxModel">
                     <CheckBox MinWidth="0"
                               Style="{StaticResource DefaultCheckBoxStyle}"
                               IsChecked="{x:Bind IsChecked, Mode=TwoWay}"

@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using Windows.ApplicationModel;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Utils;
+using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.DbContexts {
     public class HitomiContext : DbContext {

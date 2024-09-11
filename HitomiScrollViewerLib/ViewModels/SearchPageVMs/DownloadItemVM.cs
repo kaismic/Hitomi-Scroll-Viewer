@@ -19,7 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Utils;
+using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class DownloadItemVM : ObservableObject {

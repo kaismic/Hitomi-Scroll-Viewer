@@ -1,35 +1,35 @@
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
+using HitomiScrollViewerLib.ViewModels;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 
-namespace HitomiScrollViewerLib.Views.SearchPageViews {
-    public sealed partial class TagFilterSetEditor : Grid {
-        private TagFilterSetEditorVM _viewModel;
-        public TagFilterSetEditorVM ViewModel {
+namespace HitomiScrollViewerLib.Views {
+    public sealed partial class TagFilterEditor : Grid {
+        private TagFilterEditorVM _viewModel;
+        public TagFilterEditorVM ViewModel {
             get => _viewModel;
             set {
                 _viewModel = value;
-                for (int i = 0; i < value.TTTextBoxVMs.Length; i++) {
-                    _tfsTextBoxes[i].ViewModel = value.TTTextBoxVMs[i];
+                for (int i = 0; i < value.TttVMs.Length; i++) {
+                    _tagTokenizingTextBoxes[i].ViewModel = value.TttVMs[i];
                 }
             }
         }
 
-        private readonly TagTokenizingTextBox[] _tfsTextBoxes = new TagTokenizingTextBox[Entities.Tag.TAG_CATEGORIES.Length];
+        private readonly TagTokenizingTextBox[] _tagTokenizingTextBoxes = new TagTokenizingTextBox[Entities.Tag.TAG_CATEGORIES.Length];
 
-        public TagFilterSetEditor() {
+        public TagFilterEditor() {
             InitializeComponent();
 
             for (int i = 0; i < Children.Count; i++) {
                 SetRow(Children[i] as FrameworkElement, i);
             }
 
-            for (int i = 0; i < TagFilterSetControlGrid.Children.Count; i++) {
-                FrameworkElement child = TagFilterSetControlGrid.Children[i] as FrameworkElement;
+            for (int i = 0; i < CrudOperationGrid.Children.Count; i++) {
+                FrameworkElement child = CrudOperationGrid.Children[i] as FrameworkElement;
                 SetColumn(child, i);
                 if (child is Button button) {
                     button.Padding = new Thickness(12);
@@ -47,7 +47,7 @@ namespace HitomiScrollViewerLib.Views.SearchPageViews {
                 };
                 SetRow(categoryHeaderBorder, 0);
                 SetColumn(categoryHeaderBorder, i);
-                TTTextBoxesGrid.Children.Add(categoryHeaderBorder);
+                TextBoxesGrid.Children.Add(categoryHeaderBorder);
 
                 TextBlock categoryHeader = new() {
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -56,28 +56,28 @@ namespace HitomiScrollViewerLib.Views.SearchPageViews {
                 };
                 categoryHeaderBorder.Child = categoryHeader;
 
-                _tfsTextBoxes[i] = new() {
+                _tagTokenizingTextBoxes[i] = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(0),
                     Padding = new Thickness(0)
                 };
-                Border tfsTextBoxWrapper = new() {
-                    Child = _tfsTextBoxes[i]
+                Border wrapper = new() {
+                    Child = _tagTokenizingTextBoxes[i]
                 };
-                tfsTextBoxWrapper.SizeChanged += (object _0, SizeChangedEventArgs e) => {
-                    _tfsTextBoxes[i].MaxHeight = e.NewSize.Height;
+                wrapper.SizeChanged += (object _0, SizeChangedEventArgs e) => {
+                    _tagTokenizingTextBoxes[i].MaxHeight = e.NewSize.Height;
                 };
-                tfsTextBoxWrapper.Loaded += TfsTextBoxWrapper_Loaded;
-                SetRow(tfsTextBoxWrapper, 1);
-                SetColumn(tfsTextBoxWrapper, i);
-                TTTextBoxesGrid.Children.Add(tfsTextBoxWrapper);
+                wrapper.Loaded += Wrapper_Loaded;
+                SetRow(wrapper, 1);
+                SetColumn(wrapper, i);
+                TextBoxesGrid.Children.Add(wrapper);
             }
         }
 
-        private void TfsTextBoxWrapper_Loaded(object sender, RoutedEventArgs _1) {
+        private void Wrapper_Loaded(object sender, RoutedEventArgs _1) {
             Border tfsTextBoxWrapper = sender as Border;
-            tfsTextBoxWrapper.Loaded -= TfsTextBoxWrapper_Loaded;
+            tfsTextBoxWrapper.Loaded -= Wrapper_Loaded;
             (tfsTextBoxWrapper.Child as TagTokenizingTextBox).MaxHeight = tfsTextBoxWrapper.ActualHeight;
         }
     }

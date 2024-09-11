@@ -22,7 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Utils;
+using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class SyncContentDialogVM(DriveService _driveService) : ObservableObject {

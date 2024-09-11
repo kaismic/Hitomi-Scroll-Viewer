@@ -3,28 +3,33 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.PageVMs;
-using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
+using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using static HitomiScrollViewerLib.Utils;
+using static HitomiScrollViewerLib.Constants;
+using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public class MainWindowVM : IAppWindowClosingHandler {
+    public class MainWindowVM {
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(MainWindow).Name);
+
         private static MainWindowVM _main;
         public static MainWindowVM Main => _main ??= new();
 
-        public event Action<LoadProgressReporterVM> ShowLoadProgressReporter;
-        public event Action HideLoadProgressReporter;
-        public event Action<NotificationEventArgs> RequestNotifyUser;
+        public static event Action<LoadProgressReporterVM> ShowLoadProgressReporter;
+        public static event Action HideLoadProgressReporter;
+        public static event Action<ContentDialogModel> RequestNotifyUser;
 
-        private MainWindowVM() {}
+        private MainWindowVM() { }
 
-        public void Init() {
+        public static void Init() {
             // TODO
             // if app upgraded from v2 -> v3:
             // 1. Migrate tag filter set - DONE
@@ -67,7 +72,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     File.Delete(TAG_FILTERS_FILE_PATH_V2);
                 }
 
-                // The user installed this app for the first time (which means there was no tf migration)
+                // The user installed this app for the first time (which means there is no previous tf)
                 // AND is starting the app for the first time
                 if (!v2TagFilterExists && dbCreatedFirstTime) {
                     vm.IsIndeterminate = true;
@@ -94,7 +99,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     );
                     vm.Maximum = originalGalleryInfos.Count;
                     foreach (var ogi in originalGalleryInfos) {
-                        HitomiContext.Main.Galleries.AddRange(ogi.ToGallery());
+                        HitomiContext.Main.Galleries.Add(ogi.ToGallery());
                         vm.Value++;
                     }
                     HitomiContext.Main.SaveChanges();
@@ -127,8 +132,8 @@ namespace HitomiScrollViewerLib.ViewModels {
             });
         }
 
-        public void NotifyUser(NotificationEventArgs e) {
-            RequestNotifyUser.Invoke(e);
+        public static void NotifyUser(ContentDialogModel model) {
+            RequestNotifyUser.Invoke(model);
         }
 
         private const int POPUP_MSG_DISPLAY_DURATION = 5000;
@@ -136,9 +141,9 @@ namespace HitomiScrollViewerLib.ViewModels {
         public ObservableCollection<InfoBarModel> PopupMessages { get; } = [];
         public void ShowPopup(string message) {
             InfoBarModel vm = new() {
-                Message = message
+                Message = message,
+                CloseButtonCommand = new RelayCommand<InfoBarModel>((model) => PopupMessages.Remove(model))
             };
-            vm.CloseButtonCommand = new RelayCommand(() => PopupMessages.Remove(vm));
             PopupMessages.Add(vm);
             if (PopupMessages.Count > POPUP_MSG_MAX_DISPLAY_NUM) {
                 PopupMessages.RemoveAt(0);
@@ -152,12 +157,28 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
-            DownloadManagerVM.Main.HandleAppWindowClosing(args);
-            if (args.Cancel) {
-                return;
+            if (SearchPageVM.Main.DownloadManagerVM.DownloadItemVMs.Count > 0) {
+                ContentDialogModel cdModel = new() {
+                    DefaultButton = ContentDialogButton.Close,
+                    Title = _resourceMap.GetValue("Text_DownloadRemaining").ValueAsString,
+                    PrimaryButtonText = TEXT_EXIT,
+                    CloseButtonText = TEXT_CANCEL
+                };
+                cdModel.Closed += (ContentDialogResult result) => {
+                    if (result == ContentDialogResult.None) {
+                        args.Cancel = true;
+                    } else {
+                        HandleAppWindowClose();
+                    }
+                };
+                NotifyUser(cdModel);
+            } else {
+                HandleAppWindowClose();
             }
-            TagFilterSetEditorVM.Main.HandleAppWindowClosing(args);
-            ViewPageVM.Main.HandleAppWindowClosing(args);
+        }
+
+        private void HandleAppWindowClose() {
+            ViewPageVM.Main.HandleAppWindowClosing();
             HitomiContext.Main.Dispose();
         }
     }

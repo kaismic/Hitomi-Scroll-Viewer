@@ -1,7 +1,6 @@
-﻿using HitomiScrollViewerLib.ViewModels;
-using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
+﻿using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.ViewModels;
 using HitomiScrollViewerLib.Views.PageViews;
-using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -20,18 +19,17 @@ namespace HitomiScrollViewerLib.Views {
             AppWindow.Closing += AppWindow_Closing;
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             Title = APP_DISPLAY_NAME;
-            _notification.XamlRoot = RootFrame.XamlRoot;
 
-            ViewModel.ShowLoadProgressReporter += (LoadProgressReporterVM e) => {
+            MainWindowVM.ShowLoadProgressReporter += (LoadProgressReporterVM e) => {
                 _reporter = new() {
                     XamlRoot = RootFrame.XamlRoot,
                     ViewModel = e
                 };
                 _ = _reporter.ShowAsync();
             };
-            ViewModel.HideLoadProgressReporter += _reporter.Hide;
-            ViewModel.RequestNotifyUser += NotifyUser;
-            ViewModel.Init();
+            MainWindowVM.HideLoadProgressReporter += _reporter.Hide;
+            MainWindowVM.RequestNotifyUser += NotifyUser;
+            MainWindowVM.Init();
         }
 
         private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs _1) {
@@ -60,20 +58,21 @@ namespace HitomiScrollViewerLib.Views {
             //previousSelectedIndex = currSelectedIdx;
         }
 
-        private static readonly ContentDialog _notification = new() {
-            CloseButtonText = TEXT_CLOSE,
-            Title = new TextBlock() {
-                TextWrapping = TextWrapping.WrapWholeWords
-            },
-            Content = new TextBlock() {
-                TextWrapping = TextWrapping.WrapWholeWords
-            }
-        };
-
-        private static void NotifyUser(NotificationEventArgs e) {
-            ((TextBlock)_notification.Title).Text = e.Title;
-            ((TextBlock)_notification.Content).Text = e.Message;
-            _ = _notification.ShowAsync();
+        private async void NotifyUser(ContentDialogModel model) {
+            ContentDialog cd = new() {
+                Title = new TextBlock() {
+                    TextWrapping = TextWrapping.WrapWholeWords,
+                    Text = model.Title
+                },
+                Content = new TextBlock() {
+                    TextWrapping = TextWrapping.WrapWholeWords,
+                    Text = model.Message
+                },
+                PrimaryButtonText = model.PrimaryButtonText,
+                CloseButtonText = model.CloseButtonText,
+                XamlRoot = RootFrame.XamlRoot
+            };
+            model.InvokeClosedEvent(await cd.ShowAsync());
         }
 
         private void AppWindow_Closing(AppWindow _, AppWindowClosingEventArgs args) {

@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using Windows.Foundation;
 using static HitomiScrollViewerLib.Controls.ViewPage;
-using static HitomiScrollViewerLib.Utils;
+using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.Controls.ViewPageComponents {
     public sealed partial class GroupedImagePanel : DockPanel {

@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.System;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Utils;
+using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
     public sealed partial class ViewPage : Page {

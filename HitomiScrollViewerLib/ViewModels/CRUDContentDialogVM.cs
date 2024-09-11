@@ -10,7 +10,7 @@ using System.Linq;
 using System.Windows.Input;
 using static HitomiScrollViewerLib.SharedResources;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
+namespace HitomiScrollViewerLib.ViewModels {
     public partial class CRUDContentDialogVM : ObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(CRUDContentDialog).Name);
         public enum CRUDAction {

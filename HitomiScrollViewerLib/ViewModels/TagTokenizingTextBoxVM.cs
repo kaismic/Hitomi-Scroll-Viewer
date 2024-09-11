@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
+namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagTokenizingTextBoxVM(TagCategory category) : ObservableObject {
         private const int MAX_SUGGESTION_NUM = 8;
 

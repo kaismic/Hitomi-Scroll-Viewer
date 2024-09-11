@@ -2,8 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
-using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
@@ -16,9 +16,9 @@ using System.Windows.Input;
 using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
-    public partial class TagFilterSetEditorVM : ObservableObject, IAppWindowClosingHandler {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterSetEditor).Name);
+namespace HitomiScrollViewerLib.ViewModels {
+    public partial class TagFilterEditorVM : ObservableObject {
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Dictionary<TagCategory, string> CATEGORY_SEARCH_PARAM_DICT = new() {
             { TagCategory.Tag, "tag" },
@@ -30,13 +30,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             { TagCategory.Series, "series" }
         };
 
-        private static TagFilterSetEditorVM _main;
-        public static TagFilterSetEditorVM Main => _main ??= new();
-
-
         [ObservableProperty]
         private int _galleryTypeSelectedIndex;
-        public GalleryTypeEntity[] GalleryTypeEntities =>
+        public GalleryTypeEntity[] GalleryTypeEntities { get; } =
             Enumerable.Concat(
                 [new GalleryTypeEntity() { GalleryType = null }],
                 HitomiContext.Main.GalleryTypes
@@ -44,7 +40,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         [ObservableProperty]
         private int _galleryLanguageSelectedIndex;
-        public GalleryLanguage[] GalleryLanguages =>
+        public GalleryLanguage[] GalleryLanguages { get; } =
             Enumerable.Concat(
                 [new GalleryLanguage() { LocalName = TEXT_ALL }],
                 HitomiContext.Main.GalleryLanguages.OrderBy(gl => gl.LocalName)
@@ -53,12 +49,12 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [ObservableProperty]
         private bool _isAutoSaveEnabled;
         private static readonly string AUTO_SAVE_SETTING_KEY = "AutoSave";
-        public string AutoSaveCheckBoxText => _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
+        public string AutoSaveCheckBoxText { get; } = _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
 
-        public TagTokenizingTextBoxVM[] TTTextBoxVMs => new TagTokenizingTextBoxVM[Tag.TAG_CATEGORIES.Length];
+        public TagTokenizingTextBoxVM[] TttVMs { get; } = new TagTokenizingTextBoxVM[Tag.TAG_CATEGORIES.Length];
 
         [ObservableProperty]
-        private string _extraKeywordsText;
+        private string _searchTitleText;
         partial void OnIsAutoSaveEnabledChanged(bool value) {
             ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = value;
         }
@@ -69,7 +65,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         public bool AnyFilterSelected {
             get => GalleryLanguageSelectedIndex > 0 ||
                 GalleryTypeSelectedIndex > 0 ||
-                ExtraKeywordsText.Length > 0 ||
+                SearchTitleText.Length > 0 ||
                 IncludeTFSSelectorVM.AnySelected || ExcludeTFSSelectorVM.AnySelected;
         }
 
@@ -78,20 +74,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private HashSet<int> DeletedTFSIds { get; set; }
 
-        private TagFilterSetEditorVM() {
+        private TagFilterEditorVM() {
             IncludeTFSSelectorVM.OtherTFSSelectorVM = ExcludeTFSSelectorVM;
             ExcludeTFSSelectorVM.OtherTFSSelectorVM = IncludeTFSSelectorVM;
 
             IsAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
 
             for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
-                TTTextBoxVMs[i] = new((TagCategory)i);
-            }
-        }
-
-        public void HandleAppWindowClosing(AppWindowClosingEventArgs _0) {
-            if (SelectedTFS != null) {
-                SaveTFS(SelectedTFS);
+                TttVMs[i] = new((TagCategory)i);
             }
         }
 
@@ -99,7 +89,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             return
                 Enumerable
                 .Range(0, Tag.TAG_CATEGORIES.Length)
-                .Select(i => TTTextBoxVMs[i].SelectedTags)
+                .Select(i => TttVMs[i].SelectedTags)
                 .SelectMany(tags => tags)
                 .ToHashSet();
         }
@@ -113,7 +103,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     SaveTFS(prevTFS);
                 }
             }
-            foreach (var vm in TTTextBoxVMs) {
+            foreach (var vm in TttVMs) {
                 vm.SelectedTags.Clear();
             }
 
@@ -123,7 +113,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 .First(tfs => tfs.Id == SelectedTFS.Id)
                 .Tags;
             foreach (Tag tag in selectedTFSTags) {
-                TTTextBoxVMs[(int)tag.Category].SelectedTags.Add(tag);
+                TttVMs[(int)tag.Category].SelectedTags.Add(tag);
             }
         }
 
@@ -143,7 +133,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             HitomiContext.Main.TagFilterSets.Add(tfs);
             HitomiContext.Main.SaveChanges();
             SelectedTFS = tfs;
-            MainWindow.SearchPageVM.AddPopupMsgInfoBarVM(
+            MainWindowVM.Main.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Create_Complete").ValueAsString,
                     name
@@ -166,7 +156,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             string newName = cdvm.GetInputText();
             SelectedTFS.Name = newName;
             HitomiContext.Main.SaveChanges();
-            MainWindow.SearchPageVM.AddPopupMsgInfoBarVM(
+            MainWindowVM.Main.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
                     oldName,
@@ -184,7 +174,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private void SaveTFS(TagFilterSet tfs) {
             tfs.Tags = GetCurrentTags();
             HitomiContext.Main.SaveChanges();
-            MainWindow.SearchPageVM.AddPopupMsgInfoBarVM(
+            MainWindowVM.Main.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
                     tfs.Name
@@ -208,7 +198,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             DeletedTFSIds = selectedTFSs.Select(tfs => tfs.Id).ToHashSet();
             HitomiContext.Main.TagFilterSets.RemoveRange(cdvm.GetSelectedTFSs());
             HitomiContext.Main.SaveChanges();
-            MainWindow.SearchPageVM.AddPopupMsgInfoBarVM(
+            MainWindowVM.Main.ShowPopup(
                 MultiPattern.Format(
                     _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,
                     DeletedTFSIds.Count
@@ -216,7 +206,15 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             );
         }
 
-        internal SearchLinkItemVM GetSearchLinkItemVM() {
+        private (IEnumerable<Tag> includeTags, IEnumerable<Tag> excludeTags)? GetValidatedTags() {
+            // check if all selected TFSs are all empty
+            if (!AnyFilterSelected) {
+                MainWindowVM.NotifyUser(new() {
+                    Title = _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString
+                });
+                return null;
+            }
+
             IEnumerable<TagFilterSet> includeTFSs = IncludeTFSSelectorVM.GetSelectedTFSs();
             IEnumerable<TagFilterSet> excludeTFSs = ExcludeTFSSelectorVM.GetSelectedTFSs();
             IEnumerable<int> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
@@ -228,19 +226,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             IEnumerable<Tag> includeTags = includeTFSs.SelectMany(tfs => tfs.Tags);
             IEnumerable<Tag> excludeTags = excludeTFSs.SelectMany(tfs => tfs.Tags);
 
-            // check if all selected TFSs are all empty
-            if (!includeTags.Any() && !excludeTags.Any() &&
-                GalleryLanguageSelectedIndex <= 0 &&
-                GalleryTypeSelectedIndex <= 0 &&
-                ExtraKeywordsText.Length == 0
-            ) {
-                MainWindow.CurrMW.NotifyUser(
-                    _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString,
-                    ""
-                );
-                return null;
-            }
-
             // update to use current tags in text boxes if the selected TFSs contain the combobox selected tfs
             if (SelectedTFS != null) {
                 HashSet<Tag> currentTags = GetCurrentTags();
@@ -250,8 +235,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     excludeTags = excludeTags.Except(SelectedTFS.Tags).Union(currentTags);
                 }
             }
-            IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
 
+            IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
             if (dupTags.Any()) {
                 List<string> dupTagStrs = new(Tag.TAG_CATEGORIES.Length);
                 foreach (TagCategory category in Tag.TAG_CATEGORIES) {
@@ -261,34 +246,43 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     }
                     dupTagStrs.Add(category.ToString() + ": " + string.Join(", ", dupStrs));
                 }
-                MainWindow.CurrMW.NotifyUser(
-                    _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
-                    string.Join(Environment.NewLine, dupTagStrs)
-                );
+                MainWindowVM.NotifyUser(new() {
+                    Title = _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
+                    Message = string.Join(Environment.NewLine, dupTagStrs)
+                });
                 return null;
             }
 
-            List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and extra keywords
-            List<string> displayTexts = new(Tag.TAG_CATEGORIES.Length + 3); // + 3 for language, type and extra keywords
+            return (includeTags, excludeTags);
+        }
+
+        public SearchLinkItemVM GetSearchLinkItemVM() {
+            (IEnumerable<Tag> includeTags, IEnumerable<Tag> excludeTags)? tags = GetValidatedTags();
+            if (!tags.HasValue) {
+                return null;
+            }
+
+            List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and title search
+            List<string> displayTexts = new(Tag.TAG_CATEGORIES.Length + 3); // + 3 for language, type and title search
 
             if (GalleryLanguageSelectedIndex > 0) {
                 searchParamStrs.Add("language:" + GalleryLanguages[GalleryLanguageSelectedIndex].SearchParamValue);
-                displayTexts.Add("Language: " + GalleryLanguages[GalleryLanguageSelectedIndex].LocalName);
+                displayTexts.Add(TEXT_LANGUAGE + ": " + GalleryLanguages[GalleryLanguageSelectedIndex].LocalName);
             }
 
             if (GalleryTypeSelectedIndex > 0) {
                 searchParamStrs.Add("type:" + GalleryTypeEntities[GalleryTypeSelectedIndex].SearchParamValue);
-                displayTexts.Add("Type: " + GalleryTypeEntities[GalleryTypeSelectedIndex].DisplayName);
+                displayTexts.Add(TEXT_TYPE + ": " + GalleryTypeEntities[GalleryTypeSelectedIndex].DisplayName);
             }
 
             // add joined include exclude search param strs
-            searchParamStrs.Add(string.Join(' ', includeTags.Select(tag => CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
-            searchParamStrs.Add(string.Join(' ', excludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
+            searchParamStrs.Add(string.Join(' ', tags.Value.includeTags.Select(tag => CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
+            searchParamStrs.Add(string.Join(' ', tags.Value.excludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
 
             // add display texts for each tag category
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                IEnumerable<string> includeValues = includeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
-                IEnumerable<string> excludeValues = excludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
+                IEnumerable<string> includeValues = tags.Value.includeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
+                IEnumerable<string> excludeValues = tags.Value.excludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
                 if (!includeValues.Any() && !excludeValues.Any()) {
                     continue;
                 }
@@ -299,15 +293,39 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 displayTexts.Add((category).ToString() + ": " + string.Join(", ", withoutEmptyStrs));
             }
 
-            if (ExtraKeywordsText.Length > 0) {
-                searchParamStrs.Add(ExtraKeywordsText);
-                displayTexts.Add("Keywords: " + ExtraKeywordsText);
+            if (SearchTitleText.Length > 0) {
+                searchParamStrs.Add(SearchTitleText);
+                displayTexts.Add(SearchTitleText);
             }
 
             return new(
                 SEARCH_ADDRESS + string.Join(' ', searchParamStrs.Where(s => !string.IsNullOrEmpty(s))),
                 string.Join(Environment.NewLine, displayTexts.Where(s => !string.IsNullOrEmpty(s)))
             );
+        }
+
+        public IEnumerable<Gallery> GetFilteredGalleries() {
+            (IEnumerable<Tag> includeTags, IEnumerable<Tag> excludeTags)? tags = GetValidatedTags();
+            if (!tags.HasValue) {
+                return null;
+            }
+            IEnumerable<Gallery> filtered = HitomiContext.Main.Galleries;
+            if (GalleryLanguageSelectedIndex > 0) {
+                filtered = filtered.Where(g => g.GalleryLanguage.Id == GalleryLanguages[GalleryLanguageSelectedIndex].Id);
+            }
+            if (GalleryTypeSelectedIndex > 0) {
+                filtered = filtered.Where(g => g.GalleryType.Id == GalleryTypeEntities[GalleryTypeSelectedIndex].Id);
+            }
+            if (SearchTitleText.Length > 0) {
+                filtered = filtered.Where(g => g.Title.Contains(SearchTitleText));
+            }
+            foreach (Tag includeTag in tags.Value.includeTags) {
+                filtered = filtered.Intersect(includeTag.Galleries);
+            }
+            foreach (Tag excludeTag in tags.Value.includeTags) {
+                filtered = filtered.Except(excludeTag.Galleries);
+            }
+            return filtered;
         }
     }
 }

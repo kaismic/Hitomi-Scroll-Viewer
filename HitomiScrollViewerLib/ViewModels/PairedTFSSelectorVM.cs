@@ -1,8 +1,8 @@
 ﻿using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Models.SearchPageModels;
+using HitomiScrollViewerLib.Models;
 using System.Collections.ObjectModel;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
+namespace HitomiScrollViewerLib.ViewModels {
     public partial class PairedTFSSelectorVM(ObservableCollection<TagFilterSet> tfss) : TFSSelectorVM(tfss) {
         public PairedTFSSelectorVM OtherTFSSelectorVM { private get; set; }
 

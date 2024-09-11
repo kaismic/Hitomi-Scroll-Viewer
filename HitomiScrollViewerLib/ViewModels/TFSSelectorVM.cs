@@ -1,14 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Models.SearchPageModels;
+using HitomiScrollViewerLib.Models;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
+namespace HitomiScrollViewerLib.ViewModels {
     public partial class TFSSelectorVM : ObservableObject {
         private ObservableCollection<TagFilterSet> TagFilterSets {
             set {

@@ -4,7 +4,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using static HitomiScrollViewerLib.SharedResources;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
+namespace HitomiScrollViewerLib.ViewModels {
     public partial class LoadProgressReporterVM : ObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(LoadProgressReporter).Name);
 

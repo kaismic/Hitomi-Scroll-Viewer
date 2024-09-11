@@ -1,7 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
-using HitomiScrollViewerLib.Views;
+using HitomiScrollViewerLib.Views.PageViews;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
@@ -12,18 +13,18 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Windows.ApplicationModel.DataTransfer;
 using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Utils;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
     public partial class SearchPageVM : ObservableObject {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(Views.PageViews.SearchPage).Name);
+        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SearchPage).Name);
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private static SearchPageVM _main;
         public static SearchPageVM Main => _main ??= new SearchPageVM();
 
         public ObservableCollection<SearchLinkItemVM> SearchLinkItemVMs { get; } = [];
-        public TagFilterSetEditorVM TagFilterSetEditorVM { get; set; }
+        public TagFilterEditorVM TagFilterSetEditorVM { get; set; }
+        public DownloadManagerVM DownloadManagerVM { get; set; }
         public SyncManagerVM SyncManagerVM { get; } = new();
 
         [ObservableProperty]
@@ -60,11 +61,18 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         public ICommand DownloadButtonCommand { get; }
 
+        /*
+         * Environment.NewLine cannot be used alone as TextBox.Text separator
+         * because of this TextBox bug which somehow converts \r\n to \r and it's still not fixed...
+         * https://github.com/microsoft/microsoft-ui-xaml/issues/1826
+         * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
+        */
+        public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
         private void ExecuteDownloadButtonCommand() {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
-            string[] urlOrIds = DownloadInputText.Split(NEW_LINE_SEPS, DEFAULT_STR_SPLIT_OPTIONS);
+            string[] urlOrIds = DownloadInputText.Split(NEW_LINE_SEPS, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (urlOrIds.Length == 0) {
-                MainWindow.CurrMW.NotifyUser(_resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString, "");
+                MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString });
                 return;
             }
             List<int> extractedIds = [];
@@ -75,16 +83,13 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             }
             if (extractedIds.Count == 0) {
-                MainWindow.CurrMW.NotifyUser(
-                    _resourceMap.GetValue("Notification_DownloadInputTextBox_Invalid_Title").ValueAsString,
-                    ""
-                );
+                MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Invalid_Title").ValueAsString });
                 return;
             }
             DownloadInputText = "";
 
             foreach (int id in extractedIds) {
-                DownloadManagerVM.Main.TryDownload(id);
+                DownloadManagerVM.TryDownload(id);
             }
         }
     }

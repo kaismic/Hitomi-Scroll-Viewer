@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using static HitomiScrollViewerLib.Views.PageViews.ViewPage;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
-    public class ViewPageVM : IAppWindowClosingHandler {
+    public class ViewPageVM {
         private static ViewPageVM _main;
         public static ViewPageVM Main => _main ??= new();
 
-        public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
+        public void HandleAppWindowClosing() {
             //// TODO save settings indivisually when they are changed
             //ToggleAutoScroll(false);
             //_settings.Values[SCROLL_DIRECTION_SETTING_KEY] = (int)_scrollDirection;

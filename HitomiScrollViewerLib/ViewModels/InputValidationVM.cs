@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
+namespace HitomiScrollViewerLib.ViewModels {
     public partial class InputValidationVM : ObservableObject {
         public delegate bool InputValidator(string input, out string errorMsg);
         private readonly List<InputValidator> _validators = [];
