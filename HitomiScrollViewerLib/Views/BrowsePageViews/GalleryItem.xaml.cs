@@ -2,6 +2,8 @@ using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using System.Linq;
+using Windows.UI;
 
 namespace HitomiScrollViewerLib.Views.BrowsePageViews {
     public sealed partial class GalleryItem : UserControl {
@@ -14,12 +16,12 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             get => _viewModel;
             set {
                 _viewModel = value;
-                string typeBrush = value.Gallery.GalleryType.ToString() + "Brush";
-                TitleBackgroundBrush = Resources[typeBrush + Resources["TitleBackgroundBrushNumber"]] as SolidColorBrush;
-                SubtitleBackgroundBrush = Resources[typeBrush + Resources["SubtitleBackgroundBrushNumber"]] as SolidColorBrush;
-                TextForegroundBrush = Resources[typeBrush + Resources["TextForegroundBrushNumber"]] as SolidColorBrush;
-
-                
+                string baseColorKey = value.Gallery.GalleryType.ToString() + "Color";
+                string[] colorKeys = Enumerable.Range(0, 3).Select(i => baseColorKey + i).ToArray();
+                bool isLightTheme = RequestedTheme == ElementTheme.Light;
+                TitleBackgroundBrush = new((Color)Resources[colorKeys[1]]);
+                SubtitleBackgroundBrush = new((Color)Resources[colorKeys[isLightTheme ? 2 : 0]]);
+                TextForegroundBrush = new((Color)Resources[colorKeys[isLightTheme ? 0 : 2]]);
             }
         }
 

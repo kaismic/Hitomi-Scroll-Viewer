@@ -8,44 +8,29 @@
     xmlns:bpvs="using:HitomiScrollViewerLib.Views.BrowsePageViews"
     >
     <UserControl.Resources>
-        <SolidColorBrush x:Key="DoujinshiBrush1" Color="#663333"/>
-        <SolidColorBrush x:Key="DoujinshiBrush2" Color="#cc9999"/>
-        <SolidColorBrush x:Key="DoujinshiBrush3" Color="#ffcccc"/>
+        <Color x:Key="DoujinshiColor0">#663333</Color>
+        <Color x:Key="DoujinshiColor1">#cc9999</Color>
+        <Color x:Key="DoujinshiColor2">#ffcccc</Color>
 
-        <SolidColorBrush x:Key="MangaBrush1" Color="#663366"/>
-        <SolidColorBrush x:Key="MangaBrush2" Color="#cc99cc"/>
-        <SolidColorBrush x:Key="MangaBrush3" Color="#ffccff"/>
+        <Color x:Key="MangaColor0">#663366</Color>
+        <Color x:Key="MangaColor1">#cc99cc</Color>
+        <Color x:Key="MangaColor2">#ffccff</Color>
 
-        <SolidColorBrush x:Key="ArtistCGBrush1" Color="#336666"/>
-        <SolidColorBrush x:Key="ArtistCGBrush2" Color="#99cccc"/>
-        <SolidColorBrush x:Key="ArtistCGBrush3" Color="#ccffff"/>
+        <Color x:Key="ArtistCGColor0">#336666</Color>
+        <Color x:Key="ArtistCGColor1">#99cccc</Color>
+        <Color x:Key="ArtistCGColor2">#ccffff</Color>
 
-        <SolidColorBrush x:Key="GameCGBrush1" Color="#333366"/>
-        <SolidColorBrush x:Key="GameCGBrush2" Color="#9999cc"/>
-        <SolidColorBrush x:Key="GameCGBrush3" Color="#ccccff"/>
+        <Color x:Key="GameCGColor0">#333366</Color>
+        <Color x:Key="GameCGColor1">#9999cc</Color>
+        <Color x:Key="GameCGColor2">#ccccff</Color>
 
-        <SolidColorBrush x:Key="ImageSetBrush1" Color="#696969"/>
-        <SolidColorBrush x:Key="ImageSetBrush2" Color="#999999"/>
-        <SolidColorBrush x:Key="ImageSetBrush3" Color="#cccccc"/>
+        <Color x:Key="ImageSetColor0">#696969</Color>
+        <Color x:Key="ImageSetColor1">#999999</Color>
+        <Color x:Key="ImageSetColor2">#cccccc</Color>
 
-        <SolidColorBrush x:Key="AnimeBrush1" Color="#336633"/>
-        <SolidColorBrush x:Key="AnimeBrush2" Color="#99cc99"/>
-        <SolidColorBrush x:Key="AnimeBrush3" Color="#ccffcc"/>
-
-        <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <x:String x:Key="TitleBackgroundBrushNumber">2</x:String>
-                    <x:String x:Key="SubtitleBackgroundBrushNumber">3</x:String>
-                    <x:String x:Key="TextForegroundBrushNumber">1</x:String>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <x:String x:Key="TitleBackgroundBrushNumber">2</x:String>
-                    <x:String x:Key="SubtitleBackgroundBrushNumber">1</x:String>
-                    <x:String x:Key="TextForegroundBrushNumber">3</x:String>
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
-        </ResourceDictionary>
+        <Color x:Key="AnimeColor0">#336633</Color>
+        <Color x:Key="AnimeColor1">#99cc99</Color>
+        <Color x:Key="AnimeColor2">#ccffcc</Color>
     </UserControl.Resources>
     <Grid Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
