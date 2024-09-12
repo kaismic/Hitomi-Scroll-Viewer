@@ -117,16 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ExampleTagFilterSet_4" xml:space="preserve">
+  <data name="ExampleTagFilterName_4" xml:space="preserve">
     <value>Tag: Non-H</value>
   </data>
-  <data name="ExampleTagFilterSet_3" xml:space="preserve">
+  <data name="ExampleTagFilterName_3" xml:space="preserve">
     <value>Series: Naruto, Female: Big Breasts</value>
   </data>
-  <data name="ExampleTagFilterSet_1" xml:space="preserve">
+  <data name="ExampleTagFilterName_1" xml:space="preserve">
     <value>Tag: Full Color, Female: Very Long Hair</value>
   </data>
-  <data name="ExampleTagFilterSet_2" xml:space="preserve">
+  <data name="ExampleTagFilterName_2" xml:space="preserve">
     <value>Female: Glasses, Male: Sole Male</value>
   </data>
 </root>
