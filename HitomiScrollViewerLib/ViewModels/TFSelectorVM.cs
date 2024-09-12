@@ -9,12 +9,12 @@ using System.Collections.Specialized;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class TFSSelectorVM : ObservableObject {
-        private ObservableCollection<TagFilterSet> TagFilterSets {
+    public partial class TFSelectorVM : ObservableObject {
+        private ObservableCollection<TagFilter> TagFilters {
             set {
-                value.CollectionChanged += TagFilterSets_CollectionChanged;
+                value.CollectionChanged += TagFilters_CollectionChanged;
                 TfsCheckBoxModels = [];
-                foreach (TagFilterSet tfs in value) {
+                foreach (TagFilter tfs in value) {
                     TFSCheckBoxModel model = new(
                         tfs,
                         new RelayCommand<TFSCheckBoxModel>(CheckBoxToggleHandler)
@@ -36,14 +36,14 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private bool _anySelected;
 
-        public TFSSelectorVM(ObservableCollection<TagFilterSet> tagFilterSets) {
-            TagFilterSets = tagFilterSets;
+        public TFSelectorVM(ObservableCollection<TagFilter> tagFilterSets) {
+            TagFilters = tagFilterSets;
         }
 
-        private void TagFilterSets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+        private void TagFilters_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Add:
-                    foreach (var tfs in e.NewItems.Cast<TagFilterSet>()) {
+                    foreach (var tfs in e.NewItems.Cast<TagFilter>()) {
                         TFSCheckBoxModel model = new(
                             tfs,
                             new RelayCommand<TFSCheckBoxModel>(CheckBoxToggleHandler)
@@ -52,8 +52,8 @@ namespace HitomiScrollViewerLib.ViewModels {
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    foreach (var tfs in e.OldItems.Cast<TagFilterSet>()) {
-                        var modelToRemove = TfsCheckBoxModels.FirstOrDefault(model => model.TagFilterSet.Id == tfs.Id);
+                    foreach (var tfs in e.OldItems.Cast<TagFilter>()) {
+                        var modelToRemove = TfsCheckBoxModels.FirstOrDefault(model => model.TagFilter.Id == tfs.Id);
                         if (modelToRemove != null) {
                             TfsCheckBoxModels.Remove(modelToRemove);
                             SelectedCBModels.Remove(tfs.Id);
@@ -61,14 +61,14 @@ namespace HitomiScrollViewerLib.ViewModels {
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
-                    TagFilterSets_CollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, e.NewItems));
-                    TagFilterSets_CollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, e.OldItems));
+                    TagFilters_CollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, e.NewItems));
+                    TagFilters_CollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, e.OldItems));
                     break;
                 // Assuming Move does not happen
                 case NotifyCollectionChangedAction.Move:
                     break;
                 case NotifyCollectionChangedAction.Reset:
-                    TagFilterSets = sender as ObservableCollection<TagFilterSet>;
+                    TagFilters = sender as ObservableCollection<TagFilter>;
                     break;
             }
         }
@@ -79,14 +79,14 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public virtual void CheckBoxToggleHandler(TFSCheckBoxModel model) {
             if (model.IsChecked) {
-                SelectedCBModels.Add(model.TagFilterSet.Id, model);
+                SelectedCBModels.Add(model.TagFilter.Id, model);
             } else {
-                SelectedCBModels.Remove(model.TagFilterSet.Id);
+                SelectedCBModels.Remove(model.TagFilter.Id);
             }
         }
 
-        public IEnumerable<TagFilterSet> GetSelectedTFSs() {
-            return SelectedCBModels.Values.Select(model => model.TagFilterSet);
+        public IEnumerable<TagFilter> GetSelectedTagFilters() {
+            return SelectedCBModels.Values.Select(model => model.TagFilter);
         }
     }
 }

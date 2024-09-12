@@ -32,7 +32,7 @@ namespace HitomiScrollViewerLib.Entities {
         public string SearchParamValue { get; set; }
         public int GalleryCount { get; set; }
 
-        public virtual ICollection<TagFilterSet> TagFilterSets { get; set; }
+        public virtual ICollection<TagFilter> TagFilterSets { get; set; }
         public virtual ICollection<Gallery> Galleries { get; set; }
 
 

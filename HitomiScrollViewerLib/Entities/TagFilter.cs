@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Name), IsUnique = true)]
-    public class TagFilterSet : INotifyPropertyChanged {
+    public class TagFilter : INotifyPropertyChanged {
         public const int TAG_FILTER_SET_NAME_MAX_LEN = 100;
         [JsonIgnore]
         public int Id { get; set; }

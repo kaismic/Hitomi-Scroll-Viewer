@@ -20,11 +20,11 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private static SearchPageVM _main;
-        public static SearchPageVM Main => _main ??= new SearchPageVM();
+        public static SearchPageVM Main => _main ??= new() ;
 
         public ObservableCollection<SearchLinkItemVM> SearchLinkItemVMs { get; } = [];
         public TagFilterEditorVM TagFilterSetEditorVM { get; set; }
-        public DownloadManagerVM DownloadManagerVM { get; set; }
+        public DownloadManagerVM DownloadManagerVM { get; } = DownloadManagerVM.Main;
         public SyncManagerVM SyncManagerVM { get; } = new();
 
         [ObservableProperty]

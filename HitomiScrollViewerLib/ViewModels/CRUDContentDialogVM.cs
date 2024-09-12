@@ -20,7 +20,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         private readonly string _oldName;
         private readonly CRUDAction _action;
         private InputValidationVM _inputValidationVM;
-        private TFSSelectorVM _tfsSelectorVM;
+        private TFSelectorVM _tfsSelectorVM;
 
         [ObservableProperty]
         private string _titleText;
@@ -63,7 +63,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             PrimaryButtonText = _resourceMap.GetValue($"Text_{_action}").ValueAsString;
             switch (_action) {
                 case CRUDAction.Create or CRUDAction.Rename:
-                    _inputValidationVM = new(Entities.TagFilterSet.TAG_FILTER_SET_NAME_MAX_LEN);
+                    _inputValidationVM = new(Entities.TagFilter.TAG_FILTER_SET_NAME_MAX_LEN);
                     if (_action == CRUDAction.Rename) {
                         _inputValidationVM.InputText = _oldName;
                         _inputValidationVM.AddValidator(CheckSameNameAsBefore);
@@ -72,14 +72,14 @@ namespace HitomiScrollViewerLib.ViewModels {
                     Content = new InputValidation() { ViewModel = _inputValidationVM };
                     break;
                 case CRUDAction.Delete:
-                    _tfsSelectorVM = new(HitomiContext.Main.TagFilterSets.Local.ToObservableCollection());
+                    _tfsSelectorVM = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
                     Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
                     break;
             }
         }
 
         private bool CheckDuplicate(string name, out string errorMessage) {
-            if (HitomiContext.Main.TagFilterSets.Any(tfs => tfs.Name == name)) {
+            if (HitomiContext.Main.TagFilters.Any(tfs => tfs.Name == name)) {
                 errorMessage = string.Format(
                     _resourceMap.GetValue("Error_Message_Duplicate").ValueAsString,
                     name
@@ -103,8 +103,8 @@ namespace HitomiScrollViewerLib.ViewModels {
             return _inputValidationVM.InputText;
         }
 
-        public IEnumerable<TagFilterSet> GetSelectedTFSs() {
-            return _tfsSelectorVM.GetSelectedTFSs();
+        public IEnumerable<TagFilter> GetSelectedTagFilters() {
+            return _tfsSelectorVM.GetSelectedTagFilters();
         }
     }
 }

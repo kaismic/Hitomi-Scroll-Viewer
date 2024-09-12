@@ -259,7 +259,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             string uploadFileContent = userDataType switch {
-                UserDataType.TagFilterSet => JsonSerializer.Serialize(HitomiContext.Main.TagFilterSets, TF_SERIALIZER_OPTIONS),
+                UserDataType.TagFilterSet => JsonSerializer.Serialize(HitomiContext.Main.TagFilters, TF_SERIALIZER_OPTIONS),
                 UserDataType.Gallery => JsonSerializer.Serialize(HitomiContext.Main.Galleries, TF_SERIALIZER_OPTIONS),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
@@ -379,23 +379,23 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                 _cts.Token
                             );
                             string fetchedFileContent = await File.ReadAllTextAsync(TFS_SYNC_FILE_PATH, _cts.Token);
-                            IEnumerable<TagFilterSet> fetchedTFSs =
+                            IEnumerable<TagFilter> fetchedTFSs =
                                 JsonSerializer
-                                .Deserialize<IEnumerable<TagFilterSet>>
+                                .Deserialize<IEnumerable<TagFilter>>
                                 (fetchedFileContent, TF_SERIALIZER_OPTIONS);
                             // Overwrite
                             if (RadioButtons_2_SelectedIndex == 0) {
-                                HitomiContext.Main.TagFilterSets.RemoveRange(HitomiContext.Main.TagFilterSets);
-                                HitomiContext.Main.TagFilterSets.AddRange(fetchedTFSs);
+                                HitomiContext.Main.TagFilters.RemoveRange(HitomiContext.Main.TagFilters);
+                                HitomiContext.Main.TagFilters.AddRange(fetchedTFSs);
                                 HitomiContext.Main.SaveChanges();
                             }
                             // Append
                             else {
-                                foreach (TagFilterSet fetchedTFS in fetchedTFSs) {
-                                    TagFilterSet existingTFS = HitomiContext.Main.TagFilterSets.FirstOrDefault(tfs => tfs.Name == fetchedTFS.Name);
+                                foreach (TagFilter fetchedTFS in fetchedTFSs) {
+                                    TagFilter existingTFS = HitomiContext.Main.TagFilters.FirstOrDefault(tfs => tfs.Name == fetchedTFS.Name);
                                     // no duplicate name so just add
                                     if (existingTFS == null) {
-                                        HitomiContext.Main.TagFilterSets.Add(fetchedTFS);
+                                        HitomiContext.Main.TagFilters.Add(fetchedTFS);
                                     }
                                     // if replace option is selected, replace local tfs tags with duplicate name
                                     else if (RadioButtons_3_SelectedIndex == 0) {

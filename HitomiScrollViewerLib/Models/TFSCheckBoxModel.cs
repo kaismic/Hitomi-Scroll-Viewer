@@ -4,14 +4,14 @@ using System.Windows.Input;
 
 namespace HitomiScrollViewerLib.Models {
     public partial class TFSCheckBoxModel(
-        TagFilterSet tagFilterSet,
+        TagFilter tagFilter,
         ICommand checkBoxToggleCommand
     ) : ObservableObject {
         [ObservableProperty]
         private bool _isChecked;
         [ObservableProperty]
         private bool _isEnabled;
-        public TagFilterSet TagFilterSet { get; } = tagFilterSet;
+        public TagFilter TagFilter { get; } = tagFilter;
         public ICommand CheckBoxToggleCommand { get; } = checkBoxToggleCommand;
     }
 }

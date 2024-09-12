@@ -5,13 +5,14 @@ using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using Soluling;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
@@ -30,6 +31,11 @@ namespace HitomiScrollViewerLib.ViewModels {
             { TagCategory.Series, "series" }
         };
 
+        private static event PropertyChangedEventHandler StaticPropertyChanged;
+        private static void NotifyStaticPropertyChanged([CallerMemberName] string name = null) {
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(name));
+        }
+
         [ObservableProperty]
         private int _galleryTypeSelectedIndex;
         public GalleryTypeEntity[] GalleryTypeEntities { get; } =
@@ -46,8 +52,20 @@ namespace HitomiScrollViewerLib.ViewModels {
                 HitomiContext.Main.GalleryLanguages.OrderBy(gl => gl.LocalName)
             ).ToArray();
 
-        [ObservableProperty]
-        private bool _isAutoSaveEnabled;
+
+        private static bool s_isAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
+        public bool IsAutoSaveEnabled {
+            get => s_isAutoSaveEnabled;
+            set {
+                if (s_isAutoSaveEnabled != value) {
+                    s_isAutoSaveEnabled = value;
+                    ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = value;
+                    NotifyStaticPropertyChanged();
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private static readonly string AUTO_SAVE_SETTING_KEY = "AutoSave";
         public string AutoSaveCheckBoxText { get; } = _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
 
@@ -55,30 +73,30 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         [ObservableProperty]
         private string _searchTitleText;
-        partial void OnIsAutoSaveEnabledChanged(bool value) {
-            ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = value;
-        }
+
         [ObservableProperty]
-        private TagFilterSet _selectedTFS;
+        private TagFilter _selectedTagFilter;
 
 
         public bool AnyFilterSelected {
             get => GalleryLanguageSelectedIndex > 0 ||
                 GalleryTypeSelectedIndex > 0 ||
                 SearchTitleText.Length > 0 ||
-                IncludeTFSSelectorVM.AnySelected || ExcludeTFSSelectorVM.AnySelected;
+                IncludeTFSelectorVM.AnySelected || ExcludeTFSelectorVM.AnySelected;
         }
 
-        public PairedTFSSelectorVM IncludeTFSSelectorVM { get; } = new(HitomiContext.Main.TagFilterSets.Local.ToObservableCollection());
-        public PairedTFSSelectorVM ExcludeTFSSelectorVM { get; } = new(HitomiContext.Main.TagFilterSets.Local.ToObservableCollection());
+        public PairedTFSelectorVM IncludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
+        public PairedTFSelectorVM ExcludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
 
-        private HashSet<int> DeletedTFSIds { get; set; }
+        private HashSet<int> DeletedTagFilterIds { get; set; }
 
         private TagFilterEditorVM() {
-            IncludeTFSSelectorVM.OtherTFSSelectorVM = ExcludeTFSSelectorVM;
-            ExcludeTFSSelectorVM.OtherTFSSelectorVM = IncludeTFSSelectorVM;
+            IncludeTFSelectorVM.OtherTFSSelectorVM = ExcludeTFSelectorVM;
+            ExcludeTFSelectorVM.OtherTFSSelectorVM = IncludeTFSelectorVM;
 
-            IsAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
+            StaticPropertyChanged += (object _0, PropertyChangedEventArgs e) => {
+                OnPropertyChanged(e.PropertyName);
+            };
 
             for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
                 TttVMs[i] = new((TagCategory)i);
@@ -94,25 +112,25 @@ namespace HitomiScrollViewerLib.ViewModels {
                 .ToHashSet();
         }
 
-        private void TagFilterSetComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
-            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TagFilterSet prevTFS && IsAutoSaveEnabled) {
-                // do not save if this selection change occurred due to deletion of currently selected tfs
-                if (DeletedTFSIds == null) {
-                    SaveTFS(prevTFS);
-                } else if (!DeletedTFSIds.Contains(prevTFS.Id)) {
-                    SaveTFS(prevTFS);
+        private void TagFilterComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
+            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TagFilter prevTagFilter && IsAutoSaveEnabled) {
+                // do not save if this selection change occurred due to deletion of currently selected tag filter
+                if (DeletedTagFilterIds == null) {
+                    SaveTagFilter(prevTagFilter);
+                } else if (!DeletedTagFilterIds.Contains(prevTagFilter.Id)) {
+                    SaveTagFilter(prevTagFilter);
                 }
             }
             foreach (var vm in TttVMs) {
                 vm.SelectedTags.Clear();
             }
 
-            ICollection<Tag> selectedTFSTags = HitomiContext.Main
-                .TagFilterSets
-                .Include(tfs => tfs.Tags)
-                .First(tfs => tfs.Id == SelectedTFS.Id)
+            ICollection<Tag> selectedTagFilterTags = HitomiContext.Main
+                .TagFilters
+                .Include(tf => tf.Tags)
+                .First(tf => tf.Id == SelectedTagFilter.Id)
                 .Tags;
-            foreach (Tag tag in selectedTFSTags) {
+            foreach (Tag tag in selectedTagFilterTags) {
                 TttVMs[(int)tag.Category].SelectedTags.Add(tag);
             }
         }
@@ -126,13 +144,13 @@ namespace HitomiScrollViewerLib.ViewModels {
                 return;
             }
             string name = cdvm.GetInputText();
-            TagFilterSet tfs = new() {
+            TagFilter tf = new() {
                 Name = name,
                 Tags = GetCurrentTags()
             };
-            HitomiContext.Main.TagFilterSets.Add(tfs);
+            HitomiContext.Main.TagFilters.Add(tf);
             HitomiContext.Main.SaveChanges();
-            SelectedTFS = tfs;
+            SelectedTagFilter = tf;
             MainWindowVM.Main.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Create_Complete").ValueAsString,
@@ -143,18 +161,18 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public ICommand RenameButtonCommand => new RelayCommand(
             RenameButton_Click,
-            () => SelectedTFS != null
+            () => SelectedTagFilter != null
         );
 
         private async void RenameButton_Click() {
-            string oldName = SelectedTFS.Name;
+            string oldName = SelectedTagFilter.Name;
             CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Rename, oldName);
             CRUDContentDialog cd = new() { ViewModel = cdvm };
             if (await cd.ShowAsync() != ContentDialogResult.Primary) {
                 return;
             }
             string newName = cdvm.GetInputText();
-            SelectedTFS.Name = newName;
+            SelectedTagFilter.Name = newName;
             HitomiContext.Main.SaveChanges();
             MainWindowVM.Main.ShowPopup(
                 string.Format(
@@ -168,22 +186,22 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public ICommand SaveButtonCommand => new RelayCommand(
             SaveButton_Click,
-            () => SelectedTFS != null
+            () => SelectedTagFilter != null
         );
 
-        private void SaveTFS(TagFilterSet tfs) {
-            tfs.Tags = GetCurrentTags();
+        private void SaveTagFilter(TagFilter tf) {
+            tf.Tags = GetCurrentTags();
             HitomiContext.Main.SaveChanges();
             MainWindowVM.Main.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
-                    tfs.Name
+                    tf.Name
                 )
             );
         }
 
         private void SaveButton_Click() {
-            SaveTFS(SelectedTFS);
+            SaveTagFilter(SelectedTagFilter);
         }
 
         public ICommand DeleteButtonCommand => new RelayCommand(DeleteButton_Click);
@@ -194,20 +212,20 @@ namespace HitomiScrollViewerLib.ViewModels {
             if (await cd.ShowAsync() != ContentDialogResult.Primary) {
                 return;
             }
-            IEnumerable<TagFilterSet> selectedTFSs = cdvm.GetSelectedTFSs();
-            DeletedTFSIds = selectedTFSs.Select(tfs => tfs.Id).ToHashSet();
-            HitomiContext.Main.TagFilterSets.RemoveRange(cdvm.GetSelectedTFSs());
+            IEnumerable<TagFilter> SelectedTagFilters = cdvm.GetSelectedTagFilters();
+            DeletedTagFilterIds = SelectedTagFilters.Select(tf => tf.Id).ToHashSet();
+            HitomiContext.Main.TagFilters.RemoveRange(cdvm.GetSelectedTagFilters());
             HitomiContext.Main.SaveChanges();
             MainWindowVM.Main.ShowPopup(
                 MultiPattern.Format(
                     _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,
-                    DeletedTFSIds.Count
+                    DeletedTagFilterIds.Count
                 )
             );
         }
 
         private (IEnumerable<Tag> includeTags, IEnumerable<Tag> excludeTags)? GetValidatedTags() {
-            // check if all selected TFSs are all empty
+            // check if all selected tag filters are all empty
             if (!AnyFilterSelected) {
                 MainWindowVM.NotifyUser(new() {
                     Title = _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString
@@ -215,24 +233,24 @@ namespace HitomiScrollViewerLib.ViewModels {
                 return null;
             }
 
-            IEnumerable<TagFilterSet> includeTFSs = IncludeTFSSelectorVM.GetSelectedTFSs();
-            IEnumerable<TagFilterSet> excludeTFSs = ExcludeTFSSelectorVM.GetSelectedTFSs();
-            IEnumerable<int> includeTFSIds = includeTFSs.Select(tfs => tfs.Id);
-            IEnumerable<int> excludeTFSIds = excludeTFSs.Select(tfs => tfs.Id);
-            HitomiContext.Main.TagFilterSets
-                .Where(tfs => includeTFSIds.Contains(tfs.Id) || excludeTFSIds.Contains(tfs.Id))
-                .Include(tfs => tfs.Tags)
+            IEnumerable<TagFilter> includeTagFilters = IncludeTFSelectorVM.GetSelectedTagFilters();
+            IEnumerable<TagFilter> excludeTagFilters = ExcludeTFSelectorVM.GetSelectedTagFilters();
+            IEnumerable<int> includeTagFilterIds = includeTagFilters.Select(tf => tf.Id);
+            IEnumerable<int> excludeTagFilterIds = excludeTagFilters.Select(tf => tf.Id);
+            HitomiContext.Main.TagFilters
+                .Where(tf => includeTagFilterIds.Contains(tf.Id) || excludeTagFilterIds.Contains(tf.Id))
+                .Include(tf => tf.Tags)
                 .Load();
-            IEnumerable<Tag> includeTags = includeTFSs.SelectMany(tfs => tfs.Tags);
-            IEnumerable<Tag> excludeTags = excludeTFSs.SelectMany(tfs => tfs.Tags);
+            IEnumerable<Tag> includeTags = includeTagFilters.SelectMany(tf => tf.Tags);
+            IEnumerable<Tag> excludeTags = excludeTagFilters.SelectMany(tf => tf.Tags);
 
-            // update to use current tags in text boxes if the selected TFSs contain the combobox selected tfs
-            if (SelectedTFS != null) {
+            // update to use current tags in text boxes if the selected tag filters contain the combobox selected tag filter
+            if (SelectedTagFilter != null) {
                 HashSet<Tag> currentTags = GetCurrentTags();
-                if (includeTFSIds.Contains(SelectedTFS.Id)) {
-                    includeTags = includeTags.Except(SelectedTFS.Tags).Union(currentTags);
-                } else if (excludeTFSIds.Contains(SelectedTFS.Id)) {
-                    excludeTags = excludeTags.Except(SelectedTFS.Tags).Union(currentTags);
+                if (includeTagFilterIds.Contains(SelectedTagFilter.Id)) {
+                    includeTags = includeTags.Except(SelectedTagFilter.Tags).Union(currentTags);
+                } else if (excludeTagFilterIds.Contains(SelectedTagFilter.Id)) {
+                    excludeTags = excludeTags.Except(SelectedTagFilter.Tags).Union(currentTags);
                 }
             }
 

@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
-    internal class TagFilterV2 {
+    internal class LegacyTagFilter {
         private static readonly Dictionary<string, TagCategory> INV_CATEGORY_PROP_KEY_DICT = new() {
             { "tag", TagCategory.Tag },
             { "male", TagCategory.Male },
@@ -34,7 +33,7 @@ namespace HitomiScrollViewerLib.Entities {
         public Dictionary<string, IEnumerable<string>> ExcludeTags { get; set; }
 
 
-        private static void ConvertV2TagValuesToV3Tags(List<string> tagValues, List<Tag> tags, TagCategory category) {
+        private static void ConvertTagValues(List<string> tagValues, List<Tag> tags, TagCategory category) {
             tags.AddRange(
                 tagValues.Select(
                     tagValue => {
@@ -60,8 +59,8 @@ namespace HitomiScrollViewerLib.Entities {
             );
         }
 
-        internal List<TagFilterSet> ToTagFilterSet(string name) {
-            List<TagFilterSet> result = [];
+        internal List<TagFilter> ToTagFilter(string name) {
+            List<TagFilter> result = [];
 
             bool hasAnyTags = false;
             List<Tag> includeTFSTags = [];
@@ -71,11 +70,11 @@ namespace HitomiScrollViewerLib.Entities {
                 }
                 List<string> tagValues = kvp.Value.ToList();
                 hasAnyTags |= tagValues.Count != 0;
-                ConvertV2TagValuesToV3Tags(tagValues, includeTFSTags, INV_CATEGORY_PROP_KEY_DICT[kvp.Key]);
+                ConvertTagValues(tagValues, includeTFSTags, INV_CATEGORY_PROP_KEY_DICT[kvp.Key]);
             }
             if (hasAnyTags) {
                 result.Add(
-                    new TagFilterSet() {
+                    new TagFilter() {
                         Name = name + " - " + TEXT_INCLUDE,
                         Tags = includeTFSTags
                     }
@@ -90,11 +89,11 @@ namespace HitomiScrollViewerLib.Entities {
                 }
                 List<string> tagValues = kvp.Value.ToList();
                 hasAnyTags |= tagValues.Count != 0;
-                ConvertV2TagValuesToV3Tags(tagValues, excludeTFSTags, INV_CATEGORY_PROP_KEY_DICT[kvp.Key]);
+                ConvertTagValues(tagValues, excludeTFSTags, INV_CATEGORY_PROP_KEY_DICT[kvp.Key]);
             }
             if (hasAnyTags) {
                 result.Add(
-                    new TagFilterSet() {
+                    new TagFilter() {
                         Name = name + " - " + TEXT_INCLUDE,
                         Tags = excludeTFSTags
                     }

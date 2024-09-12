@@ -3,6 +3,7 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.PageVMs;
+using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
@@ -58,14 +59,14 @@ namespace HitomiScrollViewerLib.ViewModels {
                     vm.IsIndeterminate = false;
                     vm.Value = 0;
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingTFSs);
-                    Dictionary<string, TagFilterV2> tagFilterV2 = (Dictionary<string, TagFilterV2>)JsonSerializer.Deserialize(
+                    Dictionary<string, LegacyTagFilter> tagFilterV2 = (Dictionary<string, LegacyTagFilter>)JsonSerializer.Deserialize(
                         File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-                        typeof(Dictionary<string, TagFilterV2>),
+                        typeof(Dictionary<string, LegacyTagFilter>),
                         TF_SERIALIZER_OPTIONS
                     );
                     vm.Maximum = tagFilterV2.Count;
                     foreach (var pair in tagFilterV2) {
-                        HitomiContext.Main.TagFilterSets.AddRange(pair.Value.ToTagFilterSet(pair.Key));
+                        HitomiContext.Main.TagFilters.AddRange(pair.Value.ToTagFilter(pair.Key));
                         vm.Value++;
                     }
                     HitomiContext.Main.SaveChanges();
@@ -77,7 +78,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 if (!v2TagFilterExists && dbCreatedFirstTime) {
                     vm.IsIndeterminate = true;
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.AddingExampleTFSs);
-                    HitomiContext.Main.AddExampleTagFilterSets();
+                    HitomiContext.Main.AddExampleTagFilters();
                 }
 
                 // move images folder in roaming folder to local
@@ -157,7 +158,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
-            if (SearchPageVM.Main.DownloadManagerVM.DownloadItemVMs.Count > 0) {
+            if (DownloadManagerVM.Main.DownloadItemVMs.Count > 0) {
                 ContentDialogModel cdModel = new() {
                     DefaultButton = ContentDialogButton.Close,
                     Title = _resourceMap.GetValue("Text_DownloadRemaining").ValueAsString,

@@ -11,7 +11,7 @@ using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.DbContexts {
     public class HitomiContext : DbContext {
-        public DbSet<TagFilterSet> TagFilterSets { get; set; }
+        public DbSet<TagFilter> TagFilters { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
@@ -127,32 +127,32 @@ namespace HitomiScrollViewerLib.DbContexts {
             }
         }
 
-        public void AddExampleTagFilterSets() {
-            ResourceMap resourceMap = MainResourceMap.GetSubtree("ExampleTFSNames");
-            TagFilterSets.AddRange(
+        public void AddExampleTagFilters() {
+            ResourceMap resourceMap = MainResourceMap.GetSubtree("ExampleTagFilterNames");
+            TagFilters.AddRange(
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterSet_1").ValueAsString,
+                    Name = resourceMap.GetValue("ExampleTagFilterName_1").ValueAsString,
                     Tags = [
                         Tag.GetTag("full color", TagCategory.Tag),
                         Tag.GetTag("very long hair", TagCategory.Female),
                     ]
                 },
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterSet_2").ValueAsString,
+                    Name = resourceMap.GetValue("ExampleTagFilterName_2").ValueAsString,
                     Tags = [
                         Tag.GetTag("glasses", TagCategory.Female),
                         Tag.GetTag("sole male", TagCategory.Male),
                     ]
                 },
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterSet_3").ValueAsString,
+                    Name = resourceMap.GetValue("ExampleTagFilterName_3").ValueAsString,
                     Tags = [
                         Tag.GetTag("naruto", TagCategory.Series),
                         Tag.GetTag("big breasts", TagCategory.Tag),
                     ]
                 },
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterSet_4").ValueAsString,
+                    Name = resourceMap.GetValue("ExampleTagFilterName_4").ValueAsString,
                     Tags = [
                         Tag.GetTag("non-h imageset", TagCategory.Tag)
                     ]

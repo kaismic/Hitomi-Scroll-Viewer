@@ -3,7 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace HitomiScrollViewerLib.Views {
     public partial class TFSSelector : Grid {
-        public TFSSelectorVM ViewModel { get; set; }
+        public TFSelectorVM ViewModel { get; set; }
 
         public TFSSelector() {
             InitializeComponent();
