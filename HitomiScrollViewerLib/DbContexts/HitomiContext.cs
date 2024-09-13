@@ -29,10 +29,7 @@ namespace HitomiScrollViewerLib.DbContexts {
         }
 
         private static readonly string[] ALPHABETS_WITH_123 =
-            Enumerable.Concat(
-                ["123"],
-                Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())
-            ).ToArray();
+            ["123", .. Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())];
 
         private const string DB_RES_ROOT_DIR = "DatabaseResources";
         private static readonly string DELIMITER_FILE_PATH = Path.Combine(

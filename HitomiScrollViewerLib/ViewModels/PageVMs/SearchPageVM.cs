@@ -22,8 +22,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static SearchPageVM _main;
         public static SearchPageVM Main => _main ??= new() ;
 
-        public ObservableCollection<SearchLinkItemVM> SearchLinkItemVMs { get; } = [];
         public TagFilterEditorVM TagFilterSetEditorVM { get; set; }
+        public ObservableCollection<SearchFilterVM> SearchFilterVMs { get; } = [];
         public DownloadManagerVM DownloadManagerVM { get; } = DownloadManagerVM.Main;
         public SyncManagerVM SyncManagerVM { get; } = new();
 
@@ -44,13 +44,13 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public ICommand HyperlinkCreateButtonCommand { get; }
 
         public void HyperlinkCreateButton_Clicked() {
-            SearchLinkItemVM vm = TagFilterSetEditorVM.GetSearchLinkItemVM();
+            SearchFilterVM vm = TagFilterSetEditorVM.GetSearchFilterVM();
             if (vm != null) {
                 // copy link to clipboard
-                vm.DeleteCommand.ExecuteRequested += (XamlUICommand sender, ExecuteRequestedEventArgs args) => {
-                    SearchLinkItemVMs.Remove((SearchLinkItemVM)args.Parameter);
-                };
-                SearchLinkItemVMs.Add(vm);
+                vm.DeleteCommand.Command = new RelayCommand<SearchFilterVM>((arg) => {
+                    SearchFilterVMs.Remove(arg);
+                });
+                SearchFilterVMs.Add(vm);
                 DataPackage dataPackage = new() {
                     RequestedOperation = DataPackageOperation.Copy
                 };

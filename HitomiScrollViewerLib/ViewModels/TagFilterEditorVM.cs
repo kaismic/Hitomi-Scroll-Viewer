@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml.Controls;
@@ -20,16 +19,7 @@ using static HitomiScrollViewerLib.SharedResources;
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : ObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
-        private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
-        private static readonly Dictionary<TagCategory, string> CATEGORY_SEARCH_PARAM_DICT = new() {
-            { TagCategory.Tag, "tag" },
-            { TagCategory.Male, "male" },
-            { TagCategory.Female, "female" },
-            { TagCategory.Artist, "artist" },
-            { TagCategory.Group, "group" },
-            { TagCategory.Character, "character" },
-            { TagCategory.Series, "series" }
-        };
+
 
         private static event PropertyChangedEventHandler StaticPropertyChanged;
         private static void NotifyStaticPropertyChanged([CallerMemberName] string name = null) {
@@ -39,19 +29,12 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private int _galleryTypeSelectedIndex;
         public GalleryTypeEntity[] GalleryTypeEntities { get; } =
-            Enumerable.Concat(
-                [new GalleryTypeEntity() { GalleryType = null }],
-                HitomiContext.Main.GalleryTypes
-            ).ToArray();
+            [new GalleryTypeEntity() { GalleryType = null }, .. HitomiContext.Main.GalleryTypes];
 
         [ObservableProperty]
         private int _galleryLanguageSelectedIndex;
         public GalleryLanguage[] GalleryLanguages { get; } =
-            Enumerable.Concat(
-                [new GalleryLanguage() { LocalName = TEXT_ALL }],
-                HitomiContext.Main.GalleryLanguages.OrderBy(gl => gl.LocalName)
-            ).ToArray();
-
+            [new GalleryLanguage() { LocalName = TEXT_ALL }, .. HitomiContext.Main.GalleryLanguages.OrderBy(gl => gl.LocalName)];
 
         private static bool s_isAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
         public bool IsAutoSaveEnabled {
@@ -224,15 +207,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             );
         }
 
-        private (IEnumerable<Tag> includeTags, IEnumerable<Tag> excludeTags)? GetValidatedTags() {
-            // check if all selected tag filters are all empty
-            if (!AnyFilterSelected) {
-                MainWindowVM.NotifyUser(new() {
-                    Title = _resourceMap.GetValue("Notification_Selected_TagFilterSets_Empty_Title").ValueAsString
-                });
-                return null;
-            }
-
+        public SearchFilterVM GetSearchFilterVM() {
             IEnumerable<TagFilter> includeTagFilters = IncludeTFSelectorVM.GetSelectedTagFilters();
             IEnumerable<TagFilter> excludeTagFilters = ExcludeTFSelectorVM.GetSelectedTagFilters();
             IEnumerable<int> includeTagFilterIds = includeTagFilters.Select(tf => tf.Id);
@@ -271,79 +246,23 @@ namespace HitomiScrollViewerLib.ViewModels {
                 return null;
             }
 
-            return (includeTags, excludeTags);
-        }
-
-        public SearchLinkItemVM GetSearchLinkItemVM() {
-            (IEnumerable<Tag> includeTags, IEnumerable<Tag> excludeTags)? tags = GetValidatedTags();
-            if (!tags.HasValue) {
-                return null;
-            }
-
-            List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and title search
-            List<string> displayTexts = new(Tag.TAG_CATEGORIES.Length + 3); // + 3 for language, type and title search
+            SearchFilterVM searchFilterVM = new() {
+                 IncludeTags = includeTags,
+                 ExcludeTags = excludeTags,
+            };
+            searchFilterVM.InitSearchFilterTagsRepeaterVMs();
 
             if (GalleryLanguageSelectedIndex > 0) {
-                searchParamStrs.Add("language:" + GalleryLanguages[GalleryLanguageSelectedIndex].SearchParamValue);
-                displayTexts.Add(TEXT_LANGUAGE + ": " + GalleryLanguages[GalleryLanguageSelectedIndex].LocalName);
-            }
-
-            if (GalleryTypeSelectedIndex > 0) {
-                searchParamStrs.Add("type:" + GalleryTypeEntities[GalleryTypeSelectedIndex].SearchParamValue);
-                displayTexts.Add(TEXT_TYPE + ": " + GalleryTypeEntities[GalleryTypeSelectedIndex].DisplayName);
-            }
-
-            // add joined include exclude search param strs
-            searchParamStrs.Add(string.Join(' ', tags.Value.includeTags.Select(tag => CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
-            searchParamStrs.Add(string.Join(' ', tags.Value.excludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
-
-            // add display texts for each tag category
-            foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                IEnumerable<string> includeValues = tags.Value.includeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
-                IEnumerable<string> excludeValues = tags.Value.excludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
-                if (!includeValues.Any() && !excludeValues.Any()) {
-                    continue;
-                }
-                IEnumerable<string> withoutEmptyStrs = new string[] {
-                    string.Join(", ", includeValues),
-                    string.Join(", ", excludeValues)
-                }.Where(s => !string.IsNullOrEmpty(s));
-                displayTexts.Add((category).ToString() + ": " + string.Join(", ", withoutEmptyStrs));
-            }
-
-            if (SearchTitleText.Length > 0) {
-                searchParamStrs.Add(SearchTitleText);
-                displayTexts.Add(SearchTitleText);
-            }
-
-            return new(
-                SEARCH_ADDRESS + string.Join(' ', searchParamStrs.Where(s => !string.IsNullOrEmpty(s))),
-                string.Join(Environment.NewLine, displayTexts.Where(s => !string.IsNullOrEmpty(s)))
-            );
-        }
-
-        public IEnumerable<Gallery> GetFilteredGalleries() {
-            (IEnumerable<Tag> includeTags, IEnumerable<Tag> excludeTags)? tags = GetValidatedTags();
-            if (!tags.HasValue) {
-                return null;
-            }
-            IEnumerable<Gallery> filtered = HitomiContext.Main.Galleries;
-            if (GalleryLanguageSelectedIndex > 0) {
-                filtered = filtered.Where(g => g.GalleryLanguage.Id == GalleryLanguages[GalleryLanguageSelectedIndex].Id);
+                searchFilterVM.GalleryLanguage = GalleryLanguages[GalleryLanguageSelectedIndex];
             }
             if (GalleryTypeSelectedIndex > 0) {
-                filtered = filtered.Where(g => g.GalleryType.Id == GalleryTypeEntities[GalleryTypeSelectedIndex].Id);
+                searchFilterVM.GalleryType = GalleryTypeEntities[GalleryTypeSelectedIndex];
             }
             if (SearchTitleText.Length > 0) {
-                filtered = filtered.Where(g => g.Title.Contains(SearchTitleText));
+                searchFilterVM.SearchTitleText = SearchTitleText;
             }
-            foreach (Tag includeTag in tags.Value.includeTags) {
-                filtered = filtered.Intersect(includeTag.Galleries);
-            }
-            foreach (Tag excludeTag in tags.Value.includeTags) {
-                filtered = filtered.Except(excludeTag.Galleries);
-            }
-            return filtered;
+
+            return searchFilterVM;
         }
     }
 }

@@ -1,9 +1,7 @@
-using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
+using HitomiScrollViewerLib.ViewModels;
 using Microsoft.UI.Xaml.Controls;
-using System.Collections.Generic;
 
-namespace HitomiScrollViewerLib.Views.BrowsePageViews {
+namespace HitomiScrollViewerLib.Views {
     public sealed partial class TagItemsRepeater : Grid {
         public TagItemsRepeaterVM ViewModel { get; set; }
         public TagItemsRepeater() {
