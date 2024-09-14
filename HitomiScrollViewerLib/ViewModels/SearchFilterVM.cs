@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerLib.DbContexts;
+﻿using CommunityToolkit.Mvvm.Input;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -49,6 +50,8 @@ namespace HitomiScrollViewerLib.ViewModels {
         public List<SearchFilterTagsRepeaterVM> SearchFilterTagsRepeaterVMs { get; } = [];
 
         public StandardUICommand DeleteCommand { get; } = new(StandardUICommandKind.Delete);
+
+        public event Action<SearchFilterVM> SearchFilterClicked;
 
         private string _searchLink;
         public string SearchLink {
@@ -111,6 +114,11 @@ namespace HitomiScrollViewerLib.ViewModels {
                     );
                 }
             }
+        }
+
+        [RelayCommand]
+        private void HandleSearchFilterClick() {
+            SearchFilterClicked?.Invoke(this);
         }
 
         public IEnumerable<Gallery> GetFilteredGalleries() {

@@ -57,15 +57,12 @@
                     <TextBlock x:Uid="/SearchPage/HyperlinkCreateButtonTextBlock"
                                 FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                 </Button>
-                <ListView Grid.Row="1"
-                            ItemsSource="{x:Bind ViewModel.SearchFilterVMs}"
-                            SelectionMode="None" IsItemClickEnabled="False">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Spacing="4" Padding="8"/>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemTemplate>
+                <ItemsRepeater Grid.Row="1"
+                               ItemsSource="{x:Bind ViewModel.SearchFilterVMs}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="4"/>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="vms:SearchFilterVM">
                             <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
@@ -82,19 +79,8 @@
                                 </AppBarButton>
                             </Grid>
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
-                            <!--see https://github.com/dotnet/maui/issues/8564
-                                        https://github.com/dotnet/maui/pull/10250
-                                        https://github.com/dotnet/maui/pull/10250/commits/ca8a76576ee3b4f692bd3a3182972120c6c8e071-->
-                            <Setter Property="Padding" Value="0"/>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemContainerTransitions>
-                        <TransitionCollection/>
-                    </ListView.ItemContainerTransitions>
-                </ListView>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
             </Grid>
         </Grid>
         <StackPanel Grid.Row="1" Grid.Column="1"
@@ -122,31 +108,17 @@
                     <SymbolIcon Symbol="Download"/>
                 </Button>
             </Grid>
-            <ListView x:Name="DownloadItemsListView"
-                      ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}"
-                      SelectionMode="None" IsItemClickEnabled="False">
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Spacing="4"/>
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-                <ListView.ItemTemplate>
+            <ItemsRepeater x:Name="DownloadItemsListView"
+                           ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Spacing="4"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="spvms:DownloadItemVM">
                         <spviews:DownloadItem ViewModel="{x:Bind}"/>
                     </DataTemplate>
-                </ListView.ItemTemplate>
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
-                        <!--see https://github.com/dotnet/maui/issues/8564
-                                    https://github.com/dotnet/maui/pull/10250
-                                    https://github.com/dotnet/maui/pull/10250/commits/ca8a76576ee3b4f692bd3a3182972120c6c8e071-->
-                        <Setter Property="Padding" Value="0"/>
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.ItemContainerTransitions>
-                    <TransitionCollection/>
-                </ListView.ItemContainerTransitions>
-            </ListView>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
         </StackPanel>
     </Grid>
 </Page>
