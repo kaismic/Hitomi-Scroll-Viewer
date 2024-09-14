@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <controls:DockPanel
-    x:Class="HitomiScrollViewerLib.Controls.ViewPageComponents.GroupedImagePanel"
+    x:Class="HitomiScrollViewerLib.Views.ViewPageViews.GroupedImagePanel"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

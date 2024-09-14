@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="HitomiScrollViewerLib.Views.ViewPageViews.ViewSettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:HitomiScrollViewerLib.Views.ViewPageViews"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    DefaultButton="Close">
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMinWidth">0</x:Double>
+    </ContentDialog.Resources>
+    <StackPanel Spacing="16">
+        <ComboBox ItemsSource="{x:Bind Model.FlowDirectionModels}"
+                  MinWidth="200"
+                  DisplayMemberPath="DisplayText"
+                  SelectedItem="{x:Bind Model.FlowDirectionModel, Mode=TwoWay}">
+            <ComboBox.Header>
+                <TextBlock x:Uid="/ViewPage/ViewDirectionSelectorTextBlock"/>
+            </ComboBox.Header>
+        </ComboBox>
+        <CheckBox x:Uid="/ViewPage/UsePageFlipEffectCheckBox"
+                  IsChecked="{x:Bind Model.PageFlipEffectEnabled}"/>
+        <ComboBox ItemsSource="{x:Bind Model.ScrollDirections}"
+                  MinWidth="200"
+                  DisplayMemberPath="DisplayText"
+                  SelectedItem="{x:Bind Model.ScrollDirection, Mode=TwoWay}">
+            <ComboBox.Header>
+                <TextBlock x:Uid="/ViewPage/ScrollDirectionSelectorTextBlock"/>
+            </ComboBox.Header>
+        </ComboBox>
+    </StackPanel>
+</ContentDialog>

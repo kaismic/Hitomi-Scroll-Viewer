@@ -1,5 +1,4 @@
-﻿using HitomiScrollViewerLib.Controls.ViewPageComponents;
-using HitomiScrollViewerLib.Entities;
+﻿using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.PageVMs;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -20,19 +19,13 @@ using Windows.Storage;
 using Windows.System;
 using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Constants;
+using HitomiScrollViewerLib.Views.ViewPageViews;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
     public sealed partial class ViewPage : Page {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree("ViewPage");
         private readonly string[] ORIENTATION_NAMES = _resourceMap.GetValue("Array_Orientation").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
         private readonly string[] VIEW_DIRECTION_NAMES = _resourceMap.GetValue("Array_ViewDirection").ValueAsString.Split(',', StringSplitOptions.TrimEntries);
-
-        private static readonly string SCROLL_DIRECTION_SETTING_KEY = "ScrollDirection";
-        private static readonly string VIEW_DIRECTION_SETTING_KEY = "ViewDirection";
-        private static readonly string AUTO_SCROLL_INTERVAL_SETTING_KEY = "AutoScrollInterval";
-        private static readonly string IS_LOOPING_SETTING_KEY = "IsLooping";
-        private static readonly string USE_PAGE_FLIP_EFFECT_SETTING_KEY = "UsePageFlipEffect";
-        private readonly ApplicationDataContainer _settings;
 
         private static readonly string GLYPH_CANCEL = "\xE711";
 

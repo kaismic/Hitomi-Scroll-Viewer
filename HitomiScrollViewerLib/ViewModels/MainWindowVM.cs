@@ -169,18 +169,13 @@ namespace HitomiScrollViewerLib.ViewModels {
                     if (result == ContentDialogResult.None) {
                         args.Cancel = true;
                     } else {
-                        HandleAppWindowClose();
+                        HitomiContext.Main.Dispose();
                     }
                 };
                 NotifyUser(cdModel);
             } else {
-                HandleAppWindowClose();
+                HitomiContext.Main.Dispose();
             }
-        }
-
-        private void HandleAppWindowClose() {
-            ViewPageVM.Main.HandleAppWindowClosing();
-            HitomiContext.Main.Dispose();
         }
     }
 }

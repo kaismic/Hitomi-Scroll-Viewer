@@ -8,9 +8,21 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     PreviewKeyDown="ViewPage_PreviewKeyDown">
     <Grid>
-        <FlipView x:Name="ImageFlipView" UseTouchAnimationsForAllNavigation="False"
-                  FocusVisualPrimaryThickness="0" IsTabStop="True"
-                  SelectionChanged="ImageFlipView_SelectionChanged">
+        <FlipView UseTouchAnimationsForAllNavigation="False"
+                  FocusVisualPrimaryThickness="0" IsTabStop="True">
+            <FlipView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="{x:Bind ViewModel.ViewSettingsModel.ScrollDirection.Value, Mode=OneWay}"/>
+                </ItemsPanelTemplate>
+            </FlipView.ItemsPanel>
+            <FlipView.ItemTemplate>
+                <DataTemplate>
+                    <!--TODO-->
+                    <Grid FlowDirection="{x:Bind ViewModel.ViewSettingsModel.FlowDirectionModel.Value, Mode=OneWay}">
+                        
+                    </Grid>
+                </DataTemplate>
+            </FlipView.ItemTemplate>
         </FlipView>
         <CommandBar x:Name="TopCommandBar"
                     Background="{ThemeResource LayerFillColorAltBrush}"
@@ -46,7 +58,8 @@
             <AppBarToggleButton x:Name="LoopBtn"
                                 Icon="RepeatAll"
                                 MinWidth="90"
-                                IsTabStop="False"/>
+                                IsTabStop="False"
+                                IsChecked="{x:Bind ViewModel.ViewSettingsModel.LoopEnabled, Mode=TwoWay}"/>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox x:Name="PageNavigator"
@@ -102,31 +115,5 @@
                           FontSize="32"/>
             </Grid>
         </Viewbox>
-        <ContentDialog x:Name="MoreSettingsContentDialog"
-                       DefaultButton="Close">
-            <ContentDialog.Resources>
-                <x:Double x:Key="ContentDialogMinWidth">0</x:Double>
-            </ContentDialog.Resources>
-            <StackPanel Spacing="16">
-                <ComboBox x:Name="ViewDirectionSelector" ItemsSource="{x:Bind VIEW_DIRECTION_NAMES}"
-                          SelectionChanged="ViewDirectionSelector_SelectionChanged"
-                          MinWidth="200"
-                          IsTabStop="False">
-                    <ComboBox.Header>
-                        <TextBlock x:Uid="/ViewPage/ViewDirectionSelectorTextBlock"/>
-                    </ComboBox.Header>
-                </ComboBox>
-                <CheckBox x:Name="UsePageFlipEffectCheckBox"
-                          x:Uid="/ViewPage/UsePageFlipEffectCheckBox"/>
-                <ComboBox x:Name="ScrollDirectionSelector" ItemsSource="{x:Bind ORIENTATION_NAMES}"
-                          SelectionChanged="ScrollDirectionSelector_SelectionChanged"
-                          MinWidth="200"
-                          IsTabStop="False">
-                    <ComboBox.Header>
-                        <TextBlock x:Uid="/ViewPage/ScrollDirectionSelectorTextBlock"/>
-                    </ComboBox.Header>
-                </ComboBox>
-            </StackPanel>
-        </ContentDialog>
     </Grid>
 </Page>

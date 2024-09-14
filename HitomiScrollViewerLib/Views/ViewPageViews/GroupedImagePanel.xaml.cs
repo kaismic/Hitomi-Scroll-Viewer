@@ -9,26 +9,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Windows.Foundation;
-using static HitomiScrollViewerLib.Controls.ViewPage;
 using static HitomiScrollViewerLib.Constants;
 
-namespace HitomiScrollViewerLib.Controls.ViewPageComponents {
+namespace HitomiScrollViewerLib.Views.ViewPageViews {
     public sealed partial class GroupedImagePanel : DockPanel {
-        private static readonly string VIRTUAL_HOST_NAME = "images.example";
-        // {0} = file name
-        // {1} = file extension
-        private static readonly string imageHtml =
-            """<body style="margin: 0;"><img src="http://""" +
-            VIRTUAL_HOST_NAME +
-            """/{0}.{1}" style="width:100%; height:100%;"/></body>""";
 
-        private readonly List<FrameworkElement> _imageContainers = [];
-        private readonly List<ImageInfo> _imageInfos = [];
-        private readonly string _imageDir;
-        private readonly string _nonVirtualImageDir;
-        private readonly Dictionary<FrameworkElement, int> imageContainerIndexDict = [];
-
-        public GroupedImagePanel(ViewDirection viewDirection, Range range, Gallery gallery) {
+        public GroupedImagePanel(Dock viewDirection, Range range, Gallery gallery) {
             InitializeComponent();
             _imageDir = Path.Combine(IMAGE_DIR_V2, gallery.Id.ToString());
             _nonVirtualImageDir = Path.Combine(NON_VIRTUAL_IMAGE_DIR_V2, gallery.Id.ToString());
@@ -44,8 +30,8 @@ namespace HitomiScrollViewerLib.Controls.ViewPageComponents {
                     webView2.CoreWebView2Initialized += WebView2_CoreWebView2Initialized;
                     DispatcherQueue.TryEnqueue(
                     async () => {
-                            await webView2.EnsureCoreWebView2Async();
-                        }
+                        await webView2.EnsureCoreWebView2Async();
+                    }
                     );
                     imageContainer = webView2;
                 }
@@ -71,9 +57,9 @@ namespace HitomiScrollViewerLib.Controls.ViewPageComponents {
             TrySetImageSource(sender);
         }
 
-        public void UpdateViewDirection(ViewDirection viewDirection) {
+        public void UpdateViewDirection(Dock viewDirection) {
             foreach (var image in _imageContainers) {
-                SetDock(image, viewDirection == ViewDirection.LeftToRight ? Dock.Left : Dock.Right);
+                SetDock(image, viewDirection);
             }
         }
 
