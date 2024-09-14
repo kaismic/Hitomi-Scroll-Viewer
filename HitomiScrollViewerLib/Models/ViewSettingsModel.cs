@@ -55,8 +55,8 @@ namespace HitomiScrollViewerLib.Models {
         }
 
         private ViewSettingsModel() {
-            ScrollDirection = ScrollDirections.Find(sd => sd.Value == (Orientation)(ApplicationData.Current.LocalSettings.Values[SCROLL_DIRECTION_SETTING_KEY] ??= Orientation.Vertical));
-            FlowDirectionModel = FlowDirectionModels.Find(fd => fd.Value == (FlowDirection)(ApplicationData.Current.LocalSettings.Values[FLOW_DIRECTION_SETTING_KEY] ??= FlowDirection.RightToLeft));
+            ScrollDirection = ScrollDirections.Find(sd => sd.Value == (Orientation)(ApplicationData.Current.LocalSettings.Values[SCROLL_DIRECTION_SETTING_KEY] ?? Orientation.Vertical));
+            FlowDirectionModel = FlowDirectionModels.Find(fd => fd.Value == (FlowDirection)(ApplicationData.Current.LocalSettings.Values[FLOW_DIRECTION_SETTING_KEY] ?? FlowDirection.RightToLeft));
         }
     }
 }
