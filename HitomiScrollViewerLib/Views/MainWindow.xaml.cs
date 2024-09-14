@@ -80,8 +80,8 @@ namespace HitomiScrollViewerLib.Views {
         }
 
         private void RootFrame_SizeChanged(object _0, SizeChangedEventArgs e) {
-            PopupInfoBarStackPanel.Margin = new(0, 0, 0, e.NewSize.Height / 16);
-            PopupInfoBarStackPanel.Width = e.NewSize.Width / 4;
+            PopupInfoBarItemsRepeater.Margin = new(0, 0, 0, e.NewSize.Height / 16);
+            PopupInfoBarItemsRepeater.Width = e.NewSize.Width / 4;
         }
     }
 }

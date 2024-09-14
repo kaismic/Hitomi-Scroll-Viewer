@@ -29,16 +29,13 @@
                    IsNavigationStackEnabled="False"
                    x:FieldModifier="public"
                    SizeChanged="RootFrame_SizeChanged"/>
-            <ListView x:Name="PopupInfoBarStackPanel"
-                  VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                  ItemsSource="{x:Bind ViewModel.PopupMessages}"
-                  SelectionMode="None" IsItemClickEnabled="False">
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Spacing="4"></StackPanel>
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-                <ListView.ItemTemplate>
+            <ItemsRepeater x:Name="PopupInfoBarItemsRepeater"
+                           VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                           ItemsSource="{x:Bind ViewModel.PopupMessages}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Spacing="4"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="models:InfoBarModel">
                         <InfoBar IsOpen="True"
                                  Background="{StaticResource CardBackgroundFillColorDefaultBrush}"
@@ -48,11 +45,8 @@
                                  HorizontalAlignment="Stretch"
                                  />
                     </DataTemplate>
-                </ListView.ItemTemplate>
-                <ListView.ItemContainerTransitions>
-                    <TransitionCollection/>
-                </ListView.ItemContainerTransitions>
-            </ListView>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
         </Grid>
     </StackPanel>
 </Window>
