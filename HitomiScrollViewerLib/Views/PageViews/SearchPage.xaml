@@ -108,8 +108,7 @@
                     <SymbolIcon Symbol="Download"/>
                 </Button>
             </Grid>
-            <ItemsRepeater x:Name="DownloadItemsListView"
-                           ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}">
                 <ItemsRepeater.Layout>
                     <StackLayout Spacing="4"/>
                 </ItemsRepeater.Layout>
