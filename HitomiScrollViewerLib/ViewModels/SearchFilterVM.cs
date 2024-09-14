@@ -116,22 +116,10 @@ namespace HitomiScrollViewerLib.ViewModels {
         public IEnumerable<Gallery> GetFilteredGalleries() {
             IEnumerable<Gallery> filtered = null;
             if (GalleryLanguage != null) {
-                if (filtered == null) {
-                    filtered = GalleryLanguage.Galleries;
-                } else {
-                    filtered = filtered.Where(g => g.GalleryLanguage.Id == GalleryLanguage.Id);
-                }
+                filtered = filtered == null ? GalleryLanguage.Galleries : filtered.Intersect(GalleryLanguage.Galleries);
             }
             if (GalleryType != null) {
-                if (filtered == null) {
-                    filtered = GalleryType.Galleries;
-                } else {
-                    filtered = filtered.Where(g => g.GalleryType.Id == GalleryType.Id);
-                }
-            }
-            if (SearchTitleText != null) {
-                filtered ??= HitomiContext.Main.Galleries;
-                filtered = filtered.Where(g => g.Title.Contains(SearchTitleText));
+                filtered = filtered == null ? GalleryType.Galleries : filtered.Intersect(GalleryType.Galleries);
             }
             if (IncludeTags.Any()) {
                 filtered ??= HitomiContext.Main.Galleries;
@@ -144,6 +132,9 @@ namespace HitomiScrollViewerLib.ViewModels {
                 foreach (Tag excludeTag in ExcludeTags) {
                     filtered = filtered.Except(excludeTag.Galleries);
                 }
+            }
+            if (SearchTitleText != null) {
+                filtered = filtered == null ? HitomiContext.Main.Galleries : filtered.Where(g => g.Title.Contains(SearchTitleText));
             }
             return filtered;
         }
