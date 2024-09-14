@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
 using System.Collections.Generic;
 using Windows.Storage;
 
@@ -39,6 +37,22 @@ namespace HitomiScrollViewerLib.Models {
         private FlowDirectionModel _flowDirectionModel;
         [ObservableProperty]
         private bool _pageFlipEffectEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[PAGE_FLIP_EFFECT_ENABLED_SETTING_KEY] ??= true);
+
+        partial void OnAutoScrollIntervalChanged(double value) {
+            ApplicationData.Current.LocalSettings.Values[AUTO_SCROLL_INTERVAL_SETTING_KEY] = value;
+        }
+        partial void OnLoopEnabledChanged(bool value) {
+            ApplicationData.Current.LocalSettings.Values[LOOP_ENABLED_SETTING_KEY] = value;
+        }
+        partial void OnScrollDirectionChanged(ScrollDirection value) {
+            ApplicationData.Current.LocalSettings.Values[SCROLL_DIRECTION_SETTING_KEY] = value.Value;
+        }
+        partial void OnFlowDirectionModelChanged(FlowDirectionModel value) {
+            ApplicationData.Current.LocalSettings.Values[FLOW_DIRECTION_SETTING_KEY] = value.Value;
+        }
+        partial void OnPageFlipEffectEnabledChanged(bool value) {
+            ApplicationData.Current.LocalSettings.Values[PAGE_FLIP_EFFECT_ENABLED_SETTING_KEY] = value;
+        }
 
         private ViewSettingsModel() {
             ScrollDirection = ScrollDirections.Find(sd => sd.Value == (Orientation)(ApplicationData.Current.LocalSettings.Values[SCROLL_DIRECTION_SETTING_KEY] ??= Orientation.Vertical));
