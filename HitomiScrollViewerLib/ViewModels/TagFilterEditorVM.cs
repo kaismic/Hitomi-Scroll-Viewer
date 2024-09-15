@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml.Controls;
@@ -9,22 +10,13 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using Soluling;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : ObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
-
-
-        private static event PropertyChangedEventHandler StaticPropertyChanged;
-        private static void NotifyStaticPropertyChanged([CallerMemberName] string name = null) {
-            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(name));
-        }
 
         [ObservableProperty]
         private int _galleryTypeSelectedIndex;
@@ -36,21 +28,9 @@ namespace HitomiScrollViewerLib.ViewModels {
         public GalleryLanguage[] GalleryLanguages { get; } =
             [new GalleryLanguage() { LocalName = TEXT_ALL }, .. HitomiContext.Main.GalleryLanguages.OrderBy(gl => gl.LocalName)];
 
-        private static bool s_isAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] ?? true);
-        public bool IsAutoSaveEnabled {
-            get => s_isAutoSaveEnabled;
-            set {
-                if (s_isAutoSaveEnabled != value) {
-                    s_isAutoSaveEnabled = value;
-                    ApplicationData.Current.LocalSettings.Values[AUTO_SAVE_SETTING_KEY] = value;
-                    NotifyStaticPropertyChanged();
-                    OnPropertyChanged();
-                }
-            }
-        }
 
-        private static readonly string AUTO_SAVE_SETTING_KEY = "AutoSave";
         public string AutoSaveCheckBoxText { get; } = _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
+        public CommonSettings CommonSettings { get; } = CommonSettings.Main;
 
         public TagTokenizingTextBoxVM[] TttVMs { get; } = new TagTokenizingTextBoxVM[Tag.TAG_CATEGORIES.Length];
 
@@ -73,13 +53,11 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         private HashSet<int> DeletedTagFilterIds { get; set; }
 
+        public GalleryViewSettings ViewSettingsModel { get; set; }
+
         private TagFilterEditorVM() {
             IncludeTFSelectorVM.OtherTFSSelectorVM = ExcludeTFSelectorVM;
             ExcludeTFSelectorVM.OtherTFSSelectorVM = IncludeTFSelectorVM;
-
-            StaticPropertyChanged += (object _0, PropertyChangedEventArgs e) => {
-                OnPropertyChanged(e.PropertyName);
-            };
 
             for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
                 TttVMs[i] = new((TagCategory)i);
@@ -96,7 +74,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         private void TagFilterComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
-            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TagFilter prevTagFilter && IsAutoSaveEnabled) {
+            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TagFilter prevTagFilter && CommonSettings.IsTFAutoSaveEnabled) {
                 // do not save if this selection change occurred due to deletion of currently selected tag filter
                 if (DeletedTagFilterIds == null) {
                     SaveTagFilter(prevTagFilter);

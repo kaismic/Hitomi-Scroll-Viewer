@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:entities="using:HitomiScrollViewerLib.Entities"
     xmlns:views="using:HitomiScrollViewerLib.Views"
+    xmlns:models="using:HitomiScrollViewerLib.Models"
     mc:Ignorable="d"
     RowSpacing="8"
     >
@@ -41,7 +42,7 @@
         <ComboBox DisplayMemberPath="Name"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                   Visibility="Collapsed"
-                  SelectedItem="{x:Bind ViewModel.SelectedTFS, Mode=TwoWay}"
+                  SelectedItem="{x:Bind ViewModel.SelectedTagFilter, Mode=TwoWay}"
                   >
         </ComboBox>
         <Button x:Name="SaveButton"
@@ -64,7 +65,7 @@
                   Padding="16 0"
                   HorizontalAlignment="Center"
                   VerticalContentAlignment="Center"
-                  IsChecked="{x:Bind ViewModel.IsAutoSaveEnabled, Mode=TwoWay}">
+                  IsChecked="{x:Bind ViewModel.CommonSettings.IsTFAutoSaveEnabled, Mode=TwoWay}">
             <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.AutoSaveCheckBoxText}"/>
         </CheckBox>
     </Grid>
@@ -109,7 +110,7 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <views:TFSSelector Grid.Column="0" ViewModel="{x:Bind ViewModel.IncludeTFSSelectorVM}"/>
-        <views:TFSSelector Grid.Column="1" ViewModel="{x:Bind ViewModel.ExcludeTFSSelectorVM}"/>
+        <views:TFSSelector Grid.Column="0" ViewModel="{x:Bind ViewModel.IncludeTFSelectorVM}"/>
+        <views:TFSSelector Grid.Column="1" ViewModel="{x:Bind ViewModel.ExcludeTFSelectorVM}"/>
     </Grid>
 </Grid>

@@ -13,7 +13,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static ViewPageVM _main;
         public static ViewPageVM Main => _main ??= new();
 
-        public ViewSettingsModel ViewSettingsModel { get; } = ViewSettingsModel.Main;
+        public GalleryViewSettings ViewSettingsModel { get; } = ViewSettingsModel.Main;
 
         [ObservableProperty]
         private bool _isAutoScrolling;

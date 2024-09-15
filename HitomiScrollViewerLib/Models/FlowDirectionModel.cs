@@ -8,7 +8,7 @@ namespace HitomiScrollViewerLib.Models {
         public FlowDirection _value;
         public required FlowDirection Value {
             get => _value;
-            set {
+            init {
                 _value = value;
                 DisplayText = _resourceMap.GetValue(nameof(value)).ValueAsString;
             }

@@ -50,6 +50,9 @@ namespace HitomiScrollViewerLib.Views {
                 case 2:
                     RootFrame.Navigate(typeof(ViewPage));
                     break;
+                case 3:
+                    // TODO
+                    break;
                 default:
                     throw new InvalidOperationException($"{currSelectedIdx} is an invalid Page index.");
             }

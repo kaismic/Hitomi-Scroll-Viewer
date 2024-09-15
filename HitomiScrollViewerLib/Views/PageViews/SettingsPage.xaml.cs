@@ -1,4 +1,3 @@
-using HitomiScrollViewerLib.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -14,10 +13,15 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
-namespace HitomiScrollViewerLib.Views.ViewPageViews {
-    public sealed partial class ViewSettingsDialog : ContentDialog {
-        public GalleryViewSettings Model { get; set; }
-        public ViewSettingsDialog() {
+// To learn more about WinUI, the WinUI project structure,
+// and more about our project templates, see: http://aka.ms/winui-project-info.
+
+namespace HitomiScrollViewerLib.Views.PageViews {
+    /// <summary>
+    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// </summary>
+    public sealed partial class SettingsPage : Page {
+        public SettingsPage() {
             this.InitializeComponent();
         }
     }
