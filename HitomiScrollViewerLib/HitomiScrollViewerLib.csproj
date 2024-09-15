@@ -11,6 +11,7 @@
   <ItemGroup>
       <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.0" />
       <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240821" />
+      <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.1.240821" />
       <PackageReference Include="CommunityToolkit.WinUI.Controls.TokenizingTextBox" Version="8.1.240821" />
       <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3508" />
       <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
