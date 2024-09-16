@@ -7,13 +7,24 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ct="using:CommunityToolkit.WinUI.Controls"
+    xmlns:models="using:HitomiScrollViewerLib.Models"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
     <ScrollViewer>
         <StackPanel Spacing="4">
-            <ct:SettingsCard>
-                
+            <ct:SettingsCard Header="Flow Direction">
+                <ComboBox ItemsSource="{x:Bind models:CommonSettings.FLOW_DIRECTION_MODELS}"
+                          DisplayMemberPath="DisplayText"/>
+            </ct:SettingsCard>
+            <ct:SettingsCard Header="Page Flip Effect">
+                <ToggleSwitch IsOn="{x:Bind CommonSettings.IsPageFlipEffectEnabled, Mode=TwoWay}"
+                              OnContent="On"
+                              OffContent="Off"/>
+            </ct:SettingsCard>
+            <ct:SettingsCard Header="Scroll Direction"
+                             IsEnabled="{x:Bind CommonSettings.IsPageFlipEffectEnabled, Mode=OneWay}">
+                <ComboBox ItemsSource="{x:Bind models:CommonSettings.SCROLL_DIRECTIONS}"
+                          DisplayMemberPath="DisplayText"/>
             </ct:SettingsCard>
         </StackPanel>
     </ScrollViewer>
