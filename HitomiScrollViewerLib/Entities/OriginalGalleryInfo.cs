@@ -47,16 +47,8 @@ namespace HitomiScrollViewerLib.Entities {
                 Date = Date,
                 SceneIndexes = SceneIndexes,
                 Related = Related,
-                Files =
-                    Files,
-                    //.Select((imageInfo, i) => {
-                    //    ImageInfo clone = imageInfo.Clone();
-                    //    clone.Index = i;
-                    //    return clone;
-                    //})
-                    //.ToHashSet(),
-                    // TODO test if above is enough
-                Tags = []
+                Files = Files,
+                Tags = [],
             };
             SetGalleryProperty(Artists, gallery, TagCategory.Artist);
             SetGalleryProperty(Groups, gallery, TagCategory.Group);

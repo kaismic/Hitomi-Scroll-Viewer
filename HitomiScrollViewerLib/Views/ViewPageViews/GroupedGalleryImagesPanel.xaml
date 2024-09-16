@@ -1,13 +1,12 @@
-﻿<Page
-    x:Class="HitomiScrollViewerLib.Views.PageViews.ViewPage"
+<?xml version="1.0" encoding="utf-8"?>
+<Grid
+    x:Class="HitomiScrollViewerLib.Views.ViewPageViews.GroupedGalleryImagesPanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    PreviewKeyDown="ViewPage_PreviewKeyDown">
-    <TabView>
-
-    </TabView>
-</Page>
+    xmlns:models="using:HitomiScrollViewerLib.Models"
+    FlowDirection="{x:Bind models:CommonSettings.Main.FlowDirectionModel.Value, Mode=OneWay}"
+    >
+</Grid>

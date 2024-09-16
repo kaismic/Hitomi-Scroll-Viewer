@@ -28,7 +28,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 FilteredGalleries
                 .Skip(value * PageSize)
                 .Take(PageSize)
-                .Select(g => new GalleryItemVM() { Gallery = g })
+                .Select(g => new GalleryBrowseItemVM() { Gallery = g })
                 .ToList();
         }
 
@@ -47,7 +47,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         [ObservableProperty]
-        public List<GalleryItemVM> _currentGalleryItemVMs;
+        public List<GalleryBrowseItemVM> _currentGalleryItemVMs;
 
         [RelayCommand(CanExecute = nameof(CanCreateGalleryFilter))]
         private void CreateGalleryFilter() {

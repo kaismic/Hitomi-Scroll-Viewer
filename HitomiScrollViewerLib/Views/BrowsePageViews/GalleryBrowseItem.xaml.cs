@@ -6,13 +6,13 @@ using System.Linq;
 using Windows.UI;
 
 namespace HitomiScrollViewerLib.Views.BrowsePageViews {
-    public sealed partial class GalleryItem : UserControl {
+    public sealed partial class GalleryBrowseItem : UserControl {
         private SolidColorBrush TitleBackgroundBrush { get; set; }
         private SolidColorBrush SubtitleBackgroundBrush { get; set; }
         private SolidColorBrush TextForegroundBrush { get; set; }
 
-        private GalleryItemVM _viewModel;
-        public GalleryItemVM ViewModel {
+        private GalleryBrowseItemVM _viewModel;
+        public GalleryBrowseItemVM ViewModel {
             get => _viewModel;
             set {
                 _viewModel = value;
@@ -25,7 +25,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             }
         }
 
-        public GalleryItem() {
+        public GalleryBrowseItem() {
             InitializeComponent();
             for (int i = 0; i < RootGrid.Children.Count; i++) {
                 Grid.SetRow(RootGrid.Children[i] as FrameworkElement, i);

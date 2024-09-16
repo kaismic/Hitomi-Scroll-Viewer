@@ -5,7 +5,7 @@ using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
-    public partial class GalleryItemVM {
+    public partial class GalleryBrowseItemVM {
         private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
         private Gallery _gallery;
         public required Gallery Gallery {
