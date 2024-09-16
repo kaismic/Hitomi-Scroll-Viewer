@@ -5,7 +5,7 @@ using static HitomiScrollViewerLib.SharedResources;
 namespace HitomiScrollViewerLib.Models {
     public class ScrollDirection {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(ScrollDirection).Name);
-        public Orientation _value;
+        private Orientation _value;
         public required Orientation Value {
             get => _value;
             set {

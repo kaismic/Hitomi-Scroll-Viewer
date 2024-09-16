@@ -5,7 +5,7 @@ using static HitomiScrollViewerLib.SharedResources;
 namespace HitomiScrollViewerLib.Models {
     public class FlowDirectionModel {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(nameof(FlowDirection));
-        public FlowDirection _value;
+        private FlowDirection _value;
         public required FlowDirection Value {
             get => _value;
             init {
