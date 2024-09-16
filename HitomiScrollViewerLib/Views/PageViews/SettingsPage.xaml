@@ -14,7 +14,8 @@
         <StackPanel Spacing="4">
             <ct:SettingsCard Header="Flow Direction">
                 <ComboBox ItemsSource="{x:Bind models:CommonSettings.FLOW_DIRECTION_MODELS}"
-                          DisplayMemberPath="DisplayText"/>
+                          DisplayMemberPath="DisplayText"
+                          SelectedItem="{x:Bind models:CommonSettings.Main.FlowDirectionModel, Mode=TwoWay}"/>
             </ct:SettingsCard>
             <ct:SettingsCard Header="Page Flip Effect">
                 <ToggleSwitch IsOn="{x:Bind CommonSettings.IsPageFlipEffectEnabled, Mode=TwoWay}"
@@ -24,7 +25,12 @@
             <ct:SettingsCard Header="Scroll Direction"
                              IsEnabled="{x:Bind CommonSettings.IsPageFlipEffectEnabled, Mode=OneWay}">
                 <ComboBox ItemsSource="{x:Bind models:CommonSettings.SCROLL_DIRECTIONS}"
-                          DisplayMemberPath="DisplayText"/>
+                          DisplayMemberPath="DisplayText"
+                          SelectedItem="{x:Bind models:CommonSettings.Main.ScrollDirection, Mode=TwoWay}"/>
+            </ct:SettingsCard>
+            <ct:SettingsCard Header="Number of images to display per page">
+                <ComboBox ItemsSource="{x:Bind models:CommonSettings.IMAGES_PER_PAGE_ITEMS}"
+                          SelectedIndex="{x:Bind models:CommonSettings.Main.ImagesPerPage, Mode=TwoWay}"/>
             </ct:SettingsCard>
         </StackPanel>
     </ScrollViewer>
