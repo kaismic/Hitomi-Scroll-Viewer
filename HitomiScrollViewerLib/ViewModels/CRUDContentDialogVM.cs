@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Views.SearchPageViews;
+using HitomiScrollViewerLib.Views;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;

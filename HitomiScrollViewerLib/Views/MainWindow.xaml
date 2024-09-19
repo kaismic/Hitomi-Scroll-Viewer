@@ -32,7 +32,6 @@
         <Grid>
             <Frame x:Name="RootFrame"
                    IsNavigationStackEnabled="False"
-                   x:FieldModifier="public"
                    SizeChanged="RootFrame_SizeChanged"/>
             <ItemsRepeater x:Name="PopupInfoBarItemsRepeater"
                            VerticalAlignment="Bottom" HorizontalAlignment="Center"

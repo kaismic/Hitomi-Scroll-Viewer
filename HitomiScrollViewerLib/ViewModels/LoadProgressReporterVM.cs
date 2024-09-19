@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using HitomiScrollViewerLib.Views.SearchPageViews;
+using HitomiScrollViewerLib.Views;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using static HitomiScrollViewerLib.SharedResources;

@@ -4,10 +4,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vpvms="using:HitomiScrollViewerLib.ViewModels.ViewPageVMs"
+    xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     PreviewKeyDown="ViewPage_PreviewKeyDown">
-    <TabView>
-
+    <TabView TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemsVMs}">
+        <TabView.TabItemTemplate>
+            <DataTemplate x:DataType="vpvms:GalleryTabViewItemVM">
+                <vpviews:GalleryTabViewItem ViewModel="{x:Bind}"/>
+            </DataTemplate>
+        </TabView.TabItemTemplate>
     </TabView>
 </Page>

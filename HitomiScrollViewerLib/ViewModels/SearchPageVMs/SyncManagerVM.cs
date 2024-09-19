@@ -50,7 +50,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private SyncContentDialog _syncContentDialog;
         private SyncContentDialog SyncContentDialog =>
-            _syncContentDialog ??= new(new(new(_initializer))) { XamlRoot = MainWindow.SearchPageVM.XamlRoot };
+            _syncContentDialog ??= new(new(new(_initializer))) { XamlRoot = MainWindow..SearchPageVM.XamlRoot };
 
         public SyncManagerVM() {
             _ = Task.Run(async () => {

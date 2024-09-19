@@ -6,7 +6,7 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Upload;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Models.SearchPageModels;
+using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -21,8 +21,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Constants;
+using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class SyncContentDialogVM(DriveService _driveService) : ObservableObject {

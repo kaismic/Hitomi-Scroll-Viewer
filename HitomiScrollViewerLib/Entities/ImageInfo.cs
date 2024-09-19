@@ -29,8 +29,7 @@ namespace HitomiScrollViewerLib.Entities {
                 Constants.IMAGE_DIR_V3,
                 Gallery.Id.ToString(),
                 Index.ToString(),
-                Haswebp == 1 ? ".webp" :
-                Hasavif == 1 ? ".avif" : ".jxl"
+                FileFormat
             );
             set => _imageFilePath = value;
         }
@@ -42,6 +41,12 @@ namespace HitomiScrollViewerLib.Entities {
         public int Haswebp { get; set; }
         public int Hasavif { get; set; }
         public int Hasjxl { get; set; }
+        private string _fileFormat;
+        public string FileFormat {
+            get => _fileFormat ??=
+                Haswebp == 1 ? ".webp" :
+                Hasavif == 1 ? ".avif" : ".jxl";
+        }
         
         [Required]
         public virtual Gallery Gallery { get; set; }

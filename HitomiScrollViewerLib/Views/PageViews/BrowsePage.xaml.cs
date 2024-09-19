@@ -8,7 +8,6 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         private BrowsePageVM ViewModel { get; set; }
         public BrowsePage() {
             InitializeComponent();
-
             PageTextBlock.Text = TEXT_PAGE;
         }
 

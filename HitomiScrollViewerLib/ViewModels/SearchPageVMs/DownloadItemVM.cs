@@ -39,7 +39,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             Timeout = TimeSpan.FromSeconds(15)
         };
 
-        private enum DownloadStatus {
+        public enum DownloadStatus {
             Initialising,
             Paused,
             Downloading,
@@ -70,7 +70,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         internal int Id { get; private set; }
         internal BookmarkItem BookmarkItem { get; set; }
 
-        public int[] ThreadNums => Enumerable.Range(1, 8).ToArray();
+        public int[] ThreadNums { get; } = Enumerable.Range(1, 8).ToArray();
         [ObservableProperty]
         private int _threadNum = 1;
         partial void OnThreadNumChanged(int value) {

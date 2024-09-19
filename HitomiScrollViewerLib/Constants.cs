@@ -33,5 +33,10 @@ namespace HitomiScrollViewerLib {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
         public static readonly JsonSerializerOptions TF_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web);
+
+        public const string GLYPH_REPEAT_ALL = "\xE8EE";
+        public const string GLYPH_CANCEL = "\xE711";
+        public const string GLYPH_PLAY = "\xE768";
+        public const string GLYPH_PAUSE = "\xE769";
     }
 }

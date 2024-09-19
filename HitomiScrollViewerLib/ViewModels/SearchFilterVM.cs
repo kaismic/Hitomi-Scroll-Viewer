@@ -9,7 +9,7 @@ using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public class SearchFilterVM {
+    public partial class SearchFilterVM {
         private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Dictionary<TagCategory, string> CATEGORY_SEARCH_PARAM_DICT = new() {
