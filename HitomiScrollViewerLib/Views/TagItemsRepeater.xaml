@@ -7,8 +7,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ct="using:CommunityToolkit.WinUI.Controls"
-    xmlns:views="using:HitomiScrollViewerLib.Views"
-    xmlns:entities="using:HitomiScrollViewerLib.Entities"
     >
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="128"/>
@@ -19,14 +17,14 @@
                FontSize="{x:Bind ViewModel.CategoryFontSize}"/>
     <UserControl Grid.Column="1"
                  FontSize="{x:Bind ViewModel.TagFontSize}">
-        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Tags}">
+        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TagDisplayString}">
             <ItemsRepeater.Layout>
                 <ct:WrapLayout VerticalSpacing="2" HorizontalSpacing="4"/>
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
-                <DataTemplate x:DataType="entities:Tag">
+                <DataTemplate x:DataType="x:String">
                     <Border Background="DarkGray" CornerRadius="{StaticResource OverlayCornerRadius}">
-                        <TextBlock Foreground="White" Text="{x:Bind Value}"/>
+                        <TextBlock Foreground="White" Text="{x:Bind}"/>
                     </Border>
                 </DataTemplate>
             </ItemsRepeater.ItemTemplate>

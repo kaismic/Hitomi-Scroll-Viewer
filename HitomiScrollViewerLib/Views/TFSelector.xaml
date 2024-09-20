@@ -28,7 +28,7 @@
                               CommandParameter="{x:Bind}"
                               >
                         <TextBlock TextWrapping="Wrap"
-                                   Text="{x:Bind TagFilterSet.Name, Mode=OneWay}"/>
+                                   Text="{x:Bind TagFilter.Name, Mode=OneWay}"/>
                     </CheckBox>
                 </DataTemplate>
             </ItemsRepeater.ItemTemplate>

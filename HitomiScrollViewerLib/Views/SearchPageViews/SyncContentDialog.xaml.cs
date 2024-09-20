@@ -4,9 +4,17 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views.SearchPageViews {
     public sealed partial class SyncContentDialog : ContentDialog {
-        public SyncContentDialogVM ViewModel { get; set; }
-        public SyncContentDialog(SyncContentDialogVM viewModel) {
-            ViewModel = viewModel;
+
+        public SyncContentDialogVM _viewModel;
+        public SyncContentDialogVM ViewModel {
+            get => _viewModel;
+            init {
+                _viewModel = value;
+                value.RequestShowDialog += ShowAsync;
+            }
+        }
+
+        public SyncContentDialog() {
             InitializeComponent();
             RadioButtons_4.Items.Add(new RadioButton() { Content = TEXT_YES });
             RadioButtons_4.Items.Add(new RadioButton() { Content = TEXT_NO });

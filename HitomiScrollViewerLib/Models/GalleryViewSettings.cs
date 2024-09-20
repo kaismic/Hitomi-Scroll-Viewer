@@ -3,7 +3,8 @@ using Windows.Storage;
 
 namespace HitomiScrollViewerLib.Models {
     public partial class GalleryViewSettings : ObservableObject {
-        public static readonly (int Min, int Max) AUTO_SCROLL_INTERVAL_RANGE = (1, 10);
+        public const int AUTO_SCROLL_INTERVAL_MIN_VALUE = 1;
+        public const int AUTO_SCROLL_INTERVAL_MAX_VALUE = 10;
         public const double AUTO_SCROLL_INTERVAL_FREQUENCY = 0.25;
 
         [ObservableProperty]

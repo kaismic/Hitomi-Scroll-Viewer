@@ -21,16 +21,28 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Windows.Foundation;
 using static HitomiScrollViewerLib.Constants;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
-    public partial class SyncContentDialogVM(DriveService _driveService) : ObservableObject {
+    public partial class SyncContentDialogVM : ObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SyncContentDialog).Name);
+
+        private static SyncContentDialogVM _main;
+        public static SyncContentDialogVM Main => _main ??= new();
+        private SyncContentDialogVM() { }
+
+        public DriveService DriveService { get; set; }
 
         private bool _closeDialog = true;
         private bool _isSyncing = false;
         private CancellationTokenSource _cts;
+
+        public event Func<IAsyncOperation<ContentDialogResult>> RequestShowDialog;
+        public IAsyncOperation<ContentDialogResult> ShowSynContentDialog() {
+            return RequestShowDialog?.Invoke();
+        }
 
         [ObservableProperty]
         private bool _isEnabled;
@@ -277,8 +289,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             try {
                 ResumableUpload mediaUpload =
                     file == null
-                    ? GetCreateMediaUpload(_driveService, uploadFileContent, uploadFileName, MediaTypeNames.Application.Json)
-                    : GetUpdateMediaUpload(_driveService, uploadFileContent, file.Id, MediaTypeNames.Application.Json);
+                    ? GetCreateMediaUpload(DriveService, uploadFileContent, uploadFileName, MediaTypeNames.Application.Json)
+                    : GetUpdateMediaUpload(DriveService, uploadFileContent, file.Id, MediaTypeNames.Application.Json);
                 AttachProgressChangedEventHandler(mediaUpload, mediaUpload.ContentStream.Length);
                 IUploadProgress uploadProgress = await mediaUpload.UploadAsync(_cts.Token);
                 if (uploadProgress.Exception != null) {
@@ -332,7 +344,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             Google.Apis.Drive.v3.Data.File tfssFile = null;
             Google.Apis.Drive.v3.Data.File galleriesFile = null;
             try {
-                Google.Apis.Drive.v3.Data.FileList fileList = await GetListRequest(_driveService).ExecuteAsync(_cts.Token);
+                Google.Apis.Drive.v3.Data.FileList fileList = await GetListRequest(DriveService).ExecuteAsync(_cts.Token);
                 if (fileList != null) {
                     foreach (var file in fileList.Files) {
                         if (file.Name == Path.GetFileName(TFS_SYNC_FILE_PATH)) {
@@ -371,7 +383,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     // file exists
                     else {
                         try {
-                            FilesResource.GetRequest request = _driveService.Files.Get(tfssFile.Id);
+                            FilesResource.GetRequest request = DriveService.Files.Get(tfssFile.Id);
                             AttachProgressChangedEventHandler(request, (long)tfssFile.Size);
                             await DownloadAndWriteAsync(
                                 request,

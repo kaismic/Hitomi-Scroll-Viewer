@@ -112,7 +112,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             HitomiContext.Main.TagFilters.Add(tf);
             HitomiContext.Main.SaveChanges();
             SelectedTagFilter = tf;
-            MainWindowVM.Main.ShowPopup(
+            MainWindowVM.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Create_Complete").ValueAsString,
                     name
@@ -135,7 +135,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             string newName = cdvm.GetInputText();
             SelectedTagFilter.Name = newName;
             HitomiContext.Main.SaveChanges();
-            MainWindowVM.Main.ShowPopup(
+            MainWindowVM.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
                     oldName,
@@ -153,7 +153,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         private void SaveTagFilter(TagFilter tf) {
             tf.Tags = GetCurrentTags();
             HitomiContext.Main.SaveChanges();
-            MainWindowVM.Main.ShowPopup(
+            MainWindowVM.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
                     tf.Name
@@ -177,7 +177,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             DeletedTagFilterIds = SelectedTagFilters.Select(tf => tf.Id).ToHashSet();
             HitomiContext.Main.TagFilters.RemoveRange(cdvm.GetSelectedTagFilters());
             HitomiContext.Main.SaveChanges();
-            MainWindowVM.Main.ShowPopup(
+            MainWindowVM.ShowPopup(
                 MultiPattern.Format(
                     _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,
                     DeletedTagFilterIds.Count
@@ -217,7 +217,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     }
                     dupTagStrs.Add(category.ToString() + ": " + string.Join(", ", dupStrs));
                 }
-                MainWindowVM.NotifyUser(new() {
+                _ = MainWindowVM.NotifyUser(new() {
                     Title = _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
                     Message = string.Join(Environment.NewLine, dupTagStrs)
                 });

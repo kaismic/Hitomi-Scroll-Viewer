@@ -2,7 +2,6 @@
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
-using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Windowing;
@@ -14,21 +13,24 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using static HitomiScrollViewerLib.Constants;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public class MainWindowVM {
+    public static class MainWindowVM {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(MainWindow).Name);
-
-        private static MainWindowVM _main;
-        public static MainWindowVM Main => _main ??= new();
 
         public static event Action<LoadProgressReporterVM> ShowLoadProgressReporter;
         public static event Action HideLoadProgressReporter;
-        public static event Action<ContentDialogModel> RequestNotifyUser;
 
-        private MainWindowVM() { }
+        public static event Func<ContentDialogModel, IAsyncOperation<ContentDialogResult>> RequestNotifyUser;
+        public static event Action RequestHideCurrentNotification;
+
+        public static event Action RequestMinimizeWindow;
+        public static event Action RequestActivateWindow;
+
+
 
         public static void Init() {
             // TODO
@@ -133,14 +135,26 @@ namespace HitomiScrollViewerLib.ViewModels {
             });
         }
 
-        public static void NotifyUser(ContentDialogModel model) {
-            RequestNotifyUser.Invoke(model);
+        public static void MinimizeWindow() {
+            RequestMinimizeWindow?.Invoke();
+        }
+
+        public static void ActivateWindow() {
+            RequestActivateWindow?.Invoke();
+        }
+
+        public static IAsyncOperation<ContentDialogResult> NotifyUser(ContentDialogModel model) {
+            return RequestNotifyUser.Invoke(model);
+        }
+
+        public static void HideCurrentNotification() {
+            RequestHideCurrentNotification.Invoke();
         }
 
         private const int POPUP_MSG_DISPLAY_DURATION = 5000;
         private const int POPUP_MSG_MAX_DISPLAY_NUM = 3;
-        public ObservableCollection<InfoBarModel> PopupMessages { get; } = [];
-        public void ShowPopup(string message) {
+        public static ObservableCollection<InfoBarModel> PopupMessages { get; } = [];
+        public static void ShowPopup(string message) {
             InfoBarModel vm = new() {
                 Message = message,
                 CloseButtonCommand = new RelayCommand<InfoBarModel>((model) => PopupMessages.Remove(model))
@@ -157,7 +171,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             );
         }
 
-        public void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
+        public static async void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
             if (DownloadManagerVM.Main.DownloadItemVMs.Count > 0) {
                 ContentDialogModel cdModel = new() {
                     DefaultButton = ContentDialogButton.Close,
@@ -165,15 +179,12 @@ namespace HitomiScrollViewerLib.ViewModels {
                     PrimaryButtonText = TEXT_EXIT,
                     CloseButtonText = TEXT_CANCEL
                 };
-                cdModel.Closed += (ContentDialogResult result) => {
-                    if (result == ContentDialogResult.None) {
-                        args.Cancel = true;
-                    } else {
-                        HitomiContext.Main.Dispose();
-                    }
-                };
-                NotifyUser(cdModel);
-            } else {
+                ContentDialogResult cdr = await NotifyUser(cdModel);
+                if (cdr == ContentDialogResult.None) {
+                    args.Cancel = true;
+                }
+            }
+            if (!args.Cancel) {
                 HitomiContext.Main.Dispose();
             }
         }

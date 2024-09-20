@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -7,17 +8,16 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views.SearchPageViews;
-using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Constants;
+using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class SyncManagerVM : ObservableObject {
@@ -35,6 +35,13 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private static UserCredential _userCredential;
         private static BaseClientService.Initializer _initializer;
+        private static BaseClientService.Initializer Initializer {
+            get => _initializer;
+            set {
+                _initializer = value;
+                SyncContentDialogVM.Main.DriveService = new(_initializer);
+            }
+        }
 
         [ObservableProperty]
         private string _signInButtonText;
@@ -47,10 +54,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
         [ObservableProperty]
         private bool _isSyncButtonEnabled = false;
-
-        private SyncContentDialog _syncContentDialog;
-        private SyncContentDialog SyncContentDialog =>
-            _syncContentDialog ??= new(new(new(_initializer))) { XamlRoot = MainWindow..SearchPageVM.XamlRoot };
 
         public SyncManagerVM() {
             _ = Task.Run(async () => {
@@ -70,7 +73,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         Environment.UserName,
                         tokenResponse
                     );
-                    _initializer = new BaseClientService.Initializer() {
+                    Initializer = new BaseClientService.Initializer() {
                         HttpClientInitializer = _userCredential,
                         ApplicationName = USER_AGENT_HEADER_APP_NAME
                     };
@@ -88,19 +91,19 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             });
         }
 
-        public async void SignInBtn_Clicked(object _0, RoutedEventArgs _1) {
+
+        [RelayCommand(CanExecute = nameof(IsSignInButtonEnabled))]
+        private async Task HandleSignInButtonClick() {
             IsSignInButtonEnabled = false;
             try {
                 if (IsSignedIn) {
-                    ContentDialog contentDialog = new() {
+                    ContentDialogModel signOutDialogModel = new() {
                         DefaultButton = ContentDialogButton.Primary,
-                        Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
                         Title = _resourceMap.GetValue("Notification_SignOut_Title").ValueAsString,
-                        PrimaryButtonText = TEXT_YES,
-                        CloseButtonText = TEXT_CANCEL,
-                        XamlRoot = MainWindow.SearchPageVM.XamlRoot
+                        PrimaryButtonText = TEXT_YES
                     };
-                    ContentDialogResult cdr = await contentDialog.ShowAsync();
+                    
+                    ContentDialogResult cdr = await MainWindowVM.NotifyUser(signOutDialogModel);
                     if (cdr != ContentDialogResult.Primary) {
                         return;
                     }
@@ -118,19 +121,11 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     try {
                         // ContentDialog is needed because it is currently not possible to detect when the user has closed the browser
                         // ref https://github.com/googleapis/google-api-dotnet-client/issues/508#issuecomment-290700919
-                        ContentDialog manualCancelDialog = new() {
-                            CloseButtonText = TEXT_CANCEL,
-                            Title = new TextBlock() {
-                                TextWrapping = TextWrapping.WrapWholeWords,
-                                Text = _resourceMap.GetValue("Notification_SignIn_Title").ValueAsString
-                            },
-                            Content = new TextBlock() {
-                                TextWrapping = TextWrapping.WrapWholeWords,
-                                Text = _resourceMap.GetValue("Notification_SignIn_Content").ValueAsString
-                            },
-                            XamlRoot = MainWindow.SearchPageVM.XamlRoot
+                        ContentDialogModel manualCancelDialogModel = new() {
+                            Title = _resourceMap.GetValue("Notification_SignIn_Title").ValueAsString,
+                            Message = _resourceMap.GetValue("Notification_SignIn_Content").ValueAsString
                         };
-                        Task manualCancelTask = manualCancelDialog.ShowAsync().AsTask();
+                        Task manualCancelTask = MainWindowVM.NotifyUser(manualCancelDialogModel).AsTask();
                         Task<UserCredential> authTask = GoogleWebAuthorizationBroker.AuthorizeAsync(
                             new ClientSecrets {
                                 ClientId = _credentialsResourceMap.GetValue("OAuthAppClientId").ValueAsString,
@@ -141,13 +136,13 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             cts.Token
                         );
                         if (await Task.WhenAny(manualCancelTask, authTask) == authTask) {
-                            manualCancelDialog.Hide();
+                            MainWindowVM.HideCurrentNotification();
                             _userCredential = await authTask;
-                            _initializer = new() {
+                            Initializer = new() {
                                 HttpClientInitializer = _userCredential,
                                 ApplicationName = USER_AGENT_HEADER_APP_NAME
                             };
-                            Userinfo userInfo = await new Oauth2Service(_initializer).Userinfo.Get().ExecuteAsync();
+                            Userinfo userInfo = await new Oauth2Service(Initializer).Userinfo.Get().ExecuteAsync();
                             await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V2, userInfo.Email);
                             SignInButtonText = string.Format(_resourceMap.GetValue("ButtonText_SignedIn").ValueAsString, userInfo.Email);
                             IsSignedIn = true;
@@ -164,8 +159,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         // App.MainWindow.Activate(); alone doesn't work and instead we need to
                         // minimize then activate the window because of this bug https://github.com/microsoft/microsoft-ui-xaml/issues/7595
                         if (!isWindowFocused) {
-                            (MainWindow.CurrMW.AppWindow.Presenter as OverlappedPresenter).Minimize();
-                            MainWindow.CurrMW.Activate();
+                            MainWindowVM.MinimizeWindow();
+                            MainWindowVM.ActivateWindow();
                             if (!cts.IsCancellationRequested) {
                                 cts.Dispose();
                             }
@@ -177,9 +172,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             }
         }
 
-        public async void SyncBtn_Clicked(object _0, RoutedEventArgs _1) {
+        [RelayCommand(CanExecute = nameof(IsSyncButtonEnabled))]
+        public async Task HandleSyncButtonClick() {
             IsSyncButtonEnabled = false;
-            await SyncContentDialog.ShowAsync();
+            await SyncContentDialogVM.Main.ShowSynContentDialog();
             IsSyncButtonEnabled = true;
         }
     }

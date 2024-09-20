@@ -8,7 +8,7 @@
     xmlns:views="using:HitomiScrollViewerLib.Views"
     xmlns:bpviews="using:HitomiScrollViewerLib.Views.BrowsePageViews"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
-    xmlns:entities="using:HitomiScrollViewerLib.Entities"
+    xmlns:bpvms="using:HitomiScrollViewerLib.ViewModels.BrowsePageVMs"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     >
@@ -88,8 +88,8 @@
                     <StackLayout Spacing="4"></StackLayout>
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="entities:Gallery">
-                        <bpviews:GalleryItem ViewModel="{x:Bind}"/>
+                    <DataTemplate x:DataType="bpvms:GalleryBrowseItemVM">
+                        <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"/>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>

@@ -72,7 +72,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = DownloadInputText.Split(NEW_LINE_SEPS, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (urlOrIds.Length == 0) {
-                MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString });
+                _ = MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString });
                 return;
             }
             List<int> extractedIds = [];
@@ -83,7 +83,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             }
             if (extractedIds.Count == 0) {
-                MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Invalid_Title").ValueAsString });
+                _ = MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Invalid_Title").ValueAsString });
                 return;
             }
             DownloadInputText = "";

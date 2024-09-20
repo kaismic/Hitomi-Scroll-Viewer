@@ -5,12 +5,11 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views {
     public sealed partial class MainWindow : Window {
-        private MainWindowVM ViewModel { get; } = MainWindowVM.Main;
-
         private LoadProgressReporter _reporter;
 
         public MainWindow() {
@@ -29,6 +28,9 @@ namespace HitomiScrollViewerLib.Views {
             };
             MainWindowVM.HideLoadProgressReporter += _reporter.Hide;
             MainWindowVM.RequestNotifyUser += NotifyUser;
+            MainWindowVM.RequestHideCurrentNotification += HideCurrentNotification;
+            MainWindowVM.RequestMinimizeWindow += () => (AppWindow.Presenter as OverlappedPresenter).Minimize();
+            MainWindowVM.RequestActivateWindow += Activate;
             MainWindowVM.Init();
         }
 
@@ -61,8 +63,11 @@ namespace HitomiScrollViewerLib.Views {
             //previousSelectedIndex = currSelectedIdx;
         }
 
-        private async void NotifyUser(ContentDialogModel model) {
-            ContentDialog cd = new() {
+        private ContentDialog _currentNotification;
+
+        private IAsyncOperation<ContentDialogResult> NotifyUser(ContentDialogModel model) {
+            _currentNotification = new() {
+                DefaultButton = model.DefaultButton,
                 Title = new TextBlock() {
                     TextWrapping = TextWrapping.WrapWholeWords,
                     Text = model.Title
@@ -75,11 +80,15 @@ namespace HitomiScrollViewerLib.Views {
                 CloseButtonText = model.CloseButtonText,
                 XamlRoot = RootFrame.XamlRoot
             };
-            model.InvokeClosedEvent(await cd.ShowAsync());
+            return _currentNotification.ShowAsync();
+        }
+
+        private void HideCurrentNotification() {
+            _currentNotification.Hide();
         }
 
         private void AppWindow_Closing(AppWindow _, AppWindowClosingEventArgs args) {
-            MainWindowVM.Main.HandleAppWindowClosing(args);
+            MainWindowVM.HandleAppWindowClosing(args);
         }
 
         private void RootFrame_SizeChanged(object _0, SizeChangedEventArgs e) {
