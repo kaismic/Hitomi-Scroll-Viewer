@@ -39,6 +39,28 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         [ObservableProperty]
         private TagFilter _selectedTagFilter;
+        partial void OnSelectedTagFilterChanged(TagFilter oldValue, TagFilter newValue) {
+            if (oldValue is TagFilter && CommonSettings.IsTFAutoSaveEnabled) {
+                // do not save if this selection change occurred due to deletion of currently selected tag filter
+                if (DeletedTagFilterIds == null) {
+                    SaveTagFilter(oldValue);
+                } else if (!DeletedTagFilterIds.Contains(oldValue.Id)) {
+                    SaveTagFilter(oldValue);
+                }
+            }
+            foreach (var vm in TttVMs) {
+                vm.SelectedTags.Clear();
+            }
+
+            ICollection<Tag> selectedTagFilterTags = HitomiContext.Main
+                .TagFilters
+                .Include(tf => tf.Tags)
+                .First(tf => tf.Id == SelectedTagFilter.Id)
+                .Tags;
+            foreach (Tag tag in selectedTagFilterTags) {
+                TttVMs[(int)tag.Category].SelectedTags.Add(tag);
+            }
+        }
 
 
         public bool AnyFilterSelected {
@@ -71,29 +93,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                 .Select(i => TttVMs[i].SelectedTags)
                 .SelectMany(tags => tags)
                 .ToHashSet();
-        }
-
-        private void TagFilterComboBox_SelectionChanged(object _0, SelectionChangedEventArgs e) {
-            if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is TagFilter prevTagFilter && CommonSettings.IsTFAutoSaveEnabled) {
-                // do not save if this selection change occurred due to deletion of currently selected tag filter
-                if (DeletedTagFilterIds == null) {
-                    SaveTagFilter(prevTagFilter);
-                } else if (!DeletedTagFilterIds.Contains(prevTagFilter.Id)) {
-                    SaveTagFilter(prevTagFilter);
-                }
-            }
-            foreach (var vm in TttVMs) {
-                vm.SelectedTags.Clear();
-            }
-
-            ICollection<Tag> selectedTagFilterTags = HitomiContext.Main
-                .TagFilters
-                .Include(tf => tf.Tags)
-                .First(tf => tf.Id == SelectedTagFilter.Id)
-                .Tags;
-            foreach (Tag tag in selectedTagFilterTags) {
-                TttVMs[(int)tag.Category].SelectedTags.Add(tag);
-            }
         }
 
         public ICommand CreateButtonCommand => new RelayCommand(CreateButton_Click);

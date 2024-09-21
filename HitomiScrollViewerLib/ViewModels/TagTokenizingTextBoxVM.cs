@@ -35,7 +35,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             SuggestedItemsSource = GetSuggestions();
         }
 
-        public void TokenizingTextBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args) {
+        public void TokenizingTextBox_TextChanged(AutoSuggestBox _0, AutoSuggestBoxTextChangedEventArgs args) {
             // Only get results when it was a user typing, 
             // otherwise assume the value got filled in by TextMemberPath 
             // or the handler for SuggestionChosen.
@@ -44,13 +44,13 @@ namespace HitomiScrollViewerLib.ViewModels {
             }
         }
 
-        public void TokenizingTextBox_TokenItemAdding(TokenizingTextBox sender, TokenItemAddingEventArgs args) {
+        public void TokenizingTextBox_TokenItemAdding(TokenizingTextBox _0, TokenItemAddingEventArgs args) {
             if (args.TokenText != null) {
                 args.Item = Tag.GetTag(args.TokenText, Category);
             }
         }
 
-        public void TagTokenizingTextBox_SizeChanged(object sender, SizeChangedEventArgs e) {
+        public void TagTokenizingTextBox_SizeChanged(object _0, SizeChangedEventArgs e) {
             TokenTextBlockMaxWidth = e.NewSize.Width - 44;
         }
     }

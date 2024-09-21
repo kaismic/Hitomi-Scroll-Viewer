@@ -37,7 +37,6 @@
         <AppBarButton x:Name="RefreshBtn" x:Uid="/ViewPage/RefreshBtn"
                         MinWidth="50"
                         Icon="Refresh"
-                        Click="RefreshBtn_Clicked"
                         IsTabStop="False"/>
         <AppBarSeparator MinWidth="30"/>
         <AppBarElementContainer>

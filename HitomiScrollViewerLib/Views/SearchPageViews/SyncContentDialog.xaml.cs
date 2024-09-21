@@ -8,7 +8,7 @@ namespace HitomiScrollViewerLib.Views.SearchPageViews {
         public SyncContentDialogVM _viewModel;
         public SyncContentDialogVM ViewModel {
             get => _viewModel;
-            init {
+            set {
                 _viewModel = value;
                 value.RequestShowDialog += ShowAsync;
             }

@@ -7,7 +7,7 @@ using System.Linq;
 namespace HitomiScrollViewerLib.Views.ViewPageViews {
     public sealed partial class GalleryTabViewItem : Grid {
         private GalleryTabViewItemVM _viewModel;
-        public required GalleryTabViewItemVM ViewModel {
+        public GalleryTabViewItemVM ViewModel {
             get => _viewModel;
             set {
                 _viewModel = value;

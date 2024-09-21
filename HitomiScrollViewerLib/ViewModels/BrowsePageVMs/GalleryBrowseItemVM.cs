@@ -8,9 +8,9 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class GalleryBrowseItemVM {
         private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
         private Gallery _gallery;
-        public required Gallery Gallery {
+        public Gallery Gallery {
             get => _gallery;
-            set {
+            init {
                 _gallery = value;
                 foreach (TagCategory category in Tag.TAG_CATEGORIES) {
                     List<Tag> tags = Tag.GetTagsByCategory(value.Tags, category);

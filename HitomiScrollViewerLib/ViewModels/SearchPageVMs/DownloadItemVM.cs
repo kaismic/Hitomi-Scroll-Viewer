@@ -68,7 +68,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private Gallery _gallery;
         internal int Id { get; private set; }
-        internal BookmarkItem BookmarkItem { get; set; }
 
         public int[] ThreadNums { get; } = Enumerable.Range(1, 8).ToArray();
         [ObservableProperty]
@@ -112,9 +111,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         public delegate void UpdateIdEventHandler(int oldId, int newId);
         public event UpdateIdEventHandler UpdateIdEvent;
 
-        public DownloadItemVM(int id, BookmarkItem bookmarkItem = null) {
+        public DownloadItemVM(int id) {
             Id = id;
-            BookmarkItem = bookmarkItem;
             GalleryDescriptionText = id.ToString();
         }
 
@@ -173,10 +171,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
 
         private void RemoveSelf() {
-            if (BookmarkItem != null) {
-                BookmarkItem.IsDownloading = false;
-                BookmarkItem.EnableRemoveBtn(true);
-            }
+            //if (BookmarkItem != null) {
+            //    BookmarkItem.IsDownloading = false;
+            //    BookmarkItem.EnableRemoveBtn(true);
+            //}
             RemoveDownloadItemEvent?.Invoke(this, Id);
         }
 
@@ -250,7 +248,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             CancellationToken ct = _cts.Token;
             CurrentDownloadStatus = DownloadStatus.Downloading;
             ProgressText = "";
-            BookmarkItem?.EnableRemoveBtn(false);
+            //BookmarkItem?.EnableRemoveBtn(false);
             if (_gallery == null) {
                 ProgressText = _resourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
                 string galleryInfo;

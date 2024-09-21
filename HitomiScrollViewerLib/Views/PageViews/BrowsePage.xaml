@@ -83,7 +83,7 @@
                               SelectedIndex="{x:Bind ViewModel.PageSize, Mode=TwoWay}"/>
                 </StackPanel>
             </Grid>
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.CurrentGalleryItemVMs}">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs}">
                 <ItemsRepeater.Layout>
                     <StackLayout Spacing="4"></StackLayout>
                 </ItemsRepeater.Layout>

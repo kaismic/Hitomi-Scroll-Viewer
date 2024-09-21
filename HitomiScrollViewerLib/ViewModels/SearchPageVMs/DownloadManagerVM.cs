@@ -12,9 +12,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         public static DownloadManagerVM Main => _main ??= new();
         private DownloadManagerVM() { }
 
-        public bool TryDownload(int id, BookmarkItem bookmarkItem = null) {
+        public bool TryDownload(int id) {
             if (_downloadingGalleryIds.TryAdd(id, 0)) {
-                DownloadItemVM vm = new(id, bookmarkItem);
+                DownloadItemVM vm = new(id);
                 DownloadItemVMs.Add(vm);
                 vm.RemoveDownloadItemEvent += RemoveDownloadItem;
                 vm.UpdateIdEvent += UpdateId;

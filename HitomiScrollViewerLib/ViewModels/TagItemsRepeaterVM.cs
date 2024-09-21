@@ -2,9 +2,9 @@
 
 namespace HitomiScrollViewerLib.ViewModels {
     public class TagItemsRepeaterVM {
-        public required string CategoryLabel { get; set; }
-        public required List<string> TagDisplayString { get; set; }
-        public double CategoryFontSize { get; set; }
-        public double TagFontSize { get; set; }
+        public string CategoryLabel { get; init; }
+        public List<string> TagDisplayString { get; init; }
+        public double CategoryFontSize { get; init; }
+        public double TagFontSize { get; init; }
     }
 }

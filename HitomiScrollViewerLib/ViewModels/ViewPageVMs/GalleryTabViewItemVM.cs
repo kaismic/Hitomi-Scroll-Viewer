@@ -12,7 +12,7 @@ using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
     public partial class GalleryTabViewItemVM : ObservableObject {
-        public required Gallery Gallery { get; init; }
+        public Gallery Gallery { get; init; }
 
         public GalleryViewSettings GalleryViewSettings { get; } = new();
 

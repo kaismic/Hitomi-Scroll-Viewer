@@ -11,7 +11,6 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    SizeChanged="SearchPage_SizeChanged"
     >
     <Grid ColumnSpacing="8" RowSpacing="8"
           Padding="16">

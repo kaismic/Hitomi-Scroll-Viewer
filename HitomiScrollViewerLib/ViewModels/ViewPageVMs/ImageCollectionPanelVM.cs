@@ -3,7 +3,7 @@ using System;
 
 namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
     public class ImageCollectionPanelVM {
-        public required int PageIndex { get; init; }
-        public required ImageInfo[] ImageInfos { get; init; }
+        public int PageIndex { get; init; }
+        public ImageInfo[] ImageInfos { get; init; }
     }
 }
