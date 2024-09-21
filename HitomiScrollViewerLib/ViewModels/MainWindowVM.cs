@@ -38,7 +38,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             // 1. Migrate tag filter set - DONE
             // 2. Migrate galleries (bookmarks)
             // 3. Migrate images from roaming to local folder - DONE
-            _ = Task.Run(() => {
+            _ = Task.Run(async () => {
                 LoadProgressReporterVM vm = new() {
                     IsIndeterminate = true
                 };

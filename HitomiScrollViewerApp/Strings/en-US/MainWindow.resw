@@ -120,4 +120,16 @@
   <data name="Text_DownloadRemaining" xml:space="preserve">
     <value>There are remaining galleries which are still downloading. Exit anyway?</value>
   </data>
+  <data name="SelectorBarItem_SearchPage.Text" xml:space="preserve">
+    <value>Search Galleries &amp; Download</value>
+  </data>
+  <data name="SelectorBarItem_BrowsePage.Text" xml:space="preserve">
+    <value>Browse Galleries</value>
+  </data>
+  <data name="SelectorBarItem_ViewPage.Text" xml:space="preserve">
+    <value>View Galleries</value>
+  </data>
+  <data name="SelectorBarItem_SettingsPage.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
 </root>

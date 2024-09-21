@@ -9,22 +9,22 @@
     mc:Ignorable="d">
     <StackPanel>
         <SelectorBar SelectionChanged="SelectorBar_SelectionChanged">
-            <SelectorBarItem Text="Search &amp; Download">
+            <SelectorBarItem x:Uid="/MainWindow/SelectorBarItem_SearchPage">
                 <SelectorBarItem.Icon>
                     <SymbolIcon Symbol="Find"/>
                 </SelectorBarItem.Icon>
             </SelectorBarItem>
-            <SelectorBarItem Text="Browse Galleries">
+            <SelectorBarItem x:Uid="/MainWindow/SelectorBarItem_BrowsePage">
                 <SelectorBarItem.Icon>
                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C5;"/>
                 </SelectorBarItem.Icon>
             </SelectorBarItem>
-            <SelectorBarItem Text="View">
+            <SelectorBarItem x:Uid="/MainWindow/SelectorBarItem_ViewPage">
                 <SelectorBarItem.Icon>
                     <SymbolIcon Symbol="View"/>
                 </SelectorBarItem.Icon>
             </SelectorBarItem>
-            <SelectorBarItem Text="Settings">
+            <SelectorBarItem x:Uid="/MainWindow/SelectorBarItem_SettingsPage">
                 <SelectorBarItem.Icon>
                     <SymbolIcon Symbol="Setting"/>
                 </SelectorBarItem.Icon>

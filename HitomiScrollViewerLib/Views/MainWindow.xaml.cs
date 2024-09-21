@@ -1,6 +1,7 @@
 ﻿using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels;
 using HitomiScrollViewerLib.Views.PageViews;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,7 +11,7 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views {
     public sealed partial class MainWindow : Window {
-        private LoadProgressReporter _reporter;
+        private readonly LoadProgressReporter _reporter = new();
 
         public MainWindow() {
             InitializeComponent();
@@ -19,12 +20,17 @@ namespace HitomiScrollViewerLib.Views {
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
             Title = APP_DISPLAY_NAME;
 
+            RootFrame.Loaded += RootFrame_Loaded;
+        }
+
+        private void RootFrame_Loaded(object sender, RoutedEventArgs e) {
+            RootFrame.Loaded -= RootFrame_Loaded;
             MainWindowVM.ShowLoadProgressReporter += (LoadProgressReporterVM e) => {
-                _reporter = new() {
-                    XamlRoot = RootFrame.XamlRoot,
-                    ViewModel = e
-                };
-                _ = _reporter.ShowAsync();
+                DispatcherQueue.TryEnqueue(() => {
+                    _reporter.XamlRoot = RootFrame.XamlRoot;
+                    _reporter.ViewModel = e;
+                    _ = _reporter.ShowAsync();
+                });
             };
             MainWindowVM.HideLoadProgressReporter += _reporter.Hide;
             MainWindowVM.RequestNotifyUser += NotifyUser;
@@ -53,7 +59,7 @@ namespace HitomiScrollViewerLib.Views {
                     RootFrame.Navigate(typeof(ViewPage));
                     break;
                 case 3:
-                    // TODO
+                    RootFrame.Navigate(typeof(SettingsPage));
                     break;
                 default:
                     throw new InvalidOperationException($"{currSelectedIdx} is an invalid Page index.");
