@@ -7,12 +7,12 @@ namespace HitomiScrollViewerLib.ViewModels {
         public PairedTFSelectorVM OtherTFSSelectorVM { private get; set; }
 
         private void EnableCheckBox(int i, bool enable) {
-            TfsCheckBoxModels[i].IsEnabled = enable;
+            TFCheckBoxModels[i].IsEnabled = enable;
         }
 
-        public override void CheckBoxToggleHandler(TFSCheckBoxModel model) {
+        public override void CheckBoxToggleHandler(TFCheckBoxModel model) {
             base.CheckBoxToggleHandler(model);
-            OtherTFSSelectorVM.EnableCheckBox(TfsCheckBoxModels.IndexOf(model), !model.IsChecked);
+            OtherTFSSelectorVM.EnableCheckBox(TFCheckBoxModels.IndexOf(model), !model.IsChecked);
         }
     }
 }

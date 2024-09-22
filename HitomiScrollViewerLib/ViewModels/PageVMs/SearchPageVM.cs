@@ -2,8 +2,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
+using HitomiScrollViewerLib.Views;
 using HitomiScrollViewerLib.Views.PageViews;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
@@ -27,8 +27,15 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public DownloadManagerVM DownloadManagerVM { get; } = DownloadManagerVM.Main;
         public SyncManagerVM SyncManagerVM { get; } = new();
 
-        [ObservableProperty]
         private string _downloadInputText;
+        public string DownloadInputText {
+            get => _downloadInputText;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _downloadInputText, value);
+                });
+            }
+        }
 
         private SearchPageVM() {
             HyperlinkCreateButtonCommand = new RelayCommand(

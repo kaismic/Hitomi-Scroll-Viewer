@@ -22,14 +22,35 @@ namespace HitomiScrollViewerLib.ViewModels {
         private InputValidationVM _inputValidationVM;
         private TFSelectorVM _tfsSelectorVM;
 
-        [ObservableProperty]
         private string _titleText;
-        [ObservableProperty]
+        public string TitleText {
+            get => _titleText;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _titleText, value);
+                });
+            }
+        }
         private string _primaryButtonText;
+        public string PrimaryButtonText {
+            get => _primaryButtonText;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _primaryButtonText, value);
+                });
+            }
+        }
         public string CloseButtonText { get; } = TEXT_CANCEL;
 
-        [ObservableProperty]
         private object _content;
+        public object Content {
+            get => _content;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _content, value);
+                });
+            }
+        }
 
         public ICommand PrimaryButtonCommand => new RelayCommand(() => { }, CanClickPrimaryButton);
 
@@ -63,7 +84,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             PrimaryButtonText = _resourceMap.GetValue($"Text_{_action}").ValueAsString;
             switch (_action) {
                 case CRUDAction.Create or CRUDAction.Rename:
-                    _inputValidationVM = new(Entities.TagFilter.TAG_FILTER_SET_NAME_MAX_LEN);
+                    _inputValidationVM = new(TagFilter.TAG_FILTER_SET_NAME_MAX_LEN);
                     if (_action == CRUDAction.Rename) {
                         _inputValidationVM.InputText = _oldName;
                         _inputValidationVM.AddValidator(CheckSameNameAsBefore);

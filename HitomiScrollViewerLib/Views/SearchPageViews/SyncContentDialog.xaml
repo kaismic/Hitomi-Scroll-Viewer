@@ -31,14 +31,14 @@
                  Severity="Warning"
                  IsClosable="False"/>
             <RadioButtons MaxColumns="2"
-                      SelectedIndex="{x:Bind ViewModel.RadioButtons_1_SelectedIndex, Mode=TwoWay}"
+                      SelectedIndex="{x:Bind ViewModel.RadioButtons1SelectedIndex, Mode=TwoWay}"
                       >
-                <RadioButton x:Uid="/SyncContentDialog/RadioButton_1_1"/>
-                <RadioButton x:Uid="/SyncContentDialog/RadioButton_1_2"/>
+                <RadioButton x:Uid="/SyncContentDialog/RadioButton1A"/>
+                <RadioButton x:Uid="/SyncContentDialog/RadioButton1B"/>
             </RadioButtons>
             <Border BorderThickness="2"
                 BorderBrush="{StaticResource DividerStrokeColorDefaultBrush}"
-                Visibility="{x:Bind ViewModel.Border_1_Visibility}"/>
+                Visibility="{x:Bind ViewModel.Border1Visibility}"/>
             <CheckBox x:Uid="/SyncContentDialog/TFCheckBox"
                   IsChecked="{x:Bind ViewModel.IsTFOptionChecked, Mode=TwoWay}"
                   Visibility="{x:Bind ViewModel.TfCheckBoxVisibility}"
@@ -46,38 +46,38 @@
             <StackPanel Visibility="{x:Bind ViewModel.FetchTFOptionsVisibility}"
                     Spacing="16">
                 <StackPanel>
-                    <TextBlock x:Uid="/SyncContentDialog/RadioButtons_2_TextBlock"
+                    <TextBlock x:Uid="/SyncContentDialog/RadioButtons2TextBlock"
                            Style="{StaticResource BaseTextBlockStyle}"/>
                     <RadioButtons MaxColumns="2"
-                              SelectedIndex="{x:Bind ViewModel.RadioButtons_2_SelectedIndex, Mode=TwoWay}"
+                              SelectedIndex="{x:Bind ViewModel.RadioButtons2SelectedIndex, Mode=TwoWay}"
                               >
-                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_2_1"/>
-                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_2_2"/>
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons2A"/>
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons2B"/>
                     </RadioButtons>
                 </StackPanel>
-                <StackPanel Visibility="{x:Bind ViewModel.RadioButtons_3_Visibility}">
-                    <TextBlock x:Uid="/SyncContentDialog/RadioButtons_3_TextBlock"
+                <StackPanel Visibility="{x:Bind ViewModel.RadioButtons3Visibility}">
+                    <TextBlock x:Uid="/SyncContentDialog/RadioButtons3TextBlock"
                            Style="{StaticResource BaseTextBlockStyle}"/>
                     <RadioButtons MaxColumns="2"
-                              SelectedIndex="{x:Bind ViewModel.RadioButtons_3_SelectedIndex, Mode=TwoWay}"
+                              SelectedIndex="{x:Bind ViewModel.RadioButtons3SelectedIndex, Mode=TwoWay}"
                               >
-                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_3_1"/>
-                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons_3_2"/>
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons3A"/>
+                        <RadioButton x:Uid="/SyncContentDialog/RadioButtons3B"/>
                     </RadioButtons>
                 </StackPanel>
             </StackPanel>
             <Border BorderThickness="1"
                 BorderBrush="{StaticResource DividerStrokeColorDefaultBrush}"
-                Visibility="{x:Bind ViewModel.Border_2_Visibility}"/>
+                Visibility="{x:Bind ViewModel.Border2Visibility}"/>
             <CheckBox x:Uid="/SyncContentDialog/GalleryCheckBox"
                   IsChecked="{x:Bind ViewModel.IsGalleryOptionChecked, Mode=TwoWay}"
                   Visibility="{x:Bind ViewModel.GalleryCheckBoxVisibility}"
                   />
             <StackPanel Visibility="{x:Bind ViewModel.FetchGalleryOptionsVisibility}">
-                <TextBlock x:Uid="/SyncContentDialog/RadioButtons_4_TextBlock"
+                <TextBlock x:Uid="/SyncContentDialog/RadioButtons4TextBlock"
                        Style="{StaticResource BaseTextBlockStyle}"/>
                 <RadioButtons x:Name="RadioButtons_4" MaxColumns="2"
-                          SelectedIndex="{x:Bind ViewModel.RadioButtons_4_SelectedIndex, Mode=TwoWay}"
+                          SelectedIndex="{x:Bind ViewModel.RadioButtons4SelectedIndex, Mode=TwoWay}"
                           />
             </StackPanel>
             <ProgressBar Visibility="{x:Bind ViewModel.ProgressBarVisibility}"

@@ -11,14 +11,42 @@ namespace HitomiScrollViewerLib.ViewModels {
         public string TitleText { get; } = _resourceMap.GetValue("Text_Title").ValueAsString;
         public string PleaseWaitText { get; } = _resourceMap.GetValue("Text_PleaseWait").ValueAsString;
 
-        [ObservableProperty]
         private string _text;
-        [ObservableProperty]
+        public string Text {
+            get => _text;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _text, value);
+                });
+            }
+        }
         private double _value;
-        [ObservableProperty]
+        public double Value {
+            get => _value;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _value, value);
+                });
+            }
+        }
         private double _maximum;
-        [ObservableProperty]
+        public double Maximum {
+            get => _maximum;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _maximum, value);
+                });
+            }
+        }
         private bool _isIndeterminate;
+        public bool IsIndeterminate {
+            get => _isIndeterminate;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _isIndeterminate, value);
+                });
+            }
+        }
 
         public enum LoadingStatus {
             LoadingDatabase,

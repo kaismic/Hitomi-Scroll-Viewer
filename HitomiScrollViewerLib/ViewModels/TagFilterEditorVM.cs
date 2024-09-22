@@ -17,51 +17,77 @@ using static HitomiScrollViewerLib.SharedResources;
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : ObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
-
-        [ObservableProperty]
-        private int _galleryTypeSelectedIndex;
         public GalleryTypeEntity[] GalleryTypeEntities { get; } =
             [new GalleryTypeEntity() { GalleryType = null }, .. HitomiContext.Main.GalleryTypes];
-
-        [ObservableProperty]
-        private int _galleryLanguageSelectedIndex;
         public GalleryLanguage[] GalleryLanguages { get; } =
             [new GalleryLanguage() { LocalName = TEXT_ALL }, .. HitomiContext.Main.GalleryLanguages.OrderBy(gl => gl.LocalName)];
 
+
+        private int _galleryTypeSelectedIndex;
+        public int GalleryTypeSelectedIndex {
+            get => _galleryTypeSelectedIndex;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _galleryTypeSelectedIndex, value);
+                });
+            }
+        }
+        private int _galleryLanguageSelectedIndex;
+        public int GalleryLanguageSelectedIndex {
+            get => _galleryLanguageSelectedIndex;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _galleryLanguageSelectedIndex, value);
+                });
+            }
+        }
 
         public string AutoSaveCheckBoxText { get; } = _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
         public CommonSettings CommonSettings { get; } = CommonSettings.Main;
 
         public TagTokenizingTextBoxVM[] TttVMs { get; } = new TagTokenizingTextBoxVM[Tag.TAG_CATEGORIES.Length];
 
-        [ObservableProperty]
+
         private string _searchTitleText;
-
-        [ObservableProperty]
-        private TagFilter _selectedTagFilter;
-        partial void OnSelectedTagFilterChanged(TagFilter oldValue, TagFilter newValue) {
-            if (oldValue is TagFilter && CommonSettings.IsTFAutoSaveEnabled) {
-                // do not save if this selection change occurred due to deletion of currently selected tag filter
-                if (DeletedTagFilterIds == null) {
-                    SaveTagFilter(oldValue);
-                } else if (!DeletedTagFilterIds.Contains(oldValue.Id)) {
-                    SaveTagFilter(oldValue);
-                }
-            }
-            foreach (var vm in TttVMs) {
-                vm.SelectedTags.Clear();
-            }
-
-            ICollection<Tag> selectedTagFilterTags = HitomiContext.Main
-                .TagFilters
-                .Include(tf => tf.Tags)
-                .First(tf => tf.Id == SelectedTagFilter.Id)
-                .Tags;
-            foreach (Tag tag in selectedTagFilterTags) {
-                TttVMs[(int)tag.Category].SelectedTags.Add(tag);
+        public string SearchTitleText {
+            get => _searchTitleText;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _searchTitleText, value);
+                });
             }
         }
+        private TagFilter _selectedTagFilter;
+        public TagFilter SelectedTagFilter {
+            get => _selectedTagFilter;
+            set {
+                TagFilter oldValue = _selectedTagFilter;
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _selectedTagFilter, value)) {
+                        if (oldValue is not null && CommonSettings.IsTFAutoSaveEnabled) {
+                            // do not save if this selection change occurred due to deletion of currently selected tag filter
+                            if (DeletedTagFilterIds == null) {
+                                SaveTagFilter(oldValue);
+                            } else if (!DeletedTagFilterIds.Contains(oldValue.Id)) {
+                                SaveTagFilter(oldValue);
+                            }
+                        }
+                        foreach (var vm in TttVMs) {
+                            vm.SelectedTags.Clear();
+                        }
 
+                        ICollection<Tag> selectedTagFilterTags = HitomiContext.Main
+                            .TagFilters
+                            .Include(tf => tf.Tags)
+                            .First(tf => tf.Id == SelectedTagFilter.Id)
+                            .Tags;
+                        foreach (Tag tag in selectedTagFilterTags) {
+                            TttVMs[(int)tag.Category].SelectedTags.Add(tag);
+                        }
+                    }
+                });
+            }
+        }
 
         public bool AnyFilterSelected {
             get => GalleryLanguageSelectedIndex > 0 ||

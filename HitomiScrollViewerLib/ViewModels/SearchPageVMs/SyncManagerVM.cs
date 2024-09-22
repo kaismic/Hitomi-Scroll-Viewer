@@ -9,6 +9,7 @@ using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.Views;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -44,16 +45,38 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
 
         [ObservableProperty]
-        private string _signInButtonText;
-        [ObservableProperty]
-        private bool _isSignInButtonEnabled = false;
-        [ObservableProperty]
         private bool _isSignedIn = false;
         partial void OnIsSignedInChanged(bool value) {
             IsSyncButtonEnabled = value;
         }
-        [ObservableProperty]
+
+        private string _signInButtonText;
+        public string SignInButtonText {
+            get => _signInButtonText;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _signInButtonText, value);
+                });
+            }
+        }
+        private bool _isSignInButtonEnabled = false;
+        public bool IsSignInButtonEnabled {
+            get => _isSignInButtonEnabled;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _isSignInButtonEnabled, value);
+                });
+            }
+        }
         private bool _isSyncButtonEnabled = false;
+        public bool IsSyncButtonEnabled {
+            get => _isSyncButtonEnabled;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _isSyncButtonEnabled, value);
+                });
+            }
+        }
 
         public SyncManagerVM() {
             _ = Task.Run(async () => {

@@ -117,25 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="RadioButtons_4_TextBlock.Text" xml:space="preserve">
+  <data name="RadioButtons4TextBlock.Text" xml:space="preserve">
     <value>Start downloading the galleries after fetching?</value>
   </data>
-  <data name="RadioButtons_2_1.Content" xml:space="preserve">
+  <data name="RadioButtons2A.Content" xml:space="preserve">
     <value>Overwrite</value>
   </data>
-  <data name="RadioButtons_2_2.Content" xml:space="preserve">
+  <data name="RadioButtons2B.Content" xml:space="preserve">
     <value>Append</value>
   </data>
-  <data name="RadioButtons_2_TextBlock.Text" xml:space="preserve">
+  <data name="RadioButtons2TextBlock.Text" xml:space="preserve">
     <value>Select how to sync tag filters after fetching them</value>
   </data>
-  <data name="RadioButtons_3_1.Content" xml:space="preserve">
+  <data name="RadioButtons3A.Content" xml:space="preserve">
     <value>Replace local tag filters</value>
   </data>
-  <data name="RadioButtons_3_2.Content" xml:space="preserve">
+  <data name="RadioButtons3B.Content" xml:space="preserve">
     <value>Keep local tag filters</value>
   </data>
-  <data name="RadioButtons_3_TextBlock.Text" xml:space="preserve">
+  <data name="RadioButtons3TextBlock.Text" xml:space="preserve">
     <value>Select how to sync tag filters with duplicate names</value>
   </data>
   <data name="InfoBar_Error_FileNotUploaded_Message" xml:space="preserve">
@@ -162,10 +162,10 @@
   <data name="SyncContentDialog.PrimaryButtonText" xml:space="preserve">
     <value>Sync</value>
   </data>
-  <data name="RadioButton_1_1.Content" xml:space="preserve">
+  <data name="RadioButton1A.Content" xml:space="preserve">
     <value>Upload</value>
   </data>
-  <data name="RadioButton_1_2.Content" xml:space="preserve">
+  <data name="RadioButton1B.Content" xml:space="preserve">
     <value>Fetch</value>
   </data>
   <data name="TitleTextBlock.Text" xml:space="preserve">

@@ -35,10 +35,10 @@
                  Maximum="{x:Bind ViewModel.ProgressBarMaximum}"
                  IsEnabled="{x:Bind ViewModel.IsEnabled}"
                  />
-    <TextBlock x:Name="DownloadStatusTextBlock" Grid.Row="2" Grid.Column="0"
+    <TextBlock Grid.Row="2" Grid.Column="0"
                TextWrapping="WrapWholeWords" IsTextSelectionEnabled="True"
                Text="{x:Bind ViewModel.ProgressText}"/>
-    <Button x:Name="DownloadControlButton" Grid.Row="0" Grid.Column="1"
+    <Button Grid.Row="0" Grid.Column="1"
             HorizontalAlignment="Stretch"
             IsEnabled="{x:Bind ViewModel.IsEnabled}"
             Click="{x:Bind ViewModel.DownloadToggleButton_Clicked, Mode=OneTime}"
@@ -52,8 +52,7 @@
             >
         <SymbolIcon Symbol="Delete"/>
     </Button>
-    <ComboBox x:Name="ThreadNumComboBox"
-              Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
+    <ComboBox Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
               ItemsSource="{x:Bind ViewModel.ThreadNums, Mode=OneTime}"
               SelectedItem="{x:Bind ViewModel.ThreadNum, Mode=TwoWay}"
               IsEnabled="{x:Bind ViewModel.IsEnabled}">

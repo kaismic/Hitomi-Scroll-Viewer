@@ -38,7 +38,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             // 1. Migrate tag filter set - DONE
             // 2. Migrate galleries (bookmarks)
             // 3. Migrate images from roaming to local folder - DONE
-            _ = Task.Run(async () => {
+            _ = Task.Run(() => {
                 LoadProgressReporterVM vm = new() {
                     IsIndeterminate = true
                 };
@@ -88,6 +88,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     vm.IsIndeterminate = true;
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.MovingImageFolder);
                     Directory.Move(IMAGE_DIR_V2, IMAGE_DIR_V3);
+                    // TODO convert image files from 0.webp 1.webp -> 000.webp 001.webp
                 }
 
                 // migrate existing galleries (p.k.a. bookmarks) from v2

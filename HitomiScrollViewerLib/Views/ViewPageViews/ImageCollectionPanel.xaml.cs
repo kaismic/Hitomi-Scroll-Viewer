@@ -55,7 +55,7 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
         private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args) {
             sender.CoreWebView2.SetVirtualHostNameToFolderMapping(VIRTUAL_HOST_NAME, _nonVirtualImageDir, CoreWebView2HostResourceAccessKind.DenyCors);
             _imageIndexDict.TryGetValue(sender, out int imageInfoIdx);
-            sender.NavigateToString(string.Format(IMAGE_HTML, imageInfoIdx, ViewModel.ImageInfos[imageInfoIdx].FileFormat));
+            sender.NavigateToString(string.Format(IMAGE_HTML, imageInfoIdx, ViewModel.ImageInfos[imageInfoIdx].FileExtension));
         }
     }
 }

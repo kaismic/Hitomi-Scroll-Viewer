@@ -14,12 +14,12 @@
     BorderThickness="1"
     Padding="16">
     <ScrollViewer>
-        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TfsCheckBoxModels, Mode=OneWay}">
+        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TFCheckBoxModels, Mode=OneWay}">
             <ItemsRepeater.Layout>
                 <ct:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
-                <DataTemplate x:DataType="models:TFSCheckBoxModel">
+                <DataTemplate x:DataType="models:TFCheckBoxModel">
                     <CheckBox MinWidth="0"
                               Style="{StaticResource DefaultCheckBoxStyle}"
                               IsChecked="{x:Bind IsChecked, Mode=TwoWay}"

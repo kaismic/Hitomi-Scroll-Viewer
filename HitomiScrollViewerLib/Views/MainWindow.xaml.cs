@@ -11,6 +11,7 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views {
     public sealed partial class MainWindow : Window {
+        public static DispatcherQueue MainDispatcherQueue { get; private set; }
         private readonly LoadProgressReporter _reporter = new();
 
         public MainWindow() {
@@ -21,7 +22,11 @@ namespace HitomiScrollViewerLib.Views {
             Title = APP_DISPLAY_NAME;
 
             RootFrame.Loaded += RootFrame_Loaded;
+
+            MainDispatcherQueue = DispatcherQueue;
         }
+
+        // TODO change all ObservableProperties to manual property setting
 
         private void RootFrame_Loaded(object sender, RoutedEventArgs e) {
             RootFrame.Loaded -= RootFrame_Loaded;

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.Views;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,22 +28,43 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         private const int SIZE_CHANGE_WAIT_TIME = 200;
         private DateTime _lastSizeChangedTime;
 
-        [ObservableProperty]
         private List<ImageCollectionPanelVM> _imageCollectionPanelVMs;
-        [ObservableProperty]
+        public List<ImageCollectionPanelVM> ImageCollectionPanelVMs {
+            get => _imageCollectionPanelVMs;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _imageCollectionPanelVMs, value);
+                });
+            }
+        }
         private int _flipViewSelectedIndex;
+        public int FlipViewSelectedIndex {
+            get => _flipViewSelectedIndex;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _flipViewSelectedIndex, value);
+                });
+            }
+        }
 
         private CancellationTokenSource _autoScrollCts;
-        [ObservableProperty]
+
         private bool _isAutoScrolling = false;
-        partial void OnIsAutoScrollingChanged(bool value) {
-            if (value) {
-                RequestShowActionIcon?.Invoke(GLYPH_PLAY, null);
-                _autoScrollCts = new();
-                Task.Run(StartAutoScrolling, _autoScrollCts.Token);
-            } else {
-                RequestShowActionIcon?.Invoke(GLYPH_PAUSE, null);
-                _autoScrollCts.Cancel();
+        public bool IsAutoScrolling {
+            get => _isAutoScrolling;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _isAutoScrolling, value)) {
+                        if (value) {
+                            RequestShowActionIcon?.Invoke(GLYPH_PLAY, null);
+                            _autoScrollCts = new();
+                            Task.Run(StartAutoScrolling, _autoScrollCts.Token);
+                        } else {
+                            RequestShowActionIcon?.Invoke(GLYPH_PAUSE, null);
+                            _autoScrollCts.Cancel();
+                        }
+                    }
+                });
             }
         }
 

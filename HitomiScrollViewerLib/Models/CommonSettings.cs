@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -20,31 +21,61 @@ namespace HitomiScrollViewerLib.Models {
             .. Enumerable.Range(1, 5).Select(x => x.ToString())
         ];
 
-        [ObservableProperty]
         private bool _isTFAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] ??= true);
-        [ObservableProperty]
+        public bool IsTFAutoSaveEnabled {
+            get => _isTFAutoSaveEnabled;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _isTFAutoSaveEnabled, value)) {
+                        ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] = value;
+                    }
+                });
+            }
+        }
+        
         private FlowDirectionModel _flowDirectionModel = FLOW_DIRECTION_MODELS.Find(fd => fd.Value == (FlowDirection)(ApplicationData.Current.LocalSettings.Values[nameof(FlowDirection)] ??= FlowDirection.RightToLeft));
-        [ObservableProperty]
+        public FlowDirectionModel FlowDirectionModel {
+            get => _flowDirectionModel;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _flowDirectionModel, value)) {
+                        ApplicationData.Current.LocalSettings.Values[nameof(FlowDirectionModel)] = value.Value;
+                    }
+                });
+            }
+        }
         private bool _isPageFlipEffectEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[nameof(IsPageFlipEffectEnabled)] ??= true);
-        [ObservableProperty]
+        public bool IsPageFlipEffectEnabled {
+            get => _isPageFlipEffectEnabled;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _isPageFlipEffectEnabled, value)) {
+                        ApplicationData.Current.LocalSettings.Values[nameof(IsPageFlipEffectEnabled)] = value;
+                    }
+                });
+            }
+        }
         private ScrollDirection _scrollDirection = SCROLL_DIRECTIONS.Find(sd => sd.Value == (Orientation)(ApplicationData.Current.LocalSettings.Values[nameof(ScrollDirection)] ??= Orientation.Vertical));
-        [ObservableProperty]
+        public ScrollDirection ScrollDirection {
+            get => _scrollDirection;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _scrollDirection, value)) {
+                        ApplicationData.Current.LocalSettings.Values[nameof(ScrollDirection)] = value.Value;
+                    }
+                });
+            }
+        }
         private int _imagesPerPage = (int)(ApplicationData.Current.LocalSettings.Values[nameof(ImagesPerPage)] ??= 0);
-
-        partial void OnIsTFAutoSaveEnabledChanged(bool value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] = value;
-        }
-        partial void OnFlowDirectionModelChanged(FlowDirectionModel value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(FlowDirectionModel)] = value.Value;
-        }
-        partial void OnIsPageFlipEffectEnabledChanged(bool value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(IsPageFlipEffectEnabled)] = value;
-        }
-        partial void OnScrollDirectionChanged(ScrollDirection value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(ScrollDirection)] = value.Value;
-        }
-        partial void OnImagesPerPageChanged(int value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(ImagesPerPage)] = value;
+        public int ImagesPerPage {
+            get => _imagesPerPage;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _imagesPerPage, value)) {
+                        ApplicationData.Current.LocalSettings.Values[nameof(ImagesPerPage)] = value;
+                    }
+                });
+            }
         }
 
         private static CommonSettings _main;

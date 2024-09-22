@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using HitomiScrollViewerLib.Views;
 using System.Collections.Generic;
 
 namespace HitomiScrollViewerLib.ViewModels {
@@ -6,23 +7,47 @@ namespace HitomiScrollViewerLib.ViewModels {
         public delegate bool InputValidator(string input, out string errorMsg);
         private readonly List<InputValidator> _validators = [];
 
-        [ObservableProperty]
         private int _maxInputLength;
-        partial void OnMaxInputLengthChanged(int value) {
-            UpdateInputText();
+        public int MaxInputLength {
+            get => _maxInputLength;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _maxInputLength, value)) {
+                        UpdateInputText();
+                    }
+                });
+            }
         }
-
-        [ObservableProperty]
-        private string _inputText = "";
-        partial void OnInputTextChanged(string value) {
-            UpdateInputText();
+        private string _inputText;
+        public string InputText {
+            get => _inputText;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    if (SetProperty(ref _inputText, value)) {
+                        UpdateInputText();
+                    }
+                });
+            }
         }
-
-        [ObservableProperty]
         private string _errorMessage;
-
-        [ObservableProperty]
+        public string ErrorMessage {
+            get => _errorMessage;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _errorMessage, value);
+                });
+            }
+        }
         private string _inputLengthDisplayText;
+        public string InputLengthDisplayText {
+            get => _inputLengthDisplayText;
+            set {
+                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                    SetProperty(ref _inputLengthDisplayText, value);
+                });
+            }
+        }
+
 
         public InputValidationVM(int maxInputLength) {
             MaxInputLength = maxInputLength;
