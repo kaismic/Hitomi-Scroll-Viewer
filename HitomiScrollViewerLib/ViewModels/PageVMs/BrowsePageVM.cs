@@ -12,10 +12,11 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
     public partial class BrowsePageVM : DQObservableObject {
         private static BrowsePageVM _main;
         public static BrowsePageVM Main => _main ??= new();
+        private BrowsePageVM() { }
 
         public int[] PageSizes { get; } = Enumerable.Range(1, 15).ToArray();
 
-        public TagFilterEditorVM TagFilterSetEditorVM { get; } = new();
+        public TagFilterEditorVM TagFilterEditorVM { get; } = new();
         public ObservableCollection<SearchFilterVM> SearchFilterVMs { get; } = [];
 
         [ObservableProperty]
@@ -52,13 +53,13 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         [RelayCommand(CanExecute = nameof(CanCreateGalleryFilter))]
         private void CreateGalleryFilter() {
-            SearchFilterVM vm = TagFilterSetEditorVM.GetSearchFilterVM();
+            SearchFilterVM vm = TagFilterEditorVM.GetSearchFilterVM();
             if (vm != null) {
                 vm.DeleteCommand.Command = new RelayCommand<SearchFilterVM>(arg => SearchFilterVMs.Remove(arg));
                 vm.SearchFilterClicked += arg => FilteredGalleries = arg.GetFilteredGalleries();
                 SearchFilterVMs.Add(vm);
             }
         }
-        private bool CanCreateGalleryFilter() => TagFilterSetEditorVM.AnyFilterSelected;
+        private bool CanCreateGalleryFilter() => TagFilterEditorVM.AnyFilterSelected;
     }
 }

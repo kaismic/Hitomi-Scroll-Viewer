@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace HitomiScrollViewerLib.Entities {
-    [Index(nameof(Name), IsUnique = true)]
+    [Index(nameof(Name))]
     public class TagFilter : INotifyPropertyChanged {
         public const int TAG_FILTER_SET_NAME_MAX_LEN = 100;
         [JsonIgnore]
@@ -15,11 +15,13 @@ namespace HitomiScrollViewerLib.Entities {
         private string _name;
         [MaxLength(TAG_FILTER_SET_NAME_MAX_LEN)]
         [Required]
-        public string Name {
+        public required string Name {
             get => _name;
             set {
-                if (_name != value) _name = value;
-                NotifyPropertyChanged();
+                if (_name != value) {
+                    _name = value;
+                    NotifyPropertyChanged();
+                }
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;

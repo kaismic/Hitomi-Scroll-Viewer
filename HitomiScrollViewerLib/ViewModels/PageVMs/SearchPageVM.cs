@@ -20,18 +20,18 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static SearchPageVM _main;
         public static SearchPageVM Main => _main ??= new() ;
 
-        public TagFilterEditorVM TagFilterSetEditorVM { get; } = new();
+        public TagFilterEditorVM TagFilterEditorVM { get; } = new();
         public ObservableCollection<SearchFilterVM> SearchFilterVMs { get; } = [];
         public DownloadManagerVM DownloadManagerVM { get; } = DownloadManagerVM.Main;
         public SyncManagerVM SyncManagerVM { get; } = new();
 
         [ObservableProperty]
-        private string _downloadInputText;
+        private string _downloadInputText = "";
 
         private SearchPageVM() {
             HyperlinkCreateButtonCommand = new RelayCommand(
                 HyperlinkCreateButton_Clicked,
-                () => TagFilterSetEditorVM.AnyFilterSelected
+                () => TagFilterEditorVM.AnyFilterSelected
             );
             DownloadButtonCommand = new RelayCommand(
                 ExecuteDownloadButtonCommand,
@@ -42,7 +42,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public ICommand HyperlinkCreateButtonCommand { get; }
 
         public void HyperlinkCreateButton_Clicked() {
-            SearchFilterVM vm = TagFilterSetEditorVM.GetSearchFilterVM();
+            SearchFilterVM vm = TagFilterEditorVM.GetSearchFilterVM();
             if (vm != null) {
                 // copy link to clipboard
                 vm.DeleteCommand.Command = new RelayCommand<SearchFilterVM>((arg) => {

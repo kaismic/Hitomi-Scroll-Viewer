@@ -11,9 +11,10 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    VerticalAlignment="Stretch"
     >
     <Grid ColumnSpacing="8" RowSpacing="8"
-          Padding="16">
+          Padding="16" VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
@@ -22,12 +23,12 @@
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <views:TagFilterEditor ViewModel="{x:Bind ViewModel.TagFilterSetEditorVM}"
+        <views:TagFilterEditor ViewModel="{x:Bind ViewModel.TagFilterEditorVM}"
                                Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"/>
         <Grid Grid.Row="0" Grid.Column="1"
               VerticalAlignment="Stretch"
               RowSpacing="16"
-                >
+              >
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>

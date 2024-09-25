@@ -33,7 +33,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         public TagTokenizingTextBoxVM[] TttVMs { get; } = new TagTokenizingTextBoxVM[Tag.TAG_CATEGORIES.Length];
 
         [ObservableProperty]
-        private string _searchTitleText;
+        private string _searchTitleText = "";
 
         [ObservableProperty]
         private TagFilter _selectedTagFilter;
@@ -61,12 +61,10 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
 
-        public bool AnyFilterSelected {
-            get => GalleryLanguageSelectedIndex > 0 ||
+        public bool AnyFilterSelected => GalleryLanguageSelectedIndex > 0 ||
                 GalleryTypeSelectedIndex > 0 ||
                 SearchTitleText.Length > 0 ||
                 IncludeTFSelectorVM.AnySelected || ExcludeTFSelectorVM.AnySelected;
-        }
 
         public PairedTFSelectorVM IncludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
         public PairedTFSelectorVM ExcludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());

@@ -1,6 +1,9 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HitomiScrollViewerLib.Entities {
     public class OriginalGalleryInfo {
@@ -33,8 +36,24 @@ namespace HitomiScrollViewerLib.Entities {
 
         public struct CompositeTag {
             public string Tag { get; set; }
-            public int? Male { get; set; }
-            public int? Female { get; set; }
+            [JsonConverter(typeof(EmptyStringNumberJsonConverter))]
+            public int Male { get; set; }
+            [JsonConverter(typeof(EmptyStringNumberJsonConverter))]
+            public int Female { get; set; }
+        }
+
+        public class EmptyStringNumberJsonConverter : JsonConverter<int> {
+            public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+                try {
+                    string s = reader.GetString();
+                    if (s.Length == 0) {
+                        return 0;
+                    }
+                    return int.Parse(s);
+                } catch (InvalidOperationException) { }
+                return 0;
+            }
+            public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options) => writer.WriteNumberValue(value);
         }
 
         public Gallery ToGallery() {

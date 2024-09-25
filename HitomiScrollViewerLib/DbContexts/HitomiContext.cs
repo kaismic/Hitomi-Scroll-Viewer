@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Windows.ApplicationModel;
-using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Constants;
+using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.DbContexts {
     public class HitomiContext : DbContext {
@@ -145,7 +145,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                     Name = resourceMap.GetValue("ExampleTagFilterName_3").ValueAsString,
                     Tags = [
                         Tag.GetTag("naruto", TagCategory.Series),
-                        Tag.GetTag("big breasts", TagCategory.Tag),
+                        Tag.GetTag("big breasts", TagCategory.Female),
                     ]
                 },
                 new() {

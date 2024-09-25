@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Text.Json.Serialization;
@@ -15,7 +16,7 @@ namespace HitomiScrollViewerLib.Entities {
             set {
                 _name = value;
                 IsPlayable = value.EndsWith(".gif");
-                LocalFileName = IndexFromNameRegex().Match(value).Value;
+                LocalFileName = IndexFromNameRegex().Match(value).Groups[1].Value;
                 Index = int.Parse(LocalFileName);
             }
         }

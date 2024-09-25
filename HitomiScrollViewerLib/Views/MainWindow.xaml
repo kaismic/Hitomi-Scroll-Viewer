@@ -8,7 +8,7 @@
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
     mc:Ignorable="d">
     <StackPanel>
-        <SelectorBar SelectionChanged="SelectorBar_SelectionChanged">
+        <SelectorBar x:Name="MainSelectorBar" SelectionChanged="SelectorBar_SelectionChanged">
             <SelectorBarItem x:Uid="/MainWindow/SelectorBarItem_SearchPage">
                 <SelectorBarItem.Icon>
                     <SymbolIcon Symbol="Find"/>

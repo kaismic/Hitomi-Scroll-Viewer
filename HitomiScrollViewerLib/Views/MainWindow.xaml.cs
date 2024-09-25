@@ -37,16 +37,24 @@ namespace HitomiScrollViewerLib.Views {
                     _ = _reporter.ShowAsync();
                 });
             };
-            MainWindowVM.HideLoadProgressReporter += _reporter.Hide;
+            MainWindowVM.HideLoadProgressReporter += () => DispatcherQueue.TryEnqueue(_reporter.Hide);
             MainWindowVM.RequestNotifyUser += NotifyUser;
-            MainWindowVM.RequestHideCurrentNotification += HideCurrentNotification;
+            MainWindowVM.RequestHideCurrentNotification += () => DispatcherQueue.TryEnqueue(_currentNotification.Hide);
             MainWindowVM.RequestMinimizeWindow += () => (AppWindow.Presenter as OverlappedPresenter).Minimize();
             MainWindowVM.RequestActivateWindow += Activate;
+            MainWindowVM.Initialised += () => DispatcherQueue.TryEnqueue(() => SelectorBar_SelectionChanged(MainSelectorBar, null));
             MainWindowVM.Init();
         }
 
         private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs _1) {
+            if (!MainWindowVM.IsInitialised) {
+                return;
+            }
             int currSelectedIdx = sender.Items.IndexOf(sender.SelectedItem);
+            if (currSelectedIdx == -1) {
+                currSelectedIdx = 0;
+                sender.SelectedItem = sender.Items[currSelectedIdx];
+            }
             //RootFrame.Content = currSelectedIdx switch {
             //    0 => SearchPageVM,
             //    1 => BrowsePageVM,
@@ -92,10 +100,6 @@ namespace HitomiScrollViewerLib.Views {
                 XamlRoot = RootFrame.XamlRoot
             };
             return _currentNotification.ShowAsync();
-        }
-
-        private void HideCurrentNotification() {
-            _currentNotification.Hide();
         }
 
         private void AppWindow_Closing(AppWindow _, AppWindowClosingEventArgs args) {

@@ -41,6 +41,7 @@ namespace HitomiScrollViewerLib.Views {
             }
 
             for (int i = 0; i < Entities.Tag.TAG_CATEGORIES.Length; i++) {
+                TextBoxesGrid.ColumnDefinitions.Add(new());
                 Border categoryHeaderBorder = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
@@ -65,8 +66,9 @@ namespace HitomiScrollViewerLib.Views {
                 Border wrapper = new() {
                     Child = _tagTokenizingTextBoxes[i]
                 };
+                int localIdx = i;
                 wrapper.SizeChanged += (object _0, SizeChangedEventArgs e) => {
-                    _tagTokenizingTextBoxes[i].MaxHeight = e.NewSize.Height;
+                    _tagTokenizingTextBoxes[localIdx].MaxHeight = e.NewSize.Height;
                 };
                 wrapper.Loaded += Wrapper_Loaded;
                 SetRow(wrapper, 1);

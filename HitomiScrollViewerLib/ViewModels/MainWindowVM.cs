@@ -30,7 +30,8 @@ namespace HitomiScrollViewerLib.ViewModels {
         public static event Action RequestMinimizeWindow;
         public static event Action RequestActivateWindow;
 
-
+        public static event Action Initialised;
+        public static bool IsInitialised { get; private set; } = false;
 
         public static void Init() {
             // TODO
@@ -61,13 +62,13 @@ namespace HitomiScrollViewerLib.ViewModels {
                     vm.IsIndeterminate = false;
                     vm.Value = 0;
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingTFSs);
-                    Dictionary<string, LegacyTagFilter> tagFilterV2 = (Dictionary<string, LegacyTagFilter>)JsonSerializer.Deserialize(
+                    Dictionary<string, LegacyTagFilter> legacyTagFilters = (Dictionary<string, LegacyTagFilter>)JsonSerializer.Deserialize(
                         File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
                         typeof(Dictionary<string, LegacyTagFilter>),
                         TF_SERIALIZER_OPTIONS
                     );
-                    vm.Maximum = tagFilterV2.Count;
-                    foreach (var pair in tagFilterV2) {
+                    vm.Maximum = legacyTagFilters.Count;
+                    foreach (var pair in legacyTagFilters) {
                         HitomiContext.Main.TagFilters.AddRange(pair.Value.ToTagFilter(pair.Key));
                         vm.Value++;
                     }
@@ -133,6 +134,9 @@ namespace HitomiScrollViewerLib.ViewModels {
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
 
                 HideLoadProgressReporter.Invoke();
+
+                IsInitialised = true;
+                Initialised?.Invoke();
             });
         }
 

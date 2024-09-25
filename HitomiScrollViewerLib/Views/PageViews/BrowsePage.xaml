@@ -20,7 +20,7 @@
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <views:TagFilterEditor ViewModel="{x:Bind ViewModel.TagFilterSetEditorVM}"
+                <views:TagFilterEditor ViewModel="{x:Bind ViewModel.TagFilterEditorVM}"
                                        Grid.Column="0"/>
                 <Grid Grid.Column="1"
                       VerticalAlignment="Stretch"

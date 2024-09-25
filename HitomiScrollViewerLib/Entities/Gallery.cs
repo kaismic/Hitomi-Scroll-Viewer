@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Title))]
-    [Index(nameof(LastDownloadTime))]
+    [Index(nameof(DownloadTime))]
     public class Gallery {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -14,8 +14,7 @@ namespace HitomiScrollViewerLib.Entities {
         public string Date { get; set; }
         public int[] SceneIndexes { get; set; }
         public int[] Related { get; set; }
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime LastDownloadTime { get; set; }
+        public DateTime DownloadTime { get; init; } = DateTime.UtcNow;
         [Required]
         public virtual GalleryTypeEntity GalleryType { get; set; }
         [Required]
