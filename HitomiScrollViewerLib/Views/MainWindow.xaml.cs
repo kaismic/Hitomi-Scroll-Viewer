@@ -26,7 +26,7 @@ namespace HitomiScrollViewerLib.Views {
             MainDispatcherQueue = DispatcherQueue;
         }
 
-        // TODO change all ObservableProperties to manual property setting
+        // TODO implement DQObservableObject and revert most back to ObservableProperties
 
         private void RootFrame_Loaded(object sender, RoutedEventArgs e) {
             RootFrame.Loaded -= RootFrame_Loaded;

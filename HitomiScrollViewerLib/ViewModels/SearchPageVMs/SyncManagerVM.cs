@@ -9,7 +9,6 @@ using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using HitomiScrollViewerLib.Models;
-using HitomiScrollViewerLib.Views;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -21,7 +20,7 @@ using static HitomiScrollViewerLib.Constants;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
-    public partial class SyncManagerVM : ObservableObject {
+    public partial class SyncManagerVM : DQObservableObject {
         private const string USER_EMAIL_FILE_NAME = "user_email.txt";
         private static readonly string USER_EMAIL_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, USER_EMAIL_FILE_NAME);
         private static readonly string USER_EMAIL_FILE_PATH_V3 = Path.Combine(ROAMING_DIR_V3, USER_EMAIL_FILE_NAME);
@@ -50,33 +49,12 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             IsSyncButtonEnabled = value;
         }
 
+        [ObservableProperty]
         private string _signInButtonText;
-        public string SignInButtonText {
-            get => _signInButtonText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _signInButtonText, value);
-                });
-            }
-        }
-        private bool _isSignInButtonEnabled = false;
-        public bool IsSignInButtonEnabled {
-            get => _isSignInButtonEnabled;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isSignInButtonEnabled, value);
-                });
-            }
-        }
-        private bool _isSyncButtonEnabled = false;
-        public bool IsSyncButtonEnabled {
-            get => _isSyncButtonEnabled;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isSyncButtonEnabled, value);
-                });
-            }
-        }
+        [ObservableProperty]
+        private bool _isSignInButtonEnabled;
+        [ObservableProperty]
+        private bool _isSyncButtonEnabled;
 
         public SyncManagerVM() {
             _ = Task.Run(async () => {

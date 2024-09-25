@@ -1,8 +1,6 @@
-﻿
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
-using HitomiScrollViewerLib.Views;
 using HitomiScrollViewerLib.Views.PageViews;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
@@ -15,27 +13,20 @@ using Windows.ApplicationModel.DataTransfer;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
-    public partial class SearchPageVM : ObservableObject {
+    public partial class SearchPageVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SearchPage).Name);
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private static SearchPageVM _main;
         public static SearchPageVM Main => _main ??= new() ;
 
-        public TagFilterEditorVM TagFilterSetEditorVM { get; set; }
+        public TagFilterEditorVM TagFilterSetEditorVM { get; } = new();
         public ObservableCollection<SearchFilterVM> SearchFilterVMs { get; } = [];
         public DownloadManagerVM DownloadManagerVM { get; } = DownloadManagerVM.Main;
         public SyncManagerVM SyncManagerVM { get; } = new();
 
+        [ObservableProperty]
         private string _downloadInputText;
-        public string DownloadInputText {
-            get => _downloadInputText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _downloadInputText, value);
-                });
-            }
-        }
 
         private SearchPageVM() {
             HyperlinkCreateButtonCommand = new RelayCommand(

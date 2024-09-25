@@ -7,7 +7,6 @@ using Google.Apis.Upload;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
-using HitomiScrollViewerLib.Views;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -27,7 +26,7 @@ using static HitomiScrollViewerLib.Constants;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
-    public partial class SyncContentDialogVM : ObservableObject {
+    public partial class SyncContentDialogVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SyncContentDialog).Name);
 
         private static SyncContentDialogVM _main;
@@ -44,267 +43,130 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         public IAsyncOperation<ContentDialogResult> ShowSynContentDialog() {
             return RequestShowDialog?.Invoke();
         }
-
+        [ObservableProperty]
         private bool _isEnabled;
-        public bool IsEnabled {
-            get => _isEnabled;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isEnabled, value);
-                });
-            }
-        }
-        private string _closeButtonText = TEXT_CLOSE;
-        public string CloseButtonText {
-            get => _closeButtonText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _closeButtonText, value);
-                });
-            }
-        }
+        [ObservableProperty]
+        private string _closeButtonText;
+        [ObservableProperty]
         private Visibility _progressBarVisibility;
-        public Visibility ProgressBarVisibility {
-            get => _progressBarVisibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _progressBarVisibility, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private bool _isProgressBarIndeterminate;
-        public bool IsProgressBarIndeterminate {
-            get => _isProgressBarIndeterminate;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isProgressBarIndeterminate, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private double _progressBarValue;
-        public double ProgressBarValue {
-            get => _progressBarValue;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _progressBarValue, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private double _progressBarMaximum;
-        public double ProgressBarMaximum {
-            get => _progressBarMaximum;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _progressBarMaximum, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private bool _isUploadWarningInfoBarOpen;
-        public bool IsUploadWarningInfoBarOpen {
-            get => _isUploadWarningInfoBarOpen;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isUploadWarningInfoBarOpen, value);
-                });
-            }
-        }
+
         // Tag filter and Gallery separator
+        [ObservableProperty]
         private Visibility _border1Visibility;
-        public Visibility Border1Visibility {
-            get => _border1Visibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _border1Visibility, value);
-                });
-            }
-        }
         // Gallery sync options separator
+        [ObservableProperty]
         private Visibility _border2Visibility;
-        public Visibility Border2Visibility {
-            get => _border2Visibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _border2Visibility, value);
-                });
-            }
-        }
+
+        [ObservableProperty]
         private bool _isTFOptionChecked;
-        public bool IsTFOptionChecked {
-            get => _isTFOptionChecked;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (SetProperty(ref _isTFOptionChecked, value)) {
-                        // if checked and option is fetch
-                        if (value && RadioButtons1SelectedIndex == 1) {
-                            FetchTFOptionsVisibility = Visibility.Visible;
-                        }
-                        // if above has problem use below
-                        //if (value) {
-                        //    FetchTFOptionsVisibility =
-                        //        RadioButtons1SelectedIndex == 0 ?
-                        //        Visibility.Collapsed :
-                        //        Visibility.Visible;
-                        //}
-                    }
-                });
+        partial void OnIsTFOptionCheckedChanged(bool value) {
+            // if checked and option is fetch
+            if (value && RadioButtons1SelectedIndex == 1) {
+                FetchTFOptionsVisibility = Visibility.Visible;
             }
+            // if above has problem use below
+            //if (value) {
+            //    FetchTFOptionsVisibility =
+            //        RadioButtons1SelectedIndex == 0 ?
+            //        Visibility.Collapsed :
+            //        Visibility.Visible;
+            //}
         }
 
+        [ObservableProperty]
         private Visibility _tfCheckBoxVisibility;
-        public Visibility TfCheckBoxVisibility {
-            get => _tfCheckBoxVisibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _tfCheckBoxVisibility, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private Visibility _fetchTFOptionsVisibility;
-        public Visibility FetchTFOptionsVisibility {
-            get => _fetchTFOptionsVisibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _fetchTFOptionsVisibility, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private Visibility _radioButtons3Visibility;
-        public Visibility RadioButtons3Visibility {
-            get => _radioButtons3Visibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _radioButtons3Visibility, value);
-                });
-            }
-        }
 
+
+        [ObservableProperty]
         private bool _isGalleryOptionChecked;
-        public bool IsGalleryOptionChecked {
-            get => _isGalleryOptionChecked;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (SetProperty(ref _isGalleryOptionChecked, value)) {
-                        // if checked and option is fetch
-                        if (value && RadioButtons1SelectedIndex == 1) {
-                            FetchGalleryOptionsVisibility = Visibility.Visible;
-                        }
-                        // if above has problem use below
-                        //if (value) {
-                        //    FetchGalleryOptionsVisibility =
-                        //        RadioButtons1SelectedIndex == 0 ?
-                        //        Visibility.Collapsed :
-                        //        Visibility.Visible;
-                        //}
-                    }
-                });
+        partial void OnIsGalleryOptionCheckedChanged(bool value) {
+            if (value && RadioButtons1SelectedIndex == 1) {
+                FetchGalleryOptionsVisibility = Visibility.Visible;
             }
+            // if above has problem use below
+            //if (value) {
+            //    FetchGalleryOptionsVisibility =
+            //        RadioButtons1SelectedIndex == 0 ?
+            //        Visibility.Collapsed :
+            //        Visibility.Visible;
+            //}
         }
-
+        [ObservableProperty]
         private Visibility _galleryCheckBoxVisibility;
-        public Visibility GalleryCheckBoxVisibility {
-            get => _galleryCheckBoxVisibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _galleryCheckBoxVisibility, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private Visibility _fetchGalleryOptionsVisibility;
-        public Visibility FetchGalleryOptionsVisibility {
-            get => _fetchGalleryOptionsVisibility;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _fetchGalleryOptionsVisibility, value);
-                });
-            }
-        }
-
 
         // Sync direction (Upload or Fetch)
+        [ObservableProperty]
         private int _radioButtons1SelectedIndex;
-        public int RadioButtons1SelectedIndex {
-            get => _radioButtons1SelectedIndex;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (SetProperty(ref _radioButtons1SelectedIndex, value)) {
-                        if (value == -1) {
-                            return;
-                        }
-                        TFInfoBarModel.IsOpen = false;
-                        GalleryInfoBarModel.IsOpen = false;
-                        IsTFOptionChecked = false;
-                        IsGalleryOptionChecked = false;
-                        Border1Visibility = Visibility.Visible;
-                        Border2Visibility = Visibility.Collapsed;
-                        TfCheckBoxVisibility = Visibility.Visible;
-                        GalleryCheckBoxVisibility = Visibility.Visible;
-                        switch (value) {
-                            // Upload option selected
-                            case 0: {
-                                IsUploadWarningInfoBarOpen = true;
-                                FetchTFOptionsVisibility = Visibility.Collapsed;
-                                FetchGalleryOptionsVisibility = Visibility.Collapsed;
-                                break;
-                            }
-                            // Fetch option selected
-                            case 1: {
-                                IsUploadWarningInfoBarOpen = false;
-                                FetchTFOptionsVisibility = IsTFOptionChecked ? Visibility.Visible : Visibility.Collapsed;
-                                FetchGalleryOptionsVisibility = IsGalleryOptionChecked ? Visibility.Visible : Visibility.Collapsed;
-                                Border2Visibility = Visibility.Visible;
-                                break;
-                            }
-                        }
-                    }
-                });
+        partial void OnRadioButtons1SelectedIndexChanged(int value) {
+            if (value == -1) {
+                return;
+            }
+            TFInfoBarModel.IsOpen = false;
+            GalleryInfoBarModel.IsOpen = false;
+            IsTFOptionChecked = false;
+            IsGalleryOptionChecked = false;
+            Border1Visibility = Visibility.Visible;
+            Border2Visibility = Visibility.Collapsed;
+            TfCheckBoxVisibility = Visibility.Visible;
+            GalleryCheckBoxVisibility = Visibility.Visible;
+            switch (value) {
+                // Upload option selected
+                case 0: {
+                    IsUploadWarningInfoBarOpen = true;
+                    FetchTFOptionsVisibility = Visibility.Collapsed;
+                    FetchGalleryOptionsVisibility = Visibility.Collapsed;
+                    break;
+                }
+                // Fetch option selected
+                case 1: {
+                    IsUploadWarningInfoBarOpen = false;
+                    FetchTFOptionsVisibility = IsTFOptionChecked ? Visibility.Visible : Visibility.Collapsed;
+                    FetchGalleryOptionsVisibility = IsGalleryOptionChecked ? Visibility.Visible : Visibility.Collapsed;
+                    Border2Visibility = Visibility.Visible;
+                    break;
+                }
             }
         }
 
         // Tag Filter Fetch option 1 (Overwrite or Append)
+        [ObservableProperty]
         private int _radioButtons2SelectedIndex;
-        public int RadioButtons2SelectedIndex {
-            get => _radioButtons2SelectedIndex;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (SetProperty(ref _radioButtons2SelectedIndex, value)) {
-                        switch (value) {
-                            // Overwrite option selected
-                            case 0: {
-                                RadioButtons3Visibility = Visibility.Collapsed;
-                                break;
-                            }
-                            // Append option selected
-                            case 1: {
-                                RadioButtons3Visibility = Visibility.Visible;
-                                break;
-                            }
-                        }
-                    }
-                });
+        partial void OnRadioButtons2SelectedIndexChanged(int value) {
+            switch (value) {
+                // Overwrite option selected
+                case 0: {
+                    RadioButtons3Visibility = Visibility.Collapsed;
+                    break;
+                }
+                // Append option selected
+                case 1: {
+                    RadioButtons3Visibility = Visibility.Visible;
+                    break;
+                }
             }
         }
 
         // Tag Filter Fetch option 2 (Keep duplicate or Replace duplicate)
+        [ObservableProperty]
         private int _radioButtons3SelectedIndex;
-        public int RadioButtons3SelectedIndex {
-            get => _radioButtons3SelectedIndex;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _radioButtons3SelectedIndex, value);
-                });
-            }
-        }
 
         // Gallery Fetch option 1 (Download after fetching or not)
+        [ObservableProperty]
         private int _radioButtons4SelectedIndex;
-        public int RadioButtons4SelectedIndex {
-            get => _radioButtons4SelectedIndex;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _radioButtons4SelectedIndex, value);
-                });
-            }
-        }
 
         public InfoBarModel TFInfoBarModel { get; } = new() { IsOpen = false };
         public InfoBarModel GalleryInfoBarModel { get; } = new() { IsOpen = false };

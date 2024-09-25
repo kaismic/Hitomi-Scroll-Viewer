@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Views;
-using HitomiScrollViewerLib.Views.BrowsePageViews;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -18,11 +16,11 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Constants;
+using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
-    public partial class DownloadItemVM : ObservableObject {
+    public partial class DownloadItemVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(DownloadItem).Name);
 
         private const string REFERER = "https://hitomi.la/";
@@ -45,29 +43,23 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             Downloading,
             Failed
         }
+
+        [ObservableProperty]
         private DownloadStatus _currentDownloadStatus = DownloadStatus.Initialising;
-        public DownloadStatus CurrentDownloadStatus {
-            get => _currentDownloadStatus;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (_currentDownloadStatus != value) {
-                        _currentDownloadStatus = value;
-                        switch (value) {
-                            case DownloadStatus.Downloading:
-                                DownloadToggleButtonSymbol = Symbol.Pause;
-                                DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Pause").ValueAsString;
-                                break;
-                            case DownloadStatus.Paused:
-                                DownloadToggleButtonSymbol = Symbol.Play;
-                                DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Resume").ValueAsString;
-                                break;
-                            case DownloadStatus.Failed:
-                                DownloadToggleButtonSymbol = Symbol.Refresh;
-                                DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_TryAgain").ValueAsString;
-                                break;
-                        }
-                    }
-                });
+        partial void OnCurrentDownloadStatusChanged(DownloadStatus value) {
+            switch (value) {
+                case DownloadStatus.Downloading:
+                    DownloadToggleButtonSymbol = Symbol.Pause;
+                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Pause").ValueAsString;
+                    break;
+                case DownloadStatus.Paused:
+                    DownloadToggleButtonSymbol = Symbol.Play;
+                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Resume").ValueAsString;
+                    break;
+                case DownloadStatus.Failed:
+                    DownloadToggleButtonSymbol = Symbol.Refresh;
+                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_TryAgain").ValueAsString;
+                    break;
             }
         }
 
@@ -77,89 +69,28 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         internal int Id { get; private set; }
 
         public int[] ThreadNums { get; } = Enumerable.Range(1, 8).ToArray();
+        [ObservableProperty]
         private int _threadNum = 1;
-        public int ThreadNum {
-            get => _threadNum;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (SetProperty(ref _threadNum, value) && CurrentDownloadStatus == DownloadStatus.Downloading) {
-                        CancelDownloadTask(TaskCancelReason.ThreadNumChanged);
-                    }
-                });
+        partial void OnThreadNumChanged(int value) {
+            if (CurrentDownloadStatus == DownloadStatus.Downloading) {
+                CancelDownloadTask(TaskCancelReason.ThreadNumChanged);
             }
         }
 
+        [ObservableProperty]
         private string _galleryDescriptionText;
-        public string GalleryDescriptionText {
-            get => _galleryDescriptionText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _galleryDescriptionText, value);
-                });
-            }
-        }
-
+        [ObservableProperty]
         private string _progressText;
-        public string ProgressText {
-            get => _progressText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _progressText, value);
-                });
-            }
-        }
-
+        [ObservableProperty]
         private double _progressBarValue;
-        public double ProgressBarValue {
-            get => _progressBarValue;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _progressBarValue, value);
-                });
-            }
-        }
-
+        [ObservableProperty]
         private double _progressBarMaximum;
-        public double ProgressBarMaximum {
-            get => _progressBarMaximum;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _progressBarMaximum, value);
-                });
-            }
-        }
-
-
+        [ObservableProperty]
         private bool _isEnabled;
-        public bool IsEnabled {
-            get => _isEnabled;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isEnabled, value);
-                });
-            }
-        }
-
-
+        [ObservableProperty]
         private Symbol _downloadToggleButtonSymbol;
-        public Symbol DownloadToggleButtonSymbol {
-            get => _downloadToggleButtonSymbol;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _downloadToggleButtonSymbol, value);
-                });
-            }
-        }
-
+        [ObservableProperty]
         private string _downloadToggleButtonToolTip;
-        public string DownloadToggleButtonToolTip {
-            get => _downloadToggleButtonToolTip;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _downloadToggleButtonToolTip, value);
-                });
-            }
-        }
 
         private static readonly object _ggjsFetchLock = new();
         private static string _serverTime;

@@ -10,17 +10,17 @@ using System.Collections.Specialized;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class TFSelectorVM : ObservableObject {
+    public partial class TFSelectorVM : DQObservableObject {
         private ObservableCollection<TagFilter> TagFilters {
             set {
                 value.CollectionChanged += TagFilters_CollectionChanged;
-                TFCheckBoxModels = [];
+                TfCheckBoxModels = [];
                 foreach (TagFilter tfs in value) {
                     TFCheckBoxModel model = new(
                         tfs,
                         new RelayCommand<TFCheckBoxModel>(CheckBoxToggleHandler)
                     );
-                    TFCheckBoxModels.Add(model);
+                    TfCheckBoxModels.Add(model);
                 }
                 SelectedTFCBModels = [];
                 SelectedTFCBModels.CollectionChanged += SelectedCheckBoxes_CollectionChanged;
@@ -28,24 +28,11 @@ namespace HitomiScrollViewerLib.ViewModels {
             }
         }
 
+        [ObservableProperty]
         private ObservableCollection<TFCheckBoxModel> _tfCheckBoxModels;
-        public ObservableCollection<TFCheckBoxModel> TFCheckBoxModels {
-            get => _tfCheckBoxModels;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _tfCheckBoxModels, value);
-                });
-            }
-        }
+
+        [ObservableProperty]
         private ObservableConcurrentDictionary<int, TFCheckBoxModel> _selectedTFCBModels;
-        public ObservableConcurrentDictionary<int, TFCheckBoxModel> SelectedTFCBModels {
-            get => _selectedTFCBModels;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _selectedTFCBModels, value);
-                });
-            }
-        }
 
         public bool AnySelected { get; private set; } = false;
 
@@ -61,14 +48,14 @@ namespace HitomiScrollViewerLib.ViewModels {
                             tfs,
                             new RelayCommand<TFCheckBoxModel>(CheckBoxToggleHandler)
                         );
-                        TFCheckBoxModels.Add(model);
+                        TfCheckBoxModels.Add(model);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     foreach (var tfs in e.OldItems.Cast<TagFilter>()) {
-                        var modelToRemove = TFCheckBoxModels.FirstOrDefault(model => model.TagFilter.Id == tfs.Id);
+                        var modelToRemove = TfCheckBoxModels.FirstOrDefault(model => model.TagFilter.Id == tfs.Id);
                         if (modelToRemove != null) {
-                            TFCheckBoxModels.Remove(modelToRemove);
+                            TfCheckBoxModels.Remove(modelToRemove);
                             SelectedTFCBModels.Remove(tfs.Id);
                         }
                     }

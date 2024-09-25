@@ -4,43 +4,15 @@ using Microsoft.UI.Xaml.Controls;
 using System.Windows.Input;
 
 namespace HitomiScrollViewerLib.Models {
-    public partial class InfoBarModel : ObservableObject {
+    public partial class InfoBarModel : DQObservableObject {
+        [ObservableProperty]
         private bool _isOpen;
-        public bool IsOpen {
-            get => _isOpen;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isOpen, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private InfoBarSeverity _severity;
-        public InfoBarSeverity Severity {
-            get => _severity;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _severity, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private string _title;
-        public string Title {
-            get => _title;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _title, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private string _message;
-        public string Message {
-            get => _message;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _message, value);
-                });
-            }
-        }
         public ICommand CloseButtonCommand { get; set; }
     }
 }

@@ -11,7 +11,7 @@ using System.Windows.Input;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class CRUDContentDialogVM : ObservableObject {
+    public partial class CRUDContentDialogVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(CRUDContentDialog).Name);
         public enum CRUDAction {
             Create, Rename, Delete
@@ -22,35 +22,13 @@ namespace HitomiScrollViewerLib.ViewModels {
         private InputValidationVM _inputValidationVM;
         private TFSelectorVM _tfsSelectorVM;
 
-        private string _titleText;
-        public string TitleText {
-            get => _titleText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _titleText, value);
-                });
-            }
-        }
-        private string _primaryButtonText;
-        public string PrimaryButtonText {
-            get => _primaryButtonText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _primaryButtonText, value);
-                });
-            }
-        }
         public string CloseButtonText { get; } = TEXT_CANCEL;
-
+        [ObservableProperty]
+        private string _titleText;
+        [ObservableProperty]
+        private string _primaryButtonText;
+        [ObservableProperty]
         private object _content;
-        public object Content {
-            get => _content;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _content, value);
-                });
-            }
-        }
 
         public ICommand PrimaryButtonCommand => new RelayCommand(() => { }, CanClickPrimaryButton);
 

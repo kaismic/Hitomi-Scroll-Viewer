@@ -10,7 +10,7 @@ namespace HitomiScrollViewerLib.Models {
             get => _value;
             init {
                 _value = value;
-                DisplayText = _resourceMap.GetValue(nameof(value)).ValueAsString;
+                DisplayText = _resourceMap.GetValue(value.ToString()).ValueAsString;
             }
         }
         public string DisplayText { get; private set; }

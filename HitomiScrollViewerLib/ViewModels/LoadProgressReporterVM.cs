@@ -5,48 +5,20 @@ using System;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class LoadProgressReporterVM : ObservableObject {
+    public partial class LoadProgressReporterVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(LoadProgressReporter).Name);
 
         public string TitleText { get; } = _resourceMap.GetValue("Text_Title").ValueAsString;
         public string PleaseWaitText { get; } = _resourceMap.GetValue("Text_PleaseWait").ValueAsString;
 
+        [ObservableProperty]
         private string _text;
-        public string Text {
-            get => _text;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _text, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private double _value;
-        public double Value {
-            get => _value;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _value, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private double _maximum;
-        public double Maximum {
-            get => _maximum;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _maximum, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private bool _isIndeterminate;
-        public bool IsIndeterminate {
-            get => _isIndeterminate;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _isIndeterminate, value);
-                });
-            }
-        }
 
         public enum LoadingStatus {
             LoadingDatabase,

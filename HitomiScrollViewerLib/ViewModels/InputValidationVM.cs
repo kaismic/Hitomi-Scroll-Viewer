@@ -1,53 +1,26 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using HitomiScrollViewerLib.Views;
 using System.Collections.Generic;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class InputValidationVM : ObservableObject {
+    public partial class InputValidationVM : DQObservableObject {
         public delegate bool InputValidator(string input, out string errorMsg);
         private readonly List<InputValidator> _validators = [];
 
+        [ObservableProperty]
         private int _maxInputLength;
-        public int MaxInputLength {
-            get => _maxInputLength;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (SetProperty(ref _maxInputLength, value)) {
-                        UpdateInputText();
-                    }
-                });
-            }
+        partial void OnMaxInputLengthChanged(int value) {
+            UpdateInputText();
         }
+        [ObservableProperty]
         private string _inputText;
-        public string InputText {
-            get => _inputText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    if (SetProperty(ref _inputText, value)) {
-                        UpdateInputText();
-                    }
-                });
-            }
-        }
-        private string _errorMessage;
-        public string ErrorMessage {
-            get => _errorMessage;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _errorMessage, value);
-                });
-            }
-        }
-        private string _inputLengthDisplayText;
-        public string InputLengthDisplayText {
-            get => _inputLengthDisplayText;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _inputLengthDisplayText, value);
-                });
-            }
+        partial void OnInputTextChanged(string value) {
+            UpdateInputText();
         }
 
+        [ObservableProperty]
+        private string _errorMessage;
+        [ObservableProperty]
+        private string _inputLengthDisplayText;
 
         public InputValidationVM(int maxInputLength) {
             MaxInputLength = maxInputLength;

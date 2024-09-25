@@ -2,7 +2,6 @@
 using CommunityToolkit.WinUI.Controls;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -10,27 +9,13 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class TagTokenizingTextBoxVM(TagCategory category) : ObservableObject {
+    public partial class TagTokenizingTextBoxVM(TagCategory category) : DQObservableObject {
         private const int MAX_SUGGESTION_NUM = 8;
 
+        [ObservableProperty]
         private double _tokenTextBlockMaxWidth;
-        public double TokenTextBlockMaxWidth {
-            get => _tokenTextBlockMaxWidth;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _tokenTextBlockMaxWidth, value);
-                });
-            }
-        }
+        [ObservableProperty]
         private string _text;
-        public string Text {
-            get => _text;
-            set {
-                MainWindow.MainDispatcherQueue.TryEnqueue(() => {
-                    SetProperty(ref _text, value);
-                });
-            }
-        }
 
         public TagCategory Category { get; } = category;
         public ObservableCollection<Tag> SelectedTags { get; set; } = [];

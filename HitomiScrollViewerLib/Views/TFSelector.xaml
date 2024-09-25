@@ -14,7 +14,7 @@
     BorderThickness="1"
     Padding="16">
     <ScrollViewer>
-        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TFCheckBoxModels, Mode=OneWay}">
+        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TfCheckBoxModels, Mode=OneWay}">
             <ItemsRepeater.Layout>
                 <ct:WrapLayout VerticalSpacing="4" HorizontalSpacing="8"/>
             </ItemsRepeater.Layout>
