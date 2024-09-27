@@ -135,8 +135,8 @@
   <data name="Notification_Selected_TagFilterSets_Empty_Title" xml:space="preserve">
     <value>All of the selected tag filter sets are empty.</value>
   </data>
-  <data name="AutoSaveCheckBox_Text" xml:space="preserve">
-    <value>Auto Save Tag Filters</value>
+  <data name="TFAutoSaveTextBlock.Text" xml:space="preserve">
+    <value>Auto Save</value>
   </data>
   <data name="PairedTFSSelector_Subtitle_Exclude" xml:space="preserve">
     <value>Select tag filter sets to exclude</value>

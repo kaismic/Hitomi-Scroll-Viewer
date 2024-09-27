@@ -135,8 +135,8 @@
   <data name="Notification_Selected_TagFilterSets_Empty_Title" xml:space="preserve">
     <value>선택된 모든 태그 필터 모음들이 비어있습니다.</value>
   </data>
-  <data name="AutoSaveCheckBox_Text" xml:space="preserve">
-    <value>태그 필터 자동 저장</value>
+  <data name="TFAutoSaveTextBlock.Text" xml:space="preserve">
+    <value>자동 저장</value>
   </data>
   <data name="PairedTFSSelector_Subtitle_Exclude" xml:space="preserve">
     <value>제외할 태그 필터 모음들을 선택하세요</value>
