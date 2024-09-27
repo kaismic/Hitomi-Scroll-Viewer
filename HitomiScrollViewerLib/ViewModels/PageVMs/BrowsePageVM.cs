@@ -16,7 +16,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         public int[] PageSizes { get; } = Enumerable.Range(1, 15).ToArray();
 
-        public TagFilterEditorVM TagFilterEditorVM { get; } = new();
         public ObservableCollection<SearchFilterVM> SearchFilterVMs { get; } = [];
 
         [ObservableProperty]
@@ -61,5 +60,33 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             }
         }
         private bool CanCreateGalleryFilter() => TagFilterEditorVM.AnyFilterSelected;
+
+
+
+        public IEnumerable<Gallery> GetFilteredGalleries() {
+            IEnumerable<Gallery> filtered = null;
+            if (GalleryLanguage != null) {
+                filtered = filtered == null ? GalleryLanguage.Galleries : filtered.Intersect(GalleryLanguage.Galleries);
+            }
+            if (GalleryType != null) {
+                filtered = filtered == null ? GalleryType.Galleries : filtered.Intersect(GalleryType.Galleries);
+            }
+            if (IncludeTags.Any()) {
+                filtered ??= HitomiContext.Main.Galleries;
+                foreach (Tag includeTag in IncludeTags) {
+                    filtered = filtered.Intersect(includeTag.Galleries);
+                }
+            }
+            if (ExcludeTags.Any()) {
+                filtered ??= HitomiContext.Main.Galleries;
+                foreach (Tag excludeTag in ExcludeTags) {
+                    filtered = filtered.Except(excludeTag.Galleries);
+                }
+            }
+            if (SearchTitleText != null) {
+                filtered = filtered == null ? HitomiContext.Main.Galleries : filtered.Where(g => g.Title.Contains(SearchTitleText));
+            }
+            return filtered;
+        }
     }
 }

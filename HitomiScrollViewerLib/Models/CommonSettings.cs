@@ -21,12 +21,6 @@ namespace HitomiScrollViewerLib.Models {
         ];
 
         [ObservableProperty]
-        private bool _isTFAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] ??= true);
-        partial void OnIsTFAutoSaveEnabledChanged(bool value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] = value;
-        }
-
-        [ObservableProperty]
         private FlowDirectionModel _flowDirectionModel = FLOW_DIRECTION_MODELS.Find(fd => fd.Value == (FlowDirection)(ApplicationData.Current.LocalSettings.Values[nameof(FlowDirection)] ??= (int)FlowDirection.RightToLeft));
         partial void OnFlowDirectionModelChanged(FlowDirectionModel value) {
             ApplicationData.Current.LocalSettings.Values[nameof(FlowDirectionModel)] = value;
@@ -49,10 +43,7 @@ namespace HitomiScrollViewerLib.Models {
         partial void OnImagesPerPageChanged(int value) {
             ApplicationData.Current.LocalSettings.Values[nameof(ImagesPerPage)] = value;
         }
-
-
-        private static CommonSettings _main;
-        public static CommonSettings Main => _main ??= new();
+        public static CommonSettings Main { get; } = new();
         private CommonSettings() {}
     }
 }

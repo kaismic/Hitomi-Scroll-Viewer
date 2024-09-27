@@ -7,8 +7,13 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
     mc:Ignorable="d">
-    <StackPanel>
-        <SelectorBar x:Name="MainSelectorBar" SelectionChanged="SelectorBar_SelectionChanged">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <SelectorBar x:Name="MainSelectorBar" SelectionChanged="SelectorBar_SelectionChanged"
+                     Grid.Row="0">
             <SelectorBarItem x:Uid="/MainWindow/SelectorBarItem_SearchPage">
                 <SelectorBarItem.Icon>
                     <SymbolIcon Symbol="Find"/>
@@ -30,7 +35,7 @@
                 </SelectorBarItem.Icon>
             </SelectorBarItem>
         </SelectorBar>
-        <Grid>
+        <Grid Grid.Row="1">
             <Frame x:Name="RootFrame"
                    IsNavigationStackEnabled="False"
                    SizeChanged="RootFrame_SizeChanged"/>
@@ -53,5 +58,5 @@
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
         </Grid>
-    </StackPanel>
+    </Grid>
 </Window>

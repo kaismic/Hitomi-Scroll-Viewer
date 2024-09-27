@@ -13,7 +13,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
             init {
                 _gallery = value;
                 foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                    List<Tag> tags = Tag.GetTagsByCategory(value.Tags, category);
+                    List<Tag> tags = Tag.SelectTagsFromCategory(value.Tags, category);
                     if (tags.Count != 0) {
                         TagItemsRepeaterVMs.Add(
                             new() {

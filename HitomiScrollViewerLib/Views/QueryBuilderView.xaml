@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Grid
+    x:Class="HitomiScrollViewerLib.Views.QueryBuilderView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
+    >
+    <Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid x:Name="TextBoxesGrid"
+          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+          CornerRadius="{StaticResource OverlayCornerRadius}"
+          BorderThickness="1"
+          Padding="16"
+          VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+    </Grid>
+    <Grid x:Name="LanguageTypeKeywordGrid"
+          ColumnSpacing="16"
+          Padding="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Select Language:"/>
+        <ComboBox HorizontalAlignment="Stretch"
+                  DisplayMemberPath="LocalName"
+                  ItemsSource="{x:Bind vms:QueryBuilderVM.GALLERY_LANGUAGES}"
+                  SelectedIndex="{x:Bind ViewModel.GalleryLanguageSelectedIndex, Mode=TwoWay}"
+                  />
+        <TextBlock Text="Select Type:"/>
+        <ComboBox HorizontalAlignment="Stretch"
+                  DisplayMemberPath="DisplayName"
+                  ItemsSource="{x:Bind vms:QueryBuilderVM.GALLERY_TYPE_ENTITIES}"
+                  SelectedIndex="{x:Bind ViewModel.GalleryTypeSelectedIndex, Mode=TwoWay}"
+                  />
+        <TextBlock Text="Search by Title:"/>
+        <TextBox HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.SearchTitleText, Mode=TwoWay}" />
+    </Grid>
+</Grid>

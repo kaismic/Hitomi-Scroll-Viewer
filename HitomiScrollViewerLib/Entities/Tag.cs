@@ -54,7 +54,7 @@ namespace HitomiScrollViewerLib.Entities {
             return tag;
         }
 
-        public static List<Tag> GetTagsByCategory(IEnumerable<Tag> tags, TagCategory category) {
+        public static List<Tag> SelectTagsFromCategory(IEnumerable<Tag> tags, TagCategory category) {
             return [.. tags.Where(t => t.Category == category).OrderBy(t => t.Value)];
         }
     }

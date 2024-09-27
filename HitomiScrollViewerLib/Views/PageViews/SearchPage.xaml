@@ -11,54 +11,59 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    VerticalAlignment="Stretch"
     >
-    <Grid ColumnSpacing="8" RowSpacing="8"
-          Padding="16" VerticalAlignment="Stretch">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid ColumnSpacing="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <views:TagFilterEditor ViewModel="{x:Bind ViewModel.TagFilterEditorVM}"
-                               Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"/>
-        <Grid Grid.Row="0" Grid.Column="1"
-              VerticalAlignment="Stretch"
-              RowSpacing="16"
-              >
+        <Grid Grid.Column="0" RowSpacing="8" Padding="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <spviews:SyncManager ViewModel="{x:Bind ViewModel.SyncManagerVM}"
-                                 Grid.Row="0"/>
+            <views:TagFilterEditor ViewModel="{x:Bind ViewModel.TagFilterEditorVM}"
+                                   Grid.Row="0"/>
+            <views:QueryBuilderView ViewModel="{x:Bind ViewModel.QueryBuilderVM}"
+                                    Grid.Row="1"/>
+            <Grid Grid.Row="2" ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <views:TFSSelector Grid.Column="0" ViewModel="{x:Bind ViewModel.IncludeTFSelectorVM}"/>
+                <views:TFSSelector Grid.Column="1" ViewModel="{x:Bind ViewModel.ExcludeTFSelectorVM}"/>
+            </Grid>
+        </Grid>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <spviews:SyncManager ViewModel="{x:Bind ViewModel.SyncManagerVM}" Grid.Row="0"/>
             <Grid Grid.Row="1"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    CornerRadius="{StaticResource OverlayCornerRadius}"
-                    BorderThickness="1"
-                    RowSpacing="16"
-                    Padding="16"
-                    VerticalAlignment="Stretch">
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                  CornerRadius="{StaticResource OverlayCornerRadius}"
+                  BorderThickness="1"
+                  RowSpacing="16"
+                  Padding="16">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button x:Name="HyperlinkCreateButton"
-                        Grid.Row="0"
+                <Button Grid.Row="0"
                         BorderBrush="DeepPink"
                         HorizontalAlignment="Stretch"
                         Padding="16"
-                        Command="{x:Bind ViewModel.HyperlinkCreateButtonCommand}"
-                        >
+                        Command="{x:Bind ViewModel.SearchLinkCreateButtonCommand}">
                     <TextBlock x:Uid="/SearchPage/HyperlinkCreateButtonTextBlock"
-                                FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
+                                    FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                 </Button>
                 <ItemsRepeater Grid.Row="1"
-                               ItemsSource="{x:Bind ViewModel.SearchFilterVMs}">
+                                   ItemsSource="{x:Bind ViewModel.SearchFilterVMs}">
                     <ItemsRepeater.Layout>
                         <StackLayout Spacing="4"/>
                     </ItemsRepeater.Layout>
@@ -69,55 +74,51 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <HyperlinkButton Grid.Column="0"
-                                                 NavigateUri="{x:Bind SearchLink}">
+                                <HyperlinkButton Grid.Column="0" NavigateUri="{x:Bind SearchLink}">
                                     <views:SearchFilterView ViewModel="{x:Bind}"/>
                                 </HyperlinkButton>
                                 <AppBarButton Grid.Column="1"
                                               Command="{x:Bind DeleteCommand}"
-                                              CommandParameter="{x:Bind}">
-                                </AppBarButton>
+                                              CommandParameter="{x:Bind}"/>
                             </Grid>
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
             </Grid>
+            <StackPanel Grid.Row="2"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        CornerRadius="{StaticResource OverlayCornerRadius}"
+                        BorderThickness="1"
+                        Padding="16">
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="DownloadInputTextBox" x:Uid="/SearchPage/DownloadInputTextBox"
+                             Grid.Column="0"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             Text="{x:Bind ViewModel.DownloadInputText, Mode=TwoWay}"/>
+                    <Button x:Name="DownloadButton"
+                            Grid.Column="1" Padding="32"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.DownloadButtonCommand}">
+                        <SymbolIcon Symbol="Download"/>
+                    </Button>
+                </Grid>
+                <ItemsRepeater ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="4"/>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="spvms:DownloadItemVM">
+                            <spviews:DownloadItem ViewModel="{x:Bind}"/>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
         </Grid>
-        <StackPanel Grid.Row="1" Grid.Column="1"
-                    Orientation="Vertical"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    CornerRadius="{StaticResource OverlayCornerRadius}"
-                    BorderThickness="1"
-                    Padding="16">
-            <Grid ColumnSpacing="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="DownloadInputTextBox" x:Uid="/SearchPage/DownloadInputTextBox"
-                         Grid.Column="0"
-                         TextWrapping="Wrap"
-                         AcceptsReturn="True"
-                         Text="{x:Bind ViewModel.DownloadInputText, Mode=TwoWay}"
-                            />
-                <Button x:Name="DownloadButton"
-                        Grid.Column="1" Padding="32"
-                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                        Command="{x:Bind ViewModel.DownloadButtonCommand}">
-                    <SymbolIcon Symbol="Download"/>
-                </Button>
-            </Grid>
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}">
-                <ItemsRepeater.Layout>
-                    <StackLayout Spacing="4"/>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="spvms:DownloadItemVM">
-                        <spviews:DownloadItem ViewModel="{x:Bind}"/>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-        </StackPanel>
     </Grid>
 </Page>

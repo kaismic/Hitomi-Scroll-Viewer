@@ -18,11 +18,9 @@ namespace HitomiScrollViewerLib.DbContexts {
         public DbSet<GalleryTypeEntity> GalleryTypes { get; set; }
 
         private static HitomiContext _main;
-        public static HitomiContext Main {
-            get => _main ??= new HitomiContext();
-            set => _main = value;
-        }
-                
+        public static HitomiContext Main => _main ??= new();
+
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
             optionsBuilder.UseSqlite($"Data Source={MAIN_DATABASE_PATH_V3}");

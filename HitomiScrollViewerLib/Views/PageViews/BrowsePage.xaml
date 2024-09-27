@@ -12,10 +12,15 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     >
-    <ScrollViewer>
-        <StackPanel Spacing="8">
+    <ScrollViewer VerticalAlignment="Stretch">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
             <Grid ColumnSpacing="8" RowSpacing="8"
-                  Padding="16">
+                  Padding="16" Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="*"/>
@@ -68,7 +73,7 @@
                     </Border>
                 </Grid>
             </Grid>
-            <Grid HorizontalAlignment="Stretch">
+            <Grid HorizontalAlignment="Stretch" Grid.Row="1">
                 <Button HorizontalAlignment="Left">
                     <SymbolIcon Symbol="Sort"></SymbolIcon>
                 </Button>
@@ -83,7 +88,7 @@
                               SelectedIndex="{x:Bind ViewModel.PageSize, Mode=TwoWay}"/>
                 </StackPanel>
             </Grid>
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs}">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs}" Grid.Row="2">
                 <ItemsRepeater.Layout>
                     <StackLayout Spacing="4"></StackLayout>
                 </ItemsRepeater.Layout>
@@ -93,6 +98,6 @@
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
-        </StackPanel>
+        </Grid>
     </ScrollViewer>
 </Page>

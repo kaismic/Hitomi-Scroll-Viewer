@@ -1,7 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views.PageViews;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
@@ -21,28 +24,52 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public static SearchPageVM Main => _main ??= new() ;
 
         public TagFilterEditorVM TagFilterEditorVM { get; } = new();
+        public QueryBuilderVM QueryBuilderVM { get; } = new();
+        public PairedTFSelectorVM IncludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
+        public PairedTFSelectorVM ExcludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
+
+        public SyncManagerVM SyncManagerVM { get; } = new();
         public ObservableCollection<SearchFilterVM> SearchFilterVMs { get; } = [];
         public DownloadManagerVM DownloadManagerVM { get; } = DownloadManagerVM.Main;
-        public SyncManagerVM SyncManagerVM { get; } = new();
 
         [ObservableProperty]
         private string _downloadInputText = "";
 
+        public bool AnyFilterSelected =>
+            QueryBuilderVM.GalleryLanguageSelectedIndex > 0 ||
+            QueryBuilderVM.GalleryTypeSelectedIndex > 0 ||
+            QueryBuilderVM.SearchTitleText.Length > 0 ||
+            IncludeTFSelectorVM.AnySelected || ExcludeTFSelectorVM.AnySelected;
+
         private SearchPageVM() {
-            HyperlinkCreateButtonCommand = new RelayCommand(
-                HyperlinkCreateButton_Clicked,
-                () => TagFilterEditorVM.AnyFilterSelected
+            SearchLinkCreateButtonCommand = new RelayCommand(
+                HandleSearchLinkCreateButtonClick,
+                () => AnyFilterSelected
             );
             DownloadButtonCommand = new RelayCommand(
-                ExecuteDownloadButtonCommand,
+                HandleDownloadButtonClick,
                 () => DownloadInputText.Length != 0
             );
+            IncludeTFSelectorVM.OtherTFSSelectorVM = ExcludeTFSelectorVM;
+            ExcludeTFSelectorVM.OtherTFSSelectorVM = IncludeTFSelectorVM;
+
+            TagFilterEditorVM.CurrentTagsRequested += e => e.Tags = QueryBuilderVM.GetCurrentTags();
+            TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
+                QueryBuilderVM.ClearSelectedTags();
+                QueryBuilderVM.InsertTags(
+                    HitomiContext.Main
+                    .TagFilters
+                    .Include(tf => tf.Tags)
+                    .First(tf => tf.Id == selectedTagFilter.Id)
+                    .Tags
+                );
+            };
         }
 
-        public ICommand HyperlinkCreateButtonCommand { get; }
+        public ICommand SearchLinkCreateButtonCommand { get; }
 
-        public void HyperlinkCreateButton_Clicked() {
-            SearchFilterVM vm = TagFilterEditorVM.GetSearchFilterVM();
+        public void HandleSearchLinkCreateButtonClick() {
+            SearchFilterVM vm = GetSearchFilterVM();
             if (vm != null) {
                 // copy link to clipboard
                 vm.DeleteCommand.Command = new RelayCommand<SearchFilterVM>((arg) => {
@@ -57,7 +84,64 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             }
         }
 
-        public ICommand DownloadButtonCommand { get; }
+
+        public SearchFilterVM GetSearchFilterVM() {
+            IEnumerable<TagFilter> includeTagFilters = IncludeTFSelectorVM.GetSelectedTagFilters();
+            IEnumerable<TagFilter> excludeTagFilters = ExcludeTFSelectorVM.GetSelectedTagFilters();
+            IEnumerable<int> includeTagFilterIds = includeTagFilters.Select(tf => tf.Id);
+            IEnumerable<int> excludeTagFilterIds = excludeTagFilters.Select(tf => tf.Id);
+            HitomiContext.Main.TagFilters
+                .Where(tf => includeTagFilterIds.Contains(tf.Id) || excludeTagFilterIds.Contains(tf.Id))
+                .Include(tf => tf.Tags)
+                .Load();
+            IEnumerable<Tag> includeTags = includeTagFilters.SelectMany(tf => tf.Tags);
+            IEnumerable<Tag> excludeTags = excludeTagFilters.SelectMany(tf => tf.Tags);
+
+            // update to use current tags in text boxes if the selected tag filters contain the combobox selected tag filter
+            if (TagFilterEditorVM.SelectedTagFilter is not null) {
+                HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
+                if (includeTagFilterIds.Contains(TagFilterEditorVM.SelectedTagFilter.Id)) {
+                    includeTags = includeTags.Except(TagFilterEditorVM.SelectedTagFilter.Tags).Union(currentTags);
+                } else if (excludeTagFilterIds.Contains(TagFilterEditorVM.SelectedTagFilter.Id)) {
+                    excludeTags = excludeTags.Except(TagFilterEditorVM.SelectedTagFilter.Tags).Union(currentTags);
+                }
+            }
+
+            IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
+            if (dupTags.Any()) {
+                List<string> dupTagStrs = new(Tag.TAG_CATEGORIES.Length);
+                foreach (TagCategory category in Tag.TAG_CATEGORIES) {
+                    IEnumerable<string> dupStrs = dupTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
+                    if (!dupStrs.Any()) {
+                        continue;
+                    }
+                    dupTagStrs.Add(category.ToString() + ": " + string.Join(", ", dupStrs));
+                }
+                _ = MainWindowVM.NotifyUser(new() {
+                    Title = _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
+                    Message = string.Join(Environment.NewLine, dupTagStrs)
+                });
+                return null;
+            }
+
+            SearchFilterVM searchFilterVM = new() {
+                IncludeTags = includeTags,
+                ExcludeTags = excludeTags,
+            };
+            searchFilterVM.InitSearchFilterTagsRepeaterVMs();
+
+            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0) {
+                searchFilterVM.GalleryLanguage = QueryBuilderVM.SelectedGalleryLanguage;
+            }
+            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0) {
+                searchFilterVM.GalleryType = QueryBuilderVM.SelectedGalleryTypeEntity;
+            }
+            if (QueryBuilderVM.SearchTitleText.Length > 0) {
+                searchFilterVM.SearchTitleText = QueryBuilderVM.SearchTitleText;
+            }
+
+            return searchFilterVM;
+        }
 
         /*
          * Environment.NewLine cannot be used alone as TextBox.Text separator
@@ -66,7 +150,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
          * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
         */
         public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
-        private void ExecuteDownloadButtonCommand() {
+        public ICommand DownloadButtonCommand { get; }
+        private void HandleDownloadButtonClick() {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = DownloadInputText.Split(NEW_LINE_SEPS, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (urlOrIds.Length == 0) {

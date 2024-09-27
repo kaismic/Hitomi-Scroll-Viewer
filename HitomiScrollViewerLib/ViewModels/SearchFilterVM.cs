@@ -6,10 +6,11 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Input;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class SearchFilterVM {
+    public class SearchFilterVM {
         private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Dictionary<TagCategory, string> CATEGORY_SEARCH_PARAM_DICT = new() {
@@ -50,8 +51,6 @@ namespace HitomiScrollViewerLib.ViewModels {
         public List<SearchFilterTagsRepeaterVM> SearchFilterTagsRepeaterVMs { get; } = [];
 
         public StandardUICommand DeleteCommand { get; } = new(StandardUICommandKind.Delete);
-
-        public event Action<SearchFilterVM> SearchFilterClicked;
 
         private string _searchLink;
         public string SearchLink {
@@ -102,8 +101,8 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public void InitSearchFilterTagsRepeaterVMs() {
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                List<Tag> includeTags = Tag.GetTagsByCategory(IncludeTags, category);
-                List<Tag> excludeTags = Tag.GetTagsByCategory(ExcludeTags, category);
+                List<Tag> includeTags = Tag.SelectTagsFromCategory(IncludeTags, category);
+                List<Tag> excludeTags = Tag.SelectTagsFromCategory(ExcludeTags, category);
                 if (includeTags.Count > 0 || excludeTags.Count > 0) {
                     SearchFilterTagsRepeaterVMs.Add(
                         new() {
@@ -114,37 +113,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                     );
                 }
             }
-        }
-
-        [RelayCommand]
-        private void HandleSearchFilterClick() {
-            SearchFilterClicked?.Invoke(this);
-        }
-
-        public IEnumerable<Gallery> GetFilteredGalleries() {
-            IEnumerable<Gallery> filtered = null;
-            if (GalleryLanguage != null) {
-                filtered = filtered == null ? GalleryLanguage.Galleries : filtered.Intersect(GalleryLanguage.Galleries);
-            }
-            if (GalleryType != null) {
-                filtered = filtered == null ? GalleryType.Galleries : filtered.Intersect(GalleryType.Galleries);
-            }
-            if (IncludeTags.Any()) {
-                filtered ??= HitomiContext.Main.Galleries;
-                foreach (Tag includeTag in IncludeTags) {
-                    filtered = filtered.Intersect(includeTag.Galleries);
-                }
-            }
-            if (ExcludeTags.Any()) {
-                filtered ??= HitomiContext.Main.Galleries;
-                foreach (Tag excludeTag in ExcludeTags) {
-                    filtered = filtered.Except(excludeTag.Galleries);
-                }
-            }
-            if (SearchTitleText != null) {
-                filtered = filtered == null ? HitomiContext.Main.Galleries : filtered.Where(g => g.Title.Contains(SearchTitleText));
-            }
-            return filtered;
         }
     }
 }
