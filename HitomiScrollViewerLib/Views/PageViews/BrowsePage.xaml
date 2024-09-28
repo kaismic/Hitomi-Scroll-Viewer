@@ -19,7 +19,9 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
+            <Grid Grid.Row="0"
+                  Padding="8"
+                  ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="7*"/>
                     <ColumnDefinition Width="1*"/>
@@ -27,6 +29,8 @@
                 <views:QueryBuilderView Grid.Column="0" ViewModel="{x:Bind ViewModel.QueryBuilderVM}"/>
                 <Button Grid.Column="1"
                         VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Margin="8"
                         Command="{x:Bind ViewModel.FilterGalleriesCommand}">
                     <SymbolIcon Symbol="Filter"/>
                 </Button>
@@ -48,7 +52,7 @@
             </Grid>
             <ItemsRepeater ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs}" Grid.Row="2">
                 <ItemsRepeater.Layout>
-                    <StackLayout Spacing="4"></StackLayout>
+                    <StackLayout Spacing="4"/>
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="bpvms:GalleryBrowseItemVM">

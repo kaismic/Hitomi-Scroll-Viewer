@@ -6,14 +6,23 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    RowDefinitions="Auto,Auto"
-    ColumnDefinitions="*"
     >
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+    </Grid.ColumnDefinitions>
     <TextBox Grid.Row="0"
              Width="492"
-             Text="{x:Bind ViewModel.InputText, Mode=TwoWay}"
+             Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
              />
-    <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+    <Grid Grid.Row="1">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0"
                    Foreground="Red"
                    HorizontalAlignment="Left"

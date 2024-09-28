@@ -16,7 +16,6 @@ namespace HitomiScrollViewerLib.DbContexts {
         public DbSet<Tag> Tags { get; set; }
         public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
         public DbSet<GalleryTypeEntity> GalleryTypes { get; set; }
-        public DbSet<Tag> UserSavedBrowseTags { get; set; }
 
 
         private static HitomiContext _main;

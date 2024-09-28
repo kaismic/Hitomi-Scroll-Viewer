@@ -48,9 +48,16 @@ namespace HitomiScrollViewerLib.ViewModels {
                 };
                 ShowLoadProgressReporter.Invoke(vm);
 
-                vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
+                vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
+
+                HitomiContext.Main.Database.EnsureDeleted();
+                UserContext.Main.Database.EnsureDeleted();
+
                 bool dbCreatedFirstTime = HitomiContext.Main.Database.EnsureCreated();
+                UserContext.Main.Database.EnsureCreated();
+                
                 if (dbCreatedFirstTime) {
+                    vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
                     vm.IsIndeterminate = false;
                     vm.Value = 0;
                     vm.Maximum = HitomiContext.DATABASE_INIT_OP_NUM;
@@ -133,11 +140,10 @@ namespace HitomiScrollViewerLib.ViewModels {
                 vm.Value++;
                 HitomiContext.Main.GalleryTypes.Load();
                 vm.Value++;
-                HitomiContext.Main.UserSavedBrowseTags.Load();
+                UserContext.Main.SavedBrowseTags.Load();
                 vm.Value++;
 
                 vm.IsIndeterminate = true;
-                vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
 
                 HideLoadProgressReporter.Invoke();
 

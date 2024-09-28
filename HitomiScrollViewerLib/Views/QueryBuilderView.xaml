@@ -22,7 +22,7 @@
           VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
     </Grid>
     <Grid x:Name="LanguageTypeKeywordGrid"
@@ -50,6 +50,6 @@
                   SelectedIndex="{x:Bind ViewModel.GalleryTypeSelectedIndex, Mode=TwoWay}"
                   />
         <TextBlock Text="Search by Title:"/>
-        <TextBox HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.SearchTitleText, Mode=TwoWay}" />
+        <TextBox HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.SearchTitleText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
     </Grid>
 </Grid>

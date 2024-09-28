@@ -13,20 +13,20 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static BrowsePageVM _main;
         public static BrowsePageVM Main => _main ??= new();
         private BrowsePageVM() {
-            QueryBuilderVM.InsertTags([.. HitomiContext.Main.UserSavedBrowseTags]);
+            QueryBuilderVM.InsertTags([.. UserContext.Main.SavedBrowseTags]);
             QueryBuilderVM.TagCollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
                 switch (e.Action) {
                     case NotifyCollectionChangedAction.Add:
                         foreach (Tag tag in e.NewItems) {
-                            HitomiContext.Main.UserSavedBrowseTags.Add(tag);
+                            UserContext.Main.SavedBrowseTags.Add(tag);
                         }
-                        HitomiContext.Main.SaveChanges();
+                        UserContext.Main.SaveChanges();
                         break;
                     case NotifyCollectionChangedAction.Remove:
                         foreach (Tag tag in e.OldItems) {
-                            HitomiContext.Main.UserSavedBrowseTags.Remove(tag);
+                            UserContext.Main.SavedBrowseTags.Remove(tag);
                         }
-                        HitomiContext.Main.SaveChanges();
+                        UserContext.Main.SaveChanges();
                         break;
                 }
             };
@@ -68,32 +68,29 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [ObservableProperty]
         private List<GalleryBrowseItemVM> _currentGalleryBrowseItemVMs;
 
-        public QueryBuilderVM QueryBuilderVM { get; set; } = new("BrowsePageGalleryLanguageIndex", "BrowsePageGalleryTypeIndex");
+        public QueryBuilderVM QueryBuilderVM { get; } = new("BrowsePageGalleryLanguageIndex", "BrowsePageGalleryTypeIndex");
 
         [RelayCommand]
         private void FilterGalleries() {
-            IEnumerable<Gallery> filtered = null;
-            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0) {
-                filtered = filtered == null ?
-                    QueryBuilderVM.SelectedGalleryLanguage.Galleries :
-                    filtered.Intersect(QueryBuilderVM.SelectedGalleryLanguage.Galleries);
+            IEnumerable<Gallery> filtered = HitomiContext.Main.Galleries;
+            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0 && QueryBuilderVM.SelectedGalleryLanguage is not null) {
+                filtered = filtered.Intersect(QueryBuilderVM.SelectedGalleryLanguage.Galleries);
             }
-            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0) {
-                filtered = filtered == null ?
-                    QueryBuilderVM.SelectedGalleryTypeEntity.Galleries :
-                    filtered.Intersect(QueryBuilderVM.SelectedGalleryTypeEntity.Galleries);
+            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0 && QueryBuilderVM.SelectedGalleryTypeEntity is not null) {
+                filtered = filtered.Intersect(QueryBuilderVM.SelectedGalleryTypeEntity.Galleries);
             }
             HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
             if (currentTags.Count > 0) {
-                filtered ??= HitomiContext.Main.Galleries;
                 foreach (Tag tag in currentTags) {
-                    filtered = filtered.Intersect(tag.Galleries);
+                    if (tag.Galleries is not null) {
+                        filtered = filtered.Intersect(tag.Galleries);
+                    }
                 }
             }
             if (QueryBuilderVM.SearchTitleText.Length != 0) {
-                filtered = filtered == null ? HitomiContext.Main.Galleries : filtered.Where(g => g.Title.Contains(QueryBuilderVM.SearchTitleText));
+                filtered = filtered.Where(g => g.Title.Contains(QueryBuilderVM.SearchTitleText));
             }
-            FilteredGalleries = filtered ?? HitomiContext.Main.Galleries;
+            FilteredGalleries = filtered;
         }
     }
 }

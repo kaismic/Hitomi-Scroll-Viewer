@@ -25,6 +25,7 @@ namespace HitomiScrollViewerLib {
         public static readonly string NON_VIRTUAL_IMAGE_DIR_V3 = Path.Combine(NON_VIRTUAL_LOCAL_DIR_V3, IMAGE_DIR_NAME);
 
         public static readonly string MAIN_DATABASE_PATH_V3 = Path.Combine(ApplicationData.Current.LocalFolder.Path, "main.db");
+        public static readonly string USER_DATABASE_PATH_V3 = Path.Combine(ApplicationData.Current.LocalFolder.Path, "user_data.db");
 
         public static readonly string TFS_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "tag_filter_sets.json");
         public static readonly string GALLERIES_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "galleries.json");

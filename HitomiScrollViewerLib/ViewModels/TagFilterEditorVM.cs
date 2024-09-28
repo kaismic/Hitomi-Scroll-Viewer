@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Input;
+using Windows.Foundation;
 using Windows.Storage;
 using static HitomiScrollViewerLib.SharedResources;
 
@@ -72,13 +72,13 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         private HashSet<int> DeletedTagFilterIds { get; set; }
+        public event Func<CRUDContentDialogVM, IAsyncOperation<ContentDialogResult>> ShowCRUDContentDialogRequested;
 
         public RelayCommand CreateButtonCommand { get; }
 
         private async void CreateButton_Click() {
             CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Create);
-            CRUDContentDialog cd = new() { ViewModel = cdvm };
-            if (await cd.ShowAsync() != ContentDialogResult.Primary) {
+            if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
             string name = cdvm.GetInputText();
@@ -104,8 +104,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         private async void RenameButton_Click() {
             string oldName = SelectedTagFilter.Name;
             CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Rename, oldName);
-            CRUDContentDialog cd = new() { ViewModel = cdvm };
-            if (await cd.ShowAsync() != ContentDialogResult.Primary) {
+            if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
             string newName = cdvm.GetInputText();
@@ -140,8 +139,7 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         private async void DeleteButton_Click() {
             CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Delete);
-            CRUDContentDialog cd = new() { ViewModel = cdvm };
-            if (await cd.ShowAsync() != ContentDialogResult.Primary) {
+            if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
             IEnumerable<TagFilter> SelectedTagFilters = cdvm.GetSelectedTagFilters();

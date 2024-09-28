@@ -52,17 +52,9 @@ namespace HitomiScrollViewerLib.Views {
                     CornerRadius = new CornerRadius(0),
                     Padding = new Thickness(0)
                 };
-                Border wrapper = new() {
-                    Child = _tagTokenizingTextBoxes[i]
-                };
-                int localIdx = i;
-                wrapper.SizeChanged += (object _0, SizeChangedEventArgs e) => {
-                    _tagTokenizingTextBoxes[localIdx].MaxHeight = e.NewSize.Height;
-                };
-                wrapper.Loaded += Wrapper_Loaded;
-                SetRow(wrapper, 1);
-                SetColumn(wrapper, i);
-                TextBoxesGrid.Children.Add(wrapper);
+                SetRow(_tagTokenizingTextBoxes[i], 1);
+                SetColumn(_tagTokenizingTextBoxes[i], i);
+                TextBoxesGrid.Children.Add(_tagTokenizingTextBoxes[i]);
             }
         }
         private void Wrapper_Loaded(object sender, RoutedEventArgs _1) {

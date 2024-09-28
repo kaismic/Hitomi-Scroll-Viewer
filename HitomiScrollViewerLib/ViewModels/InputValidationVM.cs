@@ -9,18 +9,18 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private int _maxInputLength;
         partial void OnMaxInputLengthChanged(int value) {
-            UpdateInputText();
+            InputTextUpdated();
         }
         [ObservableProperty]
-        private string _inputText;
+        private string _inputText = "";
         partial void OnInputTextChanged(string value) {
-            UpdateInputText();
+            InputTextUpdated();
         }
 
         [ObservableProperty]
-        private string _errorMessage;
+        private string _errorMessage = "";
         [ObservableProperty]
-        private string _inputLengthDisplayText;
+        private string _inputLengthDisplayText = "";
 
         public InputValidationVM(int maxInputLength) {
             MaxInputLength = maxInputLength;
@@ -40,8 +40,8 @@ namespace HitomiScrollViewerLib.ViewModels {
             _validators.Add(validator);
         }
 
-        private void UpdateInputText() {
-            InputLengthDisplayText = $"{InputText}/{MaxInputLength}";
+        private void InputTextUpdated() {
+            InputLengthDisplayText = $"{InputText.Length}/{MaxInputLength}";
             ErrorMessage = "";
         }
     }

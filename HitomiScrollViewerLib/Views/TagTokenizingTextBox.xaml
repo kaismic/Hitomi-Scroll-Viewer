@@ -9,7 +9,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
 
-    DataContext="{x:Bind ViewModel, Mode=OneWay}"
     ItemsSource="{x:Bind ViewModel.SelectedTags, Mode=TwoWay}"
     SuggestedItemsSource="{x:Bind ViewModel.SuggestedItemsSource, Mode=OneWay}"
     SizeChanged="{x:Bind ViewModel.TagTokenizingTextBox_SizeChanged}"

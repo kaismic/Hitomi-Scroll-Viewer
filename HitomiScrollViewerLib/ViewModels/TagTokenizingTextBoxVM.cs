@@ -23,17 +23,11 @@ namespace HitomiScrollViewerLib.ViewModels {
         private Tag[] _suggestedItemsSource;
 
         private Tag[] GetSuggestions() {
-
-            return Text.Length == 0
-                ? [.. HitomiContext.Main.Tags
-                    .OrderByDescending(tag => tag.GalleryCount)
-                    .Take(MAX_SUGGESTION_NUM)
-                ]
-                : [.. HitomiContext.Main.Tags
-                    .Where(tag => tag.Category == Category && tag.Value.StartsWith(Text))
-                    .OrderByDescending(tag => tag.GalleryCount)
-                    .Take(MAX_SUGGESTION_NUM)
-                ];
+            IQueryable<Tag> tags = HitomiContext.Main.Tags.Where(tag => tag.Category == Category);
+            if (Text.Length != 0) {
+                tags = tags.Where(tag => tag.Value.StartsWith(Text));
+            }
+            return [.. tags.OrderByDescending(tag => tag.GalleryCount).Take(MAX_SUGGESTION_NUM)];
         }
 
         public void TokenizingTextBox_GotFocus(object _0, RoutedEventArgs _1) {
@@ -51,7 +45,12 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public void TokenizingTextBox_TokenItemAdding(TokenizingTextBox _0, TokenItemAddingEventArgs args) {
             if (args.TokenText != null) {
-                args.Item = Tag.GetTag(args.TokenText, Category);
+                Tag tag = Tag.GetTag(args.TokenText, Category);
+                if (tag == null) {
+                    args.Cancel = true;
+                } else {
+                    args.Item = tag;
+                }
             }
         }
 
