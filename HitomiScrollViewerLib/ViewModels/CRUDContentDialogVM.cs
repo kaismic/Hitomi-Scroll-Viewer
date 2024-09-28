@@ -30,7 +30,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private object _content;
 
-        public ICommand PrimaryButtonCommand => new RelayCommand(() => { }, CanClickPrimaryButton);
+        public RelayCommand PrimaryButtonCommand => new(() => { }, CanClickPrimaryButton);
 
         // TODO test if this works (enables/disables button)
         private bool CanClickPrimaryButton() {

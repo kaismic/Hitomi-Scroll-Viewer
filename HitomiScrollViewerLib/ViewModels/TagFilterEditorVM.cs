@@ -8,6 +8,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using Soluling;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using Windows.Storage;
@@ -17,17 +18,18 @@ namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
 
+        public ObservableCollection<TagFilter> TagFilters { get; } = HitomiContext.Main.TagFilters.Local.ToObservableCollection();
+
         [ObservableProperty]
         private bool _isTFAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] ??= true);
         partial void OnIsTFAutoSaveEnabledChanged(bool value) {
             ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] = value;
         }
-        public static readonly string AutoSaveCheckBoxText = _resourceMap.GetValue("AutoSaveCheckBox_Text").ValueAsString;
 
         public event Action<TagFilter> SelectedTagFilterChanged;
-        public event Action<TagEventArgs> CurrentTagsRequested;
+        public event Action<TagCollectionEventArgs> CurrentTagsRequested;
 
-        public class TagEventArgs : EventArgs {
+        public class TagCollectionEventArgs : EventArgs {
             private ICollection<Tag> _tags;
             public ICollection<Tag> Tags {
                 get {
@@ -41,6 +43,8 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private TagFilter _selectedTagFilter;
         partial void OnSelectedTagFilterChanged(TagFilter oldValue, TagFilter newValue) {
+            SaveButtonCommand.NotifyCanExecuteChanged();
+            RenameButtonCommand.NotifyCanExecuteChanged();
             if (oldValue is not null && IsTFAutoSaveEnabled) {
                 // do not save if this selection change occurred due to deletion of currently selected tag filter
                 if (DeletedTagFilterIds == null) {
@@ -54,9 +58,22 @@ namespace HitomiScrollViewerLib.ViewModels {
             }
         }
 
+        public TagFilterEditorVM() {
+            CreateButtonCommand = new RelayCommand(CreateButton_Click);
+            RenameButtonCommand = new RelayCommand(
+                RenameButton_Click,
+                () => SelectedTagFilter != null
+            );
+            SaveButtonCommand = new RelayCommand(
+                () => SaveTagFilter(SelectedTagFilter),
+                () => SelectedTagFilter != null
+            );
+            DeleteButtonCommand = new RelayCommand(DeleteButton_Click);
+        }
+
         private HashSet<int> DeletedTagFilterIds { get; set; }
 
-        public ICommand CreateButtonCommand => new RelayCommand(CreateButton_Click);
+        public RelayCommand CreateButtonCommand { get; }
 
         private async void CreateButton_Click() {
             CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Create);
@@ -65,7 +82,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 return;
             }
             string name = cdvm.GetInputText();
-            TagEventArgs args = new();
+            TagCollectionEventArgs args = new();
             CurrentTagsRequested?.Invoke(args);
             TagFilter tf = new() {
                 Name = name,
@@ -82,10 +99,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             );
         }
 
-        public ICommand RenameButtonCommand => new RelayCommand(
-            RenameButton_Click,
-            () => SelectedTagFilter != null
-        );
+        public RelayCommand RenameButtonCommand { get; }
 
         private async void RenameButton_Click() {
             string oldName = SelectedTagFilter.Name;
@@ -107,13 +121,10 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
 
-        public ICommand SaveButtonCommand => new RelayCommand(
-            SaveButton_Click,
-            () => SelectedTagFilter != null
-        );
+        public RelayCommand SaveButtonCommand { get; }
 
         private void SaveTagFilter(TagFilter tf) {
-            TagEventArgs args = new();
+            TagCollectionEventArgs args = new();
             CurrentTagsRequested?.Invoke(args);
             tf.Tags = args.Tags;
             HitomiContext.Main.SaveChanges();
@@ -125,11 +136,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             );
         }
 
-        private void SaveButton_Click() {
-            SaveTagFilter(SelectedTagFilter);
-        }
-
-        public ICommand DeleteButtonCommand => new RelayCommand(DeleteButton_Click);
+        public RelayCommand DeleteButtonCommand { get; }
 
         private async void DeleteButton_Click() {
             CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Delete);

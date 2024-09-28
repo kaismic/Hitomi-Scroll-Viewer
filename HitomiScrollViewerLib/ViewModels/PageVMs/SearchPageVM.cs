@@ -24,7 +24,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public static SearchPageVM Main => _main ??= new() ;
 
         public TagFilterEditorVM TagFilterEditorVM { get; } = new();
-        public QueryBuilderVM QueryBuilderVM { get; } = new();
+        public QueryBuilderVM QueryBuilderVM { get; } = new("SearchPageGalleryLanguageIndex", "SearchPageGalleryTypeIndex");
         public PairedTFSelectorVM IncludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
         public PairedTFSelectorVM ExcludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
 
@@ -50,8 +50,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 HandleDownloadButtonClick,
                 () => DownloadInputText.Length != 0
             );
-            IncludeTFSelectorVM.OtherTFSSelectorVM = ExcludeTFSelectorVM;
-            ExcludeTFSelectorVM.OtherTFSSelectorVM = IncludeTFSelectorVM;
+            IncludeTFSelectorVM.OtherTFSelectorVM = ExcludeTFSelectorVM;
+            ExcludeTFSelectorVM.OtherTFSelectorVM = IncludeTFSelectorVM;
 
             TagFilterEditorVM.CurrentTagsRequested += e => e.Tags = QueryBuilderVM.GetCurrentTags();
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {

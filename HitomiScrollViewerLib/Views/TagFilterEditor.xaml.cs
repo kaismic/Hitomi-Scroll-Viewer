@@ -4,7 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace HitomiScrollViewerLib.Views {
     public sealed partial class TagFilterEditor : Grid {
-        public TagFilterEditorVM ViewModel { get; } = new();
+        public TagFilterEditorVM ViewModel { get; set; }
 
         public TagFilterEditor() {
             InitializeComponent();

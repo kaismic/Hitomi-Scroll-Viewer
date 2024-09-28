@@ -18,7 +18,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 foreach (TagFilter tfs in value) {
                     TFCheckBoxModel model = new(
                         tfs,
-                        new RelayCommand<TFCheckBoxModel>(CheckBoxToggleHandler)
+                        new RelayCommand<TFCheckBoxModel>(CheckBox_Toggled)
                     );
                     TfCheckBoxModels.Add(model);
                 }
@@ -46,7 +46,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     foreach (var tfs in e.NewItems.Cast<TagFilter>()) {
                         TFCheckBoxModel model = new(
                             tfs,
-                            new RelayCommand<TFCheckBoxModel>(CheckBoxToggleHandler)
+                            new RelayCommand<TFCheckBoxModel>(CheckBox_Toggled)
                         );
                         TfCheckBoxModels.Add(model);
                     }
@@ -77,7 +77,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             AnySelected = SelectedTFCBModels.Any();
         }
 
-        public virtual void CheckBoxToggleHandler(TFCheckBoxModel model) {
+        public virtual void CheckBox_Toggled(TFCheckBoxModel model) {
             if (model.IsChecked) {
                 SelectedTFCBModels.Add(model.TagFilter.Id, model);
             } else {

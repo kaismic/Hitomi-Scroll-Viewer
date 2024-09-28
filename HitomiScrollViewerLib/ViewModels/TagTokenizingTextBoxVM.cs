@@ -4,7 +4,6 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -15,19 +14,26 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private double _tokenTextBlockMaxWidth;
         [ObservableProperty]
-        private string _text;
+        private string _text = "";
 
         public TagCategory Category { get; } = category;
         public ObservableCollection<Tag> SelectedTags { get; set; } = [];
 
-        public IEnumerable<Tag> SuggestedItemsSource { get; private set; }
+        [ObservableProperty]
+        private Tag[] _suggestedItemsSource;
 
-        private IEnumerable<Tag> GetSuggestions() {
-            return
-                HitomiContext.Main.Tags
-                .Where(tag => tag.Category == Category && tag.Value.StartsWith(Text))
-                .OrderByDescending(tag => tag.GalleryCount)
-                .Take(MAX_SUGGESTION_NUM);
+        private Tag[] GetSuggestions() {
+
+            return Text.Length == 0
+                ? [.. HitomiContext.Main.Tags
+                    .OrderByDescending(tag => tag.GalleryCount)
+                    .Take(MAX_SUGGESTION_NUM)
+                ]
+                : [.. HitomiContext.Main.Tags
+                    .Where(tag => tag.Category == Category && tag.Value.StartsWith(Text))
+                    .OrderByDescending(tag => tag.GalleryCount)
+                    .Take(MAX_SUGGESTION_NUM)
+                ];
         }
 
         public void TokenizingTextBox_GotFocus(object _0, RoutedEventArgs _1) {

@@ -3,16 +3,16 @@ using HitomiScrollViewerLib.Models;
 using System.Collections.ObjectModel;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class PairedTFSelectorVM(ObservableCollection<TagFilter> tfss) : TFSelectorVM(tfss) {
-        public PairedTFSelectorVM OtherTFSSelectorVM { private get; set; }
+    public partial class PairedTFSelectorVM(ObservableCollection<TagFilter> tf) : TFSelectorVM(tf) {
+        public PairedTFSelectorVM OtherTFSelectorVM { private get; set; }
 
         private void EnableCheckBox(int i, bool enable) {
             TfCheckBoxModels[i].IsEnabled = enable;
         }
 
-        public override void CheckBoxToggleHandler(TFCheckBoxModel model) {
-            base.CheckBoxToggleHandler(model);
-            OtherTFSSelectorVM.EnableCheckBox(TfCheckBoxModels.IndexOf(model), !model.IsChecked);
+        public override void CheckBox_Toggled(TFCheckBoxModel model) {
+            base.CheckBox_Toggled(model);
+            OtherTFSelectorVM.EnableCheckBox(TfCheckBoxModels.IndexOf(model), !model.IsChecked);
         }
     }
 }

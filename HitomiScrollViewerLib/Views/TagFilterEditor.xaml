@@ -20,46 +20,28 @@
         <ColumnDefinition Width="2*"/>
     </Grid.ColumnDefinitions>
     <Border/>
-    <Button x:Name="CreateButton"
-                Command="{x:Bind ViewModel.CreateButtonCommand}">
+    <Button Command="{x:Bind ViewModel.CreateButtonCommand}">
         <SymbolIcon Symbol="Add"/>
     </Button>
-    <Button x:Name="RenameButton"
-                IsEnabled="False"
-                Command="{x:Bind ViewModel.RenameButtonCommand}"
-                >
+    <Button Command="{x:Bind ViewModel.RenameButtonCommand}">
         <SymbolIcon Symbol="Edit"/>
     </Button>
     <ComboBox DisplayMemberPath="Name"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  Visibility="Collapsed"
-                  SelectedItem="{x:Bind ViewModel.SelectedTagFilter, Mode=TwoWay}"
-                  >
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              SelectedItem="{x:Bind ViewModel.SelectedTagFilter, Mode=TwoWay}"
+              ItemsSource="{x:Bind ViewModel.TagFilters, Mode=OneWay}">
     </ComboBox>
-    <Button x:Name="SaveButton"
-                IsEnabled="False"
-                Command="{x:Bind ViewModel.SaveButtonCommand}"
-                >
+    <Button Command="{x:Bind ViewModel.SaveButtonCommand}">
         <SymbolIcon Symbol="Save"/>
         <Button.KeyboardAccelerators>
             <KeyboardAccelerator Key="S" Modifiers="Control" />
         </Button.KeyboardAccelerators>
     </Button>
-    <Button x:Name="DeleteButton"
-                Command="{x:Bind ViewModel.DeleteButtonCommand}"
-                >
+    <Button Command="{x:Bind ViewModel.DeleteButtonCommand}">
         <SymbolIcon Symbol="Delete"/>
     </Button>
-    <Grid Padding="16 0"
-          HorizontalAlignment="Center">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        <ToggleSwitch Grid.Column="0"
-                      IsOn="{x:Bind ViewModel.IsTFAutoSaveEnabled, Mode=TwoWay}"/>
-        <TextBlock x:Uid="/TagFilterEditor/TFAutoSaveTextBlock"
-                   Grid.Column="1"
-                   TextWrapping="WrapWholeWords"/>
-    </Grid>
+    <ToggleSwitch x:Uid="/TagFilterEditor/TFAutoSaveToggleSwitch"
+                  Grid.Column="0"
+                  HorizontalAlignment="Center"
+                  IsOn="{x:Bind ViewModel.IsTFAutoSaveEnabled, Mode=TwoWay}"/>
 </Grid>

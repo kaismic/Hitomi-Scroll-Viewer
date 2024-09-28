@@ -4,13 +4,16 @@ using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -116,19 +119,22 @@ namespace HitomiScrollViewerLib.ViewModels {
                 }
 
                 // TODO test if this is necessary
-                //vm.IsIndeterminate = false;
-                //vm.Value = 0;
-                //vm.Maximum = 5;
-                //vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
-                //HitomiContext.Main.Tags.Load();
-                //vm.Value++;
-                //HitomiContext.Main.GalleryLanguages.Load();
-                //vm.Value++;
-                //HitomiContext.Main.TagFilterSets.Load();
-                //vm.Value++;
-                //HitomiContext.Main.Galleries.Load();
-                //vm.Value++;
-                //HitomiContext.Main.GalleryTypes.Load();
+                vm.IsIndeterminate = false;
+                vm.Value = 0;
+                vm.Maximum = 6;
+                vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
+                HitomiContext.Main.Tags.Load();
+                vm.Value++;
+                HitomiContext.Main.GalleryLanguages.Load();
+                vm.Value++;
+                HitomiContext.Main.TagFilters.Load();
+                vm.Value++;
+                HitomiContext.Main.Galleries.Load();
+                vm.Value++;
+                HitomiContext.Main.GalleryTypes.Load();
+                vm.Value++;
+                HitomiContext.Main.UserSavedBrowseTags.Load();
+                vm.Value++;
 
                 vm.IsIndeterminate = true;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
@@ -171,7 +177,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             Task.Run(
                 async () => {
                     await Task.Delay(POPUP_MSG_DISPLAY_DURATION);
-                    PopupMessages.Remove(vm);
+                    MainWindow.MainDispatcherQueue.TryEnqueue(() => PopupMessages.Remove(vm));
                 }
             );
         }
