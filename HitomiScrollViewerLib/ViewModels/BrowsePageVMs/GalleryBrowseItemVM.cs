@@ -12,20 +12,20 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
         private Gallery _gallery;
         public Gallery Gallery {
             get => _gallery;
-            init {
+            set {
                 _gallery = value;
-                foreach (TagCategory category in Tag.TAG_CATEGORIES) {
+                for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
                     List<Tag> tags = Tag.SelectTagsFromCategory(
                         HitomiContext.Main.Galleries
                         .Include(g => g.Tags)
                         .First(g => g.Id == value.Id)
                         .Tags,
-                        category
+                        Tag.TAG_CATEGORIES[i]
                     );
                     if (tags.Count != 0) {
                         TagItemsRepeaterVMs.Add(
                             new() {
-                                CategoryLabel = _tagCategoryRM.GetValue(category.ToString()).ValueAsString,
+                                CategoryLabel = _tagCategoryRM.GetValue(Tag.TAG_CATEGORIES[i].ToString()).ValueAsString,
                                 TagDisplayString = [.. tags.Select(t => t.Value)]
                             }
                         );

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -31,7 +32,26 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             };
             FilterGalleries();
-            OnSelectedPageIndexChanged(0);
+        }
+
+        private void SetPages() {
+            int newPagesCount = (int)Math.Ceiling((double)FilteredGalleries.Count / PageSizes[SelectedPageSizeIndex]);
+            if (Pages == null || newPagesCount != Pages.Count) {
+                Pages = [.. Enumerable.Range(1, newPagesCount)];
+            }
+        }
+
+        private void SetCurrentGalleryBrowseItemVMs() {
+            System.Diagnostics.Debug.WriteLine("444 SelectedPageIndex = " + SelectedPageIndex);
+            System.Diagnostics.Debug.WriteLine("PageSizes[SelectedPageSizeIndex] = " + PageSizes[SelectedPageSizeIndex]);
+            CurrentGalleryBrowseItemVMs = FilteredGalleries
+                .Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
+                .Take(PageSizes[SelectedPageSizeIndex])
+                .Select(g => new GalleryBrowseItemVM() { Gallery = g })
+                .ToList();
+            foreach (var g in CurrentGalleryBrowseItemVMs.Select(vm => vm.Gallery)) {
+                System.Diagnostics.Debug.WriteLine("gallery id = " + g.Id);
+            }
         }
 
         public int[] PageSizes { get; } = Enumerable.Range(1, 15).ToArray();
@@ -40,29 +60,40 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private List<int> _pages;
 
         [ObservableProperty]
-        private int _selectedPageIndex = 0;
+        private int _selectedPageIndex = -1;
         partial void OnSelectedPageIndexChanged(int value) {
-            CurrentGalleryBrowseItemVMs =
-                FilteredGalleries
-                .Skip(value * PageSizes[SelectedPageSizeIndex])
-                .Take(PageSizes[SelectedPageSizeIndex])
-                .Select(g => new GalleryBrowseItemVM() { Gallery = g })
-                .ToList();
+            System.Diagnostics.Debug.WriteLine("333 SelectedPageIndex = " + SelectedPageIndex);
+            System.Diagnostics.Debug.WriteLine("PageSizes[SelectedPageSizeIndex] = " + PageSizes[SelectedPageSizeIndex]);
+            if (value == -1 || FilteredGalleries.Count == 0) {
+                CurrentGalleryBrowseItemVMs = [];
+                return;
+            }
+            SetCurrentGalleryBrowseItemVMs();
         }
 
         [ObservableProperty]
         private int _selectedPageSizeIndex = 4;
         partial void OnSelectedPageSizeIndexChanged(int value) {
-            Pages = [.. Enumerable.Range(1, (int)Math.Ceiling((double)_filteredGalleryCount / PageSizes[value]))];
+            SetPages();
+            SelectedPageIndex = 0;
         }
 
-        private int _filteredGalleryCount;
-
         [ObservableProperty]
-        private IEnumerable<Gallery> _filteredGalleries;
-        partial void OnFilteredGalleriesChanged(IEnumerable<Gallery> value) {
-            _filteredGalleryCount = value.Count();
-            SelectedPageIndex = 0;
+        private List<Gallery> _filteredGalleries;
+        partial void OnFilteredGalleriesChanged(List<Gallery> value) {
+            SetPages();
+            System.Diagnostics.Debug.WriteLine("bbb Pages.Count = " + Pages.Count);
+            System.Diagnostics.Debug.WriteLine("FilteredGalleries.Count = " + value.Count);
+            System.Diagnostics.Debug.WriteLine("111 SelectedPageIndex = " + SelectedPageIndex);
+            if (value.Count > 0) {
+                System.Diagnostics.Debug.WriteLine("yep count > 0");
+                if (SelectedPageIndex != 0) {
+                    SelectedPageIndex = 0;
+                } else {
+                    SetCurrentGalleryBrowseItemVMs();
+                }
+            }
+            System.Diagnostics.Debug.WriteLine("222 SelectedPageIndex = " + SelectedPageIndex);
         }
 
         [ObservableProperty]
@@ -73,10 +104,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [RelayCommand]
         private void FilterGalleries() {
             IEnumerable<Gallery> filtered = HitomiContext.Main.Galleries;
-            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0 && QueryBuilderVM.SelectedGalleryLanguage is not null) {
+            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0 && (QueryBuilderVM.SelectedGalleryLanguage is not null)) {
                 filtered = filtered.Intersect(QueryBuilderVM.SelectedGalleryLanguage.Galleries);
             }
-            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0 && QueryBuilderVM.SelectedGalleryTypeEntity is not null) {
+            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0 && (QueryBuilderVM.SelectedGalleryTypeEntity is not null)) {
                 filtered = filtered.Intersect(QueryBuilderVM.SelectedGalleryTypeEntity.Galleries);
             }
             HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
@@ -90,7 +121,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             if (QueryBuilderVM.SearchTitleText.Length != 0) {
                 filtered = filtered.Where(g => g.Title.Contains(QueryBuilderVM.SearchTitleText));
             }
-            FilteredGalleries = filtered;
+            FilteredGalleries = [.. filtered];
         }
     }
 }

@@ -43,8 +43,8 @@ namespace HitomiScrollViewerLib.ViewModels {
         public QueryBuilderVM(string galleryLanguageIndexSettingsKey, string galleryTypeIndexSettingsKey) {
             _galleryLanguageIndexSettingsKey = galleryLanguageIndexSettingsKey;
             _galleryTypeIndexSettingsKey = galleryTypeIndexSettingsKey;
-            _galleryLanguageSelectedIndex = (int)(ApplicationData.Current.LocalSettings.Values[galleryLanguageIndexSettingsKey] ??= 0);
-            _galleryTypeSelectedIndex = (int)(ApplicationData.Current.LocalSettings.Values[galleryTypeIndexSettingsKey] ??= 0);
+            GalleryLanguageSelectedIndex = (int)(ApplicationData.Current.LocalSettings.Values[galleryLanguageIndexSettingsKey] ??= 0);
+            GalleryTypeSelectedIndex = (int)(ApplicationData.Current.LocalSettings.Values[galleryTypeIndexSettingsKey] ??= 0);
 
             foreach (var vm in TagTokenizingTBVMs) {
                 vm.SelectedTags.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => TagCollectionChanged?.Invoke(sender, e);

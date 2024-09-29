@@ -11,32 +11,32 @@
     xmlns:bpvms="using:HitomiScrollViewerLib.ViewModels.BrowsePageVMs"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    NavigationCacheMode="Required"
-    >
-    <ScrollViewer VerticalAlignment="Stretch">
-        <Grid>
+    NavigationCacheMode="Required">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0"
-                  Padding="8"
                   ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="10*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 <views:QueryBuilderView Grid.Column="0" ViewModel="{x:Bind ViewModel.QueryBuilderVM}"/>
                 <Button Grid.Column="1"
                         VerticalAlignment="Stretch"
                         HorizontalAlignment="Stretch"
-                        Margin="8"
                         Command="{x:Bind ViewModel.FilterGalleriesCommand}">
                     <SymbolIcon Symbol="Filter"/>
                 </Button>
             </Grid>
-            <Grid HorizontalAlignment="Stretch" Grid.Row="1">
+            <Grid Grid.Row="1">
                 <Button HorizontalAlignment="Left">
                     <SymbolIcon Symbol="Sort"/>
                 </Button>
@@ -51,7 +51,9 @@
                               SelectedIndex="{x:Bind ViewModel.SelectedPageSizeIndex, Mode=TwoWay}"/>
                 </StackPanel>
             </Grid>
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs}" Grid.Row="2">
+        </Grid>
+        <ScrollViewer Grid.Row="1">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs, Mode=OneWay}" Grid.Row="2">
                 <ItemsRepeater.Layout>
                     <StackLayout Spacing="4"/>
                 </ItemsRepeater.Layout>
@@ -61,6 +63,6 @@
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
-        </Grid>
-    </ScrollViewer>
+        </ScrollViewer>
+    </Grid>
 </Page>
