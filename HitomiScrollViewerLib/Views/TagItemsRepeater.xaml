@@ -14,17 +14,20 @@
     </Grid.ColumnDefinitions>
     <TextBlock Grid.Column="0"
                Text="{x:Bind ViewModel.CategoryLabel}"
-               FontSize="{x:Bind ViewModel.CategoryFontSize}"/>
-    <UserControl Grid.Column="1"
-                 FontSize="{x:Bind ViewModel.TagFontSize}">
+               Style="{StaticResource BodyTextBlockStyle}"/>
+    <UserControl Grid.Column="1">
         <ItemsRepeater ItemsSource="{x:Bind ViewModel.TagDisplayString}">
             <ItemsRepeater.Layout>
                 <ct:WrapLayout VerticalSpacing="2" HorizontalSpacing="4"/>
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
                 <DataTemplate x:DataType="x:String">
-                    <Border Background="DarkGray" CornerRadius="{StaticResource OverlayCornerRadius}">
-                        <TextBlock Foreground="White" Text="{x:Bind}"/>
+                    <Border Background="DarkGray"
+                            CornerRadius="{StaticResource ControlCornerRadius}"
+                            Padding="2">
+                        <TextBlock Foreground="White"
+                                   Text="{x:Bind}"
+                                   Style="{StaticResource CaptionTextBlockStyle}"/>
                     </Border>
                 </DataTemplate>
             </ItemsRepeater.ItemTemplate>

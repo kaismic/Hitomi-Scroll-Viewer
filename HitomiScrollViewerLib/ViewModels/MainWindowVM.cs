@@ -50,8 +50,8 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
 
-                HitomiContext.Main.Database.EnsureDeleted();
-                UserContext.Main.Database.EnsureDeleted();
+                //HitomiContext.Main.Database.EnsureDeleted();
+                //UserContext.Main.Database.EnsureDeleted();
 
                 bool dbCreatedFirstTime = HitomiContext.Main.Database.EnsureCreated();
                 UserContext.Main.Database.EnsureCreated();

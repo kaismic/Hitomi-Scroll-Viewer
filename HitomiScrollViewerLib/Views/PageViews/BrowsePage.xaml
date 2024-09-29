@@ -11,6 +11,7 @@
     xmlns:bpvms="using:HitomiScrollViewerLib.ViewModels.BrowsePageVMs"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    NavigationCacheMode="Required"
     >
     <ScrollViewer VerticalAlignment="Stretch">
         <Grid>

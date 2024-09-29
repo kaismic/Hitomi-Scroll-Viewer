@@ -1,4 +1,6 @@
-﻿using HitomiScrollViewerLib.Entities;
+﻿using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,13 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
             init {
                 _gallery = value;
                 foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                    List<Tag> tags = Tag.SelectTagsFromCategory(value.Tags, category);
+                    List<Tag> tags = Tag.SelectTagsFromCategory(
+                        HitomiContext.Main.Galleries
+                        .Include(g => g.Tags)
+                        .First(g => g.Id == value.Id)
+                        .Tags,
+                        category
+                    );
                     if (tags.Count != 0) {
                         TagItemsRepeaterVMs.Add(
                             new() {
@@ -25,6 +33,6 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                 }
             }
         }
-        public List<TagItemsRepeaterVM> TagItemsRepeaterVMs { get; private set; }
+        public List<TagItemsRepeaterVM> TagItemsRepeaterVMs { get; } = [];
     }
 }

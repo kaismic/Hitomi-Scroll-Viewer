@@ -11,6 +11,7 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    NavigationCacheMode="Required"
     >
     <Grid ColumnSpacing="8">
         <Grid.ColumnDefinitions>

@@ -7,7 +7,8 @@
     xmlns:vpvms="using:HitomiScrollViewerLib.ViewModels.ViewPageVMs"
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    NavigationCacheMode="Required">
     <TabView TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemsVMs}">
         <TabView.TabItemTemplate>
             <DataTemplate x:DataType="vpvms:GalleryTabViewItemVM">

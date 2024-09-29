@@ -16,7 +16,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             get => _viewModel;
             set {
                 _viewModel = value;
-                string baseColorKey = value.Gallery.GalleryType.ToString() + "Color";
+                string baseColorKey = value.Gallery.GalleryType.GalleryType.ToString() + "Color";
                 string[] colorKeys = Enumerable.Range(0, 3).Select(i => baseColorKey + i).ToArray();
                 bool isLightTheme = RequestedTheme == ElementTheme.Light;
                 TitleBackgroundBrush = new((Color)Resources[colorKeys[1]]);
@@ -27,9 +27,6 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
 
         public GalleryBrowseItem() {
             InitializeComponent();
-            for (int i = 0; i < RootGrid.Children.Count; i++) {
-                Grid.SetRow(RootGrid.Children[i] as FrameworkElement, i);
-            }
         }
     }
 }
