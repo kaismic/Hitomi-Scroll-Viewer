@@ -23,8 +23,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                     TfCheckBoxModels.Add(model);
                 }
                 SelectedTFCBModels = [];
-                SelectedTFCBModels.CollectionChanged += SelectedCheckBoxes_CollectionChanged;
-                AnySelected = false;
             }
         }
 
@@ -33,8 +31,6 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         [ObservableProperty]
         private ObservableConcurrentDictionary<int, TFCheckBoxModel> _selectedTFCBModels;
-
-        public bool AnySelected { get; private set; } = false;
 
         public TFSelectorVM(ObservableCollection<TagFilter> tagFilterSets) {
             TagFilters = tagFilterSets;
@@ -71,10 +67,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                     TagFilters = sender as ObservableCollection<TagFilter>;
                     break;
             }
-        }
-
-        private void SelectedCheckBoxes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-            AnySelected = SelectedTFCBModels.Any();
         }
 
         public virtual void CheckBox_Toggled(TFCheckBoxModel model) {

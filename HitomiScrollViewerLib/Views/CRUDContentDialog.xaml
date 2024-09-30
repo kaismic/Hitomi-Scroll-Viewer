@@ -9,11 +9,11 @@
     
     DefaultButton="Primary"
     Style="{StaticResource DefaultContentDialogStyle}"
-    IsPrimaryButtonEnabled="False"
     PrimaryButtonText="{x:Bind ViewModel.PrimaryButtonText, Mode=OneWay}"
-    PrimaryButtonCommand="{x:Bind ViewModel.PrimaryButtonCommand}"
     CloseButtonText="{x:Bind ViewModel.CloseButtonText}"
     Content="{x:Bind ViewModel.Content, Mode=OneWay}"
+    IsPrimaryButtonEnabled="{x:Bind ViewModel.IsPrimaryButtonEnabled, Mode=OneWay}"
+    PrimaryButtonClick="{x:Bind ViewModel.PrimaryButton_Clicked}"
     >
     <ContentDialog.Title>
         <TextBlock TextWrapping="WrapWholeWords"

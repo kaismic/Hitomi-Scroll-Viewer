@@ -1,12 +1,11 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using HitomiScrollViewerLib.DbContexts;
-using HitomiScrollViewerLib.Entities;
+﻿using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.Models;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
@@ -23,53 +22,33 @@ namespace HitomiScrollViewerLib.ViewModels {
             { TagCategory.Series, "series" }
         };
 
-        private GalleryTypeEntity _galleryType;
-        public GalleryTypeEntity GalleryType {
-            get => _galleryType;
-            set {
-                _galleryType = value;
-                GalleryTypeText = TEXT_TYPE + ": " + value.DisplayName;
-            }
-        }
-        public string GalleryTypeText { get; private set; }
-
-        private GalleryLanguage _galleryLanguage;
-        public GalleryLanguage GalleryLanguage {
-            get => _galleryLanguage;
-            set {
-                _galleryLanguage = value;
-                GalleryLanguageText = TEXT_LANGUAGE + ": " + GalleryLanguage.LocalName;
-            }
-        }
-        public string GalleryLanguageText { get; private set; }
-
+        public GalleryTypeEntity GalleryType { get; set; }
+        public GalleryLanguage GalleryLanguage { get; set; }
         public string SearchTitleText { get; set; }
 
-        public IEnumerable<Tag> IncludeTags { get; set; }
-        public IEnumerable<Tag> ExcludeTags { get; set; }
+        public HashSet<Tag> IncludeTags { get; init; }
+        public HashSet<Tag> ExcludeTags { get; init; }
 
-        public List<SearchFilterTagsRepeaterVM> SearchFilterTagsRepeaterVMs { get; } = [];
+        public List<InExcludeTagCollection> InExcludeTagCollections { get; } = [];
 
-        public StandardUICommand DeleteCommand { get; } = new(StandardUICommandKind.Delete);
+        public StandardUICommand DeleteCommand { get; } = new(StandardUICommandKind.Delete) {
+            IconSource = new SymbolIconSource() { Symbol = Symbol.Delete }
+        };
 
-        private string _searchLink;
-        public string SearchLink {
+        private Uri _searchLink;
+        public Uri SearchLink {
             get {
                 if (_searchLink != null) {
                     return _searchLink;
                 }
 
                 List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and title search
-                List<string> displayTexts = new(Tag.TAG_CATEGORIES.Length + 3); // + 3 for language, type and title search
 
                 if (GalleryLanguage != null) {
                     searchParamStrs.Add("language:" + GalleryLanguage.SearchParamValue);
-                    displayTexts.Add(TEXT_LANGUAGE + ": " + GalleryLanguage.LocalName);
                 }
-
                 if (GalleryType != null) {
                     searchParamStrs.Add("type:" + GalleryType.SearchParamValue);
-                    displayTexts.Add(TEXT_TYPE + ": " + GalleryType.DisplayName);
                 }
 
                 // add joined include exclude search param strs
@@ -78,33 +57,32 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 // add display texts for each tag category
                 foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                    IEnumerable<string> includeValues = IncludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
-                    IEnumerable<string> excludeValues = ExcludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value);
-                    if (!includeValues.Any() && !excludeValues.Any()) {
+                    HashSet<string> includeValues = IncludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value).ToHashSet();
+                    HashSet<string> excludeValues = ExcludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value).ToHashSet();
+                    if (includeValues.Count == 0 && excludeValues.Count == 0) {
                         continue;
                     }
-                    IEnumerable<string> withoutEmptyStrs = new string[] {
-                    string.Join(", ", includeValues),
-                    string.Join(", ", excludeValues)
-                }.Where(s => !string.IsNullOrEmpty(s));
-                    displayTexts.Add((category).ToString() + ": " + string.Join(", ", withoutEmptyStrs));
+                    string[] withoutEmptyStrs = new string[] {
+                        string.Join(", ", includeValues),
+                        string.Join(", ", excludeValues)
+                    }.Where(s => !string.IsNullOrEmpty(s))
+                    .ToArray();
                 }
 
                 if (SearchTitleText != null) {
                     searchParamStrs.Add(SearchTitleText);
-                    displayTexts.Add(SearchTitleText);
                 }
 
-                return _searchLink = SEARCH_ADDRESS + string.Join(' ', searchParamStrs.Where(s => !string.IsNullOrEmpty(s)));
+                return _searchLink = new Uri(SEARCH_ADDRESS + string.Join(' ', searchParamStrs.Where(s => !string.IsNullOrEmpty(s))));
             }
         }
 
-        public void InitSearchFilterTagsRepeaterVMs() {
+        public void InitInExcludeTagCollections() {
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
                 List<Tag> includeTags = Tag.SelectTagsFromCategory(IncludeTags, category);
                 List<Tag> excludeTags = Tag.SelectTagsFromCategory(ExcludeTags, category);
                 if (includeTags.Count > 0 || excludeTags.Count > 0) {
-                    SearchFilterTagsRepeaterVMs.Add(
+                    InExcludeTagCollections.Add(
                         new() {
                             CategoryLabel = _tagCategoryRM.GetValue(category.ToString()).ValueAsString,
                             IncludeTags = includeTags,

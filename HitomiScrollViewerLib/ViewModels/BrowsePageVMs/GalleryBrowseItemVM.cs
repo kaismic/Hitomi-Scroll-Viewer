@@ -13,6 +13,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
         public Gallery Gallery {
             get => _gallery;
             set {
+
                 _gallery = value;
                 for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
                     List<Tag> tags = Tag.SelectTagsFromCategory(

@@ -15,6 +15,9 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
         public GalleryBrowseItemVM ViewModel {
             get => _viewModel;
             set {
+                if (_viewModel != null) {
+                    return;
+                }
                 _viewModel = value;
                 string baseColorKey = value.Gallery.GalleryType.GalleryType.ToString() + "Color";
                 string[] colorKeys = Enumerable.Range(0, 3).Select(i => baseColorKey + i).ToArray();

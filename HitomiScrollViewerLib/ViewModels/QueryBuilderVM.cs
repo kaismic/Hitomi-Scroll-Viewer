@@ -23,6 +23,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         partial void OnGalleryLanguageSelectedIndexChanged(int value) {
             ApplicationData.Current.LocalSettings.Values[_galleryLanguageIndexSettingsKey] = value;
             SelectedGalleryLanguage = GALLERY_LANGUAGES[value];
+            QueryParameterChanged?.Invoke();
         }
         public GalleryLanguage SelectedGalleryLanguage { get; private set; }
 
@@ -31,14 +32,24 @@ namespace HitomiScrollViewerLib.ViewModels {
         partial void OnGalleryTypeSelectedIndexChanged(int value) {
             ApplicationData.Current.LocalSettings.Values[_galleryTypeIndexSettingsKey] = value;
             SelectedGalleryTypeEntity = GALLERY_TYPE_ENTITIES[value];
+            QueryParameterChanged?.Invoke();
         }
         public GalleryTypeEntity SelectedGalleryTypeEntity { get; private set; }
 
         [ObservableProperty]
         private string _searchTitleText = "";
+        partial void OnSearchTitleTextChanged(string value) {
+            QueryParameterChanged?.Invoke();
+        }
 
         private readonly string _galleryLanguageIndexSettingsKey;
         private readonly string _galleryTypeIndexSettingsKey;
+
+        public event Action QueryParameterChanged;
+        public bool AnyQuerySelected =>
+            GalleryLanguageSelectedIndex > 0 ||
+            GalleryTypeSelectedIndex > 0 ||
+            SearchTitleText.Length > 0;
 
         public QueryBuilderVM(string galleryLanguageIndexSettingsKey, string galleryTypeIndexSettingsKey) {
             _galleryLanguageIndexSettingsKey = galleryLanguageIndexSettingsKey;

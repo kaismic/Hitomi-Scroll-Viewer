@@ -5,10 +5,12 @@ using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views.PageViews;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
@@ -21,7 +23,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private static SearchPageVM _main;
-        public static SearchPageVM Main => _main ??= new() ;
+        public static SearchPageVM Main => _main ??= new();
 
         public TagFilterEditorVM TagFilterEditorVM { get; } = new();
         public QueryBuilderVM QueryBuilderVM { get; } = new("SearchPageGalleryLanguageIndex", "SearchPageGalleryTypeIndex");
@@ -34,17 +36,14 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         [ObservableProperty]
         private string _downloadInputText = "";
-
-        public bool AnyFilterSelected =>
-            QueryBuilderVM.GalleryLanguageSelectedIndex > 0 ||
-            QueryBuilderVM.GalleryTypeSelectedIndex > 0 ||
-            QueryBuilderVM.SearchTitleText.Length > 0 ||
-            IncludeTFSelectorVM.AnySelected || ExcludeTFSelectorVM.AnySelected;
+        partial void OnDownloadInputTextChanged(string value) {
+            DownloadButtonCommand.NotifyCanExecuteChanged();
+        }
 
         private SearchPageVM() {
             SearchLinkCreateButtonCommand = new RelayCommand(
                 HandleSearchLinkCreateButtonClick,
-                () => AnyFilterSelected
+                () => QueryBuilderVM.AnyQuerySelected || IncludeTFSelectorVM.SelectedTFCBModels.Any() || ExcludeTFSelectorVM.SelectedTFCBModels.Any()
             );
             DownloadButtonCommand = new RelayCommand(
                 HandleDownloadButtonClick,
@@ -52,6 +51,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             );
             IncludeTFSelectorVM.OtherTFSelectorVM = ExcludeTFSelectorVM;
             ExcludeTFSelectorVM.OtherTFSelectorVM = IncludeTFSelectorVM;
+            IncludeTFSelectorVM.CheckBoxToggled += () => SearchLinkCreateButtonCommand.NotifyCanExecuteChanged();
+            ExcludeTFSelectorVM.CheckBoxToggled += () => SearchLinkCreateButtonCommand.NotifyCanExecuteChanged();
+            QueryBuilderVM.QueryParameterChanged += () => SearchLinkCreateButtonCommand.NotifyCanExecuteChanged();
 
             TagFilterEditorVM.CurrentTagsRequested += e => e.Tags = QueryBuilderVM.GetCurrentTags();
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
@@ -66,46 +68,50 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             };
         }
 
-        public ICommand SearchLinkCreateButtonCommand { get; }
+        public RelayCommand SearchLinkCreateButtonCommand { get; }
 
         public void HandleSearchLinkCreateButtonClick() {
             SearchFilterVM vm = GetSearchFilterVM();
             if (vm != null) {
-                // copy link to clipboard
-                vm.DeleteCommand.Command = new RelayCommand<SearchFilterVM>((arg) => {
-                    SearchFilterVMs.Remove(arg);
-                });
                 SearchFilterVMs.Add(vm);
                 DataPackage dataPackage = new() {
                     RequestedOperation = DataPackageOperation.Copy
                 };
-                dataPackage.SetText(vm.SearchLink);
+                dataPackage.SetText(vm.SearchLink.AbsoluteUri);
                 Clipboard.SetContent(dataPackage);
             }
         }
 
 
         public SearchFilterVM GetSearchFilterVM() {
-            IEnumerable<TagFilter> includeTagFilters = IncludeTFSelectorVM.GetSelectedTagFilters();
-            IEnumerable<TagFilter> excludeTagFilters = ExcludeTFSelectorVM.GetSelectedTagFilters();
+            HashSet<TagFilter> includeTagFilters = IncludeTFSelectorVM.GetSelectedTagFilters().ToHashSet();
+            HashSet<TagFilter> excludeTagFilters = ExcludeTFSelectorVM.GetSelectedTagFilters().ToHashSet();
+            // if the selected tag filters contain the currently editing (selected) tag filter in ComboBox,
+            // replace it with a copied instance where the Tags are replaced with current editing tags
+            if (TagFilterEditorVM.SelectedTagFilter is not null) {
+                HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
+                if (includeTagFilters.RemoveWhere(t => t.Id == TagFilterEditorVM.SelectedTagFilter.Id) > 0) {
+                    includeTagFilters.Add(new() {
+                        Id = TagFilterEditorVM.SelectedTagFilter.Id,
+                        Name = TagFilterEditorVM.SelectedTagFilter.Name,
+                        Tags = currentTags
+                    });
+                } else if (excludeTagFilters.RemoveWhere(t => t.Id == TagFilterEditorVM.SelectedTagFilter.Id) > 0) {
+                    excludeTagFilters.Add(new() {
+                        Id = TagFilterEditorVM.SelectedTagFilter.Id,
+                        Name = TagFilterEditorVM.SelectedTagFilter.Name,
+                        Tags = currentTags
+                    });
+                }
+            }
             IEnumerable<int> includeTagFilterIds = includeTagFilters.Select(tf => tf.Id);
             IEnumerable<int> excludeTagFilterIds = excludeTagFilters.Select(tf => tf.Id);
             HitomiContext.Main.TagFilters
                 .Where(tf => includeTagFilterIds.Contains(tf.Id) || excludeTagFilterIds.Contains(tf.Id))
                 .Include(tf => tf.Tags)
                 .Load();
-            IEnumerable<Tag> includeTags = includeTagFilters.SelectMany(tf => tf.Tags);
-            IEnumerable<Tag> excludeTags = excludeTagFilters.SelectMany(tf => tf.Tags);
-
-            // update to use current tags in text boxes if the selected tag filters contain the combobox selected tag filter
-            if (TagFilterEditorVM.SelectedTagFilter is not null) {
-                HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
-                if (includeTagFilterIds.Contains(TagFilterEditorVM.SelectedTagFilter.Id)) {
-                    includeTags = includeTags.Except(TagFilterEditorVM.SelectedTagFilter.Tags).Union(currentTags);
-                } else if (excludeTagFilterIds.Contains(TagFilterEditorVM.SelectedTagFilter.Id)) {
-                    excludeTags = excludeTags.Except(TagFilterEditorVM.SelectedTagFilter.Tags).Union(currentTags);
-                }
-            }
+            HashSet<Tag> includeTags = includeTagFilters.SelectMany(tf => tf.Tags).ToHashSet();
+            HashSet<Tag> excludeTags = excludeTagFilters.SelectMany(tf => tf.Tags).ToHashSet();
 
             IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
             if (dupTags.Any()) {
@@ -128,7 +134,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 IncludeTags = includeTags,
                 ExcludeTags = excludeTags,
             };
-            searchFilterVM.InitSearchFilterTagsRepeaterVMs();
+            searchFilterVM.InitInExcludeTagCollections();
 
             if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0) {
                 searchFilterVM.GalleryLanguage = QueryBuilderVM.SelectedGalleryLanguage;
@@ -140,6 +146,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 searchFilterVM.SearchTitleText = QueryBuilderVM.SearchTitleText;
             }
 
+            searchFilterVM.DeleteCommand.Command = new RelayCommand<SearchFilterVM>((arg) => {
+                SearchFilterVMs.Remove(arg);
+            });
+
             return searchFilterVM;
         }
 
@@ -150,7 +160,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
          * https://stackoverflow.com/questions/35138047/uwp-textbox-selectedtext-changes-r-n-to-r
         */
         public static readonly string[] NEW_LINE_SEPS = [Environment.NewLine, "\r"];
-        public ICommand DownloadButtonCommand { get; }
+        public RelayCommand DownloadButtonCommand { get; }
         private void HandleDownloadButtonClick() {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = DownloadInputText.Split(NEW_LINE_SEPS, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

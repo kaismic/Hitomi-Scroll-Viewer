@@ -1,11 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
@@ -28,16 +30,8 @@ namespace HitomiScrollViewerLib.ViewModels {
         private string _primaryButtonText;
         [ObservableProperty]
         private object _content;
-
-        public RelayCommand PrimaryButtonCommand => new(() => { }, CanClickPrimaryButton);
-
-        // TODO test if this works (enables/disables button)
-        private bool CanClickPrimaryButton() {
-            if (_action == CRUDAction.Delete) {
-                return _tfsSelectorVM.AnySelected;
-            }
-            return _inputValidationVM.Validate();
-        }
+        [ObservableProperty]
+        private bool _isPrimaryButtonEnabled = false;
 
         public CRUDContentDialogVM(CRUDAction action) {
             if (action == CRUDAction.Rename) {
@@ -67,12 +61,33 @@ namespace HitomiScrollViewerLib.ViewModels {
                         _inputValidationVM.AddValidator(CheckSameNameAsBefore);
                     }
                     _inputValidationVM.AddValidator(CheckDuplicate);
+                    _inputValidationVM.PropertyChanged += (object sender, PropertyChangedEventArgs e) => {
+                        if (e.PropertyName == nameof(_inputValidationVM.InputText)) {
+                            SetIsPrimaryButtonEnabled();
+                        }
+                    };
                     Content = new InputValidation() { ViewModel = _inputValidationVM };
                     break;
                 case CRUDAction.Delete:
                     _tfsSelectorVM = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
+                    _tfsSelectorVM.SelectedTFCBModels.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
+                        SetIsPrimaryButtonEnabled();
+                    };
                     Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
                     break;
+            }
+        }
+
+        private void SetIsPrimaryButtonEnabled() {
+            IsPrimaryButtonEnabled =
+                _action == CRUDAction.Delete ?
+                _tfsSelectorVM.SelectedTFCBModels.Any() :
+                _inputValidationVM.InputText.Length != 0;
+        }
+
+        public void PrimaryButton_Clicked(ContentDialog _0, ContentDialogButtonClickEventArgs args) {
+            if (_action != CRUDAction.Delete) {
+                args.Cancel = !_inputValidationVM.Validate();
             }
         }
 
