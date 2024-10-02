@@ -5,15 +5,12 @@ using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views.PageViews;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Input;
 using Windows.ApplicationModel.DataTransfer;
 using static HitomiScrollViewerLib.SharedResources;
 
@@ -124,7 +121,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                     dupTagStrs.Add(category.ToString() + ": " + string.Join(", ", dupStrs));
                 }
                 _ = MainWindowVM.NotifyUser(new() {
-                    Title = _resourceMap.GetValue("Notification_Duplicate_Tags_Title").ValueAsString,
+                    Title = _resourceMap.GetValue("Notification_DuplicateTags").ValueAsString,
                     Message = string.Join(Environment.NewLine, dupTagStrs)
                 });
                 return null;
@@ -164,10 +161,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private void HandleDownloadButtonClick() {
             string idPattern = @"\d{" + GALLERY_ID_LENGTH_RANGE.Start + "," + GALLERY_ID_LENGTH_RANGE.End + "}";
             string[] urlOrIds = DownloadInputText.Split(NEW_LINE_SEPS, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (urlOrIds.Length == 0) {
-                _ = MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Empty_Title").ValueAsString });
-                return;
-            }
             List<int> extractedIds = [];
             foreach (string urlOrId in urlOrIds) {
                 MatchCollection matches = Regex.Matches(urlOrId, idPattern);
@@ -176,7 +169,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             }
             if (extractedIds.Count == 0) {
-                _ = MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_DownloadInputTextBox_Invalid_Title").ValueAsString });
+                _ = MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_InvalidInput").ValueAsString });
                 return;
             }
             DownloadInputText = "";

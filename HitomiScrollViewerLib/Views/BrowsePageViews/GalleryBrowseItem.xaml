@@ -33,61 +33,39 @@
         <Color x:Key="AnimeColor1">#99cc99</Color>
         <Color x:Key="AnimeColor2">#ccffcc</Color>
     </UserControl.Resources>
-    <Grid Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+    <Grid x:Name="MainGrid"
+          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
           CornerRadius="{StaticResource OverlayCornerRadius}"
           BorderThickness="1">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0"
-                  Background="{x:Bind TitleBackgroundBrush}"
-                  HorizontalAlignment="Stretch"
-                  Padding="8 4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           Style="{StaticResource SubtitleTextBlockStyle}"
-                           Text="{x:Bind ViewModel.Gallery.Title}"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1"
-                           Style="{StaticResource SubtitleTextBlockStyle}"
-                           Text="{x:Bind ViewModel.Gallery.Id}"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Center"/>
-            </Grid>
-            <Grid Grid.Row="1"
-                  Background="{x:Bind SubtitleBackgroundBrush}"
-                  HorizontalAlignment="Stretch"
-                  Padding="8 4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           Style="{StaticResource SubtitleTextBlockStyle}"
-                           Foreground="{x:Bind TextForegroundBrush}"
-                           Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName}"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1"
-                           Style="{StaticResource SubtitleTextBlockStyle}"
-                           Foreground="{x:Bind TextForegroundBrush}"
-                           Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName}"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Center"/>
-            </Grid>
+        <Grid Background="{x:Bind TitleBackgroundBrush}"
+              Padding="8 4">
+            <TextBlock Grid.Column="0"
+                       Style="{StaticResource TitleTextBlockStyle}"
+                       Text="{x:Bind ViewModel.Gallery.Title}"
+                       HorizontalAlignment="Left"
+                       IsTextSelectionEnabled="True"/>
         </Grid>
-        <Grid Grid.Row="1" Padding="8">
+        <Grid x:Name="SubtitleGrid" ColumnSpacing="16"
+              Padding="8 4"
+              Background="{x:Bind SubtitleBackgroundBrush}"
+              >
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                       Text="{x:Bind ViewModel.Gallery.Id}"
+                       Foreground="{x:Bind TextForegroundBrush}"
+                       />
+            <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                       Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName}"
+                       Foreground="{x:Bind TextForegroundBrush}"
+                       />
+            <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                       Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName}"
+                       Foreground="{x:Bind TextForegroundBrush}"
+                       />
+        </Grid>
+        <Grid Padding="8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="300"/>
                 <RowDefinition Height="Auto"/>

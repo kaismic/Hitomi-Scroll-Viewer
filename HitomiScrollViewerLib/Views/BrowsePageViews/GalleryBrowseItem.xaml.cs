@@ -30,6 +30,18 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
 
         public GalleryBrowseItem() {
             InitializeComponent();
+
+            for (int i = 0; i < MainGrid.Children.Count; i++) {
+                MainGrid.RowDefinitions.Add(new() { Height = GridLength.Auto });
+                Grid.SetRow(MainGrid.Children[i] as FrameworkElement, i);
+            }
+            for (int i = 0; i < SubtitleGrid.Children.Count; i++) {
+                SubtitleGrid.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+                Grid.SetColumn(SubtitleGrid.Children[i] as FrameworkElement, i);
+                if (SubtitleGrid.Children[i] is TextBlock tb) {
+                    tb.IsTextSelectionEnabled = true;
+                }
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.EntityFrameworkCore;
@@ -202,6 +203,9 @@ namespace HitomiScrollViewerLib.ViewModels {
                 }
             }
             if (!args.Cancel) {
+                if (SearchPageVM.Main.TagFilterEditorVM.IsTFAutoSaveEnabled) {
+                    SearchPageVM.Main.TagFilterEditorVM.SaveTagFilter(SearchPageVM.Main.TagFilterEditorVM.SelectedTagFilter);
+                }
                 HitomiContext.Main.Dispose();
             }
         }

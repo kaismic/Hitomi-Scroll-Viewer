@@ -3,9 +3,11 @@ using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
-using Newtonsoft.Json.Linq;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 
@@ -42,13 +44,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         private void SetCurrentGalleryBrowseItemVMs() {
-            System.Diagnostics.Debug.WriteLine("444 SelectedPageIndex = " + SelectedPageIndex);
-            System.Diagnostics.Debug.WriteLine("PageSizes[SelectedPageSizeIndex] = " + PageSizes[SelectedPageSizeIndex]);
-            CurrentGalleryBrowseItemVMs = FilteredGalleries
+            CurrentGalleryBrowseItemVMs = [.. FilteredGalleries
                 .Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
                 .Take(PageSizes[SelectedPageSizeIndex])
-                .Select(g => new GalleryBrowseItemVM() { Gallery = g })
-                .ToList();
+                .Select(g => new GalleryBrowseItemVM() { Gallery = g })];
             foreach (var g in CurrentGalleryBrowseItemVMs.Select(vm => vm.Gallery)) {
                 System.Diagnostics.Debug.WriteLine("gallery id = " + g.Id);
             }
@@ -62,8 +61,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [ObservableProperty]
         private int _selectedPageIndex = -1;
         partial void OnSelectedPageIndexChanged(int value) {
-            System.Diagnostics.Debug.WriteLine("333 SelectedPageIndex = " + SelectedPageIndex);
-            System.Diagnostics.Debug.WriteLine("PageSizes[SelectedPageSizeIndex] = " + PageSizes[SelectedPageSizeIndex]);
             if (value == -1 || FilteredGalleries.Count == 0) {
                 CurrentGalleryBrowseItemVMs = [];
                 return;
@@ -82,9 +79,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private List<Gallery> _filteredGalleries;
         partial void OnFilteredGalleriesChanged(List<Gallery> value) {
             SetPages();
-            System.Diagnostics.Debug.WriteLine("bbb Pages.Count = " + Pages.Count);
-            System.Diagnostics.Debug.WriteLine("FilteredGalleries.Count = " + value.Count);
-            System.Diagnostics.Debug.WriteLine("111 SelectedPageIndex = " + SelectedPageIndex);
             if (value.Count > 0) {
                 System.Diagnostics.Debug.WriteLine("yep count > 0");
                 if (SelectedPageIndex != 0) {
@@ -93,7 +87,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                     SetCurrentGalleryBrowseItemVMs();
                 }
             }
-            System.Diagnostics.Debug.WriteLine("222 SelectedPageIndex = " + SelectedPageIndex);
         }
 
         [ObservableProperty]
@@ -104,11 +97,19 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [RelayCommand]
         private void FilterGalleries() {
             IEnumerable<Gallery> filtered = HitomiContext.Main.Galleries;
-            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0 && (QueryBuilderVM.SelectedGalleryLanguage is not null)) {
+            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0) {
+                if (QueryBuilderVM.SelectedGalleryLanguage.Galleries == null) {
+                    FilteredGalleries = [];
+                    return;
+                }
                 filtered = filtered.Intersect(QueryBuilderVM.SelectedGalleryLanguage.Galleries);
             }
-            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0 && (QueryBuilderVM.SelectedGalleryTypeEntity is not null)) {
-                filtered = filtered.Intersect(QueryBuilderVM.SelectedGalleryTypeEntity.Galleries);
+            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0) {
+                if (QueryBuilderVM.SelectedGalleryTypeEntity.Galleries == null) {
+                    FilteredGalleries = [];
+                    return;
+                }
+                filtered = filtered?.Intersect(QueryBuilderVM.SelectedGalleryTypeEntity.Galleries);
             }
             HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
             if (currentTags.Count > 0) {

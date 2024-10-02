@@ -19,7 +19,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         public event NotifyCollectionChangedEventHandler TagCollectionChanged;
 
         [ObservableProperty]
-        private int _galleryLanguageSelectedIndex;
+        private int _galleryLanguageSelectedIndex = -1;
         partial void OnGalleryLanguageSelectedIndexChanged(int value) {
             ApplicationData.Current.LocalSettings.Values[_galleryLanguageIndexSettingsKey] = value;
             SelectedGalleryLanguage = GALLERY_LANGUAGES[value];
@@ -28,7 +28,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         public GalleryLanguage SelectedGalleryLanguage { get; private set; }
 
         [ObservableProperty]
-        private int _galleryTypeSelectedIndex;
+        private int _galleryTypeSelectedIndex = -1;
         partial void OnGalleryTypeSelectedIndexChanged(int value) {
             ApplicationData.Current.LocalSettings.Values[_galleryTypeIndexSettingsKey] = value;
             SelectedGalleryTypeEntity = GALLERY_TYPE_ENTITIES[value];

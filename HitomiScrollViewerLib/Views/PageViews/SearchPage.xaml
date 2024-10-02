@@ -75,7 +75,10 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <HyperlinkButton Grid.Column="0" NavigateUri="{x:Bind SearchLink}">
+                                    <HyperlinkButton Grid.Column="0"
+                                                     NavigateUri="{x:Bind SearchLink}"
+                                                     HorizontalAlignment="Stretch"
+                                                     HorizontalContentAlignment="Left">
                                         <views:SearchFilterView ViewModel="{x:Bind}"/>
                                     </HyperlinkButton>
                                     <AppBarButton Grid.Column="1"

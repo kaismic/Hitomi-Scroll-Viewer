@@ -123,7 +123,10 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public RelayCommand SaveButtonCommand { get; }
 
-        private void SaveTagFilter(TagFilter tf) {
+        public void SaveTagFilter(TagFilter tf) {
+            if (tf == null) {
+                return;
+            }
             TagCollectionEventArgs args = new();
             CurrentTagsRequested?.Invoke(args);
             tf.Tags = args.Tags;

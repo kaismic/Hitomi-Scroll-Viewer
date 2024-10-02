@@ -5,7 +5,12 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
     public sealed partial class BrowsePage : Page {
-        private BrowsePageVM ViewModel { get; set; }
+        private BrowsePageVM _viewModel;
+        private BrowsePageVM ViewModel {
+            get => _viewModel;
+            set => _viewModel ??= value;
+        }
+
         public BrowsePage() {
             InitializeComponent();
             PageTextBlock.Text = TEXT_PAGE;

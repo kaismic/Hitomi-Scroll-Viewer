@@ -14,7 +14,7 @@
     </Grid.ColumnDefinitions>
     <TextBlock Grid.Column="0"
                Text="{x:Bind ViewModel.CategoryLabel}"
-               Style="{StaticResource BodyStrongTextBlockStyle}"/>
+               Style="{StaticResource SubtitleTextBlockStyle}"/>
     <UserControl Grid.Column="1">
         <ItemsRepeater ItemsSource="{x:Bind ViewModel.TagDisplayString}">
             <ItemsRepeater.Layout>
@@ -24,10 +24,10 @@
                 <DataTemplate x:DataType="x:String">
                     <Border Background="DarkGray"
                             CornerRadius="{StaticResource ControlCornerRadius}"
-                            Padding="2">
+                            Padding="4">
                         <TextBlock Foreground="White"
                                    Text="{x:Bind}"
-                                   Style="{StaticResource CaptionTextBlockStyle}"/>
+                                   IsTextSelectionEnabled="True"/>
                     </Border>
                 </DataTemplate>
             </ItemsRepeater.ItemTemplate>

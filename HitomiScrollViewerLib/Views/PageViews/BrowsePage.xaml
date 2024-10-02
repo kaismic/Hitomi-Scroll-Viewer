@@ -32,7 +32,9 @@
                 <Button Grid.Column="1"
                         VerticalAlignment="Stretch"
                         HorizontalAlignment="Stretch"
-                        Command="{x:Bind ViewModel.FilterGalleriesCommand}">
+                        Command="{x:Bind ViewModel.FilterGalleriesCommand}"
+                        Style="{StaticResource AccentButtonStyle}"
+                        >
                     <SymbolIcon Symbol="Filter"/>
                 </Button>
             </Grid>
