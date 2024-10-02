@@ -123,9 +123,6 @@
   <data name="HyperlinkCreateButtonTextBlock.Text" xml:space="preserve">
     <value>검색 링크를 생성 후 복사하기</value>
   </data>
-  <data name="Notification_DownloadInputTextBox_Empty_Title" xml:space="preserve">
-    <value>갤러리 ID 또는 링크를 입력하세요</value>
-  </data>
   <data name="Notification_DownloadInputTextBox_Invalid_Title" xml:space="preserve">
     <value>인식 불가능한 갤러리 ID 또는 링크입니다</value>
   </data>

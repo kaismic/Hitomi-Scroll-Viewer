@@ -123,9 +123,6 @@
   <data name="HyperlinkCreateButtonTextBlock.Text" xml:space="preserve">
     <value>Create and copy search link</value>
   </data>
-  <data name="Notification_DownloadInputTextBox_Empty_Title" xml:space="preserve">
-    <value>Enter ID(s) or URL(s)</value>
-  </data>
   <data name="Notification_DownloadInputTextBox_Invalid_Title" xml:space="preserve">
     <value>Invalid ID(s) or URL(s)</value>
   </data>
