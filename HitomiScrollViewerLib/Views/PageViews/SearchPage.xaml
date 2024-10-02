@@ -64,7 +64,8 @@
                                     FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                 </Button>
                 <ScrollViewer Grid.Row="1">
-                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.SearchFilterVMs}">
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.SearchFilterVMs}"
+                                   VerticalCacheLength="256">
                         <ItemsRepeater.Layout>
                             <StackLayout Spacing="4"/>
                         </ItemsRepeater.Layout>

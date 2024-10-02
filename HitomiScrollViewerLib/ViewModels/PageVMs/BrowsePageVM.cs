@@ -44,10 +44,12 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         private void SetCurrentGalleryBrowseItemVMs() {
-            CurrentGalleryBrowseItemVMs = [.. FilteredGalleries
+            CurrentGalleryBrowseItemVMs =
+            [.. FilteredGalleries
                 .Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
                 .Take(PageSizes[SelectedPageSizeIndex])
-                .Select(g => new GalleryBrowseItemVM() { Gallery = g })];
+                .Select(g => new GalleryBrowseItemVM(g))
+            ];
             foreach (var g in CurrentGalleryBrowseItemVMs.Select(vm => vm.Gallery)) {
                 System.Diagnostics.Debug.WriteLine("gallery id = " + g.Id);
             }
