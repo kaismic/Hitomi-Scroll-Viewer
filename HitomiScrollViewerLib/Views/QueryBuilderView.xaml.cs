@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
-using System.Linq;
 
 namespace HitomiScrollViewerLib.Views {
     public sealed partial class QueryBuilderView : Grid {
@@ -49,18 +48,16 @@ namespace HitomiScrollViewerLib.Views {
                 _tagTokenizingTextBoxes[i] = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(0),
-                    Padding = new Thickness(0)
+                    CornerRadius = new CornerRadius(0)
                 };
-                SetRow(_tagTokenizingTextBoxes[i], 1);
-                SetColumn(_tagTokenizingTextBoxes[i], i);
-                TextBoxesGrid.Children.Add(_tagTokenizingTextBoxes[i]);
+                
+                StackPanel wrapperPanel = new();
+                wrapperPanel.Children.Add(_tagTokenizingTextBoxes[i]);
+
+                SetRow(wrapperPanel, 1);
+                SetColumn(wrapperPanel, i);
+                TextBoxesGrid.Children.Add(wrapperPanel);
             }
-        }
-        private void Wrapper_Loaded(object sender, RoutedEventArgs _1) {
-            Border tfsTextBoxWrapper = sender as Border;
-            tfsTextBoxWrapper.Loaded -= Wrapper_Loaded;
-            (tfsTextBoxWrapper.Child as TagTokenizingTextBox).MaxHeight = tfsTextBoxWrapper.ActualHeight;
         }
     }
 }
