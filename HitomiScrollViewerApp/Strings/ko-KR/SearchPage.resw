@@ -123,7 +123,7 @@
   <data name="HyperlinkCreateButtonTextBlock.Text" xml:space="preserve">
     <value>검색 링크를 생성 후 복사하기</value>
   </data>
-  <data name="Notification_DownloadInputTextBox_Invalid_Title" xml:space="preserve">
+  <data name="Notification_InvalidInput" xml:space="preserve">
     <value>인식 불가능한 갤러리 ID 또는 링크입니다</value>
   </data>
   <data name="TagFilterSelectionDescTextBlock.Text" xml:space="preserve">
@@ -131,5 +131,8 @@
   </data>
   <data name="Text_BookmarkNumPerPage" xml:space="preserve">
     <value>페이지당 북마크 수</value>
+  </data>
+  <data name="Notification_DuplicateTags" xml:space="preserve">
+    <value>선택된 포함/제외 태그 필터에서 중복된 태그들이 존재합니다.</value>
   </data>
 </root>
