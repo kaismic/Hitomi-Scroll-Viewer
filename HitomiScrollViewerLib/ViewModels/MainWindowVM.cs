@@ -35,7 +35,6 @@ namespace HitomiScrollViewerLib.ViewModels {
         public static event Action RequestActivateWindow;
 
         public static event Action Initialised;
-        public static bool IsInitialised { get; private set; } = false;
 
         public static void Init() {
             // TODO
@@ -152,7 +151,6 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 HideLoadProgressReporter.Invoke();
 
-                IsInitialised = true;
                 Initialised?.Invoke();
             });
         }

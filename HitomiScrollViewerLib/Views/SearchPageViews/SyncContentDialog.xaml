@@ -16,11 +16,6 @@
     CloseButtonText="{x:Bind ViewModel.CloseButtonText}"
     Closing="{x:Bind ViewModel.ContentDialog_Closing}"
     >
-    <ContentDialog.Resources>
-        <!-- arbitrary large number (2^32 for convenience) -->
-        <!-- this is needed because of a bug: https://github.com/microsoft/microsoft-ui-xaml/issues/424 -->
-        <x:Double x:Key="ContentDialogMaxWidth">4294967296</x:Double>
-    </ContentDialog.Resources>
     <ContentDialog.Title>
         <TextBlock x:Uid="/SyncContentDialog/TitleTextBlock" TextWrapping="WrapWholeWords" />
     </ContentDialog.Title>

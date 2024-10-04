@@ -12,8 +12,10 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <SelectorBar x:Name="MainSelectorBar" SelectionChanged="SelectorBar_SelectionChanged"
-                     Grid.Row="0">
+        <SelectorBar x:Name="MainSelectorBar"
+                     SelectionChanged="SelectorBar_SelectionChanged"
+                     Grid.Row="0"
+                     IsEnabled="False">
             <SelectorBarItem x:Uid="/MainWindow/SelectorBarItem_SearchPage">
                 <SelectorBarItem.Icon>
                     <SymbolIcon Symbol="Find"/>

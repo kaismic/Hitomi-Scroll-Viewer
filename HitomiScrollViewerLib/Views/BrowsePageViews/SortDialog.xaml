@@ -9,7 +9,8 @@
     xmlns:bpviews="using:HitomiScrollViewerLib.Views.BrowsePageViews"
     mc:Ignorable="d"
     Style="{StaticResource DefaultContentDialogStyle}">
-    <StackPanel Spacing="16">
+    <StackPanel Spacing="16"
+                MinWidth="500">
         <ListView ItemsSource="{x:Bind ViewModel.ActiveSortItemVMs}"
                   CanReorderItems="True"
                   AllowDrop="True"

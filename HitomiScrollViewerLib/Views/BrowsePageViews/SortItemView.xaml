@@ -5,13 +5,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:ctxs="using:HitomiScrollViewerLib.DbContexts"
+    xmlns:entities="using:HitomiScrollViewerLib.Entities"
     mc:Ignorable="d"
-    ColumnSpacing="16">
+    ColumnSpacing="32">
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto"/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="Auto"/>
     </Grid.ColumnDefinitions>
     <SymbolIcon Symbol="GlobalNavigationButton"/>
@@ -19,9 +19,9 @@
                Text="{x:Bind ViewModel.GallerySort.DisplayName}"
                VerticalAlignment="Center"/>
     <ComboBox x:Name="SortDirectionComboBox"
-              HorizontalAlignment="Stretch"
               DisplayMemberPath="DisplayName"
-              ItemsSource="{x:Bind ctxs:HitomiContext.Main.SortDirections}"
+              HorizontalAlignment="Stretch"
+              ItemsSource="{x:Bind entities:SortDirectionEntity.SORT_DIRECTIONS}"
               SelectedItem="{x:Bind ViewModel.GallerySort.SortDirectionEntity, Mode=TwoWay}"
               VerticalAlignment="Center"
               />

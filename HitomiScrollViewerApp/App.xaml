@@ -5,8 +5,10 @@
     xmlns:local="using:HitomiScrollViewerApp">
     <Application.Resources>
         <ResourceDictionary>
+            <!-- arbitrary large number (2^32 for convenience) -->
+            <!-- this is needed because of a bug: https://github.com/microsoft/microsoft-ui-xaml/issues/424 -->
+            <x:Double x:Key="ContentDialogMaxWidth">4294967296</x:Double>
             <x:Double x:Key="ProgressBarTrackHeight">3</x:Double>
-            <!--<x:Double x:Key="ProgressBarTrackHeight">3</x:Double> if setting this at Page doesn't work, revert-->
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <!-- Other merged dictionaries here -->

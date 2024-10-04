@@ -40,14 +40,14 @@ namespace HitomiScrollViewerLib.Views {
             MainWindowVM.RequestHideCurrentNotification += () => DispatcherQueue.TryEnqueue(_currentNotification.Hide);
             MainWindowVM.RequestMinimizeWindow += () => (AppWindow.Presenter as OverlappedPresenter).Minimize();
             MainWindowVM.RequestActivateWindow += Activate;
-            MainWindowVM.Initialised += () => DispatcherQueue.TryEnqueue(() => SelectorBar_SelectionChanged(MainSelectorBar, null));
+            MainWindowVM.Initialised += () => DispatcherQueue.TryEnqueue(() => {
+                MainSelectorBar.IsEnabled = true;
+                SelectorBar_SelectionChanged(MainSelectorBar, null);
+            });
             MainWindowVM.Init();
         }
 
         private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs _1) {
-            if (!MainWindowVM.IsInitialised) {
-                return;
-            }
             int currSelectedIdx = sender.Items.IndexOf(sender.SelectedItem);
             if (currSelectedIdx == -1) {
                 currSelectedIdx = 0;
