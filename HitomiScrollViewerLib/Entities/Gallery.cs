@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Title))]
@@ -11,7 +10,7 @@ namespace HitomiScrollViewerLib.Entities {
         public int Id { get; set; }
         public string Title { get; set; }
         public string JapaneseTitle { get; set; }
-        public string Date { get; set; }
+        public DateTimeOffset Date { get; set; }
         public int[] SceneIndexes { get; set; }
         public int[] Related { get; set; }
         public DateTime DownloadTime { get; init; } = DateTime.UtcNow;

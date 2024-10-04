@@ -22,7 +22,8 @@ namespace HitomiScrollViewerLib.Entities {
         public string JapaneseTitle { get; set; }
         public string Language { get; set; }
         public string Type { get; set; }
-        public string Date { get; set; }
+        [JsonConverter(typeof(GalleryDateTimeOffsetConverter))]
+        public DateTimeOffset Date { get; set; }
         public string LanguageUrl { get; set; }
         public string LanguageLocalname { get; set; }
         public int[] SceneIndexes { get; set; }
@@ -42,7 +43,7 @@ namespace HitomiScrollViewerLib.Entities {
             public int Female { get; set; }
         }
 
-        public class EmptyStringNumberJsonConverter : JsonConverter<int> {
+        private class EmptyStringNumberJsonConverter : JsonConverter<int> {
             public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
                 try {
                     string s = reader.GetString();
@@ -54,6 +55,15 @@ namespace HitomiScrollViewerLib.Entities {
                 return 0;
             }
             public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options) => writer.WriteNumberValue(value);
+        }
+
+        private class GalleryDateTimeOffsetConverter : JsonConverter<DateTimeOffset> {
+            public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+                return DateTimeOffset.Parse(reader.GetString());
+            }
+            public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options) {
+                writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mmzzz"));
+            }
         }
 
         public Gallery ToGallery() {
