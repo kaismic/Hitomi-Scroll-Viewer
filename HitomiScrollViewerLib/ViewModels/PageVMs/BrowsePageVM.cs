@@ -126,5 +126,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             }
             FilteredGalleries = [.. filtered];
         }
+
+        public SortDialogVM SortDialogVM { get; } = new();
     }
 }

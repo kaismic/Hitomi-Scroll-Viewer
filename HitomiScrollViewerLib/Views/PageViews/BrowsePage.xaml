@@ -39,8 +39,15 @@
                 </Button>
             </Grid>
             <Grid Grid.Row="1">
-                <Button HorizontalAlignment="Left">
-                    <SymbolIcon Symbol="Sort"/>
+                <Button HorizontalAlignment="Left"
+                        CornerRadius="16"
+                        Click="SortDialogButton_Clicked">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="16"
+                                Padding="4">
+                        <SymbolIcon Symbol="Sort"/>
+                        <TextBlock Text="{x:Bind ViewModel.SortDialogVM.DialogShowButtonText, Mode=OneWay}"/>
+                    </StackPanel>
                 </Button>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <TextBlock x:Name="PageTextBlock"/>

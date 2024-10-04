@@ -1,15 +1,13 @@
 using HitomiScrollViewerLib.ViewModels.PageVMs;
+using HitomiScrollViewerLib.Views.BrowsePageViews;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
     public sealed partial class BrowsePage : Page {
-        private BrowsePageVM _viewModel;
-        private BrowsePageVM ViewModel {
-            get => _viewModel;
-            set => _viewModel ??= value;
-        }
+        private BrowsePageVM ViewModel { get; set; }
 
         public BrowsePage() {
             InitializeComponent();
@@ -19,6 +17,11 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             base.OnNavigatedTo(e);
             ViewModel = BrowsePageVM.Main;
+        }
+
+        private void SortDialogButton_Clicked(object _0, RoutedEventArgs _1) {
+            SortDialog dialog = new(ViewModel.SortDialogVM) { XamlRoot = XamlRoot };
+            _ = dialog.ShowAsync();
         }
     }
 }

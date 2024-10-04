@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Title))]
+    [Index(nameof(Date))]
     [Index(nameof(DownloadTime))]
     public class Gallery {
         public int Id { get; set; }

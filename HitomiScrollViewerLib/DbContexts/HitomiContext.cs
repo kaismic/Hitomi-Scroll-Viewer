@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerLib.Entities;
+﻿using CommunityToolkit.WinUI.Collections;
+using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
@@ -16,6 +17,8 @@ namespace HitomiScrollViewerLib.DbContexts {
         public DbSet<Tag> Tags { get; set; }
         public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
         public DbSet<GalleryTypeEntity> GalleryTypes { get; set; }
+        public DbSet<SortDirectionEntity> SortDirections { get; set; }
+        public DbSet<GallerySortEntity> GallerySorts { get; set; }
 
 
         private static HitomiContext _main;
@@ -96,6 +99,23 @@ namespace HitomiScrollViewerLib.DbContexts {
                 Enumerable.Range(0, Enum.GetNames(typeof(GalleryType)).Length)
                 .Select(i => new GalleryTypeEntity() { GalleryType = (GalleryType)i })
             );
+
+            // add sort directions
+            Main.SortDirections.AddRange(
+                Enumerable.Range(0, Enum.GetNames(typeof(SortDirection)).Length)
+                .Select(i => new SortDirectionEntity() { SortDirection = (SortDirection)i })
+            );
+            // add gallery sorts
+            Main.SaveChanges();
+            Main.GallerySorts.AddRange(
+                Enumerable.Range(0, Enum.GetNames(typeof(GallerySortProperty)).Length)
+                .Select(i => new GallerySortEntity() {
+                    GallerySortProperty = (GallerySortProperty)i,
+                    SortDirectionEntity = Main.SortDirections.First()
+                })
+            );
+            // default DownloadTime sort
+            Main.GallerySorts.Find(GallerySortProperty.DownloadTime).IsActive = true;
 
             /*
              * this line isn't actually meaningful to the user because

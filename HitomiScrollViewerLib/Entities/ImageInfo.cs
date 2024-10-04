@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Index))]
-    public partial class ImageInfo{
+    public partial class ImageInfo {
         [JsonIgnore]
         public long Id { get; set; }
         private string _name;

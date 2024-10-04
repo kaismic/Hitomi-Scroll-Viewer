@@ -26,8 +26,6 @@ namespace HitomiScrollViewerLib.Views {
             MainDispatcherQueue = DispatcherQueue;
         }
 
-        // TODO implement DQObservableObject and revert most back to ObservableProperties
-
         private void RootFrame_Loaded(object sender, RoutedEventArgs e) {
             RootFrame.Loaded -= RootFrame_Loaded;
             MainWindowVM.ShowLoadProgressReporter += (LoadProgressReporterVM e) => {
@@ -55,12 +53,6 @@ namespace HitomiScrollViewerLib.Views {
                 currSelectedIdx = 0;
                 sender.SelectedItem = sender.Items[currSelectedIdx];
             }
-            //RootFrame.Content = currSelectedIdx switch {
-            //    0 => SearchPageVM,
-            //    1 => BrowsePageVM,
-            //    2 => ViewPageVM,
-            //    _ => throw new InvalidOperationException($"{currSelectedIdx} is an invalid Page index.")
-            //};
             switch (currSelectedIdx) {
                 case 0:
                     RootFrame.Navigate(typeof(SearchPage));
@@ -77,9 +69,6 @@ namespace HitomiScrollViewerLib.Views {
                 default:
                     throw new InvalidOperationException($"{currSelectedIdx} is an invalid Page index.");
             }
-
-            //var slideNavigationTransitionEffect = currSelectedIdx - previousSelectedIndex > 0 ? SlideNavigationTransitionEffect.FromRight : SlideNavigationTransitionEffect.FromLeft;
-            //previousSelectedIndex = currSelectedIdx;
         }
 
         private ContentDialog _currentNotification;

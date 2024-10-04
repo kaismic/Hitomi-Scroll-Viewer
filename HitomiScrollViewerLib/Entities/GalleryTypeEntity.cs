@@ -2,7 +2,6 @@
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -18,13 +17,10 @@ namespace HitomiScrollViewerLib.Entities {
         private GalleryType? _galleryType;
         public GalleryType? GalleryType {
             get => _galleryType;
-            set {
+            init {
                 _galleryType = value;
-                if (value == null) {
-                    DisplayName = TEXT_ALL;
-                } else {
+                if (value != null) {
                     SearchParamValue = value.ToString().ToLower();
-                    DisplayName = _resourceMap.GetValue(value.ToString()).ValueAsString;
                 }
             }
         }
@@ -39,7 +35,7 @@ namespace HitomiScrollViewerLib.Entities {
             }
             private set => _searchParamValue = value;
         }
-        public string DisplayName { get; private set; }
+        public string DisplayName => GalleryType == null ? TEXT_ALL : _resourceMap.GetValue(GalleryType.ToString()).ValueAsString;
 
         public virtual ICollection<Gallery> Galleries { get; set; }
     }

@@ -126,10 +126,9 @@ namespace HitomiScrollViewerLib.ViewModels {
                     Directory.Delete(ROOT_DIR_V2);
                 }
 
-                // TODO test if this is necessary
                 vm.IsIndeterminate = false;
                 vm.Value = 0;
-                vm.Maximum = 6;
+                vm.Maximum = 8;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
                 HitomiContext.Main.Tags.Load();
                 vm.Value++;
@@ -141,6 +140,11 @@ namespace HitomiScrollViewerLib.ViewModels {
                 vm.Value++;
                 HitomiContext.Main.GalleryTypes.Load();
                 vm.Value++;
+                HitomiContext.Main.SortDirections.Load();
+                vm.Value++;
+                HitomiContext.Main.GallerySorts.Load();
+                vm.Value++;
+
                 UserContext.Main.SavedBrowseTags.Load();
                 vm.Value++;
 

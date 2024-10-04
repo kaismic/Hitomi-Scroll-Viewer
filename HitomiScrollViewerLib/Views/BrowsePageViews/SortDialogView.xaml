@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="HitomiScrollViewerLib.Views.BrowsePageViews.SortDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:bpvms="using:HitomiScrollViewerLib.ViewModels.BrowsePageVMs"
+    xmlns:bpviews="using:HitomiScrollViewerLib.Views.BrowsePageViews"
+    mc:Ignorable="d"
+    Style="{StaticResource DefaultContentDialogStyle}">
+    <StackPanel Spacing="16">
+        <ListView ItemsSource="{x:Bind ViewModel.ActiveSortItemVMs}"
+                  CanReorderItems="True"
+                  AllowDrop="True"
+                  >
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="4"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="bpvms:SortItemVM">
+                    <bpviews:SortItemView ViewModel="{x:Bind}" Padding="0 4"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button HorizontalAlignment="Stretch"
+                Padding="16">
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <SymbolIcon Grid.Column="0" Symbol="Add"/>
+                <TextBlock Grid.Column="1" Text="Add sort"/>
+            </Grid>
+            <Button.Flyout>
+                <Flyout x:Name="CandidateSortItemsFlyout" Placement="Bottom">
+                    <ListView ItemsSource="{x:Bind ViewModel.InactiveSortItemVMs}"
+                              SelectionMode="None"
+                              IsItemClickEnabled="True"
+                              ItemClick="CandidateSortItem_Clicked"
+                              >
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="bpvms:SortItemVM">
+                                <bpviews:CandidateSortItemView ViewModel="{x:Bind}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Flyout>
+            </Button.Flyout>
+        </Button>
+    </StackPanel>
+</ContentDialog>

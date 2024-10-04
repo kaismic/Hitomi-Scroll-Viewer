@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -20,14 +20,11 @@ namespace HitomiScrollViewerLib.Entities {
             set {
                 if (_name != value) {
                     _name = value;
-                    NotifyPropertyChanged();
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
                 }
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public virtual ICollection<Tag> Tags { get; set; }
     }
