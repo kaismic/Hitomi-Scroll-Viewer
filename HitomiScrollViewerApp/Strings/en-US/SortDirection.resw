@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,52 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Text_Cancel" xml:space="preserve">
-    <value>취소</value>
+  <data name="Ascending" xml:space="preserve">
+    <value>Ascending</value>
   </data>
-  <data name="Text_Close" xml:space="preserve">
-    <value>닫기</value>
-  </data>
-  <data name="Text_Exit" xml:space="preserve">
-    <value>종료</value>
-  </data>
-  <data name="Text_Yes" xml:space="preserve">
-    <value>예</value>
-  </data>
-  <data name="Text_Galleries" xml:space="preserve">
-    <value>갤러리</value>
-  </data>
-  <data name="Text_Error" xml:space="preserve">
-    <value>오류</value>
-  </data>
-  <data name="Text_No" xml:space="preserve">
-    <value>아니오</value>
-  </data>
-  <data name="Text_TagFilters" xml:space="preserve">
-    <value>태그 필터</value>
-  </data>
-  <data name="Text_Page" xml:space="preserve">
-    <value>페이지</value>
-  </data>
-  <data name="Text_Exclude" xml:space="preserve">
-    <value>제외</value>
-  </data>
-  <data name="Text_Include" xml:space="preserve">
-    <value>포함</value>
-  </data>
-  <data name="AppDisplayName" xml:space="preserve">
-    <value>히토미 스크롤 뷰어</value>
-  </data>
-  <data name="Text_All" xml:space="preserve">
-    <value>전체</value>
-  </data>
-  <data name="Text_Language" xml:space="preserve">
-    <value>언어</value>
-  </data>
-  <data name="Text_Type" xml:space="preserve">
-    <value>타입</value>
-  </data>
-  <data name="Text_Recommended" xml:space="preserve">
-    <value>권장됨</value>
+  <data name="Descending" xml:space="preserve">
+    <value>Descending</value>
   </data>
 </root>
