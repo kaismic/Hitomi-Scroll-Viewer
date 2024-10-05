@@ -10,12 +10,11 @@ using static HitomiScrollViewerLib.Constants;
 namespace HitomiScrollViewerLib.Views.ViewPageViews {
     public sealed partial class ImageCollectionPanel : StackPanel {
         private static readonly string VIRTUAL_HOST_NAME = "images.example";
-        // {0} = file name
-        // {1} = file extension
+        // {0} = full file name
         private static readonly string IMAGE_HTML =
             """<body style="margin: 0;"><img src="http://""" +
             VIRTUAL_HOST_NAME +
-            """/{0}.{1}" style="width:100%; height:100%;"/></body>""";
+            """/{0}" style="width:100%; height:100%;"/></body>""";
         private readonly Dictionary<FrameworkElement, int> _imageIndexDict = [];
         private string _nonVirtualImageDir;
 
@@ -54,8 +53,8 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
 
         private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args) {
             sender.CoreWebView2.SetVirtualHostNameToFolderMapping(VIRTUAL_HOST_NAME, _nonVirtualImageDir, CoreWebView2HostResourceAccessKind.DenyCors);
-            _imageIndexDict.TryGetValue(sender, out int imageInfoIdx);
-            sender.NavigateToString(string.Format(IMAGE_HTML, imageInfoIdx, ViewModel.ImageInfos[imageInfoIdx].FileExtension));
+            _imageIndexDict.TryGetValue(sender, out int i);
+            sender.NavigateToString(string.Format(IMAGE_HTML, ViewModel.ImageInfos[i].FullFileName));
         }
     }
 }
