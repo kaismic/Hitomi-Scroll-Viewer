@@ -117,31 +117,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Text_InitialisingDatabase" xml:space="preserve">
+  <data name="InitialisingDatabase" xml:space="preserve">
     <value>Initialising database...</value>
   </data>
-  <data name="Text_AddingExampleTFSs" xml:space="preserve">
+  <data name="AddingExampleTFSs" xml:space="preserve">
     <value>Creating example tag filter sets....</value>
   </data>
-  <data name="Text_InitialisingApp" xml:space="preserve">
+  <data name="InitialisingApp" xml:space="preserve">
     <value>Initialising app...</value>
   </data>
-  <data name="Text_LoadingDatabase" xml:space="preserve">
+  <data name="LoadingDatabase" xml:space="preserve">
     <value>Loading database...</value>
   </data>
-  <data name="Text_MigratingGalleries" xml:space="preserve">
+  <data name="MigratingGalleries" xml:space="preserve">
     <value>Migrating galleries...</value>
   </data>
-  <data name="Text_MigratingTFSs" xml:space="preserve">
+  <data name="MigratingTFSs" xml:space="preserve">
     <value>Migrating tag filter sets...</value>
   </data>
-  <data name="Text_MovingImageFolder" xml:space="preserve">
+  <data name="MovingImageFolder" xml:space="preserve">
     <value>Moving image storage folder...</value>
   </data>
-  <data name="Text_PleaseWait" xml:space="preserve">
+  <data name="PleaseWait" xml:space="preserve">
     <value>Please wait until all processes are completed.</value>
   </data>
-  <data name="Text_Title" xml:space="preserve">
+  <data name="RenamingImageFiles" xml:space="preserve">
+    <value>Renaming image files...</value>
+  </data>
+  <data name="Title" xml:space="preserve">
     <value>Loading...</value>
   </data>
 </root>
