@@ -3,6 +3,7 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Windows.ApplicationModel.Resources;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
@@ -11,8 +12,13 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class GalleryBrowseItemVM : DQObservableObject {
         private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
         public Gallery Gallery { get; }
+        public List<TagItemsRepeaterVM> TagItemsRepeaterVMs { get; } = [];
         [ObservableProperty]
         private double _width;
+        partial void OnWidthChanged(double value) {
+            WidthChanged?.Invoke(value);
+        }
+        public event Action<double> WidthChanged;
 
         public GalleryBrowseItemVM(Gallery gallery) {
             Gallery = gallery;
@@ -34,6 +40,5 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                 }
             }
         }
-        public List<TagItemsRepeaterVM> TagItemsRepeaterVMs { get; } = [];
     }
 }

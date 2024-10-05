@@ -12,8 +12,6 @@ namespace HitomiScrollViewerLib.ViewModels {
         private const int MAX_SUGGESTION_NUM = 8;
 
         [ObservableProperty]
-        private double _tokenTextBlockMaxWidth;
-        [ObservableProperty]
         private string _text = "";
 
         public TagCategory Category { get; } = category;
@@ -52,10 +50,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                     args.Item = tag;
                 }
             }
-        }
-
-        public void TagTokenizingTextBox_SizeChanged(object _0, SizeChangedEventArgs e) {
-            TokenTextBlockMaxWidth = e.NewSize.Width - 44;
         }
     }
 }

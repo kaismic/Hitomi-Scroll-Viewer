@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Windows.UI;
 
 namespace HitomiScrollViewerLib.Views.BrowsePageViews {
@@ -18,6 +19,8 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
         private SolidColorBrush TextForegroundBrush { get; set; }
 
         private GalleryBrowseItemVM _viewModel;
+
+        private object _addingImageLock = new();
         public GalleryBrowseItemVM ViewModel {
             get => _viewModel;
             set {
@@ -31,6 +34,31 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
                 TitleBackgroundBrush = new((Color)Resources[colorKeys[1]]);
                 SubtitleBackgroundBrush = new((Color)Resources[colorKeys[isLightTheme ? 2 : 0]]);
                 TextForegroundBrush = new((Color)Resources[colorKeys[isLightTheme ? 0 : 2]]);
+
+                value.WidthChanged += (double width) => {
+                    // return if initial images are not yet added
+                    if (ThumbnailImagePanel.ItemsSource == null) {
+                        return;
+                    }
+                    if (Monitor.TryEnter(_addingImageLock)) {
+                        // add more images if there are empty spaces
+                        try {
+                            double remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
+                            if (remainingWidth <= 0 || _imageFilePaths.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+                                return;
+                            }
+                            foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index).Skip(_imageFilePaths.Count)) {
+                                if (remainingWidth <= 0 || _imageFilePaths.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+                                    return;
+                                }
+                                _imageFilePaths.Add(imageInfo.ImageFilePath);
+                                remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
+                            }
+                        } finally {
+                            Monitor.Exit(_addingImageLock);
+                        }
+                    }
+                };
             }
         }
 
@@ -38,10 +66,6 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             InitializeComponent();
             Loaded += GalleryBrowseItem_Loaded;
 
-            for (int i = 0; i < MainGrid.Children.Count; i++) {
-                MainGrid.RowDefinitions.Add(new() { Height = GridLength.Auto });
-                Grid.SetRow(MainGrid.Children[i] as FrameworkElement, i);
-            }
             for (int i = 0; i < SubtitleGrid.Children.Count; i++) {
                 SubtitleGrid.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
                 Grid.SetColumn(SubtitleGrid.Children[i] as FrameworkElement, i);
@@ -51,23 +75,23 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             }
         }
 
-        private readonly List<string> _imageFilePaths = [];
+        private readonly ObservableCollection<string> _imageFilePaths = [];
         public const int MAX_THUMBNAIL_IMAGE_COUNT = 8;
 
         private void GalleryBrowseItem_Loaded(object _0, RoutedEventArgs _1) {
             Loaded -= GalleryBrowseItem_Loaded;
-            // add thumbnail images
-            Debug.WriteLine("GalleryBrowseItem_Loaded ActualWidth = " + ActualWidth);
-            double remainingWidth = ActualWidth;
+            // add initial thumbnail images
             HitomiContext.Main.Galleries.Where(g => g.Id == ViewModel.Gallery.Id).Include(g => g.Files).Load();
+            Debug.WriteLine("ThumbnailImagePanelContainer.ActualWidth = " + ThumbnailImagePanelContainer.ActualWidth);
+            Debug.WriteLine("ThumbnailImagePanel.ActualWidth = " + ThumbnailImagePanel.ActualWidth);
+            double remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
+            Debug.WriteLine("remainingWidth = " + remainingWidth);
             foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index)) {
-                if (remainingWidth <= 0 || _imageFilePaths.Count >= 8) {
+                if (remainingWidth <= 0 || _imageFilePaths.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
                     break;
                 }
                 _imageFilePaths.Add(imageInfo.ImageFilePath);
-                remainingWidth = ActualWidth - ThumbnailImagePanel.ActualWidth;
-                Debug.WriteLine("remainingWidth = " + remainingWidth);
-                Debug.WriteLine("_imageFilePaths.Count = " + _imageFilePaths.Count);
+                remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
             }
             ThumbnailImagePanel.ItemsSource = _imageFilePaths;
         }

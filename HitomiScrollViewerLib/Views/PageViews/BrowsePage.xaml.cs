@@ -3,7 +3,7 @@ using HitomiScrollViewerLib.Views.BrowsePageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using System.ComponentModel;
+using System;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
@@ -15,32 +15,38 @@ namespace HitomiScrollViewerLib.Views.PageViews {
                 if (_viewModel == null) {
                     _viewModel = value;
                     _sortDialog = new(value.SortDialogVM);
-                    value.CurrentGalleryBrowseItemsChanged += SetGalleryBrowseItemWidths;
+                    value.CurrentGalleryBrowseItemsChanged += SetGalleryItemWidths;
                 }
             }
         }
 
         private SortDialog _sortDialog;
-        private bool _isDialogOpen = false;
 
         public BrowsePage() {
             InitializeComponent();
-            PageTextBlock.Text = TEXT_PAGE;
-
-            GalleryBrowseItemsView.SizeChanged += GalleryBrowseItemsView_SizeChanged;
-
         }
 
-        private void SetGalleryBrowseItemWidths() {
-            if (GalleryBrowseItemsView.ActualWidth != 0) {
+        private void SetGalleryItemWidths() {
+            if (ViewModel.CurrentGalleryBrowseItemVMs.Count > 0) {
                 foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
-                    vm.Width = (GalleryBrowseItemsView.ActualWidth - GalleryBrowseItemsViewLayout.MinColumnSpacing * (GalleryBrowseItemsViewLayout.MaximumRowsOrColumns - 1)) / GalleryBrowseItemsViewLayout.MaximumRowsOrColumns;
+                    vm.Width =
+                        (
+                        GalleryItemsView.ActualWidth
+                        - GalleryItemsViewLayout.MinColumnSpacing * (GalleryItemsViewLayout.MaximumRowsOrColumns - 1)
+                        )
+                        / GalleryItemsViewLayout.MaximumRowsOrColumns - 8;
                 }
             }
         }
 
-        private void GalleryBrowseItemsView_SizeChanged(object sender, SizeChangedEventArgs e) {
-            SetGalleryBrowseItemWidths();
+        private const double MIN_GALLERY_ITEM_WIDTH = 800;
+        private void GalleryItemsView_SizeChanged(object _0, SizeChangedEventArgs e) {
+            if (e.NewSize.Width < MIN_GALLERY_ITEM_WIDTH) {
+                GalleryItemsViewLayout.MaximumRowsOrColumns = 1;
+            } else {
+                GalleryItemsViewLayout.MaximumRowsOrColumns = (int)Math.Floor(e.NewSize.Width / MIN_GALLERY_ITEM_WIDTH);
+            }
+            SetGalleryItemWidths();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
@@ -49,13 +55,8 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         }
 
         private void SortDialogButton_Clicked(object _0, RoutedEventArgs _1) {
-            if (_isDialogOpen) {
-                _sortDialog.Hide();
-            } else {
-                _sortDialog.XamlRoot = XamlRoot;
-                _ = _sortDialog.ShowAsync();
-            }
-            _isDialogOpen = !_isDialogOpen;
+            _sortDialog.XamlRoot = XamlRoot;
+            _ = _sortDialog.ShowAsync();
         }
     }
 }

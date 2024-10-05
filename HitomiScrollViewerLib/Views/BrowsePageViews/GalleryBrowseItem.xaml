@@ -33,67 +33,72 @@
         <Color x:Key="AnimeColor1">#99cc99</Color>
         <Color x:Key="AnimeColor2">#ccffcc</Color>
     </UserControl.Resources>
-    <Grid x:Name="MainGrid"
-          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-          CornerRadius="{StaticResource OverlayCornerRadius}"
-          BorderThickness="1">
-        <Grid Background="{x:Bind TitleBackgroundBrush}"
-              Padding="8 4">
-            <TextBlock Grid.Column="0"
-                       Style="{StaticResource TitleTextBlockStyle}"
-                       Text="{x:Bind ViewModel.Gallery.Title}"
-                       HorizontalAlignment="Left"
-                       IsTextSelectionEnabled="True"/>
-        </Grid>
-        <Grid x:Name="SubtitleGrid" ColumnSpacing="16"
-              Padding="8 4"
-              Background="{x:Bind SubtitleBackgroundBrush}"
-              >
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                       Text="{x:Bind ViewModel.Gallery.Id}"
-                       Foreground="{x:Bind TextForegroundBrush}"
-                       />
-            <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                       Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName}"
-                       Foreground="{x:Bind TextForegroundBrush}"
-                       />
-            <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
-            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                       Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName}"
-                       Foreground="{x:Bind TextForegroundBrush}"
-                       />
-        </Grid>
-        <Grid Padding="8" RowSpacing="16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="200"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <ItemsRepeater x:Name="ThumbnailImagePanel"
-                           Grid.Row="0">
-                <ItemsRepeater.Layout>
-                    <StackLayout Orientation="Horizontal"/>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                        <Viewbox>
-                            <Image Source="{x:Bind}"/>
-                        </Viewbox>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-            <ItemsRepeater Grid.Row="1"
-                           ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs}">
-                <ItemsRepeater.Layout>
-                    <StackLayout Spacing="4"/>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="vms:TagItemsRepeaterVM">
-                        <views:TagItemsRepeater ViewModel="{x:Bind}"/>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-        </Grid>
-    </Grid>
+    <ScrollViewer>
+        <StackPanel Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    CornerRadius="{StaticResource OverlayCornerRadius}"
+                    BorderThickness="1">
+            <Grid Background="{x:Bind TitleBackgroundBrush}"
+                  Padding="8 4">
+                <TextBlock Grid.Column="0"
+                           Style="{StaticResource TitleTextBlockStyle}"
+                           Text="{x:Bind ViewModel.Gallery.Title}"
+                           HorizontalAlignment="Left"
+                           IsTextSelectionEnabled="True"/>
+            </Grid>
+            <Grid x:Name="SubtitleGrid" ColumnSpacing="16"
+                  Padding="8 4"
+                  Background="{x:Bind SubtitleBackgroundBrush}"
+                  >
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="{x:Bind ViewModel.Gallery.Id}"
+                           Foreground="{x:Bind TextForegroundBrush}"
+                           />
+                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName}"
+                           Foreground="{x:Bind TextForegroundBrush}"
+                           />
+                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName}"
+                           Foreground="{x:Bind TextForegroundBrush}"
+                           />
+            </Grid>
+            <Grid x:Name="ThumbnailImagePanelContainer"
+                  Padding="8" RowSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="200"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ItemsRepeater x:Name="ThumbnailImagePanel"
+                               Grid.Row="0">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Horizontal"/>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Viewbox>
+                                <Image Source="{x:Bind}"/>
+                            </Viewbox>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+                <ItemsRepeater Grid.Row="1"
+                               ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="4"/>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vms:TagItemsRepeaterVM">
+                            <views:TagItemsRepeater ViewModel="{x:Bind}"/>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>
