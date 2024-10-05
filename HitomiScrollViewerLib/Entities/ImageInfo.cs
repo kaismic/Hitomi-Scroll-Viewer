@@ -16,14 +16,16 @@ namespace HitomiScrollViewerLib.Entities {
             set {
                 _name = value;
                 IsPlayable = value.EndsWith(".gif");
-                LocalFileName = IndexFromNameRegex().Match(value).Groups[1].Value;
-                Index = int.Parse(LocalFileName);
+                FileName = IndexFromNameRegex().Match(value).Groups[1].Value;
+                Index = int.Parse(FileName);
             }
         }
         [GeneratedRegex("""(\d+).*""")]
         private static partial Regex IndexFromNameRegex();
         public int Index { get; private set; }
-        public string LocalFileName { get; private set; }
+        public string FileName { get; private set; }
+        private string _fullFileName;
+        public string FullFileName => _fullFileName ??= FileName + '.' + FileExtension;
         public bool IsPlayable { get; private set; }
 
         private string _imageFilePath;
@@ -31,8 +33,7 @@ namespace HitomiScrollViewerLib.Entities {
             get => _imageFilePath ??= Path.Combine(
                 Constants.IMAGE_DIR_V3,
                 Gallery.Id.ToString(),
-                Index.ToString(),
-                FileExtension
+                FullFileName
             );
             set => _imageFilePath = value;
         }
@@ -47,8 +48,8 @@ namespace HitomiScrollViewerLib.Entities {
         private string _fileFormat;
         public string FileExtension {
             get => _fileFormat ??=
-                Haswebp == 1 ? ".webp" :
-                Hasavif == 1 ? ".avif" : ".jxl";
+                Haswebp == 1 ? "webp" :
+                Hasavif == 1 ? "avif" : "jxl";
         }
         
         [Required]
