@@ -55,8 +55,8 @@ namespace HitomiScrollViewerLib.DbContexts {
         };
 
         public static readonly int DATABASE_INIT_OP_NUM = Tag.TAG_CATEGORIES.Length * ALPHABETS_WITH_123.Length + 1;
-        public event EventHandler<int> DatabaseInitProgressChanged;
-        public event EventHandler ChangeToIndeterminateEvent;
+        public event Action<int> DatabaseInitProgressChanged;
+        public event Action ChangeToIndeterminateEvent;
         public static void InitDatabase() {
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             int progressValue = 0;
@@ -81,7 +81,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                             };
                         }
                     ));
-                    Main.DatabaseInitProgressChanged?.Invoke(null, ++progressValue);
+                    Main.DatabaseInitProgressChanged?.Invoke(++progressValue);
                 }
             }
             // add gallery languages and its local names
@@ -105,6 +105,9 @@ namespace HitomiScrollViewerLib.DbContexts {
                 Enumerable.Range(0, Enum.GetNames(typeof(SortDirection)).Length)
                 .Select(i => new SortDirectionEntity() { SortDirection = (SortDirection)i })
             );
+
+            // change to indeterminate because SaveChanges() takes a long time
+            Main.ChangeToIndeterminateEvent?.Invoke();
             // add gallery sorts
             Main.SaveChanges();
             Main.GallerySorts.AddRange(
@@ -117,13 +120,6 @@ namespace HitomiScrollViewerLib.DbContexts {
             // default DownloadTime sort
             Main.GallerySorts.Find(GallerySortProperty.DownloadTime).IsActive = true;
 
-            /*
-             * this line isn't actually meaningful to the user because
-             * Main.ChangeToIndeterminateEvent?.Invoke(); is
-             * called straight after it
-            // Main.DatabaseInitProgressChanged?.Invoke(null, ++progressValue);
-            */
-            Main.ChangeToIndeterminateEvent?.Invoke(null, null);
             Main.SaveChanges();
             ClearInvocationList();
         }
@@ -132,13 +128,13 @@ namespace HitomiScrollViewerLib.DbContexts {
             var invocList = Main.DatabaseInitProgressChanged?.GetInvocationList();
             if (invocList != null) {
                 foreach (Delegate d in invocList) {
-                    Main.DatabaseInitProgressChanged -= (EventHandler<int>)d;
+                    Main.DatabaseInitProgressChanged -= (Action<int>)d;
                 }
             }
             invocList = Main.ChangeToIndeterminateEvent?.GetInvocationList();
             if (invocList != null) {
                 foreach (Delegate d in invocList) {
-                    Main.ChangeToIndeterminateEvent -= (EventHandler)d;
+                    Main.ChangeToIndeterminateEvent -= (Action)d;
                 }
             }
         }
