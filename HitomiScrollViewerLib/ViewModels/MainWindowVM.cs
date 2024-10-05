@@ -12,7 +12,6 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -55,14 +54,14 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 bool dbCreatedFirstTime = HitomiContext.Main.Database.EnsureCreated();
                 UserContext.Main.Database.EnsureCreated();
-                
+
                 if (dbCreatedFirstTime) {
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
                     vm.IsIndeterminate = false;
                     vm.Value = 0;
                     vm.Maximum = HitomiContext.DATABASE_INIT_OP_NUM;
-                    HitomiContext.Main.DatabaseInitProgressChanged += (_, value) => vm.Value = value;
-                    HitomiContext.Main.ChangeToIndeterminateEvent += (_, _) => vm.IsIndeterminate = true;
+                    HitomiContext.Main.DatabaseInitProgressChanged += (value) => vm.Value = value;
+                    HitomiContext.Main.ChangeToIndeterminateEvent += () => vm.IsIndeterminate = true;
                     HitomiContext.InitDatabase();
                 }
 
@@ -94,14 +93,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                     HitomiContext.Main.AddExampleTagFilters();
                 }
 
-                // move images folder in roaming folder to local
-                if (Directory.Exists(IMAGE_DIR_V2)) {
-                    vm.IsIndeterminate = true;
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.MovingImageFolder);
-                    Directory.Move(IMAGE_DIR_V2, IMAGE_DIR_V3);
-                    // TODO convert image files from 0.webp 1.webp -> 000.webp 001.webp
-                }
-
                 // migrate existing galleries (p.k.a. bookmarks) from v2
                 if (File.Exists(BOOKMARKS_FILE_PATH_V2)) {
                     vm.IsIndeterminate = false;
@@ -121,36 +112,51 @@ namespace HitomiScrollViewerLib.ViewModels {
                     File.Delete(BOOKMARKS_FILE_PATH_V2);
                 }
 
+                if (Directory.Exists(IMAGE_DIR_V2)) {
+                    // move images folder in roaming folder to local
+                    vm.IsIndeterminate = true;
+                    vm.SetText(LoadProgressReporterVM.LoadingStatus.MovingImageFolder);
+                    Directory.Move(IMAGE_DIR_V2, IMAGE_DIR_V3);
+
+                    // rename image files
+                    vm.SetText(LoadProgressReporterVM.LoadingStatus.RenamingImageFiles);
+                    vm.IsIndeterminate = false;
+                    IEnumerable<string> dirPaths = Directory.EnumerateDirectories(IMAGE_DIR_V3);
+                    HitomiContext.Main.Galleries.Include(g => g.Files).Load();
+                    foreach (string dirPath in Directory.EnumerateDirectories(IMAGE_DIR_V3)) {
+                        int id = int.Parse(Path.GetFileName(dirPath));
+                        Gallery gallery = HitomiContext.Main.Galleries.Find(id);
+                        ImageInfo[] imageInfos = [.. gallery.Files.OrderBy(f => f.Index)];
+                        vm.Value = 0;
+                        vm.Maximum = imageInfos.Length;
+                        for (int i = imageInfos.Length - 1; i >= 0; i--) {
+                            string oldFilePath = Path.Combine(dirPath, i.ToString() + '.' + imageInfos[i].FileExtension);
+                            string newFilePath = Path.Combine(dirPath, imageInfos[i].FullFileName);
+                            if (File.Exists(oldFilePath)) {
+                                File.Move(oldFilePath, newFilePath);
+                            }
+                            vm.Value++;
+                        }
+                    }
+                }
+
                 if (Directory.Exists(ROOT_DIR_V2)) {
                     Directory.Delete(ROOT_DIR_V2);
                 }
 
-                vm.IsIndeterminate = false;
-                vm.Value = 0;
-                vm.Maximum = 8;
+                vm.IsIndeterminate = true;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
                 HitomiContext.Main.Tags.Load();
-                vm.Value++;
                 HitomiContext.Main.GalleryLanguages.Load();
-                vm.Value++;
                 HitomiContext.Main.TagFilters.Load();
-                vm.Value++;
                 HitomiContext.Main.Galleries.Load();
-                vm.Value++;
                 HitomiContext.Main.GalleryTypes.Load();
-                vm.Value++;
                 HitomiContext.Main.SortDirections.Load();
-                vm.Value++;
                 HitomiContext.Main.GallerySorts.Load();
-                vm.Value++;
 
                 UserContext.Main.SavedBrowseTags.Load();
-                vm.Value++;
-
-                vm.IsIndeterminate = true;
 
                 HideLoadProgressReporter.Invoke();
-
                 Initialised?.Invoke();
             });
         }
