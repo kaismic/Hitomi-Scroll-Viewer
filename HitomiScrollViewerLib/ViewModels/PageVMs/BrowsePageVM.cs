@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI.Collections;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
@@ -33,7 +34,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                         break;
                 }
             };
-            FilterGalleries();
+            SortDialogVM.ActiveSortItemVMs.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
+                ExecuteQuery();
+            };
+            ExecuteQuery();
         }
 
         private void SetPages() {
@@ -95,9 +99,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private List<GalleryBrowseItemVM> _currentGalleryBrowseItemVMs;
 
         public QueryBuilderVM QueryBuilderVM { get; } = new("BrowsePageGalleryLanguageIndex", "BrowsePageGalleryTypeIndex");
+        public SortDialogVM SortDialogVM { get; } = new();
 
         [RelayCommand]
-        private void FilterGalleries() {
+        private void ExecuteQuery() {
             IEnumerable<Gallery> filtered = HitomiContext.Main.Galleries;
             if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0) {
                 if (QueryBuilderVM.SelectedGalleryLanguage.Galleries == null) {
@@ -124,9 +129,14 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             if (QueryBuilderVM.SearchTitleText.Length != 0) {
                 filtered = filtered.Where(g => g.Title.Contains(QueryBuilderVM.SearchTitleText));
             }
+            // sort
+            if (SortDialogVM.ActiveSortItemVMs.Count > 0) {
+                filtered = SortDialogVM.ActiveSortItemVMs[0].SortGallery(filtered);
+                for (int i = 1; i < SortDialogVM.ActiveSortItemVMs.Count; i++) {
+                    filtered = SortDialogVM.ActiveSortItemVMs[i].ThenSortGallery(filtered as IOrderedEnumerable<Gallery>);
+                }
+            }
             FilteredGalleries = [.. filtered];
         }
-
-        public SortDialogVM SortDialogVM { get; } = new();
     }
 }

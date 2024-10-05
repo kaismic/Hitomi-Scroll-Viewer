@@ -1,10 +1,6 @@
-﻿using CommunityToolkit.WinUI.Collections;
-using HitomiScrollViewerLib.DbContexts;
+﻿using HitomiScrollViewerLib.DbContexts;
 using Microsoft.Windows.ApplicationModel.Resources;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -29,26 +25,5 @@ namespace HitomiScrollViewerLib.Entities {
             }
         }
         public bool IsActive { get; set; }
-
-        public IEnumerable<Gallery> SortGallery(IEnumerable<Gallery> galleries) {
-            Func<IEnumerable<Gallery>, IOrderedEnumerable<Gallery>> sortFunc = SortDirectionEntity.SortDirection switch {
-                SortDirection.Ascending => galleries => galleries.OrderBy(GetSortKey),
-                SortDirection.Descending => galleries => galleries.OrderByDescending(GetSortKey),
-                _ => throw new InvalidOperationException()
-            };
-            return sortFunc(galleries);
-        }
-
-        private object GetSortKey(Gallery g) {
-            return GallerySortProperty switch {
-                GallerySortProperty.Id => g.Id,
-                GallerySortProperty.Title => g.Title,
-                GallerySortProperty.Date => g.Date,
-                GallerySortProperty.DownloadTime => g.DownloadTime,
-                GallerySortProperty.GalleryType => g.GalleryType.GalleryType,
-                GallerySortProperty.GalleryLanguage => g.GalleryLanguage.SearchParamValue,
-                _ => throw new InvalidOperationException()
-            };
-        }
     }
 }
