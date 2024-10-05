@@ -9,8 +9,8 @@
     xmlns:ct="using:CommunityToolkit.WinUI.Controls"
     >
     <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="128"/>
         <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="18*"/>
     </Grid.ColumnDefinitions>
     <TextBlock Grid.Column="0"
                Text="{x:Bind ViewModel.CategoryLabel}"

@@ -1,7 +1,13 @@
+using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using Windows.UI;
 
@@ -30,6 +36,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
 
         public GalleryBrowseItem() {
             InitializeComponent();
+            Loaded += GalleryBrowseItem_Loaded;
 
             for (int i = 0; i < MainGrid.Children.Count; i++) {
                 MainGrid.RowDefinitions.Add(new() { Height = GridLength.Auto });
@@ -42,6 +49,27 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
                     tb.IsTextSelectionEnabled = true;
                 }
             }
+        }
+
+        private readonly List<string> _imageFilePaths = [];
+        public const int MAX_THUMBNAIL_IMAGE_COUNT = 8;
+
+        private void GalleryBrowseItem_Loaded(object _0, RoutedEventArgs _1) {
+            Loaded -= GalleryBrowseItem_Loaded;
+            // add thumbnail images
+            Debug.WriteLine("GalleryBrowseItem_Loaded ActualWidth = " + ActualWidth);
+            double remainingWidth = ActualWidth;
+            HitomiContext.Main.Galleries.Where(g => g.Id == ViewModel.Gallery.Id).Include(g => g.Files).Load();
+            foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index)) {
+                if (remainingWidth <= 0 || _imageFilePaths.Count >= 8) {
+                    break;
+                }
+                _imageFilePaths.Add(imageInfo.ImageFilePath);
+                remainingWidth = ActualWidth - ThumbnailImagePanel.ActualWidth;
+                Debug.WriteLine("remainingWidth = " + remainingWidth);
+                Debug.WriteLine("_imageFilePaths.Count = " + _imageFilePaths.Count);
+            }
+            ThumbnailImagePanel.ItemsSource = _imageFilePaths;
         }
     }
 }

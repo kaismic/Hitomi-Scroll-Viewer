@@ -47,6 +47,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             }
         }
 
+        public event Action CurrentGalleryBrowseItemsChanged;
+
         private void SetCurrentGalleryBrowseItemVMs() {
             CurrentGalleryBrowseItemVMs =
             [.. FilteredGalleries
@@ -54,6 +56,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 .Take(PageSizes[SelectedPageSizeIndex])
                 .Select(g => new GalleryBrowseItemVM(g))
             ];
+            CurrentGalleryBrowseItemsChanged?.Invoke();
             foreach (var g in CurrentGalleryBrowseItemVMs.Select(vm => vm.Gallery)) {
                 System.Diagnostics.Debug.WriteLine("gallery id = " + g.Id);
             }

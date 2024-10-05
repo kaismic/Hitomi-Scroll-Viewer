@@ -3,6 +3,7 @@ using HitomiScrollViewerLib.Views.BrowsePageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using System.ComponentModel;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
@@ -14,6 +15,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
                 if (_viewModel == null) {
                     _viewModel = value;
                     _sortDialog = new(value.SortDialogVM);
+                    value.CurrentGalleryBrowseItemsChanged += SetGalleryBrowseItemWidths;
                 }
             }
         }
@@ -24,6 +26,21 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         public BrowsePage() {
             InitializeComponent();
             PageTextBlock.Text = TEXT_PAGE;
+
+            GalleryBrowseItemsView.SizeChanged += GalleryBrowseItemsView_SizeChanged;
+
+        }
+
+        private void SetGalleryBrowseItemWidths() {
+            if (GalleryBrowseItemsView.ActualWidth != 0) {
+                foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
+                    vm.Width = (GalleryBrowseItemsView.ActualWidth - GalleryBrowseItemsViewLayout.MinColumnSpacing * (GalleryBrowseItemsViewLayout.MaximumRowsOrColumns - 1)) / GalleryBrowseItemsViewLayout.MaximumRowsOrColumns;
+                }
+            }
+        }
+
+        private void GalleryBrowseItemsView_SizeChanged(object sender, SizeChangedEventArgs e) {
+            SetGalleryBrowseItemWidths();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e) {
@@ -38,6 +55,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
                 _sortDialog.XamlRoot = XamlRoot;
                 _ = _sortDialog.ShowAsync();
             }
+            _isDialogOpen = !_isDialogOpen;
         }
     }
 }

@@ -65,16 +65,24 @@
                        Foreground="{x:Bind TextForegroundBrush}"
                        />
         </Grid>
-        <Grid Padding="8">
+        <Grid Padding="8" RowSpacing="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="200"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Row="0">
-                <Image Source="ms-appx:///Assets/LockScreenLogo.scale-200.png"/>
-                <Image Source="ms-appx:///Assets/LockScreenLogo.scale-200.png"/>
-                <Image Source="ms-appx:///Assets/LockScreenLogo.scale-200.png"/>
-            </StackPanel>
+            <ItemsRepeater x:Name="ThumbnailImagePanel"
+                           Grid.Row="0">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Viewbox>
+                            <Image Source="{x:Bind}"/>
+                        </Viewbox>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
             <ItemsRepeater Grid.Row="1"
                            ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs}">
                 <ItemsRepeater.Layout>
