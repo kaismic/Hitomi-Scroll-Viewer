@@ -35,6 +35,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
             if (_isDialogOpen) {
                 _sortDialog.Hide();
             } else {
+                _sortDialog.XamlRoot = XamlRoot;
                 _ = _sortDialog.ShowAsync();
             }
         }
