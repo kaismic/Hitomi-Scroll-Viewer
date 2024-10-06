@@ -11,7 +11,8 @@
     Style="{StaticResource DefaultContentDialogStyle}">
     <StackPanel Spacing="16"
                 MinWidth="500">
-        <ListView ItemsSource="{x:Bind ViewModel.ActiveSortItemVMs}"
+        <ListView x:Name="ActiveItemsView"
+                  ItemsSource="{x:Bind ViewModel.ActiveSortItemVMs, Mode=OneWay}"
                   CanReorderItems="True"
                   AllowDrop="True"
                   >
@@ -27,7 +28,8 @@
             </ListView.ItemTemplate>
         </ListView>
         <Button HorizontalAlignment="Stretch"
-                Padding="16">
+                Padding="16"
+                Margin="64 0">
             <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -38,7 +40,8 @@
             </Grid>
             <Button.Flyout>
                 <Flyout x:Name="CandidateSortItemsFlyout" Placement="Bottom">
-                    <ListView ItemsSource="{x:Bind ViewModel.InactiveSortItemVMs}"
+                    <ListView x:Name="InactiveItemsView"
+                              ItemsSource="{x:Bind ViewModel.InactiveSortItemVMs, Mode=OneWay}"
                               SelectionMode="None"
                               IsItemClickEnabled="True"
                               ItemClick="CandidateSortItem_Clicked"

@@ -12,6 +12,7 @@ namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Value))]
     [Index(nameof(Category), nameof(Value))]
     [Index(nameof(GalleryCount))]
+    [Index(nameof(IsSavedBrowseTag))]
     public class Tag {
         public static readonly TagCategory[] TAG_CATEGORIES =
             Enumerable.Range(0, Enum.GetNames(typeof(TagCategory)).Length)
@@ -29,8 +30,9 @@ namespace HitomiScrollViewerLib.Entities {
                 SearchParamValue = value.Replace(' ', '_');
             }
         }
-        public string SearchParamValue { get; set; }
+        public string SearchParamValue { get; private set; }
         public int GalleryCount { get; set; }
+        public bool IsSavedBrowseTag { get; set; }
 
         public virtual ICollection<TagFilter> TagFilters { get; set; }
         public virtual ICollection<Gallery> Galleries { get; set; }
@@ -39,12 +41,11 @@ namespace HitomiScrollViewerLib.Entities {
         /// <returns><see cref="Tag"/> or <c>null</c></returns>
         public static Tag GetTag(string value, TagCategory category) {
             string formattedValue = value.ToLower();
-            Tag tag = HitomiContext.Main.Tags
+            return HitomiContext.Main.Tags
                 .FirstOrDefault(tag =>
                     tag.Value == formattedValue &&
                     tag.Category == category
                 );
-            return tag;
         }
 
         public static Tag CreateTag(string value, TagCategory category) {

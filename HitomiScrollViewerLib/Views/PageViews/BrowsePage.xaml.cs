@@ -3,8 +3,6 @@ using HitomiScrollViewerLib.Views.BrowsePageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using System;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
     public sealed partial class BrowsePage : Page {
@@ -21,30 +19,36 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         }
 
         private SortDialog _sortDialog;
+        private ItemsWrapGrid _itemsWrapGrid;
 
         public BrowsePage() {
             InitializeComponent();
         }
 
         private void SetGalleryItemWidths() {
+            _itemsWrapGrid = GalleryItemsView.ItemsPanelRoot as ItemsWrapGrid;
             if (ViewModel.CurrentGalleryBrowseItemVMs.Count > 0) {
                 foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
-                    vm.Width =
-                        (
-                        GalleryItemsView.ActualWidth
-                        - GalleryItemsViewLayout.MinColumnSpacing * (GalleryItemsViewLayout.MaximumRowsOrColumns - 1)
-                        )
-                        / GalleryItemsViewLayout.MaximumRowsOrColumns - 8;
+                    vm.Width = GalleryItemsView.ActualWidth / _itemsWrapGrid.MaximumRowsOrColumns - 8;
                 }
+                //foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
+                //    vm.Width =
+                //        (
+                //        GalleryItemsView.ActualWidth
+                //        - 8 * (_itemsWrapGrid.MaximumRowsOrColumns - 1)
+                //        )
+                //        / _itemsWrapGrid.MaximumRowsOrColumns - 8;
+                //}
             }
         }
 
         private const double MIN_GALLERY_ITEM_WIDTH = 800;
         private void GalleryItemsView_SizeChanged(object _0, SizeChangedEventArgs e) {
+            _itemsWrapGrid = GalleryItemsView.ItemsPanelRoot as ItemsWrapGrid;
             if (e.NewSize.Width < MIN_GALLERY_ITEM_WIDTH) {
-                GalleryItemsViewLayout.MaximumRowsOrColumns = 1;
+                _itemsWrapGrid.MaximumRowsOrColumns = 1;
             } else {
-                GalleryItemsViewLayout.MaximumRowsOrColumns = (int)(e.NewSize.Width / MIN_GALLERY_ITEM_WIDTH);
+                _itemsWrapGrid.MaximumRowsOrColumns = (int)(e.NewSize.Width / MIN_GALLERY_ITEM_WIDTH);
             }
             SetGalleryItemWidths();
         }

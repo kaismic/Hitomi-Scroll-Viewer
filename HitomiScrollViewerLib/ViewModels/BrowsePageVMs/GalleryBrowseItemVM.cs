@@ -11,8 +11,11 @@ using static HitomiScrollViewerLib.SharedResources;
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class GalleryBrowseItemVM : DQObservableObject {
         private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
-        public Gallery Gallery { get; }
-        public List<TagItemsRepeaterVM> TagItemsRepeaterVMs { get; } = [];
+        [ObservableProperty]
+        private Gallery _gallery;
+
+        [ObservableProperty]
+        private List<TagItemsRepeaterVM> _tagItemsRepeaterVMs = [];
         [ObservableProperty]
         private double _width;
         partial void OnWidthChanged(double value) {

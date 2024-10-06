@@ -63,29 +63,23 @@
         </Grid>
         <ScrollViewer Grid.Row="1"
                       Padding="64 0">
-            <ItemsView x:Name="GalleryItemsView"
-                       ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs}"
-                       SelectionMode="Single"
-                       SizeChanged="GalleryItemsView_SizeChanged">
-                <ItemsView.Layout>
-                    <UniformGridLayout x:Name="GalleryItemsViewLayout"
-                                       Orientation="Horizontal"
-                                       ItemsJustification="SpaceBetween"
-                                       ItemsStretch="Fill"
-                                       MinItemHeight="400"
-                                       MinRowSpacing="8"
-                                       MinColumnSpacing="8"
+            <GridView x:Name="GalleryItemsView"
+                      ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs, Mode=OneWay}"
+                      SizeChanged="GalleryItemsView_SizeChanged">
+                <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsWrapGrid Orientation="Horizontal"
                                        MaximumRowsOrColumns="1"/>
-                </ItemsView.Layout>
-                <ItemsView.ItemTemplate>
+                    </ItemsPanelTemplate>
+                </GridView.ItemsPanel>
+                <GridView.ItemTemplate>
                     <DataTemplate x:DataType="bpvms:GalleryBrowseItemVM">
-                        <ItemContainer>
-                            <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
-                                                       Width="{x:Bind Width, Mode=OneWay}"/>
-                        </ItemContainer>
+                        <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
+                                                   Width="{x:Bind Width}"
+                                                   Height="412"/>
                     </DataTemplate>
-                </ItemsView.ItemTemplate>
-            </ItemsView>
+                </GridView.ItemTemplate>
+            </GridView>
         </ScrollViewer>
     </Grid>
 </Page>

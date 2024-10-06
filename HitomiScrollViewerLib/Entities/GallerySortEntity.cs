@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
 using Microsoft.Windows.ApplicationModel.Resources;
+using System;
 using System.ComponentModel.DataAnnotations;
 using static HitomiScrollViewerLib.SharedResources;
 
@@ -12,6 +13,7 @@ namespace HitomiScrollViewerLib.Entities {
         [Key]
         public GallerySortProperty GallerySortProperty { get; init; }
         public string DisplayName => _resourceMap.GetValue(GallerySortProperty.ToString()).ValueAsString;
+        public bool IsActive { get; set; }
 
         private SortDirectionEntity _sortDirectionEntity;
         public virtual SortDirectionEntity SortDirectionEntity {
@@ -21,9 +23,10 @@ namespace HitomiScrollViewerLib.Entities {
                     return;
                 }
                 _sortDirectionEntity = value;
+                SortDirectionChanged?.Invoke();
                 HitomiContext.Main.SaveChanges();
             }
         }
-        public bool IsActive { get; set; }
+        public event Action SortDirectionChanged;
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -50,10 +51,8 @@ namespace HitomiScrollViewerLib.ViewModels {
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
 
                 //HitomiContext.Main.Database.EnsureDeleted();
-                //UserContext.Main.Database.EnsureDeleted();
 
                 bool dbCreatedFirstTime = HitomiContext.Main.Database.EnsureCreated();
-                UserContext.Main.Database.EnsureCreated();
 
                 if (dbCreatedFirstTime) {
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
@@ -153,8 +152,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                 HitomiContext.Main.GalleryTypes.Load();
                 HitomiContext.Main.SortDirections.Load();
                 HitomiContext.Main.GallerySorts.Load();
-
-                UserContext.Main.SavedBrowseTags.Load();
 
                 HideLoadProgressReporter.Invoke();
                 Initialised?.Invoke();

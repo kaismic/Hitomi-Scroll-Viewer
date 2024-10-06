@@ -12,18 +12,19 @@
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    <Grid x:Name="TextBoxesGrid"
-          Grid.Row="0"
-          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-          CornerRadius="{StaticResource OverlayCornerRadius}"
-          BorderThickness="1"
-          Padding="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-    </Grid>
+    <ScrollViewer Grid.Row="0" MaxHeight="256">
+        <Grid x:Name="TextBoxesGrid"
+              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+              CornerRadius="{StaticResource OverlayCornerRadius}"
+              BorderThickness="1"
+              Padding="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+        </Grid>
+    </ScrollViewer>
     <Grid x:Name="LanguageTypeKeywordGrid"
           Grid.Row="1"
           ColumnSpacing="16"

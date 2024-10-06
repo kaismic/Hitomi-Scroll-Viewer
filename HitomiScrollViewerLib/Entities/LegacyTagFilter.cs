@@ -83,7 +83,7 @@ namespace HitomiScrollViewerLib.Entities {
 
             hasAnyTags = false;
             List<Tag> excludeTFSTags = [];
-            foreach (var kvp in IncludeTags) {
+            foreach (var kvp in ExcludeTags) {
                 if (kvp.Key == "language" || kvp.Key == "type") {
                     continue;
                 }
@@ -94,7 +94,7 @@ namespace HitomiScrollViewerLib.Entities {
             if (hasAnyTags) {
                 result.Add(
                     new TagFilter() {
-                        Name = name + " - " + TEXT_INCLUDE,
+                        Name = name + " - " + TEXT_EXCLUDE,
                         Tags = excludeTFSTags
                     }
                 );

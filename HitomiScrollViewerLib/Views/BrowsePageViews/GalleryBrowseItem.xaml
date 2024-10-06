@@ -38,31 +38,31 @@
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     CornerRadius="{StaticResource OverlayCornerRadius}"
                     BorderThickness="1">
-            <Grid Background="{x:Bind TitleBackgroundBrush}"
+            <Grid Background="{x:Bind TitleBackgroundBrush, Mode=OneWay}"
                   Padding="8 4">
                 <TextBlock Grid.Column="0"
                            Style="{StaticResource TitleTextBlockStyle}"
-                           Text="{x:Bind ViewModel.Gallery.Title}"
+                           Text="{x:Bind ViewModel.Gallery.Title, Mode=OneWay}"
                            HorizontalAlignment="Left"
                            IsTextSelectionEnabled="True"/>
             </Grid>
             <Grid x:Name="SubtitleGrid" ColumnSpacing="16"
                   Padding="8 4"
-                  Background="{x:Bind SubtitleBackgroundBrush}"
+                  Background="{x:Bind SubtitleBackgroundBrush, Mode=OneWay}"
                   >
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                           Text="{x:Bind ViewModel.Gallery.Id}"
-                           Foreground="{x:Bind TextForegroundBrush}"
+                           Text="{x:Bind ViewModel.Gallery.Id, Mode=OneWay}"
+                           Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
+                           />
+                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}" />
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName, Mode=OneWay}"
+                           Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
                            />
                 <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                           Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName}"
-                           Foreground="{x:Bind TextForegroundBrush}"
-                           />
-                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                           Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName}"
-                           Foreground="{x:Bind TextForegroundBrush}"
+                           Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName, Mode=OneWay}"
+                           Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
                            />
             </Grid>
             <Grid x:Name="ThumbnailImagePanelContainer"
@@ -88,7 +88,7 @@
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
                 <ItemsRepeater Grid.Row="1"
-                               ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs}">
+                               ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs, Mode=OneWay}">
                     <ItemsRepeater.Layout>
                         <StackLayout Spacing="4"/>
                     </ItemsRepeater.Layout>
