@@ -44,7 +44,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
             if (e.NewSize.Width < MIN_GALLERY_ITEM_WIDTH) {
                 GalleryItemsViewLayout.MaximumRowsOrColumns = 1;
             } else {
-                GalleryItemsViewLayout.MaximumRowsOrColumns = (int)Math.Floor(e.NewSize.Width / MIN_GALLERY_ITEM_WIDTH);
+                GalleryItemsViewLayout.MaximumRowsOrColumns = (int)(e.NewSize.Width / MIN_GALLERY_ITEM_WIDTH);
             }
             SetGalleryItemWidths();
         }
