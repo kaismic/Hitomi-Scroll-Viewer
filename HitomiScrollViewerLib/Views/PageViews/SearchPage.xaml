@@ -64,12 +64,15 @@
                                     FontSize="{StaticResource SubtitleTextBlockFontSize}"/>
                 </Button>
                 <ScrollViewer Grid.Row="1">
-                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.SearchFilterVMs}"
-                                   VerticalCacheLength="256">
-                        <ItemsRepeater.Layout>
-                            <StackLayout Spacing="4"/>
-                        </ItemsRepeater.Layout>
-                        <ItemsRepeater.ItemTemplate>
+                    <ListView ItemsSource="{x:Bind ViewModel.SearchFilterVMs}"
+                              SelectionMode="None"
+                              IsItemClickEnabled="False">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="4"/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemTemplate>
                             <DataTemplate x:DataType="vms:SearchFilterVM">
                                 <Grid ColumnSpacing="16">
                                     <Grid.ColumnDefinitions>
@@ -87,8 +90,8 @@
                                                   CommandParameter="{x:Bind}"/>
                                 </Grid>
                             </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                    </ItemsRepeater>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </ScrollViewer>
             </Grid>
             <Grid Grid.Row="2"

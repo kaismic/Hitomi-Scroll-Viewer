@@ -8,10 +8,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         public ObservableCollection<DownloadItemVM> DownloadItemVMs { get; } = [];
         private readonly ConcurrentDictionary<int, byte> _downloadingGalleryIds = [];
 
-        private static DownloadManagerVM _main;
-        public static DownloadManagerVM Main => _main ??= new();
-        private DownloadManagerVM() { }
-
         public bool TryDownload(int id) {
             if (_downloadingGalleryIds.TryAdd(id, 0)) {
                 DownloadItemVM vm = new(id);

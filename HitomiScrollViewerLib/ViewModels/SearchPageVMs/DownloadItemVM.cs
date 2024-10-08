@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
@@ -131,7 +132,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
                     // not locked so immediately unlock and download
                     Monitor.Exit(_ggjsFetchLock);
-                    InitDownload();
+                    await InitDownload();
                 } else {
                     // another thread is already fetching ggjs so add to download waiting list
                     lock (_waitingDownloadItemVMs) {
@@ -149,17 +150,18 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 Monitor.Enter(_ggjsFetchLock);
             }
             _lastGgjsUpdateTime = DateTime.UtcNow;
-            if (!await TryGetGgjsInfo()) {
+            bool isGetGgjsSuccess = await TryGetGgjsInfo();
+            Monitor.Exit(_ggjsFetchLock);
+            if (!isGetGgjsSuccess) {
                 return;
             }
-            Monitor.Exit(_ggjsFetchLock);
             lock (_waitingDownloadItemVMs) {
                 foreach (DownloadItemVM downloadItemVM in _waitingDownloadItemVMs) {
-                    downloadItemVM.InitDownload();
+                    _ = downloadItemVM.InitDownload();
                 }
                 _waitingDownloadItemVMs.Clear();
             }
-            InitDownload();
+            await InitDownload();
         }
 
         public void RemoveDownloadButton_Click(object _0, RoutedEventArgs _1) {
@@ -240,7 +242,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             }
         }
 
-        private async void InitDownload() {
+        private async Task InitDownload() {
             _cts = new();
             CancellationToken ct = _cts.Token;
             CurrentDownloadStatus = DownloadStatus.Downloading;
@@ -262,7 +264,11 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
                 ProgressText = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
                 try {
-                    _gallery = JsonSerializer.Deserialize<Gallery>(galleryInfo, GALLERY_SERIALIZER_OPTIONS);
+                    OriginalGalleryInfo ogi = JsonSerializer.Deserialize<OriginalGalleryInfo>(galleryInfo, GALLERY_SERIALIZER_OPTIONS);
+
+
+
+
                     ProgressBarMaximum = _gallery.Files.Count;
                     GalleryDescriptionText += $" - {_gallery.Title}"; // add title to description
                 } catch (JsonException e) {

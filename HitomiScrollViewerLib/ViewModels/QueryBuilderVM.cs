@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -10,12 +11,25 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class QueryBuilderVM : DQObservableObject {
-        public static readonly GalleryLanguage[] GALLERY_LANGUAGES =
-            [new GalleryLanguage() { LocalName = TEXT_ALL }, .. HitomiContext.Main.GalleryLanguages.OrderBy(gl => gl.LocalName)];
-        public static readonly GalleryTypeEntity[] GALLERY_TYPE_ENTITIES =
-            [new GalleryTypeEntity() { GalleryType = null }, .. HitomiContext.Main.GalleryTypes];
+        public static readonly GalleryLanguage[] GALLERY_LANGUAGES = GetGalleryLanguages();
+        public static readonly GalleryTypeEntity[] GALLERY_TYPE_ENTITIES = GetGalleryTypes();
+        private static GalleryLanguage[] GetGalleryLanguages() {
+            using HitomiContext context = new();
+            return [
+                new GalleryLanguage() { LocalName = TEXT_ALL },
+                .. context.GalleryLanguages.AsNoTracking().OrderBy(gl => gl.LocalName)
+            ];
+        }
+        private static GalleryTypeEntity[] GetGalleryTypes() {
+            using HitomiContext context = new();
+            return [
+                new GalleryTypeEntity() { GalleryType = null },
+                .. context.GalleryTypes.AsNoTracking()
+            ];
+        }
 
-        public TagTokenizingTextBoxVM[] TagTokenizingTBVMs { get; } = [.. Tag.TAG_CATEGORIES.Select(category => new TagTokenizingTextBoxVM(category))];
+
+        public TagTokenizingTextBoxVM[] TagTokenizingTBVMs { get; }
         public event NotifyCollectionChangedEventHandler TagCollectionChanged;
 
         [ObservableProperty]
@@ -51,12 +65,13 @@ namespace HitomiScrollViewerLib.ViewModels {
             GalleryTypeSelectedIndex > 0 ||
             SearchTitleText.Length > 0;
 
-        public QueryBuilderVM(string galleryLanguageIndexSettingsKey, string galleryTypeIndexSettingsKey) {
+        public QueryBuilderVM(HitomiContext context, string galleryLanguageIndexSettingsKey, string galleryTypeIndexSettingsKey) {
             _galleryLanguageIndexSettingsKey = galleryLanguageIndexSettingsKey;
             _galleryTypeIndexSettingsKey = galleryTypeIndexSettingsKey;
             GalleryLanguageSelectedIndex = (int)(ApplicationData.Current.LocalSettings.Values[galleryLanguageIndexSettingsKey] ??= 0);
             GalleryTypeSelectedIndex = (int)(ApplicationData.Current.LocalSettings.Values[galleryTypeIndexSettingsKey] ??= 0);
 
+            TagTokenizingTBVMs = [..Tag.TAG_CATEGORIES.Select(category => new TagTokenizingTextBoxVM(context, category))];
             foreach (var vm in TagTokenizingTBVMs) {
                 vm.SelectedTags.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => TagCollectionChanged?.Invoke(sender, e);
             }

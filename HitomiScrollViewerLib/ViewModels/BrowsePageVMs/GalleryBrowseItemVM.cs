@@ -27,10 +27,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
             Gallery = gallery;
             for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
                 List<Tag> tags = Tag.SelectTagsFromCategory(
-                    HitomiContext.Main.Galleries
-                    .Include(g => g.Tags)
-                    .First(g => g.Id == gallery.Id)
-                    .Tags,
+                    gallery.Tags,
                     Tag.TAG_CATEGORIES[i]
                 );
                 if (tags.Count != 0) {

@@ -50,18 +50,19 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
 
-                //HitomiContext.Main.Database.EnsureDeleted();
-
-                bool dbCreatedFirstTime = HitomiContext.Main.Database.EnsureCreated();
-
-                if (dbCreatedFirstTime) {
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
-                    vm.IsIndeterminate = false;
-                    vm.Value = 0;
-                    vm.Maximum = HitomiContext.DATABASE_INIT_OP_NUM;
-                    HitomiContext.Main.DatabaseInitProgressChanged += (value) => vm.Value = value;
-                    HitomiContext.Main.ChangeToIndeterminateEvent += () => vm.IsIndeterminate = true;
-                    HitomiContext.InitDatabase();
+                bool dbCreatedFirstTime;
+                using (HitomiContext context = new()) {
+                    //context.Database.EnsureDeleted();
+                    dbCreatedFirstTime = context.Database.EnsureCreated();
+                    if (dbCreatedFirstTime) {
+                        vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
+                        vm.IsIndeterminate = false;
+                        vm.Value = 0;
+                        vm.Maximum = HitomiContext.DATABASE_INIT_OP_NUM;
+                        HitomiContext.DatabaseInitProgressChanged += (value) => vm.Value = value;
+                        HitomiContext.ChangeToIndeterminateEvent += () => vm.IsIndeterminate = true;
+                        HitomiContext.InitDatabase(context);
+                    }
                 }
 
                 bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
@@ -76,11 +77,12 @@ namespace HitomiScrollViewerLib.ViewModels {
                         TF_SERIALIZER_OPTIONS
                     );
                     vm.Maximum = legacyTagFilters.Count;
+                    using HitomiContext context = new();
                     foreach (var pair in legacyTagFilters) {
-                        HitomiContext.Main.TagFilters.AddRange(pair.Value.ToTagFilter(pair.Key));
+                        context.TagFilters.AddRange(pair.Value.ToTagFilter(context, pair.Key));
                         vm.Value++;
                     }
-                    HitomiContext.Main.SaveChanges();
+                    context.SaveChanges();
                     File.Delete(TAG_FILTERS_FILE_PATH_V2);
                 }
 
@@ -89,7 +91,8 @@ namespace HitomiScrollViewerLib.ViewModels {
                 if (!v2TagFilterExists && dbCreatedFirstTime) {
                     vm.IsIndeterminate = true;
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.AddingExampleTFSs);
-                    HitomiContext.Main.AddExampleTagFilters();
+                    using HitomiContext context = new();
+                    context.AddExampleTagFilters();
                 }
 
                 // migrate existing galleries (p.k.a. bookmarks) from v2
@@ -103,11 +106,12 @@ namespace HitomiScrollViewerLib.ViewModels {
                         GALLERY_SERIALIZER_OPTIONS
                     );
                     vm.Maximum = originalGalleryInfos.Count;
+                    using HitomiContext context = new();
                     foreach (var ogi in originalGalleryInfos) {
-                        HitomiContext.Main.Galleries.Add(ogi.ToGallery());
+                        context.Galleries.Add(ogi.ToGallery(context));
                         vm.Value++;
                     }
-                    HitomiContext.Main.SaveChanges();
+                    context.SaveChanges();
                     File.Delete(BOOKMARKS_FILE_PATH_V2);
                 }
 
@@ -121,10 +125,12 @@ namespace HitomiScrollViewerLib.ViewModels {
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.RenamingImageFiles);
                     vm.IsIndeterminate = false;
                     IEnumerable<string> dirPaths = Directory.EnumerateDirectories(IMAGE_DIR_V3);
-                    HitomiContext.Main.Galleries.Include(g => g.Files).Load();
+
+                    using HitomiContext context = new();
+                    context.Galleries.Include(g => g.Files).Load();
                     foreach (string dirPath in Directory.EnumerateDirectories(IMAGE_DIR_V3)) {
                         int id = int.Parse(Path.GetFileName(dirPath));
-                        Gallery gallery = HitomiContext.Main.Galleries.Find(id);
+                        Gallery gallery = context.Galleries.Find(id);
                         ImageInfo[] imageInfos = [.. gallery.Files.OrderBy(f => f.Index)];
                         vm.Value = 0;
                         vm.Maximum = imageInfos.Length;
@@ -145,13 +151,6 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 vm.IsIndeterminate = true;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
-                HitomiContext.Main.Tags.Load();
-                HitomiContext.Main.GalleryLanguages.Load();
-                HitomiContext.Main.TagFilters.Load();
-                HitomiContext.Main.Galleries.Load();
-                HitomiContext.Main.GalleryTypes.Load();
-                HitomiContext.Main.SortDirections.Load();
-                HitomiContext.Main.GallerySorts.Load();
 
                 HideLoadProgressReporter.Invoke();
                 Initialised?.Invoke();
@@ -195,7 +194,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         public static async void HandleAppWindowClosing(AppWindowClosingEventArgs args) {
-            if (DownloadManagerVM.Main.DownloadItemVMs.Count > 0) {
+            if (SearchPageVM.Main.DownloadManagerVM.DownloadItemVMs.Count > 0) {
                 ContentDialogModel cdModel = new() {
                     DefaultButton = ContentDialogButton.Close,
                     Title = _resourceMap.GetValue("Text_DownloadRemaining").ValueAsString,
@@ -211,7 +210,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 if (SearchPageVM.Main.TagFilterEditorVM.IsTFAutoSaveEnabled) {
                     SearchPageVM.Main.TagFilterEditorVM.SaveTagFilter(SearchPageVM.Main.TagFilterEditorVM.SelectedTagFilter);
                 }
-                HitomiContext.Main.Dispose();
+                SearchPageVM.Main.Dispose();
             }
         }
     }

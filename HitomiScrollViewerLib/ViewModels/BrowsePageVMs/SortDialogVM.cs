@@ -6,15 +6,18 @@ using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class SortDialogVM : DQObservableObject {
-        public ObservableCollection<SortItemVM> ActiveSortItemVMs { get; } =
-            new(HitomiContext.Main.GallerySorts.Where(gs => gs.IsActive).Select(gs => new SortItemVM(gs)));
-        public ObservableCollection<SortItemVM> InactiveSortItemVMs { get; } =
-            new(HitomiContext.Main.GallerySorts.Where(gs => !gs.IsActive).Select(gs => new SortItemVM(gs)));
+        private HitomiContext _context;
+        public ObservableCollection<SortItemVM> ActiveSortItemVMs { get; }
+        public ObservableCollection<SortItemVM> InactiveSortItemVMs { get; }
 
         [ObservableProperty]
         private string _dialogShowButtonText;
 
-        public SortDialogVM() {
+        public SortDialogVM(HitomiContext context) {
+            _context = context;
+            ActiveSortItemVMs = new(context.GallerySorts.Where(gs => gs.IsActive).Select(gs => new SortItemVM(context, gs)));
+            InactiveSortItemVMs = new(context.GallerySorts.Where(gs => !gs.IsActive).Select(gs => new SortItemVM(context, gs)));
+
             foreach (SortItemVM vm in ActiveSortItemVMs) {
                 vm.AddRequested += ActivateSortItem;
                 vm.RemoveRequested += DeactivateSortItem;
@@ -33,13 +36,13 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
             InactiveSortItemVMs.Remove(vm);
             ActiveSortItemVMs.Add(vm);
             vm.GallerySort.IsActive = true;
-            HitomiContext.Main.SaveChanges();
+            _context.SaveChanges();
         }
         private void DeactivateSortItem(SortItemVM vm) {
             ActiveSortItemVMs.Remove(vm);
             InactiveSortItemVMs.Add(vm);
             vm.GallerySort.IsActive = false;
-            HitomiContext.Main.SaveChanges();
+            _context.SaveChanges();
         }
     }
 }

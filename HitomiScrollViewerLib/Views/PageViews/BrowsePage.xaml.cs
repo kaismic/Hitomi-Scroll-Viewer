@@ -24,7 +24,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         public BrowsePage() {
             InitializeComponent();
         }
-
+        // TODO figure out why initial width settings doesn't work
         private void SetGalleryItemWidths() {
             _itemsWrapGrid = GalleryItemsView.ItemsPanelRoot as ItemsWrapGrid;
             if (ViewModel.CurrentGalleryBrowseItemVMs.Count > 0) {

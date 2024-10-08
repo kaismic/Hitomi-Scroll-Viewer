@@ -7,29 +7,32 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
-    public partial class BrowsePageVM : DQObservableObject {
+    public partial class BrowsePageVM : DQObservableObject, IDisposable {
         private static BrowsePageVM _main;
         public static BrowsePageVM Main => _main ??= new();
+        private readonly HitomiContext _context = new();
+
         private BrowsePageVM() {
-            QueryBuilderVM.InsertTags([.. HitomiContext.Main.Tags.Where(t => t.IsSavedBrowseTag)]);
+            SortDialogVM = new(_context);
+            QueryBuilderVM = new(_context, "BrowsePageGalleryLanguageIndex", "BrowsePageGalleryTypeIndex");
+            QueryBuilderVM.InsertTags([.. _context.Tags.Where(t => t.IsSavedBrowseTag)]);
             QueryBuilderVM.TagCollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
                 switch (e.Action) {
                     case NotifyCollectionChangedAction.Add:
                         (e.NewItems[0] as Tag).IsSavedBrowseTag = true;
-                        HitomiContext.Main.SaveChanges();
+                        _context.SaveChanges();
                         break;
                     case NotifyCollectionChangedAction.Remove:
                         (e.OldItems[0] as Tag).IsSavedBrowseTag = false;
-                        HitomiContext.Main.SaveChanges();
+                        _context.SaveChanges();
                         break;
                 }
             };
             SortDialogVM.ActiveSortItemVMs.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => ExecuteQuery();
-            foreach (GallerySortEntity gs in HitomiContext.Main.GallerySorts) {
+            foreach (GallerySortEntity gs in _context.GallerySorts.Include(gs => gs.SortDirectionEntity).ToList()) {
                 gs.SortDirectionChanged += ExecuteQuery;
             }
             ExecuteQuery();
@@ -92,12 +95,19 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [ObservableProperty]
         private List<GalleryBrowseItemVM> _currentGalleryBrowseItemVMs;
 
-        public QueryBuilderVM QueryBuilderVM { get; } = new("BrowsePageGalleryLanguageIndex", "BrowsePageGalleryTypeIndex");
-        public SortDialogVM SortDialogVM { get; } = new();
+        public QueryBuilderVM QueryBuilderVM { get; }
+        public SortDialogVM SortDialogVM { get; }
 
         [RelayCommand]
         private void ExecuteQuery() {
-            IEnumerable<Gallery> filtered = HitomiContext.Main.Galleries;
+            using HitomiContext context = new();
+            IEnumerable<Gallery> filtered = [
+                .. context.Galleries
+                .Include(g => g.GalleryType)
+                .Include(g => g.GalleryLanguage)
+                .Include(g => g.Files)
+                .Include(g => g.Tags)
+            ];
             if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0) {
                 if (QueryBuilderVM.SelectedGalleryLanguage.Galleries == null) {
                     FilteredGalleries = [];
@@ -115,7 +125,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
             if (currentTags.Count > 0) {
                 foreach (Tag tag in currentTags) {
-                    HitomiContext.Main.Tags.Where(t => t.Id == tag.Id).Include(t => t.Galleries).Load();
+                    context.Entry(tag).Collection(t => t.Galleries).Load();
                     if (tag.Galleries is not null) {
                         filtered = filtered.Intersect(tag.Galleries);
                     }
@@ -132,6 +142,11 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             }
             FilteredGalleries = [.. filtered];
+        }
+
+        public void Dispose() {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

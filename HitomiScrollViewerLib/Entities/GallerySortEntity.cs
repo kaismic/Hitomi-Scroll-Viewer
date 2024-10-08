@@ -24,7 +24,6 @@ namespace HitomiScrollViewerLib.Entities {
                 }
                 _sortDirectionEntity = value;
                 SortDirectionChanged?.Invoke();
-                HitomiContext.Main.SaveChanges();
             }
         }
         public event Action SortDirectionChanged;

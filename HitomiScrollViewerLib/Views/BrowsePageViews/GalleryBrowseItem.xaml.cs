@@ -107,7 +107,6 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
         private void GalleryBrowseItem_Loaded(object _0, RoutedEventArgs _1) {
             Loaded -= GalleryBrowseItem_Loaded;
             // add initial thumbnail images
-            HitomiContext.Main.Galleries.Where(g => g.Id == ViewModel.Gallery.Id).Include(g => g.Files).Load();
             TryAddThumnailImages();
             ThumbnailImagePanel.ItemsSource = _imageFilePaths;
         }

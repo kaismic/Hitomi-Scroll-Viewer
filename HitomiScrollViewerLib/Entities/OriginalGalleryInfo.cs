@@ -66,26 +66,26 @@ namespace HitomiScrollViewerLib.Entities {
             }
         }
 
-        public Gallery ToGallery() {
+        public Gallery ToGallery(HitomiContext context) {
             Gallery gallery = new() {
                 Id = Id,
                 Title = Title,
                 JapaneseTitle = JapaneseTitle,
-                GalleryLanguage = HitomiContext.Main.GalleryLanguages.First(l => l.SearchParamValue == Language),
-                GalleryType = HitomiContext.Main.GalleryTypes.First(t => t.SearchParamValue == Type),
+                GalleryLanguage = context.GalleryLanguages.First(l => l.SearchParamValue == Language),
+                GalleryType = context.GalleryTypes.First(t => t.SearchParamValue == Type),
                 Date = Date,
                 SceneIndexes = SceneIndexes,
                 Related = Related,
                 Files = Files,
                 Tags = [],
             };
-            SetGalleryProperty(Artists, gallery, TagCategory.Artist);
-            SetGalleryProperty(Groups, gallery, TagCategory.Group);
-            SetGalleryProperty(Characters, gallery, TagCategory.Character);
-            SetGalleryProperty(Parodys, gallery, TagCategory.Series);
+            SetGalleryProperty(context, Artists, gallery, TagCategory.Artist);
+            SetGalleryProperty(context, Groups, gallery, TagCategory.Group);
+            SetGalleryProperty(context, Characters, gallery, TagCategory.Character);
+            SetGalleryProperty(context, Parodys, gallery, TagCategory.Series);
 
             foreach (var compositeTag in Tags) {
-                gallery.Tags.Add(Tag.GetTag(
+                gallery.Tags.Add(context.GetTag(
                     compositeTag.Tag,
                     compositeTag.Male == 1   ? TagCategory.Male   :
                     compositeTag.Female == 1 ? TagCategory.Female :
@@ -97,13 +97,14 @@ namespace HitomiScrollViewerLib.Entities {
         }
 
         private static void SetGalleryProperty(
+            HitomiContext context,
             Dictionary<string, string>[] originalDictArr,
             Gallery gallery,
             TagCategory category
         ) {
             if (originalDictArr != null) {
                 foreach (var dict in originalDictArr) {
-                    gallery.Tags.Add(Tag.GetTag(dict[CATEGORY_PROP_KEY_DICT[category]], category));
+                    gallery.Tags.Add(context.GetTag(dict[CATEGORY_PROP_KEY_DICT[category]], category));
                 }
             }
         }

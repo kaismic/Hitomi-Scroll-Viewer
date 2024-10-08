@@ -37,24 +37,6 @@ namespace HitomiScrollViewerLib.Entities {
         public virtual ICollection<TagFilter> TagFilters { get; set; }
         public virtual ICollection<Gallery> Galleries { get; set; }
 
-
-        /// <returns><see cref="Tag"/> or <c>null</c></returns>
-        public static Tag GetTag(string value, TagCategory category) {
-            string formattedValue = value.ToLower();
-            return HitomiContext.Main.Tags
-                .FirstOrDefault(tag =>
-                    tag.Value == formattedValue &&
-                    tag.Category == category
-                );
-        }
-
-        public static Tag CreateTag(string value, TagCategory category) {
-            Tag tag = new() { Value = value, Category = category };
-            HitomiContext.Main.Tags.Add(tag);
-            HitomiContext.Main.SaveChanges();
-            return tag;
-        }
-
         public static List<Tag> SelectTagsFromCategory(IEnumerable<Tag> tags, TagCategory category) {
             return [.. tags.Where(t => t.Category == category).OrderBy(t => t.Value)];
         }

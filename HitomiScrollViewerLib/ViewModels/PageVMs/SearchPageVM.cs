@@ -15,21 +15,23 @@ using Windows.ApplicationModel.DataTransfer;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
-    public partial class SearchPageVM : DQObservableObject {
+    public partial class SearchPageVM : DQObservableObject, IDisposable {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SearchPage).Name);
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private static SearchPageVM _main;
         public static SearchPageVM Main => _main ??= new();
 
-        public TagFilterEditorVM TagFilterEditorVM { get; } = new();
-        public QueryBuilderVM QueryBuilderVM { get; } = new("SearchPageGalleryLanguageIndex", "SearchPageGalleryTypeIndex");
-        public PairedTFSelectorVM IncludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
-        public PairedTFSelectorVM ExcludeTFSelectorVM { get; } = new(HitomiContext.Main.TagFilters.Local.ToObservableCollection());
+        private readonly HitomiContext _context = new();
 
-        public SyncManagerVM SyncManagerVM { get; } = new();
+        public TagFilterEditorVM TagFilterEditorVM { get; }
+        public QueryBuilderVM QueryBuilderVM { get; }
+        public PairedTFSelectorVM IncludeTFSelectorVM { get; }
+        public PairedTFSelectorVM ExcludeTFSelectorVM { get; }
+
+        public SyncManagerVM SyncManagerVM { get; }
         public ObservableCollection<SearchFilterVM> SearchFilterVMs { get; } = [];
-        public DownloadManagerVM DownloadManagerVM { get; } = DownloadManagerVM.Main;
+        public DownloadManagerVM DownloadManagerVM { get; } = new();
 
         [ObservableProperty]
         private string _downloadInputText = "";
@@ -38,6 +40,14 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         private SearchPageVM() {
+            _context.TagFilters.Load();
+            TagFilterEditorVM = new(_context);
+            QueryBuilderVM = new(_context, "SearchPageGalleryLanguageIndex", "SearchPageGalleryTypeIndex");
+
+            SyncManagerVM = new(_context);
+            IncludeTFSelectorVM = new(_context.TagFilters.Local.ToObservableCollection());
+            ExcludeTFSelectorVM = new(_context.TagFilters.Local.ToObservableCollection());
+
             SearchLinkCreateButtonCommand = new RelayCommand(
                 HandleSearchLinkCreateButtonClick,
                 () => QueryBuilderVM.AnyQuerySelected || IncludeTFSelectorVM.SelectedTFCBModels.Any() || ExcludeTFSelectorVM.SelectedTFCBModels.Any()
@@ -56,11 +66,13 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
                 QueryBuilderVM.ClearSelectedTags();
                 QueryBuilderVM.InsertTags(
-                    HitomiContext.Main
-                    .TagFilters
-                    .Include(tf => tf.Tags)
-                    .First(tf => tf.Id == selectedTagFilter.Id)
-                    .Tags
+                    [.. _context
+                        .TagFilters
+                        .AsNoTracking()
+                        .Include(tf => tf.Tags)
+                        .First(tf => tf.Id == selectedTagFilter.Id)
+                        .Tags
+                    ]
                 );
             };
         }
@@ -103,7 +115,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             }
             IEnumerable<int> includeTagFilterIds = includeTagFilters.Select(tf => tf.Id);
             IEnumerable<int> excludeTagFilterIds = excludeTagFilters.Select(tf => tf.Id);
-            HitomiContext.Main.TagFilters
+            _context.TagFilters
                 .Where(tf => includeTagFilterIds.Contains(tf.Id) || excludeTagFilterIds.Contains(tf.Id))
                 .Include(tf => tf.Tags)
                 .Load();
@@ -177,6 +189,11 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             foreach (int id in extractedIds) {
                 DownloadManagerVM.TryDownload(id);
             }
+        }
+
+        public void Dispose() {
+            _context.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

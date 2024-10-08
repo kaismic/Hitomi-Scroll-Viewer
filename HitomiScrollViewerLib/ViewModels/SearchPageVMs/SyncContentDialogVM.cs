@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -29,22 +30,31 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class SyncContentDialogVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SyncContentDialog).Name);
 
-        private static SyncContentDialogVM _main;
-        public static SyncContentDialogVM Main => _main ??= new();
-        private SyncContentDialogVM() { }
+        private HitomiContext _context;
+        public SyncContentDialogVM(HitomiContext context) {
+            _context = context;
+            PropertyChanged += (object sender, PropertyChangedEventArgs e) => {
+                if (e.PropertyName != nameof(IsPrimaryButtonEnabled) && e.PropertyName != nameof(IsEnabled)) {
+                    IsPrimaryButtonEnabled = CanClickPrimaryButton();
+                }
+            };
+        }
 
-        public DriveService DriveService { get; set; }
+        public required DriveService DriveService { get; init; }
 
         private bool _closeDialog = true;
         private bool _isSyncing = false;
         private CancellationTokenSource _cts;
 
         public event Func<IAsyncOperation<ContentDialogResult>> RequestShowDialog;
-        public IAsyncOperation<ContentDialogResult> ShowSynContentDialog() {
+        public IAsyncOperation<ContentDialogResult> ShowSyncContentDialog() {
             return RequestShowDialog?.Invoke();
         }
         [ObservableProperty]
         private bool _isEnabled;
+        [ObservableProperty]
+        private bool _isPrimaryButtonEnabled;
+
         [ObservableProperty]
         private string _closeButtonText;
         [ObservableProperty]
@@ -269,8 +279,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             string uploadFileContent = userDataType switch {
-                UserDataType.TagFilterSet => JsonSerializer.Serialize(HitomiContext.Main.TagFilters, TF_SERIALIZER_OPTIONS),
-                UserDataType.Gallery => JsonSerializer.Serialize(HitomiContext.Main.Galleries, TF_SERIALIZER_OPTIONS),
+                UserDataType.TagFilterSet => JsonSerializer.Serialize(_context.TagFilters, TF_SERIALIZER_OPTIONS),
+                UserDataType.Gallery => JsonSerializer.Serialize(_context.Galleries, TF_SERIALIZER_OPTIONS),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             InfoBarModel infoBarModel = userDataType switch {
@@ -332,9 +342,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             infoBarModel.Message = message;
         }
 
-        public ICommand PrimaryButtonCommand => new RelayCommand(HandlePrimaryButtonClick, CanClickPrimaryButton);
-
-        private async void HandlePrimaryButtonClick() {
+        public async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args) {
+            args.Cancel = true;
             _cts = new();
             _closeDialog = false;
             StartStopSync(true);
@@ -395,24 +404,24 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                 (fetchedFileContent, TF_SERIALIZER_OPTIONS);
                             // Overwrite
                             if (RadioButtons2SelectedIndex == 0) {
-                                HitomiContext.Main.TagFilters.RemoveRange(HitomiContext.Main.TagFilters);
-                                HitomiContext.Main.TagFilters.AddRange(fetchedTFSs);
-                                HitomiContext.Main.SaveChanges();
+                                _context.TagFilters.RemoveRange(_context.TagFilters);
+                                _context.TagFilters.AddRange(fetchedTFSs);
+                                _context.SaveChanges();
                             }
                             // Append
                             else {
                                 foreach (TagFilter fetchedTFS in fetchedTFSs) {
-                                    TagFilter existingTFS = HitomiContext.Main.TagFilters.FirstOrDefault(tfs => tfs.Name == fetchedTFS.Name);
+                                    TagFilter existingTFS = _context.TagFilters.FirstOrDefault(tfs => tfs.Name == fetchedTFS.Name);
                                     // no duplicate name so just add
                                     if (existingTFS == null) {
-                                        HitomiContext.Main.TagFilters.Add(fetchedTFS);
+                                        _context.TagFilters.Add(fetchedTFS);
                                     }
                                     // if replace option is selected, replace local tfs tags with duplicate name
                                     else if (RadioButtons3SelectedIndex == 0) {
                                         existingTFS.Tags = fetchedTFS.Tags;
                                     }
                                 }
-                                HitomiContext.Main.SaveChanges();
+                                _context.SaveChanges();
                             }
                             SetInfoBarModel(
                                 TFInfoBarModel,

@@ -8,6 +8,7 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml.Controls;
@@ -34,14 +35,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private static readonly ResourceMap _credentialsResourceMap = MainResourceMap.GetSubtree("Credentials");
 
         private static UserCredential _userCredential;
-        private static BaseClientService.Initializer _initializer;
-        private static BaseClientService.Initializer Initializer {
-            get => _initializer;
-            set {
-                _initializer = value;
-                SyncContentDialogVM.Main.DriveService = new(_initializer);
-            }
-        }
+        private static BaseClientService.Initializer Initializer { get; set; }
 
         [ObservableProperty]
         private bool _isSignedIn = false;
@@ -56,7 +50,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [ObservableProperty]
         private bool _isSyncButtonEnabled;
 
-        public SyncManagerVM() {
+        private HitomiContext _context;
+
+        public SyncManagerVM(HitomiContext context) {
+            _context = context;
             _ = Task.Run(async () => {
                 TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
                 bool tokenExists = tokenResponse != null;
@@ -176,7 +173,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [RelayCommand(CanExecute = nameof(IsSyncButtonEnabled))]
         public async Task HandleSyncButtonClick() {
             IsSyncButtonEnabled = false;
-            await SyncContentDialogVM.Main.ShowSynContentDialog();
+            SyncContentDialogVM vm = new(_context) { DriveService = new(Initializer) };
+            await vm.ShowSyncContentDialog();
             IsSyncButtonEnabled = true;
         }
     }

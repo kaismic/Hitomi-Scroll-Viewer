@@ -21,10 +21,6 @@ namespace HitomiScrollViewerLib.DbContexts {
         public DbSet<GallerySortEntity> GallerySorts { get; set; }
 
 
-        private static HitomiContext _main;
-        public static HitomiContext Main => _main ??= new();
-
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
             optionsBuilder.UseSqlite($"Data Source={MAIN_DATABASE_PATH_V3}");
@@ -55,9 +51,9 @@ namespace HitomiScrollViewerLib.DbContexts {
         };
 
         public static readonly int DATABASE_INIT_OP_NUM = Tag.TAG_CATEGORIES.Length * ALPHABETS_WITH_123.Length + 1;
-        public event Action<int> DatabaseInitProgressChanged;
-        public event Action ChangeToIndeterminateEvent;
-        public static void InitDatabase() {
+        public static event Action<int> DatabaseInitProgressChanged;
+        public static event Action ChangeToIndeterminateEvent;
+        public static void InitDatabase(HitomiContext context) {
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             int progressValue = 0;
             // add tags
@@ -71,7 +67,7 @@ namespace HitomiScrollViewerLib.DbContexts {
                 foreach (string alphanumStr in ALPHABETS_WITH_123) {
                     string path = Path.Combine(dir, $"{categoryStr.ToLower()}-{alphanumStr}.txt");
                     string[] tagInfoStrs = File.ReadAllLines(path);
-                    Main.Tags.AddRange(tagInfoStrs.Select(
+                    context.Tags.AddRange(tagInfoStrs.Select(
                         tagInfoStr => {
                             string[] tagInfoArr = tagInfoStr.Split(delimiter);
                             return new Tag() {
@@ -81,12 +77,12 @@ namespace HitomiScrollViewerLib.DbContexts {
                             };
                         }
                     ));
-                    Main.DatabaseInitProgressChanged?.Invoke(++progressValue);
+                    DatabaseInitProgressChanged?.Invoke(++progressValue);
                 }
             }
             // add gallery languages and its local names
             string[][] languages = File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter)).ToArray();
-            Main.GalleryLanguages.AddRange(languages.Select(
+            context.GalleryLanguages.AddRange(languages.Select(
                 pair => {
                     return new GalleryLanguage() {
                         SearchParamValue = pair[0],
@@ -95,46 +91,46 @@ namespace HitomiScrollViewerLib.DbContexts {
                 }
             ));
             // add gallery types
-            Main.GalleryTypes.AddRange(
+            context.GalleryTypes.AddRange(
                 Enumerable.Range(0, Enum.GetNames(typeof(GalleryType)).Length)
                 .Select(i => new GalleryTypeEntity() { GalleryType = (GalleryType)i })
             );
 
             // add sort directions
-            Main.SortDirections.AddRange(
+            context.SortDirections.AddRange(
                 Enumerable.Range(0, Enum.GetNames(typeof(SortDirection)).Length)
                 .Select(i => new SortDirectionEntity() { SortDirection = (SortDirection)i })
             );
 
             // change to indeterminate because SaveChanges() takes a long time
-            Main.ChangeToIndeterminateEvent?.Invoke();
+            ChangeToIndeterminateEvent?.Invoke();
             // add gallery sorts
-            Main.SaveChanges();
-            Main.GallerySorts.AddRange(
+            context.SaveChanges();
+            context.GallerySorts.AddRange(
                 Enumerable.Range(0, Enum.GetNames(typeof(GallerySortProperty)).Length)
                 .Select(i => new GallerySortEntity() {
                     GallerySortProperty = (GallerySortProperty)i,
-                    SortDirectionEntity = Main.SortDirections.First()
+                    SortDirectionEntity = context.SortDirections.First()
                 })
             );
             // default DownloadTime sort
-            Main.GallerySorts.Find(GallerySortProperty.DownloadTime).IsActive = true;
+            context.GallerySorts.Find(GallerySortProperty.DownloadTime).IsActive = true;
 
-            Main.SaveChanges();
+            context.SaveChanges();
             ClearInvocationList();
         }
 
         private static void ClearInvocationList() {
-            var invocList = Main.DatabaseInitProgressChanged?.GetInvocationList();
+            var invocList = DatabaseInitProgressChanged?.GetInvocationList();
             if (invocList != null) {
                 foreach (Delegate d in invocList) {
-                    Main.DatabaseInitProgressChanged -= (Action<int>)d;
+                    DatabaseInitProgressChanged -= (Action<int>)d;
                 }
             }
-            invocList = Main.ChangeToIndeterminateEvent?.GetInvocationList();
+            invocList = ChangeToIndeterminateEvent?.GetInvocationList();
             if (invocList != null) {
                 foreach (Delegate d in invocList) {
-                    Main.ChangeToIndeterminateEvent -= (Action)d;
+                    ChangeToIndeterminateEvent -= (Action)d;
                 }
             }
         }
@@ -145,32 +141,42 @@ namespace HitomiScrollViewerLib.DbContexts {
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_1").ValueAsString,
                     Tags = [
-                        Tag.GetTag("full color", TagCategory.Tag),
-                        Tag.GetTag("very long hair", TagCategory.Female),
+                        GetTag("full color", TagCategory.Tag),
+                        GetTag("very long hair", TagCategory.Female),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_2").ValueAsString,
                     Tags = [
-                        Tag.GetTag("glasses", TagCategory.Female),
-                        Tag.GetTag("sole male", TagCategory.Male),
+                        GetTag("glasses", TagCategory.Female),
+                        GetTag("sole male", TagCategory.Male),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_3").ValueAsString,
                     Tags = [
-                        Tag.GetTag("naruto", TagCategory.Series),
-                        Tag.GetTag("big breasts", TagCategory.Female),
+                        GetTag("naruto", TagCategory.Series),
+                        GetTag("big breasts", TagCategory.Female),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_4").ValueAsString,
                     Tags = [
-                        Tag.GetTag("non-h imageset", TagCategory.Tag)
+                        GetTag("non-h imageset", TagCategory.Tag)
                     ]
                 }
             );
             SaveChanges();
+        }
+
+        /// <returns><see cref="Tag"/> or <c>null</c></returns>
+        public Tag GetTag(string value, TagCategory category) {
+            string formattedValue = value.ToLower();
+            return Tags
+                .FirstOrDefault(tag =>
+                    tag.Value == formattedValue &&
+                    tag.Category == category
+                );
         }
     }
 }

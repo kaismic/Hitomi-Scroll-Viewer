@@ -11,7 +11,7 @@
     Style="{ThemeResource DefaultContentDialogStyle}"
     PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
     DefaultButton="Primary"
-    PrimaryButtonCommand="{x:Bind ViewModel.PrimaryButtonCommand}"
+    PrimaryButtonClick="{x:Bind ViewModel.ContentDialog_PrimaryButtonClick}"
     CloseButtonClick="{x:Bind ViewModel.ContentDialog_CloseButtonClick}"
     CloseButtonText="{x:Bind ViewModel.CloseButtonText}"
     Closing="{x:Bind ViewModel.ContentDialog_Closing}"

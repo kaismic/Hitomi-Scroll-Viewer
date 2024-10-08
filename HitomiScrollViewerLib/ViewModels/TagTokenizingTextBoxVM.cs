@@ -24,7 +24,10 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private Tag[] _suggestedItemsSource;
 
-        public TagTokenizingTextBoxVM(TagCategory category) {
+        private readonly HitomiContext _context;
+
+        public TagTokenizingTextBoxVM(HitomiContext context, TagCategory category) {
+            _context = context;
             Category = category;
             SelectedTags.CollectionChanged += SelectedTags_CollectionChanged;
         }
@@ -48,7 +51,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         private Tag[] GetSuggestions() {
-            IQueryable<Tag> tags = HitomiContext.Main.Tags.Where(tag => tag.Category == Category);
+            IQueryable<Tag> tags = _context.Tags.Where(tag => tag.Category == Category);
             if (Text.Length != 0) {
                 tags = tags.Where(tag => tag.Value.StartsWith(Text));
             }
@@ -70,7 +73,7 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public void TokenizingTextBox_TokenItemAdding(TokenizingTextBox _0, TokenItemAddingEventArgs args) {
             if (args.TokenText != null) {
-                Tag tag = Tag.GetTag(args.TokenText, Category);
+                Tag tag = _context.GetTag(args.TokenText, Category);
                 if (tag == null || _selectedTagIds.Contains(tag.Id)) {
                     args.Cancel = true;
                 } else {
