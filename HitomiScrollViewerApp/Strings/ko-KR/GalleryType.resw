@@ -135,4 +135,7 @@
   <data name="Anime" xml:space="preserve">
     <value>애니메이션</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>전체</value>
+  </data>
 </root>
