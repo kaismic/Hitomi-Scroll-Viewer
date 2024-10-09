@@ -35,7 +35,7 @@
                         Command="{x:Bind ViewModel.ExecuteQueryCommand}"
                         Style="{StaticResource AccentButtonStyle}"
                         >
-                    <SymbolIcon Symbol="Filter"/>
+                    <SymbolIcon Symbol="Refresh"/>
                 </Button>
             </Grid>
             <Grid Grid.Row="1">
@@ -45,7 +45,7 @@
                     <StackPanel Orientation="Horizontal"
                                 Spacing="16"
                                 Padding="4">
-                        <SymbolIcon Symbol="Refresh"/>
+                        <SymbolIcon Symbol="Sort"/>
                         <TextBlock Text="{x:Bind ViewModel.SortDialogVM.DialogShowButtonText, Mode=OneWay}"/>
                     </StackPanel>
                 </Button>
@@ -75,7 +75,7 @@
                 <GridView.ItemTemplate>
                     <DataTemplate x:DataType="bpvms:GalleryBrowseItemVM">
                         <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
-                                                   Width="{x:Bind Width}"
+                                                   Width="{x:Bind Width, Mode=OneWay}"
                                                    Height="412"/>
                     </DataTemplate>
                 </GridView.ItemTemplate>

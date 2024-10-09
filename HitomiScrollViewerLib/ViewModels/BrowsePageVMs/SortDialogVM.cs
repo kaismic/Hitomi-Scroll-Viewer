@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.Entities;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -15,8 +16,18 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
 
         public SortDialogVM(HitomiContext context) {
             _context = context;
-            ActiveSortItemVMs = new(context.GallerySorts.Where(gs => gs.IsActive).Select(gs => new SortItemVM(context, gs)));
-            InactiveSortItemVMs = new(context.GallerySorts.Where(gs => !gs.IsActive).Select(gs => new SortItemVM(context, gs)));
+            SortDirectionEntity[] sortDirections = [.. _context.SortDirections.OrderBy(sd => sd.SortDirection)];
+            ActiveSortItemVMs = new(
+                context.GallerySorts
+                .Where(gs => gs.IsActive)
+                .OrderBy(gs => gs.Index)
+                .Select(gs => new SortItemVM(gs, sortDirections))
+            );
+            InactiveSortItemVMs = new(
+                context.GallerySorts
+                .Where(gs => !gs.IsActive)
+                .Select(gs => new SortItemVM(gs, sortDirections))
+            );
 
             foreach (SortItemVM vm in ActiveSortItemVMs) {
                 vm.AddRequested += ActivateSortItem;
@@ -29,6 +40,10 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
             DialogShowButtonText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
             ActiveSortItemVMs.CollectionChanged += (object _0, NotifyCollectionChangedEventArgs e) => {
                 DialogShowButtonText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
+                for (int i = 0; i < ActiveSortItemVMs.Count; i++) {
+                    ActiveSortItemVMs[i].GallerySort.Index = i;
+                }
+                _context.SaveChanges();
             };
         }
 

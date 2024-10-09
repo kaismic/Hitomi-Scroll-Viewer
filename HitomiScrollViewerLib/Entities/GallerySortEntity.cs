@@ -14,9 +14,11 @@ namespace HitomiScrollViewerLib.Entities {
         public GallerySortProperty GallerySortProperty { get; init; }
         public string DisplayName => _resourceMap.GetValue(GallerySortProperty.ToString()).ValueAsString;
         public bool IsActive { get; set; }
+        public int Index { get; set; }
 
         private SortDirectionEntity _sortDirectionEntity;
-        public virtual SortDirectionEntity SortDirectionEntity {
+        [Required]
+        public SortDirectionEntity SortDirectionEntity {
             get => _sortDirectionEntity;
             set {
                 if (_sortDirectionEntity == value) {

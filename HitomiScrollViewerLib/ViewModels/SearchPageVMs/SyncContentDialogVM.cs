@@ -30,7 +30,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class SyncContentDialogVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SyncContentDialog).Name);
 
-        private HitomiContext _context;
+        private readonly HitomiContext _context;
         public SyncContentDialogVM(HitomiContext context) {
             _context = context;
             PropertyChanged += (object sender, PropertyChangedEventArgs e) => {

@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;

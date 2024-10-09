@@ -26,6 +26,6 @@ namespace HitomiScrollViewerLib.Entities {
         }
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public virtual ICollection<Tag> Tags { get; set; }
+        public ICollection<Tag> Tags { get; set; }
     }
 }

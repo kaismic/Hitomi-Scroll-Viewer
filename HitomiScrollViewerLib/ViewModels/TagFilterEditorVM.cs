@@ -18,8 +18,6 @@ namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
 
-        private HitomiContext _context;
-
         public ObservableCollection<TagFilter> TagFilters { get; }
 
         [ObservableProperty]
@@ -60,9 +58,8 @@ namespace HitomiScrollViewerLib.ViewModels {
             }
         }
 
-        public TagFilterEditorVM(HitomiContext context) {
-            _context = context;
-            TagFilters = context.TagFilters.Local.ToObservableCollection();
+        public TagFilterEditorVM(ObservableCollection<TagFilter> tagFilters) {
+            TagFilters = tagFilters;
             CreateButtonCommand = new RelayCommand(CreateButton_Click);
             RenameButtonCommand = new RelayCommand(
                 RenameButton_Click,
@@ -81,7 +78,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         public RelayCommand CreateButtonCommand { get; }
 
         private async void CreateButton_Click() {
-            CRUDContentDialogVM cdvm = new(_context, CRUDContentDialogVM.CRUDAction.Create);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Create);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
@@ -92,8 +89,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 Name = name,
                 Tags = args.Tags
             };
-            _context.TagFilters.Add(tf);
-            _context.SaveChanges();
+            TagFilters.Add(tf);
             SelectedTagFilter = tf;
             MainWindowVM.ShowPopup(
                 string.Format(
@@ -107,13 +103,12 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         private async void RenameButton_Click() {
             string oldName = SelectedTagFilter.Name;
-            CRUDContentDialogVM cdvm = new(_context, CRUDContentDialogVM.CRUDAction.Rename, oldName);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Rename, oldName: oldName);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
             string newName = cdvm.GetInputText();
             SelectedTagFilter.Name = newName;
-            _context.SaveChanges();
             MainWindowVM.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
@@ -133,7 +128,6 @@ namespace HitomiScrollViewerLib.ViewModels {
             TagCollectionEventArgs args = new();
             CurrentTagsRequested?.Invoke(args);
             tf.Tags = args.Tags;
-            _context.SaveChanges();
             MainWindowVM.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
@@ -145,14 +139,15 @@ namespace HitomiScrollViewerLib.ViewModels {
         public RelayCommand DeleteButtonCommand { get; }
 
         private async void DeleteButton_Click() {
-            CRUDContentDialogVM cdvm = new(_context, CRUDContentDialogVM.CRUDAction.Delete);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Delete, tagFilters: TagFilters);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
             IEnumerable<TagFilter> SelectedTagFilters = cdvm.GetSelectedTagFilters();
             DeletedTagFilterIds = SelectedTagFilters.Select(tf => tf.Id).ToHashSet();
-            _context.TagFilters.RemoveRange(cdvm.GetSelectedTagFilters());
-            _context.SaveChanges();
+            foreach (TagFilter tf in cdvm.GetSelectedTagFilters()) {
+                TagFilters.Remove(tf);
+            }
             MainWindowVM.ShowPopup(
                 MultiPattern.Format(
                     _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,

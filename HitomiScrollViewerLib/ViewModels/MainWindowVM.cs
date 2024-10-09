@@ -52,7 +52,7 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 bool dbCreatedFirstTime;
                 using (HitomiContext context = new()) {
-                    //context.Database.EnsureDeleted();
+                    //context.Database.EnsureDeleted(); // Uncomment to reset database
                     dbCreatedFirstTime = context.Database.EnsureCreated();
                     if (dbCreatedFirstTime) {
                         vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
@@ -211,6 +211,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     SearchPageVM.Main.TagFilterEditorVM.SaveTagFilter(SearchPageVM.Main.TagFilterEditorVM.SelectedTagFilter);
                 }
                 SearchPageVM.Main.Dispose();
+                BrowsePageVM.Main.Dispose();
             }
         }
     }

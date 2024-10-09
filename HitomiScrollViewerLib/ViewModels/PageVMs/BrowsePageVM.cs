@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
@@ -14,6 +15,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static BrowsePageVM _main;
         public static BrowsePageVM Main => _main ??= new();
         private readonly HitomiContext _context = new();
+
+        public QueryBuilderVM QueryBuilderVM { get; }
+        public SortDialogVM SortDialogVM { get; }
 
         private BrowsePageVM() {
             SortDialogVM = new(_context);
@@ -23,11 +27,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 switch (e.Action) {
                     case NotifyCollectionChangedAction.Add:
                         (e.NewItems[0] as Tag).IsSavedBrowseTag = true;
-                        _context.SaveChanges();
                         break;
                     case NotifyCollectionChangedAction.Remove:
                         (e.OldItems[0] as Tag).IsSavedBrowseTag = false;
-                        _context.SaveChanges();
                         break;
                 }
             };
@@ -95,9 +97,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [ObservableProperty]
         private List<GalleryBrowseItemVM> _currentGalleryBrowseItemVMs;
 
-        public QueryBuilderVM QueryBuilderVM { get; }
-        public SortDialogVM SortDialogVM { get; }
-
         [RelayCommand]
         private void ExecuteQuery() {
             using HitomiContext context = new();
@@ -145,6 +144,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         public void Dispose() {
+            _context.SaveChanges();
             _context.Dispose();
             GC.SuppressFinalize(this);
         }

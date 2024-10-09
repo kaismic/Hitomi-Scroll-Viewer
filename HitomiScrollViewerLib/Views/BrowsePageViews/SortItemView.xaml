@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:entities="using:HitomiScrollViewerLib.Entities"
     mc:Ignorable="d"
     ColumnSpacing="32">
     <Grid.ColumnDefinitions>
@@ -21,7 +20,7 @@
     <ComboBox x:Name="SortDirectionComboBox"
               DisplayMemberPath="DisplayName"
               HorizontalAlignment="Stretch"
-              ItemsSource="{x:Bind entities:SortDirectionEntity.SORT_DIRECTIONS}"
+              ItemsSource="{x:Bind ViewModel.SortDirections}"
               SelectedItem="{x:Bind ViewModel.GallerySort.SortDirectionEntity, Mode=TwoWay}"
               VerticalAlignment="Center"
               />

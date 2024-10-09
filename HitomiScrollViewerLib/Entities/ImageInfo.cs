@@ -53,6 +53,6 @@ namespace HitomiScrollViewerLib.Entities {
         }
         
         [Required]
-        public virtual Gallery Gallery { get; set; }
+        public Gallery Gallery { get; set; }
     }
 }

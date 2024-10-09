@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.WinUI.Collections;
-using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using System;
 using System.Collections.Generic;
@@ -9,13 +8,14 @@ using System.Linq;
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public class SortItemVM {
         public GallerySortEntity GallerySort { get; }
+        public SortDirectionEntity[] SortDirections { get; }
         public RelayCommand RemoveCommand { get; }
         public event Action<SortItemVM> RemoveRequested;
         public event Action<SortItemVM> AddRequested;
 
-        public SortItemVM(HitomiContext context, GallerySortEntity gallerySort) {
+        public SortItemVM(GallerySortEntity gallerySort, SortDirectionEntity[] sortDirections) {
             GallerySort = gallerySort;
-            gallerySort.SortDirectionChanged += () => context.SaveChanges();
+            SortDirections = sortDirections;
             RemoveCommand = new RelayCommand(() => RemoveRequested.Invoke(this));
         }
 

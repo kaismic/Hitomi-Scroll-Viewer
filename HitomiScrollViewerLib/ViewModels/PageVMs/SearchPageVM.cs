@@ -41,12 +41,13 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         private SearchPageVM() {
             _context.TagFilters.Load();
-            TagFilterEditorVM = new(_context);
+            ObservableCollection<TagFilter> tagFilters = _context.TagFilters.Local.ToObservableCollection();
+            TagFilterEditorVM = new(tagFilters);
             QueryBuilderVM = new(_context, "SearchPageGalleryLanguageIndex", "SearchPageGalleryTypeIndex");
 
             SyncManagerVM = new(_context);
-            IncludeTFSelectorVM = new(_context.TagFilters.Local.ToObservableCollection());
-            ExcludeTFSelectorVM = new(_context.TagFilters.Local.ToObservableCollection());
+            IncludeTFSelectorVM = new(tagFilters);
+            ExcludeTFSelectorVM = new(tagFilters);
 
             SearchLinkCreateButtonCommand = new RelayCommand(
                 HandleSearchLinkCreateButtonClick,
@@ -192,6 +193,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         public void Dispose() {
+            _context.SaveChanges();
             _context.Dispose();
             GC.SuppressFinalize(this);
         }

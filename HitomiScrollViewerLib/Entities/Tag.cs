@@ -34,8 +34,8 @@ namespace HitomiScrollViewerLib.Entities {
         public int GalleryCount { get; set; }
         public bool IsSavedBrowseTag { get; set; }
 
-        public virtual ICollection<TagFilter> TagFilters { get; set; }
-        public virtual ICollection<Gallery> Galleries { get; set; }
+        public ICollection<TagFilter> TagFilters { get; } = [];
+        public ICollection<Gallery> Galleries { get; } = [];
 
         public static List<Tag> SelectTagsFromCategory(IEnumerable<Tag> tags, TagCategory category) {
             return [.. tags.Where(t => t.Category == category).OrderBy(t => t.Value)];

@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
@@ -18,12 +19,11 @@ namespace HitomiScrollViewerLib.ViewModels {
             Create, Rename, Delete
         }
 
-        private readonly HitomiContext _context;
-
         private readonly string _oldName;
         private readonly CRUDAction _action;
-        private InputValidationVM _inputValidationVM;
-        private TFSelectorVM _tfsSelectorVM;
+        private readonly InputValidationVM _inputValidationVM;
+        private readonly TFSelectorVM _tfsSelectorVM;
+        private readonly ObservableCollection<TagFilter> _tagFilters;
 
         public string CloseButtonText { get; } = TEXT_CANCEL;
         [ObservableProperty]
@@ -35,13 +35,12 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private bool _isPrimaryButtonEnabled = false;
 
-        public CRUDContentDialogVM(HitomiContext context, CRUDAction action, string oldName = null) {
+        public CRUDContentDialogVM(CRUDAction action, string oldName = null, ObservableCollection<TagFilter> tagFilters = null) {
             if (action == CRUDAction.Rename && oldName == null) {
                 throw new ArgumentException($"{nameof(oldName)} must be provided when {nameof(action)} is {nameof(CRUDAction.Rename)}", nameof(action));
-            } else if (action != CRUDAction.Rename && oldName != null) {
-                throw new ArgumentException($"{nameof(oldName)} must be not be provided when {nameof(action)} is not {nameof(CRUDAction.Rename)}", nameof(action));
+            } else if (action == CRUDAction.Delete && tagFilters == null) {
+                throw new ArgumentException($"{nameof(tagFilters)} must be provided when {nameof(action)} is {nameof(CRUDAction.Delete)}", nameof(action));
             }
-            _context = context;
             _action = action;
             _oldName = oldName;
             TitleText = _resourceMap.GetValue($"Title_{_action}").ValueAsString;
@@ -62,7 +61,8 @@ namespace HitomiScrollViewerLib.ViewModels {
                     Content = new InputValidation() { ViewModel = _inputValidationVM };
                     break;
                 case CRUDAction.Delete:
-                    _tfsSelectorVM = new(context.TagFilters.Local.ToObservableCollection());
+                    _tagFilters = tagFilters;
+                    _tfsSelectorVM = new(tagFilters);
                     _tfsSelectorVM.SelectedTFCBModels.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
                         SetIsPrimaryButtonEnabled();
                     };
@@ -85,7 +85,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         private bool CheckDuplicate(string name, out string errorMessage) {
-            if (_context.TagFilters.Any(tfs => tfs.Name == name)) {
+            if (_tagFilters.Any(tfs => tfs.Name == name)) {
                 errorMessage = string.Format(
                     _resourceMap.GetValue("Error_Message_Duplicate").ValueAsString,
                     name

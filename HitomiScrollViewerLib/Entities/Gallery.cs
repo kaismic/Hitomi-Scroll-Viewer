@@ -16,10 +16,10 @@ namespace HitomiScrollViewerLib.Entities {
         public int[] Related { get; set; }
         public DateTime DownloadTime { get; init; } = DateTime.UtcNow;
         [Required]
-        public virtual GalleryTypeEntity GalleryType { get; set; }
+        public GalleryTypeEntity GalleryType { get; set; }
         [Required]
-        public virtual GalleryLanguage GalleryLanguage { get; set; }
-        public virtual ICollection<ImageInfo> Files { get; set; }
-        public virtual ICollection<Tag> Tags { get; set; }
+        public GalleryLanguage GalleryLanguage { get; set; }
+        public required ICollection<ImageInfo> Files { get; set; }
+        public ICollection<Tag> Tags { get; } = [];
     }
 }

@@ -9,6 +9,6 @@ namespace HitomiScrollViewerLib.Entities {
         public int Id { get; set; }
         public string SearchParamValue { get; set; }
         public string LocalName { get; set; }
-        public virtual ICollection<Gallery> Galleries { get; set; }
+        public ICollection<Gallery> Galleries { get; set; }
     }
 }

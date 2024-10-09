@@ -76,8 +76,7 @@ namespace HitomiScrollViewerLib.Entities {
                 Date = Date,
                 SceneIndexes = SceneIndexes,
                 Related = Related,
-                Files = Files,
-                Tags = [],
+                Files = Files
             };
             SetGalleryProperty(context, Artists, gallery, TagCategory.Artist);
             SetGalleryProperty(context, Groups, gallery, TagCategory.Group);

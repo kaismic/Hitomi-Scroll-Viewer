@@ -37,6 +37,6 @@ namespace HitomiScrollViewerLib.Entities {
         }
         public string DisplayName => GalleryType == null ? TEXT_ALL : _resourceMap.GetValue(GalleryType.ToString()).ValueAsString;
 
-        public virtual ICollection<Gallery> Galleries { get; set; }
+        public ICollection<Gallery> Galleries { get; set; }
     }
 }

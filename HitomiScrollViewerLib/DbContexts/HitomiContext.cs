@@ -23,7 +23,7 @@ namespace HitomiScrollViewerLib.DbContexts {
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // db file storage location = Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            optionsBuilder.UseSqlite($"Data Source={MAIN_DATABASE_PATH_V3}");
+            optionsBuilder.UseSqlite($"Data Source={MAIN_DATABASE_PATH_V3}").EnableSensitiveDataLogging();
         }
 
         private static readonly string[] ALPHABETS_WITH_123 =
