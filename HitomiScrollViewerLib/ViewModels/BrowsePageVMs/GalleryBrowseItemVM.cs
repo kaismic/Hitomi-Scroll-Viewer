@@ -24,7 +24,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
         public GalleryBrowseItemVM(Gallery gallery) {
             Gallery = gallery;
             for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
-                List<Tag> tags = Tag.SelectTagsFromCategory(
+                ICollection<Tag> tags = Tag.SelectTagsFromCategory(
                     gallery.Tags,
                     Tag.TAG_CATEGORIES[i]
                 );

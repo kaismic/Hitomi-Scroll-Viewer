@@ -12,7 +12,6 @@ namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Value))]
     [Index(nameof(Category), nameof(Value))]
     [Index(nameof(GalleryCount))]
-    [Index(nameof(IsSavedBrowseTag))]
     public class Tag {
         public static readonly TagCategory[] TAG_CATEGORIES =
             Enumerable.Range(0, Enum.GetNames(typeof(TagCategory)).Length)
@@ -32,12 +31,10 @@ namespace HitomiScrollViewerLib.Entities {
         }
         public string SearchParamValue { get; private set; }
         public int GalleryCount { get; set; }
-        public bool IsSavedBrowseTag { get; set; }
-
         public ICollection<TagFilter> TagFilters { get; } = [];
         public ICollection<Gallery> Galleries { get; } = [];
 
-        public static List<Tag> SelectTagsFromCategory(IEnumerable<Tag> tags, TagCategory category) {
+        public static ICollection<Tag> SelectTagsFromCategory(IEnumerable<Tag> tags, TagCategory category) {
             return [.. tags.Where(t => t.Category == category).OrderBy(t => t.Value)];
         }
     }

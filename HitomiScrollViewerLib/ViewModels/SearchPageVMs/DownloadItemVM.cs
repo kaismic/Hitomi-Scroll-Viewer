@@ -67,7 +67,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private CancellationTokenSource _cts;
 
         private Gallery _gallery;
-        internal int Id { get; private set; }
+        public int Id { get; private set; }
+        private readonly HitomiContext _context = new();
 
         public int[] ThreadNums { get; } = Enumerable.Range(1, 8).ToArray();
         [ObservableProperty]
@@ -174,6 +175,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             //    BookmarkItem.IsDownloading = false;
             //    BookmarkItem.EnableRemoveBtn(true);
             //}
+            _context.Dispose();
             RemoveDownloadItemEvent?.Invoke(this, Id);
         }
 
@@ -265,12 +267,22 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 ProgressText = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
                 try {
                     OriginalGalleryInfo ogi = JsonSerializer.Deserialize<OriginalGalleryInfo>(galleryInfo, GALLERY_SERIALIZER_OPTIONS);
-
-
-
-
+                    // sometimes the id in the url (ltn.hitomi.la/galleries/{id}.js) is different to the one in the .js file
+                    // but points to the same gallery
+                    if (Id != ogi.Id) {
+                        Id = ogi.Id;
+                        UpdateIdEvent?.Invoke(Id, ogi.Id);
+                    }
+                    _gallery = _context.Galleries.Find(Id);
+                    if (_gallery == null) {
+                        _gallery = ogi.ToGallery(_context);
+                        _context.Galleries.Add(_gallery);
+                        _context.SaveChanges();
+                    } else {
+                        _context.Entry(_gallery).Collection(g => g.Files).Load();
+                    }
                     ProgressBarMaximum = _gallery.Files.Count;
-                    GalleryDescriptionText += $" - {_gallery.Title}"; // add title to description
+                    GalleryDescriptionText = $"{_gallery.Id} - {_gallery.Title}";
                 } catch (JsonException e) {
                     CurrentDownloadStatus = DownloadStatus.Failed;
                     ProgressText = _resourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message;
@@ -278,12 +290,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 }
             }
 
-            // sometimes gallery id is different to the id in ltn.hitomi.la/galleries/{id}.js but points to the same gallery
-            if (Id != _gallery.Id) {
-                UpdateIdEvent?.Invoke(Id, _gallery.Id);
-                Id = _gallery.Id;
-                GalleryDescriptionText += $"{_gallery.Id} - {_gallery.Title}";
-            }
 
             // TODO uncomment and modify
             //if (BookmarkItem == null) {
@@ -306,12 +312,12 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             HandleDownloadComplete();
         }
 
-        private void HandleDownloadComplete(List<int> missingIndexes = null) {
+        private void HandleDownloadComplete() {
             IsEnabled = false;
-            missingIndexes ??= GetMissingIndexes();
+            HashSet<int> missingIndexes = GetMissingIndexes();
             if (missingIndexes.Count > 0) {
                 _retryCount++;
-                // TODO
+                _ = PreCheckDownload();
             } else {
                 RemoveSelf();
             }
@@ -405,7 +411,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 try {
                     byte[] imageBytes = await response.Content.ReadAsByteArrayAsync(ct);
                     await File.WriteAllBytesAsync(
-                        Path.Combine(IMAGE_DIR_V2, Id.ToString(), fetchInfo.Idx.ToString()) + '.' + fetchInfo.ImageFormat,
+                        Path.Combine(IMAGE_DIR_V3, Id.ToString(), fetchInfo.Idx.ToString()) + '.' + fetchInfo.ImageFormat,
                         imageBytes,
                         CancellationToken.None
                     );
@@ -424,12 +430,12 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
          * <exception cref="TaskCanceledException"></exception>
         */
         private Task DownloadImages(CancellationToken ct) {
-            List<int> missingIndexes = GetMissingIndexes();
+            HashSet<int> missingIndexes = GetMissingIndexes();
             ProgressBarValue = _gallery.Files.Count - missingIndexes.Count;
             FetchInfo[] fetchInfos =
                 missingIndexes
                 .Select(missingIndex => {
-                    ImageInfo imageInfo = (_gallery.Files as List<ImageInfo>)[missingIndex];
+                    ImageInfo imageInfo = _gallery.Files.First(f => f.Index == missingIndex);
                     string imageFormat = GetImageFormat(imageInfo);
                     return new FetchInfo() {
                         Idx = missingIndex,
@@ -486,20 +492,18 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             return Task.WhenAll(tasks);
         }
 
-        private List<int> GetMissingIndexes() {
-            string imageDir = Path.Combine(IMAGE_DIR_V2, Id.ToString());
+        private HashSet<int> GetMissingIndexes() {
+            string imageDir = Path.Combine(IMAGE_DIR_V3, Id.ToString());
             if (!Directory.Exists(imageDir)) {
                 Directory.CreateDirectory(imageDir);
-                return Enumerable.Range(0, _gallery.Files.Count).ToList();
+                return [.. _gallery.Files.Select(f => f.Index)];
             }
-            List<int> missingIndexes = [];
-            for (int i = 0; i < _gallery.Files.Count; i++) {
-                string[] file = Directory.GetFiles(imageDir, i.ToString() + ".*");
-                if (file.Length == 0) {
-                    missingIndexes.Add(i);
-                }
-            }
-            return missingIndexes;
+            HashSet<string> existingFileNames = [.. Directory.GetFiles(imageDir, "*.*").Select(Path.GetFileName)];
+            return [..
+                _gallery.Files
+                .Where(f => !existingFileNames.Contains(f.FullFileName))
+                .Select(f => f.Index)
+            ];
         }
     }
 }

@@ -19,7 +19,7 @@ namespace HitomiScrollViewerLib.Views {
                     return;
                 }
                 _viewModel = value;
-                if (value.GalleryType != null) {
+                if (value.GalleryType.GalleryType != Entities.GalleryType.All) {
                     RowDefinitions.Add(new() { Height = GridLength.Auto });
                     TextBlock typeValue = new() {
                         Text = TEXT_TYPE,
@@ -33,7 +33,7 @@ namespace HitomiScrollViewerLib.Views {
                     Children.Add(typeValue);
                     Children.Add(typeName);
                 }
-                if (value.GalleryLanguage != null) {
+                if (!value.GalleryLanguage.IsAll) {
                     RowDefinitions.Add(new() { Height = GridLength.Auto });
                     TextBlock languageLabel = new() {
                         Text = TEXT_LANGUAGE,
@@ -47,7 +47,7 @@ namespace HitomiScrollViewerLib.Views {
                     Children.Add(languageLabel);
                     Children.Add(languageValue);
                 }
-                if (value.SearchTitleText != null) {
+                if (value.SearchTitleText.Length > 0) {
                     RowDefinitions.Add(new() { Height = GridLength.Auto });
                     TextBlock searchTitleLabel = new() {
                         Text = "Search Title",
@@ -71,14 +71,14 @@ namespace HitomiScrollViewerLib.Views {
                     SetRow(categoryLabel, RowDefinitions.Count - 1);
                     Children.Add(categoryLabel);
                     bool hasIncludeTags = false;
-                    if (collection.IncludeTags.Count != 0) {
+                    if (collection.IncludeTags.Count > 0) {
                         hasIncludeTags = true;
                         Grid subgrid = GetTagsGrid(true, collection.IncludeTags);
                         Children.Add(subgrid);
                         SetColumn(subgrid, 1);
                         SetRow(subgrid, RowDefinitions.Count - 1);
                     }
-                    if (collection.ExcludeTags.Count != 0) {
+                    if (collection.ExcludeTags.Count > 0) {
                         if (hasIncludeTags) {
                             RowDefinitions.Add(new() { Height = GridLength.Auto });
                         }
@@ -91,7 +91,7 @@ namespace HitomiScrollViewerLib.Views {
             }
         }
 
-        private Grid GetTagsGrid(bool isInclude, List<Entities.Tag> tags) {
+        private Grid GetTagsGrid(bool isInclude, ICollection<Entities.Tag> tags) {
             Grid grid = new();
 
             grid.ColumnDefinitions.Add(new() { Width = GridLength.Auto });

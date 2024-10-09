@@ -48,7 +48,7 @@ namespace HitomiScrollViewerLib.Views {
                 _tagTokenizingTextBoxes[i] = new() {
                     BorderBrush = new SolidColorBrush(Colors.Black),
                     BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(0)
+                    CornerRadius = new CornerRadius(0),
                 };
                 
                 StackPanel wrapperPanel = new();

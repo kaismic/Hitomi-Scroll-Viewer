@@ -6,6 +6,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using static HitomiScrollViewerLib.SharedResources;
 
@@ -28,23 +29,25 @@ namespace HitomiScrollViewerLib.Views {
 
         private void RootFrame_Loaded(object sender, RoutedEventArgs e) {
             RootFrame.Loaded -= RootFrame_Loaded;
-            MainWindowVM.ShowLoadProgressReporter += (LoadProgressReporterVM e) => {
+            
+            MainWindowVM.RequestNotifyUser += NotifyUser;
+            MainWindowVM.RequestHideCurrentNotification += () => DispatcherQueue.TryEnqueue(_currentNotification.Hide);
+            MainWindowVM.RequestMinimizeWindow += () => (AppWindow.Presenter as OverlappedPresenter).Minimize();
+            MainWindowVM.RequestActivateWindow += Activate;
+
+            AppInitializer.ShowLoadProgressReporter += (LoadProgressReporterVM e) => {
                 DispatcherQueue.TryEnqueue(() => {
                     _reporter.XamlRoot = RootFrame.XamlRoot;
                     _reporter.ViewModel = e;
                     _ = _reporter.ShowAsync();
                 });
             };
-            MainWindowVM.HideLoadProgressReporter += () => DispatcherQueue.TryEnqueue(_reporter.Hide);
-            MainWindowVM.RequestNotifyUser += NotifyUser;
-            MainWindowVM.RequestHideCurrentNotification += () => DispatcherQueue.TryEnqueue(_currentNotification.Hide);
-            MainWindowVM.RequestMinimizeWindow += () => (AppWindow.Presenter as OverlappedPresenter).Minimize();
-            MainWindowVM.RequestActivateWindow += Activate;
-            MainWindowVM.Initialised += () => DispatcherQueue.TryEnqueue(() => {
+            AppInitializer.HideLoadProgressReporter += () => DispatcherQueue.TryEnqueue(_reporter.Hide);
+            AppInitializer.Initialised += () => DispatcherQueue.TryEnqueue(() => {
                 MainSelectorBar.IsEnabled = true;
                 SelectorBar_SelectionChanged(MainSelectorBar, null);
             });
-            MainWindowVM.Init();
+            _ = Task.Run(AppInitializer.Start);
         }
 
         private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs _1) {

@@ -14,7 +14,7 @@ namespace HitomiScrollViewerLib.Entities {
         public DateTimeOffset Date { get; set; }
         public int[] SceneIndexes { get; set; }
         public int[] Related { get; set; }
-        public DateTime DownloadTime { get; init; } = DateTime.UtcNow;
+        public DateTime DownloadTime { get; } = DateTime.UtcNow;
         [Required]
         public GalleryTypeEntity GalleryType { get; set; }
         [Required]

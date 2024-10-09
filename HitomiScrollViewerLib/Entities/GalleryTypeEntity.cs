@@ -2,24 +2,25 @@
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
     public enum GalleryType {
-        Doujinshi, Manga, ArtistCG, GameCG, ImageSet, Anime
+        All, Doujinshi, Manga, ArtistCG, GameCG, ImageSet, Anime
     }
 
     [Index(nameof(GalleryType))]
     public class GalleryTypeEntity {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(GalleryType).Name);
 
-        public int Id { get; set; }
-        private GalleryType? _galleryType;
-        public GalleryType? GalleryType {
+        private GalleryType _galleryType;
+        [Key]
+        public required GalleryType GalleryType {
             get => _galleryType;
             init {
                 _galleryType = value;
-                if (value != null) {
+                if (value != GalleryType.All) {
                     SearchParamValue = value.ToString().ToLower();
                 }
             }
@@ -28,15 +29,15 @@ namespace HitomiScrollViewerLib.Entities {
         private string _searchParamValue;
         public string SearchParamValue {
             get {
-                if (GalleryType == null) {
-                    throw new InvalidOperationException($"{nameof(SearchParamValue)} should not be used when {nameof(GalleryType)} is null.");
+                if (GalleryType == GalleryType.All) {
+                    throw new InvalidOperationException($"{nameof(SearchParamValue)} must not be accessed when {nameof(GalleryType)} is {nameof(GalleryType.All)}.");
                 }
                 return _searchParamValue;
             }
             private set => _searchParamValue = value;
         }
-        public string DisplayName => GalleryType == null ? TEXT_ALL : _resourceMap.GetValue(GalleryType.ToString()).ValueAsString;
+        public string DisplayName => _resourceMap.GetValue(GalleryType.ToString()).ValueAsString;
 
-        public ICollection<Gallery> Galleries { get; set; }
+        public ICollection<Gallery> Galleries { get; } = [];
     }
 }

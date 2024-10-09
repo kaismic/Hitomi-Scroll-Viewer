@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HitomiScrollViewerLib.Models {
     public class InExcludeTagCollection {
         public string CategoryLabel { get; init; }
-        public List<Tag> IncludeTags { get; init; }
-        public List<Tag> ExcludeTags { get; init; }
+        public ICollection<Tag> IncludeTags { get; init; }
+        public ICollection<Tag> ExcludeTags { get; init; }
     }
 }

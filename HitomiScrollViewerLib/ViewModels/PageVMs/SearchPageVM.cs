@@ -43,8 +43,12 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             _context.TagFilters.Load();
             ObservableCollection<TagFilter> tagFilters = _context.TagFilters.Local.ToObservableCollection();
             TagFilterEditorVM = new(tagFilters);
-            QueryBuilderVM = new(_context, "SearchPageGalleryLanguageIndex", "SearchPageGalleryTypeIndex");
-
+            QueryBuilderVM = new(
+                _context,
+                _context.QueryConfigurations.Find(PageKind.SearchPage),
+                [.. _context.GalleryLanguages],
+                [.. _context.GalleryTypes]
+            );
             SyncManagerVM = new(_context);
             IncludeTFSelectorVM = new(tagFilters);
             ExcludeTFSelectorVM = new(tagFilters);
@@ -61,7 +65,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             ExcludeTFSelectorVM.OtherTFSelectorVM = IncludeTFSelectorVM;
             IncludeTFSelectorVM.CheckBoxToggled += () => SearchLinkCreateButtonCommand.NotifyCanExecuteChanged();
             ExcludeTFSelectorVM.CheckBoxToggled += () => SearchLinkCreateButtonCommand.NotifyCanExecuteChanged();
-            QueryBuilderVM.QueryParameterChanged += () => SearchLinkCreateButtonCommand.NotifyCanExecuteChanged();
+            QueryBuilderVM.QueryChanged += () => SearchLinkCreateButtonCommand.NotifyCanExecuteChanged();
 
             TagFilterEditorVM.CurrentTagsRequested += e => e.Tags = QueryBuilderVM.GetCurrentTags();
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
@@ -141,20 +145,13 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             }
 
             SearchFilterVM searchFilterVM = new() {
+                GalleryLanguage = QueryBuilderVM.QueryConfiguration.SelectedLanguage,
+                GalleryType = QueryBuilderVM.QueryConfiguration.SelectedType,
+                SearchTitleText = QueryBuilderVM.SearchTitleText,
                 IncludeTags = includeTags,
                 ExcludeTags = excludeTags,
             };
             searchFilterVM.InitInExcludeTagCollections();
-
-            if (QueryBuilderVM.GalleryLanguageSelectedIndex > 0) {
-                searchFilterVM.GalleryLanguage = QueryBuilderVM.SelectedGalleryLanguage;
-            }
-            if (QueryBuilderVM.GalleryTypeSelectedIndex > 0) {
-                searchFilterVM.GalleryType = QueryBuilderVM.SelectedGalleryTypeEntity;
-            }
-            if (QueryBuilderVM.SearchTitleText.Length > 0) {
-                searchFilterVM.SearchTitleText = QueryBuilderVM.SearchTitleText;
-            }
 
             searchFilterVM.DeleteCommand.Command = new RelayCommand<SearchFilterVM>((arg) => {
                 SearchFilterVMs.Remove(arg);

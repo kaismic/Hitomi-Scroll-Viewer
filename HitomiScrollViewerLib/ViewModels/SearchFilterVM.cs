@@ -22,9 +22,9 @@ namespace HitomiScrollViewerLib.ViewModels {
             { TagCategory.Series, "series" }
         };
 
-        public GalleryTypeEntity GalleryType { get; set; }
-        public GalleryLanguage GalleryLanguage { get; set; }
-        public string SearchTitleText { get; set; }
+        public GalleryTypeEntity GalleryType { get; init; }
+        public GalleryLanguage GalleryLanguage { get; init; }
+        public string SearchTitleText { get; init; }
 
         public HashSet<Tag> IncludeTags { get; init; }
         public HashSet<Tag> ExcludeTags { get; init; }
@@ -44,10 +44,10 @@ namespace HitomiScrollViewerLib.ViewModels {
 
                 List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and title search
 
-                if (GalleryLanguage != null) {
+                if (!GalleryLanguage.IsAll) {
                     searchParamStrs.Add("language:" + GalleryLanguage.SearchParamValue);
                 }
-                if (GalleryType != null) {
+                if (GalleryType.GalleryType != Entities.GalleryType.All) {
                     searchParamStrs.Add("type:" + GalleryType.SearchParamValue);
                 }
 
@@ -69,7 +69,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     .ToArray();
                 }
 
-                if (SearchTitleText != null) {
+                if (SearchTitleText.Length > 0) {
                     searchParamStrs.Add(SearchTitleText);
                 }
 
@@ -79,8 +79,8 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public void InitInExcludeTagCollections() {
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                List<Tag> includeTags = Tag.SelectTagsFromCategory(IncludeTags, category);
-                List<Tag> excludeTags = Tag.SelectTagsFromCategory(ExcludeTags, category);
+                ICollection<Tag> includeTags = Tag.SelectTagsFromCategory(IncludeTags, category);
+                ICollection<Tag> excludeTags = Tag.SelectTagsFromCategory(ExcludeTags, category);
                 if (includeTags.Count > 0 || excludeTags.Count > 0) {
                     InExcludeTagCollections.Add(
                         new() {

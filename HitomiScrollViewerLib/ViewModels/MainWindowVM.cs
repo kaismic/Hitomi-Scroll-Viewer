@@ -1,161 +1,25 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using HitomiScrollViewerLib.DbContexts;
-using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.PageVMs;
-using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using static HitomiScrollViewerLib.Constants;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public static class MainWindowVM {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(MainWindow).Name);
 
-        public static event Action<LoadProgressReporterVM> ShowLoadProgressReporter;
-        public static event Action HideLoadProgressReporter;
-
         public static event Func<ContentDialogModel, IAsyncOperation<ContentDialogResult>> RequestNotifyUser;
         public static event Action RequestHideCurrentNotification;
 
         public static event Action RequestMinimizeWindow;
         public static event Action RequestActivateWindow;
-
-        public static event Action Initialised;
-
-        public static void Init() {
-            // TODO
-            // if app upgraded from v2 -> v3:
-            // 1. Migrate tag filter set - DONE
-            // 2. Migrate galleries (bookmarks)
-            // 3. Migrate images from roaming to local folder - DONE
-            _ = Task.Run(() => {
-                LoadProgressReporterVM vm = new() {
-                    IsIndeterminate = true
-                };
-                ShowLoadProgressReporter.Invoke(vm);
-
-                vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
-
-                bool dbCreatedFirstTime;
-                using (HitomiContext context = new()) {
-                    //context.Database.EnsureDeleted(); // Uncomment to reset database
-                    dbCreatedFirstTime = context.Database.EnsureCreated();
-                    if (dbCreatedFirstTime) {
-                        vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
-                        vm.IsIndeterminate = false;
-                        vm.Value = 0;
-                        vm.Maximum = HitomiContext.DATABASE_INIT_OP_NUM;
-                        HitomiContext.DatabaseInitProgressChanged += (value) => vm.Value = value;
-                        HitomiContext.ChangeToIndeterminateEvent += () => vm.IsIndeterminate = true;
-                        HitomiContext.InitDatabase(context);
-                    }
-                }
-
-                bool v2TagFilterExists = File.Exists(TAG_FILTERS_FILE_PATH_V2);
-                // User upgraded from v2 to v3
-                if (v2TagFilterExists) {
-                    vm.IsIndeterminate = false;
-                    vm.Value = 0;
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingTFSs);
-                    Dictionary<string, LegacyTagFilter> legacyTagFilters = (Dictionary<string, LegacyTagFilter>)JsonSerializer.Deserialize(
-                        File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-                        typeof(Dictionary<string, LegacyTagFilter>),
-                        TF_SERIALIZER_OPTIONS
-                    );
-                    vm.Maximum = legacyTagFilters.Count;
-                    using HitomiContext context = new();
-                    foreach (var pair in legacyTagFilters) {
-                        context.TagFilters.AddRange(pair.Value.ToTagFilter(context, pair.Key));
-                        vm.Value++;
-                    }
-                    context.SaveChanges();
-                    File.Delete(TAG_FILTERS_FILE_PATH_V2);
-                }
-
-                // The user installed this app for the first time (which means there is no previous tf)
-                // AND is starting the app for the first time
-                if (!v2TagFilterExists && dbCreatedFirstTime) {
-                    vm.IsIndeterminate = true;
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.AddingExampleTFSs);
-                    using HitomiContext context = new();
-                    context.AddExampleTagFilters();
-                }
-
-                // migrate existing galleries (p.k.a. bookmarks) from v2
-                if (File.Exists(BOOKMARKS_FILE_PATH_V2)) {
-                    vm.IsIndeterminate = false;
-                    vm.Value = 0;
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingGalleries);
-                    List<OriginalGalleryInfo> originalGalleryInfos = (List<OriginalGalleryInfo>)JsonSerializer.Deserialize(
-                        File.ReadAllText(BOOKMARKS_FILE_PATH_V2),
-                        typeof(List<OriginalGalleryInfo>),
-                        GALLERY_SERIALIZER_OPTIONS
-                    );
-                    vm.Maximum = originalGalleryInfos.Count;
-                    using HitomiContext context = new();
-                    foreach (var ogi in originalGalleryInfos) {
-                        context.Galleries.Add(ogi.ToGallery(context));
-                        vm.Value++;
-                    }
-                    context.SaveChanges();
-                    File.Delete(BOOKMARKS_FILE_PATH_V2);
-                }
-
-                if (Directory.Exists(IMAGE_DIR_V2)) {
-                    // move images folder in roaming folder to local
-                    vm.IsIndeterminate = true;
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.MovingImageFolder);
-                    Directory.Move(IMAGE_DIR_V2, IMAGE_DIR_V3);
-
-                    // rename image files
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.RenamingImageFiles);
-                    vm.IsIndeterminate = false;
-                    IEnumerable<string> dirPaths = Directory.EnumerateDirectories(IMAGE_DIR_V3);
-
-                    using HitomiContext context = new();
-                    context.Galleries.Include(g => g.Files).Load();
-                    foreach (string dirPath in Directory.EnumerateDirectories(IMAGE_DIR_V3)) {
-                        int id = int.Parse(Path.GetFileName(dirPath));
-                        Gallery gallery = context.Galleries.Find(id);
-                        ImageInfo[] imageInfos = [.. gallery.Files.OrderBy(f => f.Index)];
-                        vm.Value = 0;
-                        vm.Maximum = imageInfos.Length;
-                        for (int i = imageInfos.Length - 1; i >= 0; i--) {
-                            string oldFilePath = Path.Combine(dirPath, i.ToString() + '.' + imageInfos[i].FileExtension);
-                            string newFilePath = Path.Combine(dirPath, imageInfos[i].FullFileName);
-                            if (File.Exists(oldFilePath)) {
-                                File.Move(oldFilePath, newFilePath);
-                            }
-                            vm.Value++;
-                        }
-                    }
-                }
-
-                if (Directory.Exists(ROOT_DIR_V2)) {
-                    Directory.Delete(ROOT_DIR_V2);
-                }
-
-                vm.IsIndeterminate = true;
-                vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
-
-                HideLoadProgressReporter.Invoke();
-                Initialised?.Invoke();
-            });
-        }
 
         public static void MinimizeWindow() {
             RequestMinimizeWindow?.Invoke();
