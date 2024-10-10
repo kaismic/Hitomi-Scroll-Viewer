@@ -49,9 +49,21 @@
                         <TextBlock Text="{x:Bind ViewModel.SortDialogVM.DialogShowButtonText, Mode=OneWay}"/>
                     </StackPanel>
                 </Button>
-                <ComboBox HorizontalAlignment="Center"
-                          ItemsSource="{x:Bind ViewModel.Pages, Mode=OneWay}"
-                          SelectedIndex="{x:Bind ViewModel.SelectedPageIndex, Mode=TwoWay}"/>
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Spacing="8">
+                    <Button Command="{x:Bind ViewModel.DecrementCommand}"
+                            Style="{StaticResource AlternateCloseButtonStyle}">
+                        <FontIcon Glyph="&#xE973;" />
+                    </Button>
+                    <ComboBox ItemsSource="{x:Bind ViewModel.Pages, Mode=OneWay}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedPageIndex, Mode=TwoWay}"
+                              VerticalAlignment="Center"/>
+                    <Button Command="{x:Bind ViewModel.IncrementCommand}"
+                            Style="{StaticResource AlternateCloseButtonStyle}">
+                        <FontIcon Glyph="&#xE974;" />
+                    </Button>
+                </StackPanel>
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             Spacing="8">

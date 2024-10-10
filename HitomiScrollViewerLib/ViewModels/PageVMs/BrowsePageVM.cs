@@ -42,6 +42,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             foreach (GallerySortEntity gs in _context.GallerySorts.Include(gs => gs.SortDirectionEntity).ToList()) {
                 gs.SortDirectionChanged += ExecuteQuery;
             }
+
+            IncrementCommand = new RelayCommand(Increment, CanIncrement);
+            DecrementCommand = new RelayCommand(Decrement, CanDecrement);
+
             ExecuteQuery();
         }
 
@@ -62,6 +66,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 .Select(g => new GalleryBrowseItemVM(g))
             ];
             CurrentGalleryBrowseItemsChanged?.Invoke();
+            IncrementCommand.NotifyCanExecuteChanged();
+            DecrementCommand.NotifyCanExecuteChanged();
+
         }
 
         public int[] PageSizes { get; } = Enumerable.Range(1, 15).ToArray();
@@ -78,6 +85,17 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             }
             SetCurrentGalleryBrowseItemVMs();
         }
+
+        public RelayCommand IncrementCommand { get; }
+        public RelayCommand DecrementCommand { get; }
+        private void Increment() {
+            SelectedPageIndex++;
+        }
+        private void Decrement() {
+            SelectedPageIndex--;
+        }
+        private bool CanIncrement() => SelectedPageIndex >= 0 && Pages[SelectedPageIndex] * PageSizes[SelectedPageSizeIndex] < FilteredGalleries.Count;
+        private bool CanDecrement() => SelectedPageIndex > 0;
 
         [ObservableProperty]
         private int _selectedPageSizeIndex = 3;
