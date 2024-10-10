@@ -14,7 +14,7 @@
     </Grid.ColumnDefinitions>
     <TextBlock Grid.Column="0"
                Text="{x:Bind ViewModel.CategoryLabel}"
-               Style="{StaticResource SubtitleTextBlockStyle}"/>
+               FontSize="20"/>
     <UserControl Grid.Column="1">
         <ItemsRepeater ItemsSource="{x:Bind ViewModel.TagDisplayString}">
             <ItemsRepeater.Layout>

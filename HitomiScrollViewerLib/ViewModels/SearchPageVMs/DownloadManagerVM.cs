@@ -1,33 +1,27 @@
-﻿using HitomiScrollViewerLib.Views.BrowsePageViews;
-using System.Collections.Concurrent;
+﻿using HitomiScrollViewerLib.Entities;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public class DownloadManagerVM {
         public ObservableCollection<DownloadItemVM> DownloadItemVMs { get; } = [];
-        private readonly ConcurrentDictionary<int, byte> _downloadingGalleryIds = [];
+        public event Action GalleryAdded;
+        public event Action<Gallery> TrySetImageSourceRequested;
 
-        public bool TryDownload(int id) {
-            if (_downloadingGalleryIds.TryAdd(id, 0)) {
-                DownloadItemVM vm = new(id);
-                DownloadItemVMs.Add(vm);
-                vm.RemoveDownloadItemEvent += RemoveDownloadItem;
-                vm.UpdateIdEvent += UpdateId;
-                vm.StartDownload();
-                return true;
+        public void TryDownload(int id) {
+            if (DownloadItemVMs.Select(d => d.Id).Contains(id)) {
+                return;
             }
-            return false;
-        }
-
-        private void UpdateId(int oldId, int newId) {
-            _downloadingGalleryIds.Remove(oldId, out _);
-            _downloadingGalleryIds.TryAdd(newId, 0);
-        }
-
-        private void RemoveDownloadItem(DownloadItemVM sender, int id) {
-            _downloadingGalleryIds.Remove(id, out _);
-            DownloadItemVMs.Remove(sender);
+            DownloadItemVM vm = new(id);
+            DownloadItemVMs.Add(vm);
+            vm.RemoveDownloadItemEvent += (DownloadItemVM arg) => {
+                DownloadItemVMs.Remove(arg);
+                TrySetImageSourceRequested?.Invoke(arg.Gallery);
+            };
+            vm.GalleryAdded += () => GalleryAdded?.Invoke();
+            vm.StartDownload();
         }
     }
 }

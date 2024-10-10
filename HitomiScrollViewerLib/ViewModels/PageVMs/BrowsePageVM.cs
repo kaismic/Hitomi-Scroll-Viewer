@@ -42,6 +42,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             foreach (GallerySortEntity gs in _context.GallerySorts.Include(gs => gs.SortDirectionEntity).ToList()) {
                 gs.SortDirectionChanged += ExecuteQuery;
             }
+            SearchPageVM.Main.DownloadManagerVM.GalleryAdded += ExecuteQuery;
+            SearchPageVM.Main.DownloadManagerVM.TrySetImageSourceRequested += (Gallery g) => {
+                CurrentGalleryBrowseItemVMs.First(vm => vm.Gallery.Id == g.Id).InvokeTrySetImageSourceRequested();
+            };
 
             IncrementCommand = new RelayCommand(Increment, CanIncrement);
             DecrementCommand = new RelayCommand(Decrement, CanDecrement);

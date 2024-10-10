@@ -6,7 +6,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="using:HitomiScrollViewerLib.Views"
+    xmlns:bpviews="using:HitomiScrollViewerLib.Views.BrowsePageViews"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
+    xmlns:models="using:HitomiScrollViewerLib.Models"
     >
     <UserControl.Resources>
         <Color x:Key="DoujinshiColor0">#663333</Color>
@@ -41,7 +43,8 @@
             <Grid Background="{x:Bind TitleBackgroundBrush, Mode=OneWay}"
                   Padding="8 4">
                 <TextBlock Grid.Column="0"
-                           Style="{StaticResource TitleTextBlockStyle}"
+                           FontSize="28"
+                           FontWeight="SemiBold"
                            Text="{x:Bind ViewModel.Gallery.Title, Mode=OneWay}"
                            HorizontalAlignment="Left"
                            IsTextSelectionEnabled="True"/>
@@ -50,17 +53,17 @@
                   Padding="8 4"
                   Background="{x:Bind SubtitleBackgroundBrush, Mode=OneWay}"
                   >
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                <TextBlock FontSize="20"
                            Text="{x:Bind ViewModel.Gallery.Id, Mode=OneWay}"
                            Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
                            />
                 <AppBarSeparator Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}" />
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                <TextBlock FontSize="20"
                            Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName, Mode=OneWay}"
                            Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
                            />
                 <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
-                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                <TextBlock FontSize="20"
                            Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName, Mode=OneWay}"
                            Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
                            />
@@ -71,7 +74,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="200"/>
+                    <RowDefinition x:Name="ImagesRowDefinition"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <ItemsRepeater x:Name="ThumbnailImagePanel"
@@ -80,10 +83,13 @@
                         <StackLayout Orientation="Horizontal"/>
                     </ItemsRepeater.Layout>
                     <ItemsRepeater.ItemTemplate>
-                        <DataTemplate x:DataType="x:String">
-                            <Viewbox>
-                                <Image Source="{x:Bind}"/>
-                            </Viewbox>
+                        <DataTemplate x:DataType="models:PathCheckingImage">
+                            <Image>
+                                <Image.Source>
+                                    <BitmapImage UriSource="{x:Bind ImageSource, Mode=OneWay}"
+                                                 DecodePixelHeight="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT}"/>
+                                </Image.Source>
+                            </Image>
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>

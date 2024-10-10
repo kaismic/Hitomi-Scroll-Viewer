@@ -1,7 +1,6 @@
-using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -38,7 +37,21 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
 
         private SolidColorBrush TextForegroundBrush {
             get => (SolidColorBrush)GetValue(TextForegroundBrushProperty);
-            set => SetValue(TextForegroundBrushProperty, value);
+            set {
+                SetValue(TextForegroundBrushProperty, value);
+                // return if initial images are not yet added
+                if (ThumbnailImagePanel.ItemsSource == null) {
+                    return;
+                }
+                if (Monitor.TryEnter(_addingImageLock)) {
+                    // add more images if there are empty spaces
+                    try {
+                        TryAddThumnailImages();
+                    } finally {
+                        Monitor.Exit(_addingImageLock);
+                    }
+                }
+            }
         }
         public static readonly DependencyProperty TextForegroundBrushProperty =
             DependencyProperty.Register(
@@ -53,20 +66,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             get => (GalleryBrowseItemVM)GetValue(ViewModelProperty);
             set {
                 if (ViewModel == null) {
-                    value.WidthChanged += (double width) => {
-                        // return if initial images are not yet added
-                        if (ThumbnailImagePanel.ItemsSource == null) {
-                            return;
-                        }
-                        if (Monitor.TryEnter(_addingImageLock)) {
-                            // add more images if there are empty spaces
-                            try {
-                                TryAddThumnailImages();
-                            } finally {
-                                Monitor.Exit(_addingImageLock);
-                            }
-                        }
-                    };
+                    value.TrySetImageSourceRequested += TrySetImageSources;
                 }
                 SetValue(ViewModelProperty, value);
 
@@ -99,29 +99,39 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
                     tb.IsTextSelectionEnabled = true;
                 }
             }
+            ImagesRowDefinition.Height = new(IMAGE_HEIGHT);
         }
 
-        private readonly ObservableCollection<string> _imageFilePaths = [];
+        private readonly ObservableCollection<PathCheckingImage> _pathCheckingImages = [];
         private const int MAX_THUMBNAIL_IMAGE_COUNT = 5;
+        public const int IMAGE_HEIGHT = 200;
 
         private void GalleryBrowseItem_Loaded(object _0, RoutedEventArgs _1) {
             Loaded -= GalleryBrowseItem_Loaded;
             // add initial thumbnail images
             TryAddThumnailImages();
-            ThumbnailImagePanel.ItemsSource = _imageFilePaths;
+            ThumbnailImagePanel.ItemsSource = _pathCheckingImages;
         }
 
         private void TryAddThumnailImages() {
             double remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
-            if (remainingWidth <= 0 || _imageFilePaths.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+            if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
                 return;
             }
-            foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index).Skip(_imageFilePaths.Count)) {
-                if (remainingWidth <= 0 || _imageFilePaths.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+            foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index).Skip(_pathCheckingImages.Count)) {
+                if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
                     return;
                 }
-                _imageFilePaths.Add(imageInfo.ImageFilePath);
+                PathCheckingImage pci = new(imageInfo.ImageFilePath);
+                pci.TrySetImageSource();
+                _pathCheckingImages.Add(pci);
                 remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
+            }
+        }
+
+        public void TrySetImageSources() {
+            foreach (PathCheckingImage pci in _pathCheckingImages) {
+                pci.TrySetImageSource();
             }
         }
     }

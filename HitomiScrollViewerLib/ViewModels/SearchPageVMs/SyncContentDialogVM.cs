@@ -46,10 +46,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private bool _isSyncing = false;
         private CancellationTokenSource _cts;
 
-        public event Func<IAsyncOperation<ContentDialogResult>> RequestShowDialog;
-        public IAsyncOperation<ContentDialogResult> ShowSyncContentDialog() {
-            return RequestShowDialog?.Invoke();
-        }
         [ObservableProperty]
         private bool _isEnabled;
         [ObservableProperty]

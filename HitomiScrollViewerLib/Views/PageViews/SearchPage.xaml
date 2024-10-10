@@ -99,7 +99,8 @@
                   BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                   CornerRadius="{StaticResource OverlayCornerRadius}"
                   BorderThickness="1"
-                  Padding="16">
+                  Padding="16"
+                  RowSpacing="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -123,16 +124,29 @@
                     </Button>
                 </Grid>
                 <ScrollViewer Grid.Row="1">
-                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}">
-                        <ItemsRepeater.Layout>
-                            <StackLayout Spacing="4"/>
-                        </ItemsRepeater.Layout>
-                        <ItemsRepeater.ItemTemplate>
+                    <ListView ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}"
+                              SelectionMode="None"
+                              IsItemClickEnabled="False">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                                <!--see https://github.com/dotnet/maui/issues/8564
+                                        https://github.com/dotnet/maui/pull/10250
+                                        https://github.com/dotnet/maui/pull/10250/commits/ca8a76576ee3b4f692bd3a3182972120c6c8e071-->
+                                <Setter Property="Padding" Value="0"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="0"/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemTemplate>
                             <DataTemplate x:DataType="spvms:DownloadItemVM">
-                                <spviews:DownloadItem ViewModel="{x:Bind}"/>
+                                <spviews:DownloadItem ViewModel="{x:Bind}"
+                                                      HorizontalAlignment="Stretch"/>
                             </DataTemplate>
-                        </ItemsRepeater.ItemTemplate>
-                    </ItemsRepeater>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </ScrollViewer>
             </Grid>
         </Grid>

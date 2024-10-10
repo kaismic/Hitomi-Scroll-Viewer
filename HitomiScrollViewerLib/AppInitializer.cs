@@ -245,6 +245,7 @@ namespace HitomiScrollViewerLib {
             );
             // default DownloadTime sort
             context.GallerySorts.Find(GallerySortProperty.DownloadTime).IsActive = true;
+            context.GallerySorts.Find(GallerySortProperty.DownloadTime).SortDirectionEntity = context.SortDirections.Find(SortDirection.Descending);
 
             context.SaveChanges();
             ClearInvocationList();

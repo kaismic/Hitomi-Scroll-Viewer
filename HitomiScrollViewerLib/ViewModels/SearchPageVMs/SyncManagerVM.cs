@@ -170,11 +170,13 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             }
         }
 
+        public event Func<SyncContentDialogVM, Task> ShowDialogRequested;
+
         [RelayCommand(CanExecute = nameof(IsSyncButtonEnabled))]
         public async Task HandleSyncButtonClick() {
             IsSyncButtonEnabled = false;
             SyncContentDialogVM vm = new(_context) { DriveService = new(Initializer) };
-            await vm.ShowSyncContentDialog();
+            await ShowDialogRequested?.Invoke(vm);
             IsSyncButtonEnabled = true;
         }
     }

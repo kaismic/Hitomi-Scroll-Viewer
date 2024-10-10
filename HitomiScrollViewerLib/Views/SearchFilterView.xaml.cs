@@ -2,6 +2,7 @@ using CommunityToolkit.WinUI.Controls;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels;
 using Microsoft.UI;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -21,24 +22,20 @@ namespace HitomiScrollViewerLib.Views {
                 _viewModel = value;
                 if (value.GalleryType.GalleryType != Entities.GalleryType.All) {
                     RowDefinitions.Add(new() { Height = GridLength.Auto });
-                    TextBlock typeValue = new() {
-                        Text = TEXT_TYPE,
-                        Style = Application.Current.Resources["BodyStrongTextBlockStyle"] as Style
-                    };
+                    TextBlock typeLabel = GetLabelTextBlock();
+                    typeLabel.Text = TEXT_TYPE;
                     TextBlock typeName = new() { Text = value.GalleryType.DisplayName };
-                    SetColumn(typeValue, 0);
+                    SetColumn(typeLabel, 0);
                     SetColumn(typeName, 1);
-                    SetRow(typeValue, RowDefinitions.Count - 1);
+                    SetRow(typeLabel, RowDefinitions.Count - 1);
                     SetRow(typeName, RowDefinitions.Count - 1);
-                    Children.Add(typeValue);
+                    Children.Add(typeLabel);
                     Children.Add(typeName);
                 }
                 if (!value.GalleryLanguage.IsAll) {
                     RowDefinitions.Add(new() { Height = GridLength.Auto });
-                    TextBlock languageLabel = new() {
-                        Text = TEXT_LANGUAGE,
-                        Style = Application.Current.Resources["BodyStrongTextBlockStyle"] as Style
-                    };
+                    TextBlock languageLabel = GetLabelTextBlock();
+                    languageLabel.Text = TEXT_LANGUAGE;
                     TextBlock languageValue = new() { Text = value.GalleryLanguage.LocalName };
                     SetColumn(languageLabel, 0);
                     SetColumn(languageValue, 1);
@@ -49,10 +46,8 @@ namespace HitomiScrollViewerLib.Views {
                 }
                 if (value.SearchTitleText.Length > 0) {
                     RowDefinitions.Add(new() { Height = GridLength.Auto });
-                    TextBlock searchTitleLabel = new() {
-                        Text = "Search Title",
-                        Style = Application.Current.Resources["BodyStrongTextBlockStyle"] as Style
-                    };
+                    TextBlock searchTitleLabel = GetLabelTextBlock();
+                    searchTitleLabel.Text = "Search Title";
                     TextBlock searchTitleValue = new() { Text = value.SearchTitleText };
                     SetColumn(searchTitleLabel, 0);
                     SetColumn(searchTitleValue, 1);
@@ -63,10 +58,8 @@ namespace HitomiScrollViewerLib.Views {
                 }
                 foreach (InExcludeTagCollection collection in value.InExcludeTagCollections) {
                     RowDefinitions.Add(new() { Height = GridLength.Auto });
-                    TextBlock categoryLabel = new() {
-                        Text = collection.CategoryLabel,
-                        Style = Application.Current.Resources["BodyStrongTextBlockStyle"] as Style
-                    };
+                    TextBlock categoryLabel = GetLabelTextBlock();
+                    categoryLabel.Text = collection.CategoryLabel;
                     SetColumn(categoryLabel, 0);
                     SetRow(categoryLabel, RowDefinitions.Count - 1);
                     Children.Add(categoryLabel);
@@ -89,6 +82,13 @@ namespace HitomiScrollViewerLib.Views {
                     }
                 }
             }
+        }
+
+        private static TextBlock GetLabelTextBlock() {
+            return new() {
+                FontSize = 14,
+                FontWeight = FontWeights.SemiBold
+            };
         }
 
         private Grid GetTagsGrid(bool isInclude, ICollection<Entities.Tag> tags) {

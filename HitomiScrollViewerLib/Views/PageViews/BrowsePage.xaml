@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page
+    x:Name="RootBrowsePage"
     x:Class="HitomiScrollViewerLib.Views.PageViews.BrowsePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -35,7 +36,7 @@
                         Command="{x:Bind ViewModel.ExecuteQueryCommand}"
                         Style="{StaticResource AccentButtonStyle}"
                         >
-                    <SymbolIcon Symbol="Refresh"/>
+                    <SymbolIcon Symbol="Filter"/>
                 </Button>
             </Grid>
             <Grid Grid.Row="1">
@@ -87,7 +88,7 @@
                 <GridView.ItemTemplate>
                     <DataTemplate x:DataType="bpvms:GalleryBrowseItemVM">
                         <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
-                                                   Width="{x:Bind Width, Mode=OneWay}"
+                                                   Width="{Binding ElementName=RootBrowsePage, Path=GalleryBrowseItemWidth}"
                                                    Height="412"/>
                     </DataTemplate>
                 </GridView.ItemTemplate>

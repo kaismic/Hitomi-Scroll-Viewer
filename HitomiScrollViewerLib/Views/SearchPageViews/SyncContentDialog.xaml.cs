@@ -10,7 +10,6 @@ namespace HitomiScrollViewerLib.Views.SearchPageViews {
             get => _viewModel;
             set {
                 _viewModel = value;
-                value.RequestShowDialog += ShowAsync;
             }
         }
 

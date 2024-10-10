@@ -2,6 +2,7 @@ using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.BrowsePageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
@@ -21,15 +22,30 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         private SortDialog _sortDialog;
         private ItemsWrapGrid _itemsWrapGrid;
 
+        public double GalleryBrowseItemWidth {
+            get => (double)GetValue(GalleryBrowseItemWidthProperty);
+            set => SetValue(GalleryBrowseItemWidthProperty, value);
+        }
+        public static readonly DependencyProperty GalleryBrowseItemWidthProperty =
+            DependencyProperty.Register(
+                nameof(GalleryBrowseItemWidth),
+                typeof(double),
+                typeof(BrowsePage),
+                new(0)
+            );
+
         public BrowsePage() {
             InitializeComponent();
         }
-        // TODO figure out why initial width settings doesn't work
+
         private void SetGalleryItemWidths() {
+            if (GalleryItemsView.ItemsPanelRoot == null) {
+                return;
+            }
             _itemsWrapGrid = GalleryItemsView.ItemsPanelRoot as ItemsWrapGrid;
             if (ViewModel.CurrentGalleryBrowseItemVMs.Count > 0) {
                 foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
-                    vm.Width = GalleryItemsView.ActualWidth / _itemsWrapGrid.MaximumRowsOrColumns - 8;
+                    GalleryBrowseItemWidth = GalleryItemsView.ActualWidth / _itemsWrapGrid.MaximumRowsOrColumns - 8;
                 }
                 //foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
                 //    vm.Width =

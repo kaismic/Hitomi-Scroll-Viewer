@@ -14,12 +14,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
 
         [ObservableProperty]
         private List<TagItemsRepeaterVM> _tagItemsRepeaterVMs = [];
-        [ObservableProperty]
-        private double _width;
-        partial void OnWidthChanged(double value) {
-            WidthChanged?.Invoke(value);
-        }
-        public event Action<double> WidthChanged;
+        public event Action TrySetImageSourceRequested;
 
         public GalleryBrowseItemVM(Gallery gallery) {
             Gallery = gallery;
@@ -37,6 +32,10 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                     );
                 }
             }
+        }
+
+        public void InvokeTrySetImageSourceRequested() {
+            TrySetImageSourceRequested?.Invoke();
         }
     }
 }
