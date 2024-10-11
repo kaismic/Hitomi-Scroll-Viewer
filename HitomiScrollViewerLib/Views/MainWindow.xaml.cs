@@ -7,8 +7,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.Foundation;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Views {
     public sealed partial class MainWindow : Window {
@@ -19,8 +19,9 @@ namespace HitomiScrollViewerLib.Views {
             InitializeComponent();
 
             AppWindow.Closing += AppWindow_Closing;
+            AppWindow.SetIcon("Assets/favicon.ico");
+            Title = AppInfo.Current.DisplayInfo.DisplayName;
             ((OverlappedPresenter)AppWindow.Presenter).Maximize();
-            Title = APP_DISPLAY_NAME;
 
             RootFrame.Loaded += RootFrame_Loaded;
 
