@@ -9,7 +9,14 @@
     xmlns:bpviews="using:HitomiScrollViewerLib.Views.BrowsePageViews"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
     xmlns:models="using:HitomiScrollViewerLib.Models"
-    >
+    SizeChanged="GalleryBrowseItem_SizeChanged"
+    x:DefaultBindMode="OneWay">
+    <UserControl.ContextFlyout>
+        <MenuFlyout>
+            <MenuFlyoutItem Command="{x:Bind ViewModel.DeleteCommand}"
+                            CommandParameter="{x:Bind ViewModel}"/>
+        </MenuFlyout>
+    </UserControl.ContextFlyout>
     <UserControl.Resources>
         <Color x:Key="DoujinshiColor0">#663333</Color>
         <Color x:Key="DoujinshiColor1">#cc9999</Color>
@@ -35,66 +42,65 @@
         <Color x:Key="AnimeColor1">#99cc99</Color>
         <Color x:Key="AnimeColor2">#ccffcc</Color>
     </UserControl.Resources>
-    <ScrollViewer>
-        <StackPanel Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    CornerRadius="{StaticResource OverlayCornerRadius}"
-                    BorderThickness="1"
-                    x:Name="MainStackPanel">
-            <Grid Background="{x:Bind TitleBackgroundBrush, Mode=OneWay}"
-                  Padding="8 4">
-                <TextBlock Grid.Column="0"
-                           FontSize="28"
-                           FontWeight="SemiBold"
-                           Text="{x:Bind ViewModel.Gallery.Title, Mode=OneWay}"
-                           HorizontalAlignment="Left"
-                           IsTextSelectionEnabled="True"/>
-            </Grid>
-            <Grid x:Name="SubtitleGrid" ColumnSpacing="16"
-                  Padding="8 4"
-                  Background="{x:Bind SubtitleBackgroundBrush, Mode=OneWay}"
-                  >
-                <TextBlock FontSize="20"
-                           Text="{x:Bind ViewModel.Gallery.Id, Mode=OneWay}"
-                           Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
-                           />
-                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}" />
-                <TextBlock FontSize="20"
-                           Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName, Mode=OneWay}"
-                           Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
-                           />
-                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush,Mode=OneWay}" />
-                <TextBlock FontSize="20"
-                           Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName, Mode=OneWay}"
-                           Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
-                           />
-            </Grid>
-            <ItemsRepeater x:Name="ThumbnailImagePanel"
-                           Height="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT}">
-                <ItemsRepeater.Layout>
-                    <StackLayout Orientation="Horizontal"/>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="models:PathCheckingImage">
-                        <Image>
-                            <Image.Source>
-                                <BitmapImage UriSource="{x:Bind ImageSource, Mode=OneWay}"
-                                             DecodePixelHeight="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT}"/>
-                            </Image.Source>
-                        </Image>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs, Mode=OneWay}">
-                <ItemsRepeater.Layout>
-                    <StackLayout Spacing="4"/>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="vms:TagItemsRepeaterVM">
-                        <views:TagItemsRepeater ViewModel="{x:Bind}"/>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-        </StackPanel>
-    </ScrollViewer>
+    <StackPanel Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                CornerRadius="{StaticResource OverlayCornerRadius}"
+                BorderThickness="1"
+                x:Name="MainStackPanel">
+        <Grid Background="{x:Bind TitleBackgroundBrush}"
+              Padding="8 4">
+            <TextBlock Grid.Column="0"
+                       FontSize="28"
+                       FontWeight="SemiBold"
+                       Text="{x:Bind ViewModel.Gallery.Title}"
+                       HorizontalAlignment="Left"
+                       IsTextSelectionEnabled="True"/>
+        </Grid>
+        <Grid x:Name="SubtitleGrid" ColumnSpacing="16"
+              Padding="8 4"
+              Background="{x:Bind SubtitleBackgroundBrush}"
+              >
+            <TextBlock FontSize="20"
+                       Text="{x:Bind ViewModel.Gallery.Id}"
+                       Foreground="{x:Bind TextForegroundBrush}"
+                       />
+            <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
+            <TextBlock FontSize="20"
+                       Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName}"
+                       Foreground="{x:Bind TextForegroundBrush}"
+                       />
+            <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
+            <TextBlock FontSize="20"
+                       Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName}"
+                       Foreground="{x:Bind TextForegroundBrush}"
+                       />
+        </Grid>
+        <ItemsRepeater x:Name="ThumbnailImagePanel"
+                       ItemsSource="{x:Bind _pathCheckingImages, Mode=OneTime}"
+                       Height="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT, Mode=OneTime}">
+            <ItemsRepeater.Layout>
+                <StackLayout Orientation="Horizontal"/>
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="models:PathCheckingImage">
+                    <Image>
+                        <Image.Source>
+                            <BitmapImage UriSource="{x:Bind ImageSource}"
+                                         DecodePixelHeight="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT, Mode=OneTime}"/>
+                        </Image.Source>
+                    </Image>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+        <ItemsRepeater ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs}">
+            <ItemsRepeater.Layout>
+                <StackLayout Spacing="4"/>
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="vms:TagItemsRepeaterVM">
+                    <views:TagItemsRepeater ViewModel="{x:Bind Mode=OneTime}"/>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+    </StackPanel>
 </UserControl>

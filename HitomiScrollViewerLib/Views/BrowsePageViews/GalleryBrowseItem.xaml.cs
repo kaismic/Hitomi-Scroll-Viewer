@@ -37,21 +37,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
 
         private SolidColorBrush TextForegroundBrush {
             get => (SolidColorBrush)GetValue(TextForegroundBrushProperty);
-            set {
-                SetValue(TextForegroundBrushProperty, value);
-                // return if initial images are not yet added
-                if (ThumbnailImagePanel.ItemsSource == null) {
-                    return;
-                }
-                if (Monitor.TryEnter(_addingImageLock)) {
-                    // add more images if there are empty spaces
-                    try {
-                        TryAddThumnailImages();
-                    } finally {
-                        Monitor.Exit(_addingImageLock);
-                    }
-                }
-            }
+            set => SetValue(TextForegroundBrushProperty, value);
         }
         public static readonly DependencyProperty TextForegroundBrushProperty =
             DependencyProperty.Register(
@@ -60,7 +46,6 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
                 typeof(GalleryBrowseItem),
                 null
             );
-
 
         public GalleryBrowseItemVM ViewModel {
             get => (GalleryBrowseItemVM)GetValue(ViewModelProperty);
@@ -90,7 +75,6 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
 
         public GalleryBrowseItem() {
             InitializeComponent();
-            Loaded += GalleryBrowseItem_Loaded;
 
             for (int i = 0; i < SubtitleGrid.Children.Count; i++) {
                 SubtitleGrid.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
@@ -105,26 +89,30 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
         private const int MAX_THUMBNAIL_IMAGE_COUNT = 5;
         public const int IMAGE_HEIGHT = 200;
 
-        private void GalleryBrowseItem_Loaded(object _0, RoutedEventArgs _1) {
-            Loaded -= GalleryBrowseItem_Loaded;
-            // add initial thumbnail images
+
+        private void GalleryBrowseItem_SizeChanged(object _0, SizeChangedEventArgs _1) {
             TryAddThumnailImages();
-            ThumbnailImagePanel.ItemsSource = _pathCheckingImages;
         }
 
         private void TryAddThumnailImages() {
-            double remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
-            if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
-                return;
-            }
-            foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index).Skip(_pathCheckingImages.Count)) {
-                if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
-                    return;
+            if (Monitor.TryEnter(_addingImageLock)) {
+                try {
+                    double remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
+                    if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+                        return;
+                    }
+                    foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index).Skip(_pathCheckingImages.Count)) {
+                        if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+                            return;
+                        }
+                        PathCheckingImage pci = new(imageInfo.ImageFilePath);
+                        pci.TrySetImageSource();
+                        _pathCheckingImages.Add(pci);
+                        remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
+                    }
+                } finally {
+                    Monitor.Exit(_addingImageLock);
                 }
-                PathCheckingImage pci = new(imageInfo.ImageFilePath);
-                pci.TrySetImageSource();
-                _pathCheckingImages.Add(pci);
-                remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
             }
         }
 

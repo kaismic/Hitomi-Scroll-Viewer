@@ -24,7 +24,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(DownloadItem).Name);
 
         private const string REFERER = "https://hitomi.la/";
-        private const string BASE_DOMAIN = "hitomi.la";
         private const string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
         private const string GALLERY_INFO_EXCLUDE_STRING = "var galleryinfo = ";
         private const string GG_JS_ADDRESS = "https://ltn.hitomi.la/gg.js";

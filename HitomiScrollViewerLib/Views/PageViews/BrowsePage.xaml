@@ -76,9 +76,11 @@
         </Grid>
         <ScrollViewer Grid.Row="1"
                       Padding="64 0">
-            <GridView x:Name="GalleryItemsView"
+            <GridView x:Name="GalleryGridView"
+                      SelectionMode="Extended"
                       ItemsSource="{x:Bind ViewModel.CurrentGalleryBrowseItemVMs, Mode=OneWay}"
-                      SizeChanged="GalleryItemsView_SizeChanged">
+                      SelectionChanged="GalleryGridView_SelectionChanged"
+                      SizeChanged="GalleryGridView_SizeChanged">
                 <GridView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid Orientation="Horizontal"
@@ -87,9 +89,12 @@
                 </GridView.ItemsPanel>
                 <GridView.ItemTemplate>
                     <DataTemplate x:DataType="bpvms:GalleryBrowseItemVM">
-                        <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
-                                                   Width="{Binding ElementName=RootBrowsePage, Path=GalleryBrowseItemWidth}"
-                                                   Height="412"/>
+                        <ScrollViewer IsVerticalScrollChainingEnabled="True">
+                            <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
+                                                       Width="{Binding ElementName=RootBrowsePage, Path=GalleryBrowseItemWidth}"
+                                                       Height="412"
+                                                       RightTapped="GalleryBrowseItem_RightTapped"/>
+                        </ScrollViewer>
                     </DataTemplate>
                 </GridView.ItemTemplate>
             </GridView>

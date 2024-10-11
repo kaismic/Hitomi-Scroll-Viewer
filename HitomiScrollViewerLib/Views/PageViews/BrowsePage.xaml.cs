@@ -1,9 +1,14 @@
+using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
 using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.BrowsePageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
     public sealed partial class BrowsePage : Page {
@@ -39,28 +44,18 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         }
 
         private void SetGalleryItemWidths() {
-            if (GalleryItemsView.ItemsPanelRoot == null) {
+            if (GalleryGridView.ItemsPanelRoot == null) {
                 return;
             }
-            _itemsWrapGrid = GalleryItemsView.ItemsPanelRoot as ItemsWrapGrid;
+            _itemsWrapGrid = GalleryGridView.ItemsPanelRoot as ItemsWrapGrid;
             if (ViewModel.CurrentGalleryBrowseItemVMs.Count > 0) {
-                foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
-                    GalleryBrowseItemWidth = GalleryItemsView.ActualWidth / _itemsWrapGrid.MaximumRowsOrColumns - 8;
-                }
-                //foreach (var vm in ViewModel.CurrentGalleryBrowseItemVMs) {
-                //    vm.Width =
-                //        (
-                //        GalleryItemsView.ActualWidth
-                //        - 8 * (_itemsWrapGrid.MaximumRowsOrColumns - 1)
-                //        )
-                //        / _itemsWrapGrid.MaximumRowsOrColumns - 8;
-                //}
+                GalleryBrowseItemWidth = GalleryGridView.ActualWidth / _itemsWrapGrid.MaximumRowsOrColumns - 8;
             }
         }
 
         private const double MIN_GALLERY_ITEM_WIDTH = 800;
-        private void GalleryItemsView_SizeChanged(object _0, SizeChangedEventArgs e) {
-            _itemsWrapGrid = GalleryItemsView.ItemsPanelRoot as ItemsWrapGrid;
+        private void GalleryGridView_SizeChanged(object _0, SizeChangedEventArgs e) {
+            _itemsWrapGrid = GalleryGridView.ItemsPanelRoot as ItemsWrapGrid;
             if (e.NewSize.Width < MIN_GALLERY_ITEM_WIDTH) {
                 _itemsWrapGrid.MaximumRowsOrColumns = 1;
             } else {
@@ -77,6 +72,18 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         private void SortDialogButton_Clicked(object _0, RoutedEventArgs _1) {
             _sortDialog.XamlRoot = XamlRoot;
             _ = _sortDialog.ShowAsync();
+        }
+
+        private void GalleryBrowseItem_RightTapped(object sender, RightTappedRoutedEventArgs _1) {
+            GalleryBrowseItemVM vm = (sender as GalleryBrowseItem).ViewModel;
+            if (!GalleryGridView.SelectedItems.Contains(vm)) {
+                GalleryGridView.SelectedItems.Clear();
+                GalleryGridView.SelectedItems.Add(vm);
+            }
+        }
+
+        private void GalleryGridView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            ViewModel.SelectedGalleryBrowseItemVMs = [.. GalleryGridView.SelectedItems.Cast<GalleryBrowseItemVM>()];
         }
     }
 }

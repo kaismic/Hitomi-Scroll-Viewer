@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
@@ -16,8 +17,11 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
         private List<TagItemsRepeaterVM> _tagItemsRepeaterVMs = [];
         public event Action TrySetImageSourceRequested;
 
+        public StandardUICommand DeleteCommand { get; }
+
         public GalleryBrowseItemVM(Gallery gallery) {
             Gallery = gallery;
+            DeleteCommand = new(StandardUICommandKind.Delete);
             for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
                 ICollection<Tag> tags = Tag.SelectTagsFromCategory(
                     gallery.Tags,

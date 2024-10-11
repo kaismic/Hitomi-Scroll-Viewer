@@ -63,17 +63,28 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public event Action CurrentGalleryBrowseItemsChanged;
 
         private void SetCurrentGalleryBrowseItemVMs() {
-            CurrentGalleryBrowseItemVMs =
-            [.. FilteredGalleries
-                .Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
+            CurrentGalleryBrowseItemVMs = [..
+                FilteredGalleries.Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
                 .Take(PageSizes[SelectedPageSizeIndex])
-                .Select(g => new GalleryBrowseItemVM(g))
+                .Select(g => {
+                    GalleryBrowseItemVM vm = new(g);
+                    vm.DeleteCommand.ExecuteRequested += (_, _) => {
+        // TODO undo functionality and correct keyboard focus delete
+                        foreach (var item in SelectedGalleryBrowseItemVMs) {
+                            Debug.WriteLine($"{item.Gallery.Id} - {item.Gallery.Title} is deleted (test)");
+                        }
+                        // ExecuteQuery();
+                    };
+                    return vm;
+                })
             ];
             CurrentGalleryBrowseItemsChanged?.Invoke();
             IncrementCommand.NotifyCanExecuteChanged();
             DecrementCommand.NotifyCanExecuteChanged();
-
         }
+
+        public List<GalleryBrowseItemVM> SelectedGalleryBrowseItemVMs { get; set; }
+
 
         public int[] PageSizes { get; } = Enumerable.Range(1, 15).ToArray();
 
