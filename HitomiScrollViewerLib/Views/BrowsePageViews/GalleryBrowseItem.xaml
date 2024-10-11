@@ -39,7 +39,8 @@
         <StackPanel Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     CornerRadius="{StaticResource OverlayCornerRadius}"
-                    BorderThickness="1">
+                    BorderThickness="1"
+                    x:Name="MainStackPanel">
             <Grid Background="{x:Bind TitleBackgroundBrush, Mode=OneWay}"
                   Padding="8 4">
                 <TextBlock Grid.Column="0"
@@ -68,43 +69,32 @@
                            Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
                            />
             </Grid>
-            <Grid x:Name="ThumbnailImagePanelContainer"
-                  Padding="8" RowSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition x:Name="ImagesRowDefinition"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <ItemsRepeater x:Name="ThumbnailImagePanel"
-                               Grid.Row="0">
-                    <ItemsRepeater.Layout>
-                        <StackLayout Orientation="Horizontal"/>
-                    </ItemsRepeater.Layout>
-                    <ItemsRepeater.ItemTemplate>
-                        <DataTemplate x:DataType="models:PathCheckingImage">
-                            <Image>
-                                <Image.Source>
-                                    <BitmapImage UriSource="{x:Bind ImageSource, Mode=OneWay}"
-                                                 DecodePixelHeight="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT}"/>
-                                </Image.Source>
-                            </Image>
-                        </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
-                <ItemsRepeater Grid.Row="1"
-                               ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs, Mode=OneWay}">
-                    <ItemsRepeater.Layout>
-                        <StackLayout Spacing="4"/>
-                    </ItemsRepeater.Layout>
-                    <ItemsRepeater.ItemTemplate>
-                        <DataTemplate x:DataType="vms:TagItemsRepeaterVM">
-                            <views:TagItemsRepeater ViewModel="{x:Bind}"/>
-                        </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
-            </Grid>
+            <ItemsRepeater x:Name="ThumbnailImagePanel"
+                           Height="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="models:PathCheckingImage">
+                        <Image>
+                            <Image.Source>
+                                <BitmapImage UriSource="{x:Bind ImageSource, Mode=OneWay}"
+                                             DecodePixelHeight="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT}"/>
+                            </Image.Source>
+                        </Image>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.TagItemsRepeaterVMs, Mode=OneWay}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Spacing="4"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vms:TagItemsRepeaterVM">
+                        <views:TagItemsRepeater ViewModel="{x:Bind}"/>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

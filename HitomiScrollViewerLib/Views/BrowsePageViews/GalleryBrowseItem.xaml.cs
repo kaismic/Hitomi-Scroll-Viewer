@@ -99,7 +99,6 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
                     tb.IsTextSelectionEnabled = true;
                 }
             }
-            ImagesRowDefinition.Height = new(IMAGE_HEIGHT);
         }
 
         private readonly ObservableCollection<PathCheckingImage> _pathCheckingImages = [];
@@ -114,7 +113,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
         }
 
         private void TryAddThumnailImages() {
-            double remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
+            double remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
             if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
                 return;
             }
@@ -125,7 +124,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
                 PathCheckingImage pci = new(imageInfo.ImageFilePath);
                 pci.TrySetImageSource();
                 _pathCheckingImages.Add(pci);
-                remainingWidth = ThumbnailImagePanelContainer.ActualWidth - ThumbnailImagePanel.ActualWidth;
+                remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
             }
         }
 
