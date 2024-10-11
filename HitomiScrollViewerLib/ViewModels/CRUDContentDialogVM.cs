@@ -63,9 +63,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 case CRUDAction.Delete:
                     _tagFilters = tagFilters;
                     _tfsSelectorVM = new(tagFilters);
-                    _tfsSelectorVM.SelectedTFCBModels.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
-                        SetIsPrimaryButtonEnabled();
-                    };
+                    _tfsSelectorVM.SelectionChanged += SetIsPrimaryButtonEnabled;
                     Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
                     break;
             }
@@ -74,7 +72,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         private void SetIsPrimaryButtonEnabled() {
             IsPrimaryButtonEnabled =
                 _action == CRUDAction.Delete ?
-                _tfsSelectorVM.SelectedTFCBModels.Any() :
+                _tfsSelectorVM.AnySelected() :
                 _inputValidationVM.InputText.Length != 0;
         }
 

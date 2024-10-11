@@ -55,7 +55,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
             SearchLinkCreateButtonCommand = new RelayCommand(
                 HandleSearchLinkCreateButtonClick,
-                () => QueryBuilderVM.AnyQuerySelected || IncludeTFSelectorVM.SelectedTFCBModels.Any() || ExcludeTFSelectorVM.SelectedTFCBModels.Any()
+                () => QueryBuilderVM.AnyQuerySelected || IncludeTFSelectorVM.AnySelected() || ExcludeTFSelectorVM.AnySelected()
             );
             DownloadButtonCommand = new RelayCommand(
                 HandleDownloadButtonClick,

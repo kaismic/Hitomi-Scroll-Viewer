@@ -62,7 +62,7 @@
                            Text="{x:Bind ViewModel.Gallery.GalleryLanguage.LocalName, Mode=OneWay}"
                            Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"
                            />
-                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush}" />
+                <AppBarSeparator Foreground="{x:Bind TextForegroundBrush,Mode=OneWay}" />
                 <TextBlock FontSize="20"
                            Text="{x:Bind ViewModel.Gallery.GalleryType.DisplayName, Mode=OneWay}"
                            Foreground="{x:Bind TextForegroundBrush, Mode=OneWay}"

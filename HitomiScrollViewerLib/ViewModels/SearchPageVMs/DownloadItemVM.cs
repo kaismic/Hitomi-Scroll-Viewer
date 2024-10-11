@@ -90,14 +90,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [ObservableProperty]
         private bool _isEnabled = false;
         [ObservableProperty]
-        private Symbol _downloadToggleButtonSymbol;
+        private Symbol _downloadToggleButtonSymbol = Symbol.Pause;
         [ObservableProperty]
         private string _downloadToggleButtonToolTip;
 
         private static readonly object _ggjsFetchLock = new();
         private static string _serverTime;
-        private static HashSet<string> _subdomainSelectionSet;
-        private static (string notContains, string contains) _subdomainOrder;
+        private static HashSet<string> _subdomainPickerSet;
+        private static (string notContains, string contains) _subdomainCandidates;
 
         private const int MAX_RETRY_NUM = 1;
         private const int MAX_HTTP_404_ERROR_NUM_LIMIT = 3;
@@ -117,10 +117,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         public void StartDownload() {
             IsEnabled = true;
             _retryCount = 0;
-            _ = PreCheckDownload();
+            PreCheckDownload();
         }
 
-        private async Task PreCheckDownload() {
+        private void PreCheckDownload() {
             if (_retryCount > MAX_RETRY_NUM) {
                 CurrentDownloadStatus = DownloadStatus.Failed;
                 ProgressText = _resourceMap.GetValue("StatusText_TooManyDownloadFails").ValueAsString;
@@ -133,7 +133,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 if (Monitor.TryEnter(_ggjsFetchLock, 0)) {
                     // not locked so immediately unlock and download
                     Monitor.Exit(_ggjsFetchLock);
-                    await InitDownload();
+                    _ = InitDownload();
                 } else {
                     // another thread is already fetching ggjs so add to download waiting list
                     lock (_waitingDownloadItemVMs) {
@@ -143,7 +143,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 return;
             }
             // ggjs not set fetched so fetch for the first time
-            await FetchAndInitDownload(false);
+            _ = FetchAndInitDownload(false);
         }
 
         private async Task FetchAndInitDownload(bool alreadyLocked) {
@@ -162,7 +162,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 }
                 _waitingDownloadItemVMs.Clear();
             }
-            await InitDownload();
+            _ = InitDownload();
         }
 
         public void RemoveDownloadButton_Click(object _0, RoutedEventArgs _1) {
@@ -245,7 +245,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
 
         private async Task InitDownload() {
-            Debug.WriteLine("server time = " + _serverTime);
             _cts = new();
             CancellationToken ct = _cts.Token;
             CurrentDownloadStatus = DownloadStatus.Downloading;
@@ -298,7 +297,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             //}
 
 
-            await TryDownload(ct);
+            _ = TryDownload(ct);
         }
 
         private async Task TryDownload(CancellationToken ct) {
@@ -314,10 +313,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
 
         private void HandleDownloadComplete() {
-            HashSet<int> missingIndexes = GetMissingIndexes();
-            if (missingIndexes.Count > 0) {
+            ICollection<ImageInfo> missingFiles = GetMissingFiles();
+            if (missingFiles.Count > 0) {
                 _retryCount++;
-                _ = PreCheckDownload();
+                PreCheckDownload();
             } else {
                 RemoveSelf();
             }
@@ -352,14 +351,13 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 string ggjs = await response.Content.ReadAsStringAsync();
 
                 _serverTime = ggjs.Substring(ggjs.Length - SERVER_TIME_EXCLUDE_STRING.Length, 10);
-                Debug.WriteLine("UPDATED server time = " + _serverTime);
                 string selectionSetPat = @"case (\d+)";
                 MatchCollection matches = Regex.Matches(ggjs, selectionSetPat);
-                _subdomainSelectionSet = matches.Select(match => match.Groups[1].Value).ToHashSet();
+                _subdomainPickerSet = matches.Select(match => match.Groups[1].Value).ToHashSet();
 
                 string orderPat = @"var [a-z] = (\d);";
                 Match match = Regex.Match(ggjs, orderPat);
-                _subdomainOrder = match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
+                _subdomainCandidates = match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
             } catch (HttpRequestException e) {
                 CurrentDownloadStatus = DownloadStatus.Failed;
                 ProgressText = _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message;
@@ -368,25 +366,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             return true;
         }
 
-        private static string GetImageAddress(ImageInfo imageInfo, string imageFormat) {
-            string hash = imageInfo.Hash;
-            string subdomainAndAddressValue = Convert.ToInt32(hash[^1..] + hash[^3..^1], 16).ToString();
-            string subdomain = _subdomainSelectionSet.Contains(subdomainAndAddressValue) ? _subdomainOrder.contains : _subdomainOrder.notContains;
-            return $"https://{subdomain}.{BASE_DOMAIN}/{imageFormat}/{_serverTime}/{subdomainAndAddressValue}/{hash}.{imageFormat}";
-        }
-
-        private static string GetImageFormat(ImageInfo imageInfo) {
-            return imageInfo.Haswebp == 1 ? "webp" :
-                   imageInfo.Hasavif == 1 ? "avif" :
-                   "jxl";
-        }
-
-        private readonly struct FetchInfo {
-            public int Idx { get; init; }
-            public ImageInfo ImageInfo { get; init; }
-            public string ImageFormat { get; init; }
-            public string ImageAddress { get; init; }
-        };
 
         /**
          * <exception cref="HttpRequestException">
@@ -394,44 +373,37 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
          * </exception>
          * <exception cref="TaskCanceledException"></exception>
          */
-        private async Task<bool> GetImage(FetchInfo fetchInfo, CancellationToken ct) {
+        private async Task<bool> GetImage(ImageInfo imageInfo, CancellationToken ct) {
             try {
                 HttpResponseMessage response = null;
                 try {
-                    Debug.WriteLine("111");
-                    response = await HitomiHttpClient.GetAsync(fetchInfo.ImageAddress, ct);
-                    Debug.WriteLine("222");
+                    response = await HitomiHttpClient.GetAsync(
+                        imageInfo.GetImageAddress(_subdomainPickerSet, _subdomainCandidates, _serverTime),
+                        ct
+                    );
                     response.EnsureSuccessStatusCode();
-                    Debug.WriteLine("333");
                 } catch (HttpRequestException e) {
-                    Debug.WriteLine(e.ToString());
                     if (e.StatusCode == HttpStatusCode.NotFound) {
                         throw;
                     }
                     Debug.WriteLine(e.Message);
-                    Debug.WriteLine($"Fetching {Id} at index = {fetchInfo.Idx} failed. Status Code: {e.StatusCode}");
+                    Debug.WriteLine($"Fetching {imageInfo.FullFileName} of {Id} failed. Status Code: {e.StatusCode}");
                     return false;
                 }
                 try {
-                    Debug.WriteLine("444");
                     byte[] imageBytes = await response.Content.ReadAsByteArrayAsync(ct);
-                    Debug.WriteLine("555");
                     await File.WriteAllBytesAsync(
-                        Path.Combine(IMAGE_DIR_V3, Id.ToString(), fetchInfo.Idx.ToString()) + '.' + fetchInfo.ImageFormat,
+                        imageInfo.ImageFilePath,
                         imageBytes,
                         CancellationToken.None
                     );
-                    Debug.WriteLine("666");
                     return true;
                 } catch (DirectoryNotFoundException) {
-                    Debug.WriteLine("777");
                     return false;
                 } catch (IOException) {
-                    Debug.WriteLine("888");
                     return false;
                 }
             } catch (TaskCanceledException) {
-                    Debug.WriteLine("999");
                 throw;
             }
         }
@@ -440,20 +412,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
          * <exception cref="TaskCanceledException"></exception>
         */
         private Task DownloadImages(CancellationToken ct) {
-            HashSet<int> missingIndexes = GetMissingIndexes();
-            ProgressBarValue = Gallery.Files.Count - missingIndexes.Count;
-            FetchInfo[] fetchInfos =
-                missingIndexes
-                .Select(missingIndex => {
-                    ImageInfo imageInfo = Gallery.Files.First(f => f.Index == missingIndex);
-                    string imageFormat = GetImageFormat(imageInfo);
-                    return new FetchInfo() {
-                        Idx = missingIndex,
-                        ImageInfo = imageInfo,
-                        ImageFormat = imageFormat,
-                        ImageAddress = GetImageAddress(imageInfo, imageFormat)
-                    };
-                }).ToArray();
+            ImageInfo[] missingFiles = [.. GetMissingFiles()];
+            ProgressBarValue = Gallery.Files.Count - missingFiles.Length;
             /*
                 example:
                 fetchInfos.Length = 8, indexes = [0,1,4,5,7,9,10,11,14,15,17], concurrentTaskNum = 3
@@ -466,8 +426,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                  5     11
             */
             int concurrentTaskNum = ThreadNum;
-            int quotient = fetchInfos.Length / concurrentTaskNum;
-            int remainder = fetchInfos.Length % concurrentTaskNum;
+            int quotient = missingFiles.Length / concurrentTaskNum;
+            int remainder = missingFiles.Length % concurrentTaskNum;
             Task[] tasks = new Task[concurrentTaskNum];
 
             int startIdx = 0;
@@ -480,7 +440,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     for (int j = 0; j < thisJMax; j++) {
                         int k = thisStartIdx + j;
                         try {
-                            bool success = await GetImage(fetchInfos[k], ct);
+                            bool success = await GetImage(missingFiles[k], ct);
                             if (success) {
                                 ProgressBarValue++;
                             }
@@ -505,19 +465,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             return Task.WhenAll(tasks);
         }
 
-        // TODO test and fix
-        private HashSet<int> GetMissingIndexes() {
+        private ICollection<ImageInfo> GetMissingFiles() {
             string imageDir = Path.Combine(IMAGE_DIR_V3, Id.ToString());
             if (!Directory.Exists(imageDir)) {
                 Directory.CreateDirectory(imageDir);
-                return [.. Gallery.Files.Select(f => f.Index)];
+                return Gallery.Files;
             }
             HashSet<string> existingFileNames = [.. Directory.GetFiles(imageDir, "*.*").Select(Path.GetFileName)];
-            return [..
-                Gallery.Files
-                .Where(f => !existingFileNames.Contains(f.FullFileName))
-                .Select(f => f.Index)
-            ];
+            return [.. Gallery.Files.Where(f => !existingFileNames.Contains(f.FullFileName))];
         }
     }
 }

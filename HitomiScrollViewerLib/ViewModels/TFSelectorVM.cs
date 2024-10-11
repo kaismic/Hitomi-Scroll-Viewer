@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,15 +23,15 @@ namespace HitomiScrollViewerLib.ViewModels {
                     );
                     TfCheckBoxModels.Add(model);
                 }
-                SelectedTFCBModels = [];
+                _selectedTFCBModels = [];
             }
         }
 
         [ObservableProperty]
         private ObservableCollection<TFCheckBoxModel> _tfCheckBoxModels;
 
-        [ObservableProperty]
-        private ObservableConcurrentDictionary<int, TFCheckBoxModel> _selectedTFCBModels;
+        private Dictionary<int, TFCheckBoxModel> _selectedTFCBModels = [];
+        public event Action SelectionChanged;
 
         public TFSelectorVM(ObservableCollection<TagFilter> tagFilterSets) {
             TagFilters = tagFilterSets;
@@ -52,9 +53,10 @@ namespace HitomiScrollViewerLib.ViewModels {
                         var modelToRemove = TfCheckBoxModels.FirstOrDefault(model => model.TagFilter.Id == tfs.Id);
                         if (modelToRemove != null) {
                             TfCheckBoxModels.Remove(modelToRemove);
-                            SelectedTFCBModels.Remove(tfs.Id);
+                            _selectedTFCBModels.Remove(tfs.Id);
                         }
                     }
+                    SelectionChanged?.Invoke();
                     break;
                 case NotifyCollectionChangedAction.Replace:
                     TagFilters_CollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, e.NewItems));
@@ -71,14 +73,18 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public virtual void CheckBox_Toggled(TFCheckBoxModel model) {
             if (model.IsChecked) {
-                SelectedTFCBModels.Add(model.TagFilter.Id, model);
+                _selectedTFCBModels.Add(model.TagFilter.Id, model);
+                SelectionChanged?.Invoke();
             } else {
-                SelectedTFCBModels.Remove(model.TagFilter.Id);
+                _selectedTFCBModels.Remove(model.TagFilter.Id);
+                SelectionChanged?.Invoke();
             }
         }
 
         public IEnumerable<TagFilter> GetSelectedTagFilters() {
-            return SelectedTFCBModels.Values.Select(model => model.TagFilter);
+            return _selectedTFCBModels.Values.Select(model => model.TagFilter);
         }
+
+        public bool AnySelected() => _selectedTFCBModels.Count > 0;
     }
 }

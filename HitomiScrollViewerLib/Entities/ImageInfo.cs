@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Text.Json.Serialization;
@@ -8,6 +9,8 @@ using System.Text.RegularExpressions;
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Index))]
     public partial class ImageInfo {
+        private const string BASE_DOMAIN = "hitomi.la";
+
         [JsonIgnore]
         public long Id { get; set; }
         private string _name;
@@ -45,14 +48,20 @@ namespace HitomiScrollViewerLib.Entities {
         public int Haswebp { get; set; }
         public int Hasavif { get; set; }
         public int Hasjxl { get; set; }
-        private string _fileFormat;
+        private string _fileExtension;
         public string FileExtension {
-            get => _fileFormat ??=
+            get => _fileExtension ??=
                 Haswebp == 1 ? "webp" :
                 Hasavif == 1 ? "avif" : "jxl";
         }
         
         [Required]
         public Gallery Gallery { get; set; }
+
+        public string GetImageAddress(HashSet<string> subdomainPickerSet, (string notContains, string contains) subdomainCandidates, string serverTime) {
+            string hashFragment = Convert.ToInt32(Hash[^1..] + Hash[^3..^1], 16).ToString();
+            string subdomain = subdomainPickerSet.Contains(hashFragment) ? subdomainCandidates.contains : subdomainCandidates.notContains;
+            return $"https://{subdomain}.{BASE_DOMAIN}/{FileExtension}/{serverTime}/{hashFragment}/{Hash}.{FileExtension}";
+        }
     }
 }
