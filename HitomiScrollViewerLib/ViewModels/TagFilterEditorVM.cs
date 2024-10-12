@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Xaml.Controls;
@@ -8,7 +8,6 @@ using Microsoft.Windows.ApplicationModel.Resources;
 using Soluling;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.Foundation;
 using Windows.Storage;
@@ -18,8 +17,6 @@ namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : DQObservableObject {
         private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
 
-        public ObservableCollection<TagFilter> TagFilters { get; }
-
         [ObservableProperty]
         private bool _isTFAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] ??= true);
         partial void OnIsTFAutoSaveEnabledChanged(bool value) {
@@ -27,9 +24,9 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         public event Action<TagFilter> SelectedTagFilterChanged;
-        public event Action<TagCollectionEventArgs> CurrentTagsRequested;
+        public event Action<RequestTagsEventArgs> CurrentTagsRequested;
 
-        public class TagCollectionEventArgs : EventArgs {
+        public class RequestTagsEventArgs : EventArgs {
             private ICollection<Tag> _tags;
             public ICollection<Tag> Tags {
                 get {
@@ -58,8 +55,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             }
         }
 
-        public TagFilterEditorVM(ObservableCollection<TagFilter> tagFilters) {
-            TagFilters = tagFilters;
+        public TagFilterEditorVM() {
             CreateButtonCommand = new RelayCommand(CreateButton_Click);
             RenameButtonCommand = new RelayCommand(
                 RenameButton_Click,
@@ -83,13 +79,13 @@ namespace HitomiScrollViewerLib.ViewModels {
                 return;
             }
             string name = cdvm.GetInputText();
-            TagCollectionEventArgs args = new();
+            RequestTagsEventArgs args = new();
             CurrentTagsRequested?.Invoke(args);
             TagFilter tf = new() {
                 Name = name,
                 Tags = args.Tags
             };
-            TagFilters.Add(tf);
+            TagFilterDAO.Add(tf);
             SelectedTagFilter = tf;
             MainWindowVM.ShowPopup(
                 string.Format(
@@ -108,7 +104,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 return;
             }
             string newName = cdvm.GetInputText();
-            SelectedTagFilter.Name = newName;
+            TagFilterDAO.UpdateName(SelectedTagFilter, newName);
             MainWindowVM.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
@@ -125,9 +121,9 @@ namespace HitomiScrollViewerLib.ViewModels {
             if (tf == null) {
                 return;
             }
-            TagCollectionEventArgs args = new();
-            CurrentTagsRequested?.Invoke(args);
-            tf.Tags = args.Tags;
+            RequestTagsEventArgs args = new();
+            CurrentTagsRequested.Invoke(args);
+            TagFilterDAO.UpdateTags(tf, args.Tags);
             MainWindowVM.ShowPopup(
                 string.Format(
                     _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
@@ -139,15 +135,13 @@ namespace HitomiScrollViewerLib.ViewModels {
         public RelayCommand DeleteButtonCommand { get; }
 
         private async void DeleteButton_Click() {
-            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Delete, tagFilters: TagFilters);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Delete);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
             IEnumerable<TagFilter> SelectedTagFilters = cdvm.GetSelectedTagFilters();
             DeletedTagFilterIds = SelectedTagFilters.Select(tf => tf.Id).ToHashSet();
-            foreach (TagFilter tf in cdvm.GetSelectedTagFilters()) {
-                TagFilters.Remove(tf);
-            }
+            TagFilterDAO.RemoveRange(cdvm.GetSelectedTagFilters());
             MainWindowVM.ShowPopup(
                 MultiPattern.Format(
                     _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,

@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Controls;
-using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagTokenizingTextBoxVM : DQObservableObject {
@@ -24,12 +22,13 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private Tag[] _suggestedItemsSource;
 
-        private readonly HitomiContext _context;
+        private readonly IQueryable<Tag> _tags;
 
-        public TagTokenizingTextBoxVM(HitomiContext context, TagCategory category) {
-            _context = context;
+        public TagTokenizingTextBoxVM(IQueryable<Tag> tags, TagCategory category) {
+            _tags = tags;
             Category = category;
             SelectedTags.CollectionChanged += SelectedTags_CollectionChanged;
+            
         }
 
         private void SelectedTags_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
@@ -51,7 +50,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         private Tag[] GetSuggestions() {
-            IQueryable<Tag> tags = _context.Tags.Where(tag => tag.Category == Category);
+            IQueryable<Tag> tags = _tags.Where(tag => tag.Category == Category);
             if (Text.Length != 0) {
                 tags = tags.Where(tag => tag.Value.StartsWith(Text));
             }
@@ -73,7 +72,7 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public void TokenizingTextBox_TokenItemAdding(TokenizingTextBox _0, TokenItemAddingEventArgs args) {
             if (args.TokenText != null) {
-                Tag tag = _context.GetTag(args.TokenText, Category);
+                Tag tag = Tag.GetTag(_tags, args.TokenText, Category);
                 if (tag == null || _selectedTagIds.Contains(tag.Id)) {
                     args.Cancel = true;
                 } else {

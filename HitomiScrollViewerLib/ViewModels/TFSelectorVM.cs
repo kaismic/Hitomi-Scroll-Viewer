@@ -1,40 +1,29 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
+using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
-using HitomiScrollViewerLib.Views;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class TFSelectorVM : DQObservableObject {
-        private ObservableCollection<TagFilter> TagFilters {
-            set {
-                value.CollectionChanged += TagFilters_CollectionChanged;
-                TfCheckBoxModels = [];
-                foreach (TagFilter tfs in value) {
-                    TFCheckBoxModel model = new(
-                        tfs,
-                        new RelayCommand<TFCheckBoxModel>(CheckBox_Toggled)
-                    );
-                    TfCheckBoxModels.Add(model);
-                }
-                _selectedTFCBModels = [];
-            }
-        }
+    public class TFSelectorVM {
+        public ObservableCollection<TFCheckBoxModel> TFCheckBoxModels { get; } = [];
 
-        [ObservableProperty]
-        private ObservableCollection<TFCheckBoxModel> _tfCheckBoxModels;
-
-        private Dictionary<int, TFCheckBoxModel> _selectedTFCBModels = [];
+        private readonly Dictionary<int, TFCheckBoxModel> _selectedTFCBModels = [];
         public event Action SelectionChanged;
 
-        public TFSelectorVM(ObservableCollection<TagFilter> tagFilterSets) {
-            TagFilters = tagFilterSets;
+        public TFSelectorVM() {
+            TagFilterDAO.LocalTagFilters.CollectionChanged += TagFilters_CollectionChanged;
+            foreach (TagFilter tfs in TagFilterDAO.LocalTagFilters) {
+                TFCheckBoxModel model = new(
+                    tfs,
+                    new RelayCommand<TFCheckBoxModel>(CheckBox_Toggled)
+                );
+                TFCheckBoxModels.Add(model);
+            }
         }
 
         private void TagFilters_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
@@ -45,28 +34,23 @@ namespace HitomiScrollViewerLib.ViewModels {
                             tfs,
                             new RelayCommand<TFCheckBoxModel>(CheckBox_Toggled)
                         );
-                        TfCheckBoxModels.Add(model);
+                        TFCheckBoxModels.Add(model);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     foreach (var tfs in e.OldItems.Cast<TagFilter>()) {
-                        var modelToRemove = TfCheckBoxModels.FirstOrDefault(model => model.TagFilter.Id == tfs.Id);
+                        var modelToRemove = TFCheckBoxModels.FirstOrDefault(model => model.TagFilter.Id == tfs.Id);
                         if (modelToRemove != null) {
-                            TfCheckBoxModels.Remove(modelToRemove);
+                            TFCheckBoxModels.Remove(modelToRemove);
                             _selectedTFCBModels.Remove(tfs.Id);
                         }
                     }
                     SelectionChanged?.Invoke();
                     break;
+                // Assuming these do not happen
                 case NotifyCollectionChangedAction.Replace:
-                    TagFilters_CollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, e.NewItems));
-                    TagFilters_CollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, e.OldItems));
-                    break;
-                // Assuming Move does not happen
                 case NotifyCollectionChangedAction.Move:
-                    break;
                 case NotifyCollectionChangedAction.Reset:
-                    TagFilters = sender as ObservableCollection<TagFilter>;
                     break;
             }
         }

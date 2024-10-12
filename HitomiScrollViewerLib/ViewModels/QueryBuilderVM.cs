@@ -1,12 +1,14 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using Windows.UI;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public class QueryBuilderVM {
+    public class QueryBuilderVM : IDisposable {
         public GalleryLanguage[] GalleryLanguages { get; }
         public GalleryTypeEntity[] GalleryTypes { get; }
 
@@ -30,12 +32,19 @@ namespace HitomiScrollViewerLib.ViewModels {
             QueryConfiguration.SelectedType.GalleryType != GalleryType.All ||
             SearchTitleText.Length > 0;
 
-        public QueryBuilderVM(HitomiContext context, QueryConfiguration queryConfig, GalleryLanguage[] languages, GalleryTypeEntity[] types) {
-            QueryConfiguration = queryConfig;
+        private readonly HitomiContext _noTrackingContext = new();
+
+        public QueryBuilderVM(PageKind pageKind) {
+            _noTrackingContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            QueryConfiguration = _noTrackingContext.QueryConfigurations.Find(pageKind);
             QueryConfiguration.SelectionChanged += () => QueryChanged?.Invoke();
-            GalleryLanguages = languages;
-            GalleryTypes = types;
-            TagTokenizingTBVMs = [..Tag.TAG_CATEGORIES.Select(category => new TagTokenizingTextBoxVM(context, category))];
+            GalleryLanguages = [.. _noTrackingContext.GalleryLanguages];
+            GalleryTypes = [.. _noTrackingContext.GalleryTypes];
+            TagTokenizingTBVMs = [..
+                Tag.TAG_CATEGORIES.Select(
+                    category => new TagTokenizingTextBoxVM(_noTrackingContext.Tags, category)
+                )
+            ];
             foreach (var vm in TagTokenizingTBVMs) {
                 vm.SelectedTags.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => TagCollectionChanged?.Invoke(sender, e);
             }
@@ -60,6 +69,11 @@ namespace HitomiScrollViewerLib.ViewModels {
                 .Select(i => TagTokenizingTBVMs[i].SelectedTags)
                 .SelectMany(tags => tags)
                 .ToHashSet();
+        }
+
+        public void Dispose() {
+            _noTrackingContext.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

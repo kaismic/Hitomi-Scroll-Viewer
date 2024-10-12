@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
@@ -22,8 +23,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static SearchPageVM _main;
         public static SearchPageVM Main => _main ??= new();
 
-        private readonly HitomiContext _context = new();
-
         public TagFilterEditorVM TagFilterEditorVM { get; }
         public QueryBuilderVM QueryBuilderVM { get; }
         public PairedTFSelectorVM IncludeTFSelectorVM { get; }
@@ -40,18 +39,11 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         private SearchPageVM() {
-            _context.TagFilters.Load();
-            ObservableCollection<TagFilter> tagFilters = _context.TagFilters.Local.ToObservableCollection();
-            TagFilterEditorVM = new(tagFilters);
-            QueryBuilderVM = new(
-                _context,
-                _context.QueryConfigurations.Find(PageKind.SearchPage),
-                [.. _context.GalleryLanguages],
-                [.. _context.GalleryTypes]
-            );
-            SyncManagerVM = new(_context);
-            IncludeTFSelectorVM = new(tagFilters);
-            ExcludeTFSelectorVM = new(tagFilters);
+            TagFilterEditorVM = new();
+            QueryBuilderVM = new(PageKind.SearchPage);
+            SyncManagerVM = new();
+            IncludeTFSelectorVM = new();
+            ExcludeTFSelectorVM = new();
 
             SearchLinkCreateButtonCommand = new RelayCommand(
                 HandleSearchLinkCreateButtonClick,
@@ -71,13 +63,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
                 QueryBuilderVM.ClearSelectedTags();
                 QueryBuilderVM.InsertTags(
-                    [.. _context
-                        .TagFilters
-                        .AsNoTracking()
-                        .Include(tf => tf.Tags)
-                        .First(tf => tf.Id == selectedTagFilter.Id)
-                        .Tags
-                    ]
+                    TagFilterDAO.LocalTagFilters
+                    .First(tf => selectedTagFilter.Id == tf.Id)
+                    .Tags
                 );
             };
         }
@@ -190,8 +178,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         public void Dispose() {
-            _context.SaveChanges();
-            _context.Dispose();
+            QueryBuilderVM.Dispose();
             GC.SuppressFinalize(this);
         }
     }

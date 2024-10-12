@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using static HitomiScrollViewerLib.SharedResources;
@@ -33,12 +34,12 @@ namespace HitomiScrollViewerLib.Entities {
         public Dictionary<string, IEnumerable<string>> IncludeTags { get; set; }
         public Dictionary<string, IEnumerable<string>> ExcludeTags { get; set; }
 
-
         private static void ConvertTagValues(HitomiContext context, List<string> tagValues, List<Tag> tags, TagCategory category) {
             foreach (string tagValue in tagValues) {
                 // V2 tags values were stored by replacing space (' ') characters with underscores ('_')
                 // but V3 stores the tag values in original value without the replacement.
-                Tag tag = context.GetTag(tagValue.Replace('_', ' '), category);
+                IQueryable<Tag> tagQueryable = context.Tags.AsNoTracking();
+                Tag tag = Tag.GetTag(tagQueryable, tagValue.Replace('_', ' '), category);
                 if (tag != null) {
                     tags.Add(tag);
                     continue;
@@ -48,7 +49,7 @@ namespace HitomiScrollViewerLib.Entities {
                 // so just iterate through it and check
                 for (int i = 0; i < TAGS_WITH_UNDERSCORES_SPACES_REPLACED.Length; i++) {
                     if (TAGS_WITH_UNDERSCORES_SPACES_REPLACED[i] == tagValue) {
-                        tags.Add(context.GetTag(TAGS_WITH_UNDERSCORES[i], category));
+                        tags.Add(Tag.GetTag(tagQueryable, TAGS_WITH_UNDERSCORES[i], category));
                         break;
                     }
                 }

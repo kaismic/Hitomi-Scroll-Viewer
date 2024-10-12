@@ -268,32 +268,33 @@ namespace HitomiScrollViewerLib {
 
         private static void AddExampleTagFilters(HitomiContext context) {
             ResourceMap resourceMap = MainResourceMap.GetSubtree("ExampleTagFilterNames");
+            IQueryable<Tag> tags = context.Tags.AsNoTracking();
             context.TagFilters.AddRange(
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_1").ValueAsString,
                     Tags = [
-                        context.GetTag("full color", TagCategory.Tag),
-                        context.GetTag("very long hair", TagCategory.Female),
+                        Tag.GetTag(tags, "full color", TagCategory.Tag),
+                        Tag.GetTag(tags, "very long hair", TagCategory.Female),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_2").ValueAsString,
                     Tags = [
-                        context.GetTag("glasses", TagCategory.Female),
-                        context.GetTag("sole male", TagCategory.Male),
+                        Tag.GetTag(tags, "glasses", TagCategory.Female),
+                        Tag.GetTag(tags, "sole male", TagCategory.Male),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_3").ValueAsString,
                     Tags = [
-                        context.GetTag("naruto", TagCategory.Series),
-                        context.GetTag("big breasts", TagCategory.Female),
+                        Tag.GetTag(tags, "naruto", TagCategory.Series),
+                        Tag.GetTag(tags, "big breasts", TagCategory.Female),
                     ]
                 },
                 new() {
                     Name = resourceMap.GetValue("ExampleTagFilterName_4").ValueAsString,
                     Tags = [
-                        context.GetTag("non-h imageset", TagCategory.Tag)
+                        Tag.GetTag(tags, "non-h imageset", TagCategory.Tag)
                     ]
                 }
             );

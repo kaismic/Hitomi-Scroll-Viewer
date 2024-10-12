@@ -21,15 +21,5 @@ namespace HitomiScrollViewerLib.DbContexts {
                 .UseSqlite($"Data Source={MAIN_DATABASE_PATH_V3}")
                 .EnableSensitiveDataLogging();
         }
-
-        /// <returns><see cref="Tag"/> or <c>null</c></returns>
-        public Tag GetTag(string value, TagCategory category) {
-            string formattedValue = value.ToLower();
-            return Tags
-                .FirstOrDefault(tag =>
-                    tag.Value == formattedValue &&
-                    tag.Category == category
-                );
-        }
     }
 }
