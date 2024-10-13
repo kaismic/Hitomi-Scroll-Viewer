@@ -92,7 +92,7 @@ namespace HitomiScrollViewerLib.Entities {
 
             foreach (var compositeTag in Tags) {
                 tags.Add(Tag.GetTag(
-                    context.Tags.AsNoTracking(),
+                    context.Tags,
                     compositeTag.Tag,
                     compositeTag.Male == 1   ? TagCategory.Male   :
                     compositeTag.Female == 1 ? TagCategory.Female :

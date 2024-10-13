@@ -38,11 +38,14 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         private SearchPageVM() {
-            TagFilterEditorVM = new();
+            TagFilterDAO tagFilterDAO = new();
+            
+            TagFilterEditorVM = new(tagFilterDAO);
             QueryBuilderVM = new(PageKind.SearchPage);
-            SyncManagerVM = new();
-            IncludeTFSelectorVM = new();
-            ExcludeTFSelectorVM = new();
+            SyncManagerVM = new(tagFilterDAO);
+            IncludeTFSelectorVM = new(tagFilterDAO);
+            ExcludeTFSelectorVM = new(tagFilterDAO);
+
 
             SearchLinkCreateButtonCommand = new RelayCommand(
                 HandleSearchLinkCreateButtonClick,
@@ -61,11 +64,11 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             TagFilterEditorVM.CurrentTagsRequested += e => e.Tags = QueryBuilderVM.GetCurrentTags();
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
                 QueryBuilderVM.ClearSelectedTags();
-                QueryBuilderVM.InsertTags(
-                    TagFilterDAO.LocalTagFilters
-                    .First(tf => selectedTagFilter.Id == tf.Id)
-                    .Tags
-                );
+                using HitomiContext context = new();
+                TagFilter tagFilter = context.TagFilters.AsNoTracking().Include(tf => tf.Tags).First(tf => tf.Id == selectedTagFilter.Id);
+                //context.Entry(tagFilter).Collection(tf => tf.Tags).Load();
+                
+                QueryBuilderVM.InsertTags([.. tagFilter.Tags]);
             };
         }
 

@@ -1,8 +1,9 @@
-﻿using HitomiScrollViewerLib.Models;
+﻿using HitomiScrollViewerLib.DAOs;
+using HitomiScrollViewerLib.Models;
 using System;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public partial class PairedTFSelectorVM : TFSelectorVM {
+    public partial class PairedTFSelectorVM(TagFilterDAO tagFilterDAO) : TFSelectorVM(tagFilterDAO) {
         public PairedTFSelectorVM OtherTFSelectorVM { private get; set; }
 
         public event Action CheckBoxToggled;

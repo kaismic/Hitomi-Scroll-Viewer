@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class SortDialogVM : DQObservableObject {
-        private HitomiContext _context;
+        private readonly HitomiContext _context;
         public ObservableCollection<SortItemVM> ActiveSortItemVMs { get; }
         public ObservableCollection<SortItemVM> InactiveSortItemVMs { get; }
 

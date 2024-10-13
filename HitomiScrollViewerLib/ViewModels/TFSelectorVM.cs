@@ -2,6 +2,7 @@
 using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,9 +16,9 @@ namespace HitomiScrollViewerLib.ViewModels {
         private readonly Dictionary<int, TFCheckBoxModel> _selectedTFCBModels = [];
         public event Action SelectionChanged;
 
-        public TFSelectorVM() {
-            TagFilterDAO.LocalTagFilters.CollectionChanged += TagFilters_CollectionChanged;
-            foreach (TagFilter tfs in TagFilterDAO.LocalTagFilters) {
+        public TFSelectorVM(TagFilterDAO tagFilterDAO) {
+            tagFilterDAO.LocalTagFilters.CollectionChanged += TagFilters_CollectionChanged;
+            foreach (TagFilter tfs in tagFilterDAO.LocalTagFilters) {
                 TFCheckBoxModel model = new(
                     tfs,
                     new RelayCommand<TFCheckBoxModel>(CheckBox_Toggled)

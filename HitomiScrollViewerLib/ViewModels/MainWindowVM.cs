@@ -76,7 +76,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     SearchPageVM.Main.TagFilterEditorVM.SaveTagFilter(SearchPageVM.Main.TagFilterEditorVM.SelectedTagFilter);
                 }
                 SearchPageVM.Main.Dispose();
-                BrowsePageVM.Main.Dispose();
+                //BrowsePageVM.Main.Dispose(); // TODO
             }
         }
     }

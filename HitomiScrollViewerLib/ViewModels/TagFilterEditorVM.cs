@@ -2,7 +2,9 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DAOs;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -56,7 +58,10 @@ namespace HitomiScrollViewerLib.ViewModels {
             }
         }
 
-        public TagFilterEditorVM() {
+        public TagFilterDAO TagFilterDAO { get; }
+
+        public TagFilterEditorVM(TagFilterDAO tagFilterDAO) {
+            TagFilterDAO = tagFilterDAO;
             CreateButtonCommand = new RelayCommand(CreateButton_Click);
             RenameButtonCommand = new RelayCommand(
                 RenameButton_Click,
@@ -75,7 +80,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         public RelayCommand CreateButtonCommand { get; }
 
         private async void CreateButton_Click() {
-            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Create);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Create, TagFilterDAO);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
@@ -100,7 +105,7 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         private async void RenameButton_Click() {
             string oldName = SelectedTagFilter.Name;
-            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Rename, oldName: oldName);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Rename, TagFilterDAO, oldName: oldName);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }
@@ -136,7 +141,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         public RelayCommand DeleteButtonCommand { get; }
 
         private async void DeleteButton_Click() {
-            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Delete);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Delete, TagFilterDAO);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }

@@ -1,18 +1,16 @@
-﻿using CommunityToolkit.WinUI.Collections;
+﻿using CommunityToolkit.WinUI;
+using CommunityToolkit.WinUI.Collections;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels;
-using Microsoft.Windows.ApplicationModel.Resources;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Windows.ApplicationModel;
-using static HitomiScrollViewerLib.SharedResources;
-using static HitomiScrollViewerLib.Constants;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using CommunityToolkit.WinUI;
+using Windows.ApplicationModel;
+using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib {
     public static class AppInitializer {
@@ -30,7 +28,7 @@ namespace HitomiScrollViewerLib {
 
             bool dbCreatedFirstTime;
             using (HitomiContext context = new()) {
-                //context.Database.EnsureDeleted(); // Uncomment to reset database
+                //context.Database.EnsureDeleted(); // Uncomment to reset database @@@@@@@@@@@
                 dbCreatedFirstTime = context.Database.EnsureCreated();
                 if (dbCreatedFirstTime) {
                     vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
@@ -56,7 +54,7 @@ namespace HitomiScrollViewerLib {
                 vm.Maximum = legacyTagFilters.Count;
                 using HitomiContext context = new();
                 foreach (var pair in legacyTagFilters) {
-                    context.TagFilters.AddRange(pair.Value.ToTagFilter(context, pair.Key));
+                    context.TagFilters.AddRange(pair.Value.ToTagFilters(context, pair.Key));
                     vm.Value++;
                 }
                 context.SaveChanges();
@@ -70,6 +68,7 @@ namespace HitomiScrollViewerLib {
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.AddingExampleTFSs);
                 using HitomiContext context = new();
                 AddExampleTagFilters(context);
+                context.SaveChanges();
             }
 
             // migrate existing galleries (p.k.a. bookmarks) from v2
@@ -267,7 +266,7 @@ namespace HitomiScrollViewerLib {
         }
 
         private static void AddExampleTagFilters(HitomiContext context) {
-            IQueryable<Tag> tags = context.Tags.AsNoTracking();
+            IQueryable<Tag> tags = context.Tags;
             context.TagFilters.AddRange(
                 new() {
                     Name = "ExampleTagFilterName_1".GetLocalized("ExampleTagFilterNames"),
@@ -297,8 +296,6 @@ namespace HitomiScrollViewerLib {
                     ]
                 }
             );
-            context.SaveChanges();
         }
-
     }
 }

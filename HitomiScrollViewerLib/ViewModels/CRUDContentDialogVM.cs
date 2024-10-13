@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI;
+using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views;
@@ -36,7 +37,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private bool _isPrimaryButtonEnabled = false;
 
-        public CRUDContentDialogVM(CRUDAction action, string oldName = null, ObservableCollection<TagFilter> tagFilters = null) {
+        public CRUDContentDialogVM(CRUDAction action, TagFilterDAO tagFilterDAO, string oldName = null, ObservableCollection<TagFilter> tagFilters = null) {
             if (action == CRUDAction.Rename && oldName == null) {
                 throw new ArgumentException($"{nameof(oldName)} must be provided when {nameof(action)} is {nameof(CRUDAction.Rename)}", nameof(action));
             } else if (action == CRUDAction.Delete && tagFilters == null) {
@@ -63,7 +64,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     break;
                 case CRUDAction.Delete:
                     _tagFilters = tagFilters;
-                    _tfsSelectorVM = new();
+                    _tfsSelectorVM = new(tagFilterDAO);
                     _tfsSelectorVM.SelectionChanged += SetIsPrimaryButtonEnabled;
                     Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
                     break;

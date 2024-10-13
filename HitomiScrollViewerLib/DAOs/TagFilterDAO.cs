@@ -1,29 +1,34 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace HitomiScrollViewerLib.DAOs {
-    public static class TagFilterDAO {
+    public class TagFilterDAO {
         /// <summary>
         /// Do not manipulate this collection or any properties of the items in this collection directly.
         /// Instead, use the provided methods.
         /// </summary>
-        public static ObservableCollection<TagFilter> LocalTagFilters { get; }
+        public ObservableCollection<TagFilter> LocalTagFilters { get; }
 
-        static TagFilterDAO() {
+        public TagFilterDAO() {
             using HitomiContext context = new();
-            LocalTagFilters = context.TagFilters.Local.ToObservableCollection();
+            LocalTagFilters = new(context.TagFilters.Local.ToObservableCollection());
         }
 
-        public static void Add(TagFilter tf) {
+        public void Add(TagFilter tf) {
             using HitomiContext context = new();
             LocalTagFilters.Add(tf);
             context.TagFilters.Add(tf);
             context.SaveChanges();
         }
 
-        public static void AddRange(IEnumerable<TagFilter> tfs) {
+        public void AddRange(IEnumerable<TagFilter> tfs) {
             using HitomiContext context = new();
             foreach (TagFilter tf in tfs) {
                 LocalTagFilters.Add(tf);
@@ -33,14 +38,14 @@ namespace HitomiScrollViewerLib.DAOs {
         }
 
         // TODO add undo functionality by using context.ChangeTracker.Clear(); and passing removed entities
-        public static void Remove(TagFilter tf) {
+        public void Remove(TagFilter tf) {
             using HitomiContext context = new();
             LocalTagFilters.Remove(tf);
             context.TagFilters.Remove(tf);
             context.SaveChanges();
         }
         
-        public static void RemoveRange(IEnumerable<TagFilter> tfs) {
+        public void RemoveRange(IEnumerable<TagFilter> tfs) {
             using HitomiContext context = new();
             foreach (var tf in tfs) {
                 LocalTagFilters.Remove(tf);
@@ -49,30 +54,20 @@ namespace HitomiScrollViewerLib.DAOs {
             context.SaveChanges();
         }
 
-        /// <summary>
-        /// <paramref name="tf"/> must be an item in <see cref="LocalTagFilters"/>
-        /// </summary>
-        /// <param name="tf"></param>
-        /// <param name="name"></param>
-        public static void UpdateName(TagFilter tf, string name) {
+        public void UpdateName(TagFilter tagFilter, string name) {
             using HitomiContext context = new();
-            TagFilter entity = context.TagFilters.Find(tf.Id);
-            tf.Name = name;
-            entity.Name = name;
+            context.TagFilters.Find(tagFilter.Id).Name = name;
             context.SaveChanges();
+            LocalTagFilters.First(tf => tf.Id == tagFilter.Id).Name = name;
         }
 
-        /// <summary>
-        /// <paramref name="tf"/> must be an item in <see cref="LocalTagFilters"/>
-        /// </summary>
-        /// <param name="tf"></param>
-        /// <param name="tags"></param>
-        public static void UpdateTags(TagFilter tf, ICollection<Tag> tags) {
+        public void UpdateTags(TagFilter tagFilter, ICollection<Tag> tags) {
             using HitomiContext context = new();
-            TagFilter entity = context.TagFilters.Find(tf.Id);
-            tf.Tags = tags;
-            entity.Tags = tags;
+            // TODO why??????????
+            tagFilter.Tags = tags;
+            context.TagFilters.Find(tagFilter.Id).Tags = tags;
             context.SaveChanges();
+            LocalTagFilters.First(tf => tf.Id == tagFilter.Id).Tags = tags;
         }
     }
 }

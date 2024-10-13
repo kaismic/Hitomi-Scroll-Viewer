@@ -9,7 +9,9 @@
     
     Style="{StaticResource DefaultContentDialogStyle}">
     <ContentDialog.Title>
-        <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.TitleText}"/>
+        <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.TitleText}"
+
+                   FontStretch="Normal"/>
     </ContentDialog.Title>
     <StackPanel>
         <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.PleaseWaitText}"/>

@@ -9,6 +9,7 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
@@ -31,7 +32,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class SyncContentDialogVM : DQObservableObject {
         private static readonly string SUBTREE_NAME = typeof(SyncContentDialog).Name;
 
-        public SyncContentDialogVM(DriveService driveService) {
+        private readonly TagFilterDAO _tagFilterDAO;
+        public SyncContentDialogVM(DriveService driveService, TagFilterDAO tagFilterDAO) {
+            _tagFilterDAO = tagFilterDAO;
             DriveService = driveService;
             PropertyChanged += (object sender, PropertyChangedEventArgs e) => {
                 if (e.PropertyName != nameof(IsPrimaryButtonEnabled) && e.PropertyName != nameof(IsEnabled)) {
@@ -417,20 +420,20 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                 .Select(dto => dto.ToTagFilter(context.Tags));
                             // Overwrite
                             if (RadioButtons2SelectedIndex == 0) {
-                                TagFilterDAO.RemoveRange(TagFilterDAO.LocalTagFilters);
-                                TagFilterDAO.AddRange(fetchedTagFilters);
+                                _tagFilterDAO.RemoveRange(_tagFilterDAO.LocalTagFilters);
+                                _tagFilterDAO.AddRange(fetchedTagFilters);
                             }
                             // Append
                             else {
                                 foreach (TagFilter fetchedTF in fetchedTagFilters) {
-                                    TagFilter localTF = context.TagFilters.FirstOrDefault(tf => tf.Name == fetchedTF.Name);
+                                    TagFilter localTF = context.TagFilters.AsNoTracking().FirstOrDefault(tf => tf.Name == fetchedTF.Name);
                                     // no duplicate name so just add
                                     if (localTF == null) {
-                                        TagFilterDAO.Add(fetchedTF);
+                                        _tagFilterDAO.Add(fetchedTF);
                                     }
                                     // if replace option is selected, replace local tfs tags with duplicate name
                                     else if (RadioButtons3SelectedIndex == 0) {
-                                        TagFilterDAO.UpdateTags(localTF, fetchedTF.Tags);
+                                        _tagFilterDAO.UpdateTags(localTF, fetchedTF.Tags);
                                     }
                                 }
                             }

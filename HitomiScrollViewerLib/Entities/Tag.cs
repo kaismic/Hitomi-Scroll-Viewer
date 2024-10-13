@@ -30,6 +30,7 @@ namespace HitomiScrollViewerLib.Entities {
         }
         public string SearchParamValue { get; private set; }
         public int GalleryCount { get; set; }
+        public ICollection<TagFilter> TagFilters { get; } = [];
         public ICollection<Gallery> Galleries { get; } = [];
 
         public static ICollection<Tag> SelectTagsFromCategory(IEnumerable<Tag> tags, TagCategory category) {

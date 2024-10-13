@@ -131,8 +131,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [RelayCommand]
         private void ExecuteQuery() {
             using HitomiContext context = new();
-            IEnumerable<Gallery> filtered = [
-                .. context.Galleries
+            IEnumerable<Gallery> filtered = [..
+                context.Galleries
                 .Include(g => g.GalleryType)
                 .Include(g => g.GalleryLanguage)
                 .Include(g => g.Files)

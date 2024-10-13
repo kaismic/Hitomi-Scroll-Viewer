@@ -41,7 +41,7 @@ namespace HitomiScrollViewerLib.Entities {
             foreach (string tagValue in tagValues) {
                 // V2 tags values were stored by replacing space (' ') characters with underscores ('_')
                 // but V3 stores the tag values in original value without the replacement.
-                IQueryable<Tag> tagQueryable = context.Tags.AsNoTracking();
+                IQueryable<Tag> tagQueryable = context.Tags;
                 Tag tag = Tag.GetTag(tagQueryable, tagValue.Replace('_', ' '), category);
                 if (tag != null) {
                     tags.Add(tag);
@@ -61,8 +61,8 @@ namespace HitomiScrollViewerLib.Entities {
             }
         }
 
-        internal List<TagFilter> ToTagFilter(HitomiContext context, string name) {
-            List<TagFilter> result = [];
+        public List<TagFilter> ToTagFilters(HitomiContext context, string name) {
+            List<TagFilter> result = new(2);
 
             bool hasAnyTags = false;
             List<Tag> includeTFSTags = [];
@@ -72,11 +72,11 @@ namespace HitomiScrollViewerLib.Entities {
                 }
                 List<string> tagValues = kvp.Value.ToList();
                 hasAnyTags |= tagValues.Count != 0;
-                ConvertTagValues( context, tagValues, includeTFSTags, INV_CATEGORY_PROP_KEY_DICT[kvp.Key]);
+                ConvertTagValues(context, tagValues, includeTFSTags, INV_CATEGORY_PROP_KEY_DICT[kvp.Key]);
             }
             if (hasAnyTags) {
                 result.Add(
-                    new TagFilter() {
+                    new() {
                         Name = name + " - " + TEXT_INCLUDE,
                         Tags = includeTFSTags
                     }
@@ -95,7 +95,7 @@ namespace HitomiScrollViewerLib.Entities {
             }
             if (hasAnyTags) {
                 result.Add(
-                    new TagFilter() {
+                    new() {
                         Name = name + " - " + TEXT_EXCLUDE,
                         Tags = excludeTFSTags
                     }

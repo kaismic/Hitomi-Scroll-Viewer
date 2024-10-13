@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using Windows.UI;
 
@@ -32,17 +33,16 @@ namespace HitomiScrollViewerLib.ViewModels {
             QueryConfiguration.SelectedType.GalleryType != GalleryType.All ||
             SearchTitleText.Length > 0;
 
-        private readonly HitomiContext _noTrackingContext = new();
+        private readonly HitomiContext _context = new();
 
         public QueryBuilderVM(PageKind pageKind) {
-            _noTrackingContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-            QueryConfiguration = _noTrackingContext.QueryConfigurations.Find(pageKind);
+            GalleryLanguages = [.. _context.GalleryLanguages];
+            GalleryTypes = [.. _context.GalleryTypes];
+            QueryConfiguration = _context.QueryConfigurations.Find(pageKind);
             QueryConfiguration.SelectionChanged += () => QueryChanged?.Invoke();
-            GalleryLanguages = [.. _noTrackingContext.GalleryLanguages];
-            GalleryTypes = [.. _noTrackingContext.GalleryTypes];
             TagTokenizingTBVMs = [..
                 Tag.TAG_CATEGORIES.Select(
-                    category => new TagTokenizingTextBoxVM(_noTrackingContext.Tags, category)
+                    category => new TagTokenizingTextBoxVM(_context.Tags, category)
                 )
             ];
             foreach (var vm in TagTokenizingTBVMs) {
@@ -72,7 +72,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         public void Dispose() {
-            _noTrackingContext.Dispose();
+            _context.Dispose();
             GC.SuppressFinalize(this);
         }
     }
