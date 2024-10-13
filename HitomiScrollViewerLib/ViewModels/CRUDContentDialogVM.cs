@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views;
@@ -14,7 +15,7 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class CRUDContentDialogVM : DQObservableObject {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(CRUDContentDialog).Name);
+        private static readonly string SUBTREE_NAME = typeof(CRUDContentDialog).Name;
         public enum CRUDAction {
             Create, Rename, Delete
         }
@@ -43,8 +44,8 @@ namespace HitomiScrollViewerLib.ViewModels {
             }
             _action = action;
             _oldName = oldName;
-            TitleText = _resourceMap.GetValue($"Title_{_action}").ValueAsString;
-            PrimaryButtonText = _resourceMap.GetValue($"Text_{_action}").ValueAsString;
+            TitleText = $"Title_{_action}".GetLocalized(SUBTREE_NAME);
+            PrimaryButtonText = $"Text_{_action}".GetLocalized(SUBTREE_NAME);
             switch (_action) {
                 case CRUDAction.Create or CRUDAction.Rename:
                     _inputValidationVM = new(TagFilter.TAG_FILTER_SET_NAME_MAX_LEN);
@@ -62,7 +63,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     break;
                 case CRUDAction.Delete:
                     _tagFilters = tagFilters;
-                    _tfsSelectorVM = new(tagFilters);
+                    _tfsSelectorVM = new();
                     _tfsSelectorVM.SelectionChanged += SetIsPrimaryButtonEnabled;
                     Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
                     break;
@@ -85,7 +86,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         private bool CheckDuplicate(string name, out string errorMessage) {
             if (_tagFilters.Any(tfs => tfs.Name == name)) {
                 errorMessage = string.Format(
-                    _resourceMap.GetValue("Error_Message_Duplicate").ValueAsString,
+                    "Error_Message_Duplicate".GetLocalized(SUBTREE_NAME),
                     name
                 );
                 return false;
@@ -96,7 +97,7 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         private bool CheckSameNameAsBefore(string newName, out string errorMessage) {
             if (_oldName == newName) {
-                errorMessage = _resourceMap.GetValue("Error_Message_SameNameAsBefore").ValueAsString;
+                errorMessage = "Error_Message_SameNameAsBefore".GetLocalized(SUBTREE_NAME);
                 return false;
             }
             errorMessage = "";

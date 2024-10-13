@@ -1,15 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class GalleryBrowseItemVM : DQObservableObject {
-        private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
+        private static readonly string SUBTREE_NAME = typeof(TagCategory).Name;
         [ObservableProperty]
         private Gallery _gallery;
 
@@ -30,7 +29,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                 if (tags.Count != 0) {
                     TagItemsRepeaterVMs.Add(
                         new() {
-                            CategoryLabel = _tagCategoryRM.GetValue(Tag.TAG_CATEGORIES[i].ToString()).ValueAsString,
+                            CategoryLabel = Tag.TAG_CATEGORIES[i].ToString().GetLocalized(SUBTREE_NAME),
                             TagDisplayString = [.. tags.Select(t => t.Value)]
                         }
                     );

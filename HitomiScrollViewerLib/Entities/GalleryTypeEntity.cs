@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CommunityToolkit.WinUI;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace HitomiScrollViewerLib.Entities {
 
     [Index(nameof(GalleryType))]
     public class GalleryTypeEntity {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(GalleryType).Name);
+        private static readonly string SUBTREE_NAME = typeof(GalleryType).Name;
 
         private GalleryType _galleryType;
         [Key]
@@ -36,7 +37,7 @@ namespace HitomiScrollViewerLib.Entities {
             }
             private set => _searchParamValue = value;
         }
-        public string DisplayName => _resourceMap.GetValue(GalleryType.ToString()).ValueAsString;
+        public string DisplayName => GalleryType.ToString().GetLocalized(SUBTREE_NAME);
 
         public ICollection<Gallery> Galleries { get; } = [];
     }

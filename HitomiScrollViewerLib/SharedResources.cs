@@ -1,25 +1,24 @@
-﻿using Microsoft.Windows.ApplicationModel.Resources;
+﻿using CommunityToolkit.WinUI;
 
 namespace HitomiScrollViewerLib {
     public class SharedResources {
-        public static readonly ResourceMap MainResourceMap = new ResourceManager().MainResourceMap;
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SharedResources).Name);
+        private static readonly string SUBTREE_NAME = typeof(SharedResources).Name;
 
-        public static readonly string APP_DISPLAY_NAME = _resourceMap.GetValue("AppDisplayName").ValueAsString;
+        public static readonly string APP_DISPLAY_NAME = "AppDisplayName".GetLocalized(SUBTREE_NAME);
         
-        public static readonly string TEXT_YES = _resourceMap.GetValue("Text_Yes").ValueAsString;
-        public static readonly string TEXT_NO = _resourceMap.GetValue("Text_No").ValueAsString;
-        public static readonly string TEXT_CANCEL = _resourceMap.GetValue("Text_Cancel").ValueAsString;
-        public static readonly string TEXT_EXIT = _resourceMap.GetValue("Text_Exit").ValueAsString;
-        public static readonly string TEXT_CLOSE = _resourceMap.GetValue("Text_Close").ValueAsString;
-        public static readonly string TEXT_ERROR = _resourceMap.GetValue("Text_Error").ValueAsString;
-        public static readonly string TEXT_TAG_FILTERS = _resourceMap.GetValue("Text_TagFilters").ValueAsString;
-        public static readonly string TEXT_GALLERIES = _resourceMap.GetValue("Text_Galleries").ValueAsString;
-        public static readonly string TEXT_PAGE = _resourceMap.GetValue("Text_Page").ValueAsString;
-        public static readonly string TEXT_INCLUDE = _resourceMap.GetValue("Text_Include").ValueAsString;
-        public static readonly string TEXT_EXCLUDE = _resourceMap.GetValue("Text_Exclude").ValueAsString;
-        public static readonly string TEXT_ALL = _resourceMap.GetValue("Text_All").ValueAsString;
-        public static readonly string TEXT_LANGUAGE = _resourceMap.GetValue("Text_Language").ValueAsString;
-        public static readonly string TEXT_TYPE = _resourceMap.GetValue("Text_Type").ValueAsString;
+        public static readonly string TEXT_YES = "Text_Yes".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_NO = "Text_No".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_CANCEL = "Text_Cancel".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_EXIT = "Text_Exit".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_CLOSE = "Text_Close".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_ERROR = "Text_Error".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_TAG_FILTERS = "Text_TagFilters".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_GALLERIES = "Text_Galleries".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_PAGE = "Text_Page".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_INCLUDE = "Text_Include".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_EXCLUDE = "Text_Exclude".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_ALL = "Text_All".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_LANGUAGE = "Text_Language".GetLocalized(SUBTREE_NAME);
+        public static readonly string TEXT_TYPE = "Text_Type".GetLocalized(SUBTREE_NAME);
     }
 }

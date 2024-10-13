@@ -1,35 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HitomiScrollViewerLib.DTOs;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Index))]
-    public partial class ImageInfo {
+    public class ImageInfo {
         private const string BASE_DOMAIN = "hitomi.la";
 
-        [JsonIgnore]
         public long Id { get; set; }
-        private string _name;
-        public string Name {
-            get => _name;
-            set {
-                _name = value;
-                IsPlayable = value.EndsWith(".gif");
-                FileName = IndexFromNameRegex().Match(value).Groups[1].Value;
-                Index = int.Parse(FileName);
-            }
-        }
-        [GeneratedRegex("""(\d+).*""")]
-        private static partial Regex IndexFromNameRegex();
-        public int Index { get; private set; }
-        public string FileName { get; private set; }
+        public int Index { get; set; }
+        public string FileName { get; set; }
         private string _fullFileName;
         public string FullFileName => _fullFileName ??= FileName + '.' + FileExtension;
-        public bool IsPlayable { get; private set; }
+        public bool IsPlayable { get; set; }
 
         private string _imageFilePath;
         public string ImageFilePath {
@@ -38,22 +24,13 @@ namespace HitomiScrollViewerLib.Entities {
                 Gallery.Id.ToString(),
                 FullFileName
             );
-            set => _imageFilePath = value;
+            private set => _imageFilePath = value;
         }
 
         public string Hash { get; set; }
         public int Height { get; set; }
         public int Width { get; set; }
-
-        public int Haswebp { get; set; }
-        public int Hasavif { get; set; }
-        public int Hasjxl { get; set; }
-        private string _fileExtension;
-        public string FileExtension {
-            get => _fileExtension ??=
-                Haswebp == 1 ? "webp" :
-                Hasavif == 1 ? "avif" : "jxl";
-        }
+        public string FileExtension { get; set; }
         
         [Required]
         public Gallery Gallery { get; set; }
@@ -63,5 +40,15 @@ namespace HitomiScrollViewerLib.Entities {
             string subdomain = subdomainPickerSet.Contains(hashFragment) ? subdomainCandidates.contains : subdomainCandidates.notContains;
             return $"https://{subdomain}.{BASE_DOMAIN}/{FileExtension}/{serverTime}/{hashFragment}/{Hash}.{FileExtension}";
         }
+
+        public ImageInfoSyncDTO ToImageInfoSyncDTO() => new() {
+            Index = Index,
+            FileName = FileName,
+            Hash = Hash,
+            Height = Height,
+            Width = Width,
+            FileExtension = FileExtension,
+            IsPlayable = IsPlayable
+        };
     }
 }

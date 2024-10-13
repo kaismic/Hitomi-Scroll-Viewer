@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,9 @@ using System.Text.Json.Serialization;
 
 namespace HitomiScrollViewerLib.Entities {
     public class OriginalGalleryInfo {
+        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        };
         private static readonly Dictionary<TagCategory, string> CATEGORY_PROP_KEY_DICT = new() {
             { TagCategory.Tag, "tag" },
             { TagCategory.Male, "male" },
@@ -66,7 +70,36 @@ namespace HitomiScrollViewerLib.Entities {
             }
         }
 
+        private static void SetGalleryProperty(
+            HitomiContext context,
+            Dictionary<string, string>[] originalDictArr,
+            List<Tag> tags,
+            TagCategory category
+        ) {
+            if (originalDictArr != null) {
+                foreach (var dict in originalDictArr) {
+                    tags.Add(Tag.GetTag(context.Tags, dict[CATEGORY_PROP_KEY_DICT[category]], category));
+                }
+            }
+        }
+
         public Gallery ToGallery(HitomiContext context) {
+            List<Tag> tags = [];
+            SetGalleryProperty(context, Artists, tags, TagCategory.Artist);
+            SetGalleryProperty(context, Groups, tags, TagCategory.Group);
+            SetGalleryProperty(context, Characters, tags, TagCategory.Character);
+            SetGalleryProperty(context, Parodys, tags, TagCategory.Series);
+
+            foreach (var compositeTag in Tags) {
+                tags.Add(Tag.GetTag(
+                    context.Tags.AsNoTracking(),
+                    compositeTag.Tag,
+                    compositeTag.Male == 1   ? TagCategory.Male   :
+                    compositeTag.Female == 1 ? TagCategory.Female :
+                                               TagCategory.Tag
+                ));
+            }
+
             Gallery gallery = new() {
                 Id = Id,
                 Title = Title,
@@ -76,36 +109,12 @@ namespace HitomiScrollViewerLib.Entities {
                 Date = Date,
                 SceneIndexes = SceneIndexes,
                 Related = Related,
-                Files = Files
+                LastDownloadTime = DateTime.UtcNow,
+                Files = Files,
+                Tags = tags
             };
-            SetGalleryProperty(context, Artists, gallery, TagCategory.Artist);
-            SetGalleryProperty(context, Groups, gallery, TagCategory.Group);
-            SetGalleryProperty(context, Characters, gallery, TagCategory.Character);
-            SetGalleryProperty(context, Parodys, gallery, TagCategory.Series);
-
-            foreach (var compositeTag in Tags) {
-                gallery.Tags.Add(context.GetTag(
-                    compositeTag.Tag,
-                    compositeTag.Male == 1   ? TagCategory.Male   :
-                    compositeTag.Female == 1 ? TagCategory.Female :
-                                               TagCategory.Tag
-                ));
-            }
 
             return gallery;
-        }
-
-        private static void SetGalleryProperty(
-            HitomiContext context,
-            Dictionary<string, string>[] originalDictArr,
-            Gallery gallery,
-            TagCategory category
-        ) {
-            if (originalDictArr != null) {
-                foreach (var dict in originalDictArr) {
-                    gallery.Tags.Add(context.GetTag(dict[CATEGORY_PROP_KEY_DICT[category]], category));
-                }
-            }
         }
     }
 }

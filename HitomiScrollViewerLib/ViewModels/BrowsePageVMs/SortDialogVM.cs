@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -12,19 +13,26 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
         public ObservableCollection<SortItemVM> InactiveSortItemVMs { get; }
 
         [ObservableProperty]
-        private string _dialogShowButtonText;
+        private string _sortCountText;
+
+        public event Action SortDirectionChanged;
 
         public SortDialogVM(HitomiContext context) {
             _context = context;
+            // TODO see if I need to create another DAO for GallerySort or SortItemVM
             SortDirectionEntity[] sortDirections = [.. _context.SortDirections.OrderBy(sd => sd.SortDirection)];
+            GallerySortEntity[] gallerySortEntities = [.. _context.GallerySorts];
+            foreach (GallerySortEntity gs in gallerySortEntities) {
+                gs.SortDirectionChanged += () => SortDirectionChanged?.Invoke();
+            }
             ActiveSortItemVMs = new(
-                context.GallerySorts
+                gallerySortEntities
                 .Where(gs => gs.IsActive)
                 .OrderBy(gs => gs.Index)
                 .Select(gs => new SortItemVM(gs, sortDirections))
             );
             InactiveSortItemVMs = new(
-                context.GallerySorts
+                gallerySortEntities
                 .Where(gs => !gs.IsActive)
                 .Select(gs => new SortItemVM(gs, sortDirections))
             );
@@ -37,9 +45,9 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                 vm.AddRequested += ActivateSortItem;
                 vm.RemoveRequested += DeactivateSortItem;
             }
-            DialogShowButtonText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
+            SortCountText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
             ActiveSortItemVMs.CollectionChanged += (object _0, NotifyCollectionChangedEventArgs e) => {
-                DialogShowButtonText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
+                SortCountText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
                 for (int i = 0; i < ActiveSortItemVMs.Count; i++) {
                     ActiveSortItemVMs[i].GallerySort.Index = i;
                 }

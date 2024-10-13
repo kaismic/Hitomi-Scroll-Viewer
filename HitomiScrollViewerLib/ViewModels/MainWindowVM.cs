@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views;
@@ -13,7 +14,7 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public static class MainWindowVM {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(MainWindow).Name);
+        private static readonly string SUBTREE_NAME = typeof(MainWindow).Name;
 
         public static event Func<ContentDialogModel, IAsyncOperation<ContentDialogResult>> RequestNotifyUser;
         public static event Action RequestHideCurrentNotification;
@@ -61,7 +62,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             if (SearchPageVM.Main.DownloadManagerVM.DownloadItemVMs.Count > 0) {
                 ContentDialogModel cdModel = new() {
                     DefaultButton = ContentDialogButton.Close,
-                    Title = _resourceMap.GetValue("Text_DownloadRemaining").ValueAsString,
+                    Title = "Text_DownloadRemaining".GetLocalized(SUBTREE_NAME),
                     PrimaryButtonText = TEXT_EXIT,
                     CloseButtonText = TEXT_CANCEL
                 };

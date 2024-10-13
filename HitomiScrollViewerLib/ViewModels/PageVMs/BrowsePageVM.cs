@@ -21,12 +21,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         private BrowsePageVM() {
             SortDialogVM = new(_context);
-            QueryBuilderVM = new(
-                _context,
-                _context.QueryConfigurations.Find(PageKind.BrowsePage),
-                [.. _context.GalleryLanguages],
-                [.. _context.GalleryTypes]
-            );
+            QueryBuilderVM = new(PageKind.BrowsePage);
             QueryBuilderVM.InsertTags([.. QueryBuilderVM.QueryConfiguration.Tags]);
             QueryBuilderVM.TagCollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
                 switch (e.Action) {
@@ -39,9 +34,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             };
             SortDialogVM.ActiveSortItemVMs.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => ExecuteQuery();
-            foreach (GallerySortEntity gs in _context.GallerySorts.Include(gs => gs.SortDirectionEntity).ToList()) {
-                gs.SortDirectionChanged += ExecuteQuery;
-            }
+            SortDialogVM.SortDirectionChanged += ExecuteQuery;
             SearchPageVM.Main.DownloadManagerVM.GalleryAdded += ExecuteQuery;
             SearchPageVM.Main.DownloadManagerVM.TrySetImageSourceRequested += (Gallery g) => {
                 CurrentGalleryBrowseItemVMs.First(vm => vm.Gallery.Id == g.Id).InvokeTrySetImageSourceRequested();

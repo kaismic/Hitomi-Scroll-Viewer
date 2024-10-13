@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -8,7 +9,6 @@ using Google.Apis.Oauth2.v2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml.Controls;
@@ -28,11 +28,15 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         // WARNING: Do not replace this with SharedResources.APP_DISPLAY_NAME because app name not in English will throw eror
         private const string USER_AGENT_HEADER_APP_NAME = "Hitomi Scroll Viewer";
 
+        private static readonly string SUBTREE_NAME = typeof(SyncManager).Name;
+
+        private static readonly ClientSecrets CLIENT_SECRETS = new() {
+            ClientId = "OAuthAppClientId".GetLocalized("Credentials"),
+            ClientSecret = "OAuthAppClientSecret".GetLocalized("Credentials")
+        };
+
         private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
         private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
-
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SyncManager).Name);
-        private static readonly ResourceMap _credentialsResourceMap = MainResourceMap.GetSubtree("Credentials");
 
         private static UserCredential _userCredential;
         private static BaseClientService.Initializer Initializer { get; set; }
@@ -50,10 +54,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [ObservableProperty]
         private bool _isSyncButtonEnabled;
 
-        private HitomiContext _context;
-
-        public SyncManagerVM(HitomiContext context) {
-            _context = context;
+        public SyncManagerVM() {
             _ = Task.Run(async () => {
                 TokenResponse tokenResponse = await FILE_DATA_STORE.GetAsync<TokenResponse>(Environment.UserName);
                 bool tokenExists = tokenResponse != null;
@@ -61,10 +62,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 if (tokenExists) {
                     _userCredential = new(
                         new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer {
-                            ClientSecrets = new ClientSecrets {
-                                ClientId = _credentialsResourceMap.GetValue("OAuthAppClientId").ValueAsString,
-                                ClientSecret = _credentialsResourceMap.GetValue("OAuthAppClientSecret").ValueAsString
-                            },
+                            ClientSecrets = CLIENT_SECRETS,
                             Scopes = SCOPES,
                             DataStore = FILE_DATA_STORE
                         }),
@@ -84,8 +82,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 IsSignedIn = tokenExists && userEmail != null;
                 SignInButtonText =
                     IsSignedIn ?
-                    string.Format(_resourceMap.GetValue("ButtonText_SignedIn").ValueAsString, userEmail) :
-                    _resourceMap.GetValue("ButtonText_NotSignedIn").ValueAsString;
+                    string.Format("ButtonText_SignedIn".GetLocalized(SUBTREE_NAME), userEmail) :
+                    "ButtonText_NotSignedIn".GetLocalized(SUBTREE_NAME);
             });
         }
 
@@ -97,7 +95,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 if (IsSignedIn) {
                     ContentDialogModel signOutDialogModel = new() {
                         DefaultButton = ContentDialogButton.Primary,
-                        Title = _resourceMap.GetValue("Notification_SignOut_Title").ValueAsString,
+                        Title = "Notification_SignOut_Title".GetLocalized(SUBTREE_NAME),
                         PrimaryButtonText = TEXT_YES
                     };
                     
@@ -106,7 +104,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         return;
                     }
                     IsSignedIn = false;
-                    SignInButtonText = _resourceMap.GetValue("ButtonText_NotSignedIn").ValueAsString;
+                    SignInButtonText = "ButtonText_NotSignedIn".GetLocalized(SUBTREE_NAME);
 
                     try {
                         await _userCredential.RevokeTokenAsync(CancellationToken.None);
@@ -120,15 +118,12 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         // ContentDialog is needed because it is currently not possible to detect when the user has closed the browser
                         // ref https://github.com/googleapis/google-api-dotnet-client/issues/508#issuecomment-290700919
                         ContentDialogModel manualCancelDialogModel = new() {
-                            Title = _resourceMap.GetValue("Notification_SignIn_Title").ValueAsString,
-                            Message = _resourceMap.GetValue("Notification_SignIn_Content").ValueAsString
+                            Title = "Notification_SignIn_Title".GetLocalized(SUBTREE_NAME),
+                            Message = "Notification_SignIn_Content".GetLocalized(SUBTREE_NAME)
                         };
                         Task manualCancelTask = MainWindowVM.NotifyUser(manualCancelDialogModel).AsTask();
                         Task<UserCredential> authTask = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                            new ClientSecrets {
-                                ClientId = _credentialsResourceMap.GetValue("OAuthAppClientId").ValueAsString,
-                                ClientSecret = _credentialsResourceMap.GetValue("OAuthAppClientSecret").ValueAsString
-                            },
+                            CLIENT_SECRETS,
                             SCOPES,
                             Environment.UserName,
                             cts.Token
@@ -142,7 +137,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             };
                             Userinfo userInfo = await new Oauth2Service(Initializer).Userinfo.Get().ExecuteAsync();
                             await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V2, userInfo.Email);
-                            SignInButtonText = string.Format(_resourceMap.GetValue("ButtonText_SignedIn").ValueAsString, userInfo.Email);
+                            SignInButtonText = string.Format("ButtonText_SignedIn".GetLocalized(SUBTREE_NAME), userInfo.Email);
                             IsSignedIn = true;
                         } else {
                             isWindowFocused = true;
@@ -175,7 +170,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         [RelayCommand(CanExecute = nameof(IsSyncButtonEnabled))]
         public async Task HandleSyncButtonClick() {
             IsSyncButtonEnabled = false;
-            SyncContentDialogVM vm = new(_context) { DriveService = new(Initializer) };
+            SyncContentDialogVM vm = new(new(Initializer));
             await ShowDialogRequested?.Invoke(vm);
             IsSyncButtonEnabled = true;
         }

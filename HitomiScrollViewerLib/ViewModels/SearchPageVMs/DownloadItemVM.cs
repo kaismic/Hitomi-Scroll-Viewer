@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,11 +17,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using static HitomiScrollViewerLib.Constants;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class DownloadItemVM : DQObservableObject {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(DownloadItem).Name);
+        private static readonly string SUBTREE_NAME = typeof(DownloadItem).Name;
 
         private const string REFERER = "https://hitomi.la/";
         private const string GALLERY_INFO_DOMAIN = "https://ltn.hitomi.la/galleries/";
@@ -49,15 +48,15 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             switch (value) {
                 case DownloadStatus.Downloading:
                     DownloadToggleButtonSymbol = Symbol.Pause;
-                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Pause").ValueAsString;
+                    DownloadToggleButtonToolTip = "ToolTipText_Pause".GetLocalized(SUBTREE_NAME);
                     break;
                 case DownloadStatus.Paused:
                     DownloadToggleButtonSymbol = Symbol.Play;
-                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_Resume").ValueAsString;
+                    DownloadToggleButtonToolTip = "ToolTipText_Resume".GetLocalized(SUBTREE_NAME);
                     break;
                 case DownloadStatus.Failed:
                     DownloadToggleButtonSymbol = Symbol.Refresh;
-                    DownloadToggleButtonToolTip = _resourceMap.GetValue("ToolTipText_TryAgain").ValueAsString;
+                    DownloadToggleButtonToolTip = "ToolTipText_TryAgain".GetLocalized(SUBTREE_NAME);
                     break;
             }
         }
@@ -121,7 +120,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private void PreCheckDownload() {
             if (_retryCount > MAX_RETRY_NUM) {
                 CurrentDownloadStatus = DownloadStatus.Failed;
-                ProgressText = _resourceMap.GetValue("StatusText_TooManyDownloadFails").ValueAsString;
+                ProgressText = "StatusText_TooManyDownloadFails".GetLocalized(SUBTREE_NAME);
                 return;
             }
 
@@ -206,7 +205,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 switch (_taskCancelReason) {
                     case TaskCancelReason.PausedByUser:
                         CurrentDownloadStatus = DownloadStatus.Paused;
-                        ProgressText = _resourceMap.GetValue("StatusText_Paused").ValueAsString;
+                        ProgressText = "StatusText_Paused".GetLocalized(SUBTREE_NAME);
                         break;
                     case TaskCancelReason.ThreadNumChanged:
                         // continue download
@@ -217,7 +216,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         _retryCount++;
                         if (_retryCount > MAX_RETRY_NUM) {
                             CurrentDownloadStatus = DownloadStatus.Failed;
-                            ProgressText = _resourceMap.GetValue("StatusText_TooManyDownloadFails").ValueAsString;
+                            ProgressText = "StatusText_TooManyDownloadFails".GetLocalized(SUBTREE_NAME);
                         } else {
                             if (_lastGgjsUpdateTime > _downloadStartTime) {
                                 // ggjs is updated so try download again
@@ -249,22 +248,22 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             ProgressText = "";
             //BookmarkItem?.EnableRemoveBtn(false);
             if (Gallery == null) {
-                ProgressText = _resourceMap.GetValue("StatusText_FetchingGalleryInfo").ValueAsString;
+                ProgressText = "StatusText_FetchingGalleryInfo".GetLocalized(SUBTREE_NAME);
                 string galleryInfo;
                 try {
                     galleryInfo = await GetGalleryInfo(ct);
                 } catch (HttpRequestException e) {
                     CurrentDownloadStatus = DownloadStatus.Failed;
-                    ProgressText = _resourceMap.GetValue("StatusText_FetchingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message;
+                    ProgressText = "StatusText_FetchingGalleryInfo_Error".GetLocalized(SUBTREE_NAME) + Environment.NewLine + e.Message;
                     return;
                 } catch (TaskCanceledException) {
                     HandleTaskCancellation();
                     return;
                 }
 
-                ProgressText = _resourceMap.GetValue("StatusText_ReadingGalleryInfo").ValueAsString;
+                ProgressText = "StatusText_ReadingGalleryInfo".GetLocalized(SUBTREE_NAME);
                 try {
-                    OriginalGalleryInfo ogi = JsonSerializer.Deserialize<OriginalGalleryInfo>(galleryInfo, GALLERY_SERIALIZER_OPTIONS);
+                    OriginalGalleryInfo ogi = JsonSerializer.Deserialize<OriginalGalleryInfo>(galleryInfo, OriginalGalleryInfo.SERIALIZER_OPTIONS);
                     // sometimes the id in the url (ltn.hitomi.la/galleries/{id}.js) is different to the one in the .js file
                     // but points to the same gallery
                     if (Id != ogi.Id) {
@@ -283,7 +282,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     GalleryDescriptionText = $"{Gallery.Id} - {Gallery.Title}";
                 } catch (JsonException e) {
                     CurrentDownloadStatus = DownloadStatus.Failed;
-                    ProgressText = _resourceMap.GetValue("StatusText_ReadingGalleryInfo_Error").ValueAsString + Environment.NewLine + e.Message;
+                    ProgressText = "StatusText_ReadingGalleryInfo_Error".GetLocalized(SUBTREE_NAME) + Environment.NewLine + e.Message;
                     return;
                 }
             }
@@ -300,7 +299,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private async Task TryDownload(CancellationToken ct) {
             _downloadStartTime = DateTime.UtcNow;
-            ProgressText = _resourceMap.GetValue("StatusText_Downloading").ValueAsString;
+            ProgressText = "StatusText_Downloading".GetLocalized(SUBTREE_NAME);
             try {
                 await DownloadImages(ct);
             } catch (TaskCanceledException) {
@@ -358,7 +357,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 _subdomainCandidates = match.Groups[1].Value == "0" ? ("aa", "ba") : ("ba", "aa");
             } catch (HttpRequestException e) {
                 CurrentDownloadStatus = DownloadStatus.Failed;
-                ProgressText = _resourceMap.GetValue("StatusText_FetchingServerTime_Error").ValueAsString + Environment.NewLine + e.Message;
+                ProgressText = "StatusText_FetchingServerTime_Error".GetLocalized(SUBTREE_NAME) + Environment.NewLine + e.Message;
                 return false;
             }
             return true;

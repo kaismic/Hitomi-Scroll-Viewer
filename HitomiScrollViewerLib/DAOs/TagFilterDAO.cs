@@ -23,6 +23,15 @@ namespace HitomiScrollViewerLib.DAOs {
             context.SaveChanges();
         }
 
+        public static void AddRange(IEnumerable<TagFilter> tfs) {
+            using HitomiContext context = new();
+            foreach (TagFilter tf in tfs) {
+                LocalTagFilters.Add(tf);
+            }
+            context.TagFilters.AddRange(tfs);
+            context.SaveChanges();
+        }
+
         // TODO add undo functionality by using context.ChangeTracker.Clear(); and passing removed entities
         public static void Remove(TagFilter tf) {
             using HitomiContext context = new();

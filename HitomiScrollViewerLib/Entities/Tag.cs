@@ -1,5 +1,4 @@
-﻿using HitomiScrollViewerLib.DbContexts;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +9,8 @@ namespace HitomiScrollViewerLib.Entities {
     }
 
     [Index(nameof(Value))]
-    [Index(nameof(Category), nameof(Value))]
-    [Index(nameof(GalleryCount))]
+    [Index(nameof(Category), nameof(Value), nameof(GalleryCount))]
+    [Index(nameof(Category), nameof(GalleryCount))]
     public class Tag {
         public static readonly TagCategory[] TAG_CATEGORIES =
             Enumerable.Range(0, Enum.GetNames(typeof(TagCategory)).Length)
@@ -31,7 +30,6 @@ namespace HitomiScrollViewerLib.Entities {
         }
         public string SearchParamValue { get; private set; }
         public int GalleryCount { get; set; }
-        public ICollection<TagFilter> TagFilters { get; } = [];
         public ICollection<Gallery> Galleries { get; } = [];
 
         public static ICollection<Tag> SelectTagsFromCategory(IEnumerable<Tag> tags, TagCategory category) {

@@ -1,15 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.Views;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class LoadProgressReporterVM : DQObservableObject {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(LoadProgressReporter).Name);
+        private static readonly string SUBTREE_NAME = typeof(LoadProgressReporter).Name;
 
-        public string TitleText { get; } = _resourceMap.GetValue("Title").ValueAsString;
-        public string PleaseWaitText { get; } = _resourceMap.GetValue("PleaseWait").ValueAsString;
+        public string TitleText { get; } = "Title".GetLocalized(SUBTREE_NAME);
+        public string PleaseWaitText { get; } = "PleaseWait".GetLocalized(SUBTREE_NAME);
 
         [ObservableProperty]
         private string _text;
@@ -33,14 +32,14 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public void SetText(LoadingStatus loadingStatus) {
             Text = loadingStatus switch {
-                LoadingStatus.LoadingDatabase => _resourceMap.GetValue(LoadingStatus.LoadingDatabase.ToString()).ValueAsString,
-                LoadingStatus.MigratingTFSs => _resourceMap.GetValue(LoadingStatus.MigratingTFSs.ToString()).ValueAsString,
-                LoadingStatus.MigratingGalleries => _resourceMap.GetValue(LoadingStatus.MigratingGalleries.ToString()).ValueAsString,
-                LoadingStatus.MovingImageFolder => _resourceMap.GetValue(LoadingStatus.MovingImageFolder.ToString()).ValueAsString,
-                LoadingStatus.RenamingImageFiles => _resourceMap.GetValue(LoadingStatus.RenamingImageFiles.ToString()).ValueAsString,
-                LoadingStatus.InitialisingDatabase => _resourceMap.GetValue(LoadingStatus.InitialisingDatabase.ToString()).ValueAsString,
-                LoadingStatus.AddingExampleTFSs => _resourceMap.GetValue(LoadingStatus.AddingExampleTFSs.ToString()).ValueAsString,
-                LoadingStatus.InitialisingApp => _resourceMap.GetValue(LoadingStatus.InitialisingApp.ToString()).ValueAsString,
+                LoadingStatus.LoadingDatabase => LoadingStatus.LoadingDatabase.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.MigratingTFSs => LoadingStatus.MigratingTFSs.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.MigratingGalleries => LoadingStatus.MigratingGalleries.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.MovingImageFolder => LoadingStatus.MovingImageFolder.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.RenamingImageFiles => LoadingStatus.RenamingImageFiles.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.InitialisingDatabase => LoadingStatus.InitialisingDatabase.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.AddingExampleTFSs => LoadingStatus.AddingExampleTFSs.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.InitialisingApp => LoadingStatus.InitialisingApp.ToString().GetLocalized(SUBTREE_NAME),
                 _ => throw new ArgumentException($"Invalid {nameof(LoadingStatus)}: {loadingStatus}", nameof(loadingStatus)),
             };
         }

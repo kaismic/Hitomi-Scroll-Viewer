@@ -2,10 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
     internal class LegacyTagFilter {
+        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web);
+
         private static readonly Dictionary<string, TagCategory> INV_CATEGORY_PROP_KEY_DICT = new() {
             { "tag", TagCategory.Tag },
             { "male", TagCategory.Male },

@@ -12,6 +12,7 @@ using static HitomiScrollViewerLib.SharedResources;
 using static HitomiScrollViewerLib.Constants;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using CommunityToolkit.WinUI;
 
 namespace HitomiScrollViewerLib {
     public static class AppInitializer {
@@ -48,10 +49,9 @@ namespace HitomiScrollViewerLib {
                 vm.IsIndeterminate = false;
                 vm.Value = 0;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingTFSs);
-                Dictionary<string, LegacyTagFilter> legacyTagFilters = (Dictionary<string, LegacyTagFilter>)JsonSerializer.Deserialize(
+                Dictionary<string, LegacyTagFilter> legacyTagFilters = JsonSerializer.Deserialize<Dictionary<string, LegacyTagFilter>>(
                     File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
-                    typeof(Dictionary<string, LegacyTagFilter>),
-                    TF_SERIALIZER_OPTIONS
+                    LegacyTagFilter.SERIALIZER_OPTIONS
                 );
                 vm.Maximum = legacyTagFilters.Count;
                 using HitomiContext context = new();
@@ -77,10 +77,10 @@ namespace HitomiScrollViewerLib {
                 vm.IsIndeterminate = false;
                 vm.Value = 0;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingGalleries);
-                List<OriginalGalleryInfo> originalGalleryInfos = (List<OriginalGalleryInfo>)JsonSerializer.Deserialize(
+                ICollection<OriginalGalleryInfo> originalGalleryInfos = (ICollection<OriginalGalleryInfo>)JsonSerializer.Deserialize(
                     File.ReadAllText(BOOKMARKS_FILE_PATH_V2),
                     typeof(List<OriginalGalleryInfo>),
-                    GALLERY_SERIALIZER_OPTIONS
+                    OriginalGalleryInfo.SERIALIZER_OPTIONS
                 );
                 vm.Maximum = originalGalleryInfos.Count;
                 using HitomiContext context = new();
@@ -244,8 +244,8 @@ namespace HitomiScrollViewerLib {
                 })
             );
             // default DownloadTime sort
-            context.GallerySorts.Find(GallerySortProperty.DownloadTime).IsActive = true;
-            context.GallerySorts.Find(GallerySortProperty.DownloadTime).SortDirectionEntity = context.SortDirections.Find(SortDirection.Descending);
+            context.GallerySorts.Find(GallerySortProperty.LastDownloadTime).IsActive = true;
+            context.GallerySorts.Find(GallerySortProperty.LastDownloadTime).SortDirectionEntity = context.SortDirections.Find(SortDirection.Descending);
 
             context.SaveChanges();
             ClearInvocationList();
@@ -267,32 +267,31 @@ namespace HitomiScrollViewerLib {
         }
 
         private static void AddExampleTagFilters(HitomiContext context) {
-            ResourceMap resourceMap = MainResourceMap.GetSubtree("ExampleTagFilterNames");
             IQueryable<Tag> tags = context.Tags.AsNoTracking();
             context.TagFilters.AddRange(
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterName_1").ValueAsString,
+                    Name = "ExampleTagFilterName_1".GetLocalized("ExampleTagFilterNames"),
                     Tags = [
                         Tag.GetTag(tags, "full color", TagCategory.Tag),
                         Tag.GetTag(tags, "very long hair", TagCategory.Female),
                     ]
                 },
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterName_2").ValueAsString,
+                    Name = "ExampleTagFilterName_2".GetLocalized("ExampleTagFilterNames"),
                     Tags = [
                         Tag.GetTag(tags, "glasses", TagCategory.Female),
                         Tag.GetTag(tags, "sole male", TagCategory.Male),
                     ]
                 },
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterName_3").ValueAsString,
+                    Name = "ExampleTagFilterName_3".GetLocalized("ExampleTagFilterNames"),
                     Tags = [
                         Tag.GetTag(tags, "naruto", TagCategory.Series),
                         Tag.GetTag(tags, "big breasts", TagCategory.Female),
                     ]
                 },
                 new() {
-                    Name = resourceMap.GetValue("ExampleTagFilterName_4").ValueAsString,
+                    Name = "ExampleTagFilterName_4".GetLocalized("ExampleTagFilterNames"),
                     Tags = [
                         Tag.GetTag(tags, "non-h imageset", TagCategory.Tag)
                     ]

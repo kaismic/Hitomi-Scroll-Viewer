@@ -1,13 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using Google;
 using Google.Apis.Download;
 using Google.Apis.Drive.v3;
 using Google.Apis.Upload;
+using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views.SearchPageViews;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -21,18 +24,15 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Windows.Foundation;
 using static HitomiScrollViewerLib.Constants;
 using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
     public partial class SyncContentDialogVM : DQObservableObject {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SyncContentDialog).Name);
+        private static readonly string SUBTREE_NAME = typeof(SyncContentDialog).Name;
 
-        private readonly HitomiContext _context;
-        public SyncContentDialogVM(HitomiContext context) {
-            _context = context;
+        public SyncContentDialogVM(DriveService driveService) {
+            DriveService = driveService;
             PropertyChanged += (object sender, PropertyChangedEventArgs e) => {
                 if (e.PropertyName != nameof(IsPrimaryButtonEnabled) && e.PropertyName != nameof(IsEnabled)) {
                     IsPrimaryButtonEnabled = CanClickPrimaryButton();
@@ -40,7 +40,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             };
         }
 
-        public required DriveService DriveService { get; init; }
+        public DriveService DriveService { get; }
 
         private bool _closeDialog = true;
         private bool _isSyncing = false;
@@ -252,7 +252,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
          * <returns>The file content from Google Drive<c>string</c>.</returns>
          * <exception cref="Exception"/>
          * <exception cref="TaskCanceledException"/>
-         * <exception cref="Google.GoogleApiException"/>
+         * <exception cref="GoogleApiException"/>
          */
         public static async Task DownloadAndWriteAsync(
             FilesResource.GetRequest request,
@@ -274,10 +274,26 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 UserDataType.Gallery => Path.GetFileName(GALLERIES_SYNC_FILE_PATH),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
-            string uploadFileContent = userDataType switch {
-                UserDataType.TagFilterSet => JsonSerializer.Serialize(_context.TagFilters, TF_SERIALIZER_OPTIONS),
-                UserDataType.Gallery => JsonSerializer.Serialize(_context.Galleries, TF_SERIALIZER_OPTIONS),
-                _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
+            using HitomiContext context = new();
+            string uploadFileContent;
+            switch (userDataType) {
+                case UserDataType.TagFilterSet:
+                    IEnumerable<TagFilterSyncDTO> tfDTOs =
+                        context.TagFilters.AsNoTracking()
+                        .Include(tf => tf.Tags)
+                        .Select(tf => tf.ToTagFilterSyncDTO());
+                    uploadFileContent = JsonSerializer.Serialize(tfDTOs);
+                    break;
+                case UserDataType.Gallery:
+                    IEnumerable<GallerySyncDTO> galleryDTOs =
+                        context.Galleries.AsNoTracking()
+                        .Include(g => g.Files)
+                        .Include(g => g.Tags)
+                        .Select(g => g.ToGallerySyncDTO());
+                    uploadFileContent = JsonSerializer.Serialize(galleryDTOs);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}");
             };
             InfoBarModel infoBarModel = userDataType switch {
                 UserDataType.TagFilterSet => TFInfoBarModel,
@@ -305,21 +321,21 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     infoBarModel,
                     InfoBarSeverity.Success,
                     infoBarTitle,
-                    _resourceMap.GetValue("InfoBar_Upload_Success_Message").ValueAsString
+                    "InfoBar_Upload_Success_Message".GetLocalized(SUBTREE_NAME)
                 );
             } catch (TaskCanceledException) {
                 SetInfoBarModel(
                     infoBarModel,
                     InfoBarSeverity.Informational,
                     infoBarTitle,
-                    _resourceMap.GetValue("InfoBar_Upload_Canceled_Message").ValueAsString
+                    "InfoBar_Upload_Canceled_Message".GetLocalized(SUBTREE_NAME)
                 );
             } catch (Exception e) {
                 string message;
                 if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                    message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                    message = "InfoBar_Error_Unauthorized_Message".GetLocalized(SUBTREE_NAME);
                 } else {
-                    message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                    message = "InfoBar_Error_Unknown_Message".GetLocalized(SUBTREE_NAME);
                 }
                 SetInfoBarModel(
                     infoBarModel,
@@ -380,64 +396,63 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             TFInfoBarModel,
                             InfoBarSeverity.Error,
                             TEXT_TAG_FILTERS,
-                            _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString
+                            "InfoBar_Error_FileNotUploaded_Message".GetLocalized(SUBTREE_NAME)
                         );
                     }
                     // file exists
                     else {
+                        using HitomiContext context = new();
+                        context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
                         try {
                             FilesResource.GetRequest request = DriveService.Files.Get(tfssFile.Id);
-                            AttachProgressChangedEventHandler(request, (long)tfssFile.Size);
+                            AttachProgressChangedEventHandler(request, tfssFile.Size.Value);
                             await DownloadAndWriteAsync(
                                 request,
                                 TFS_SYNC_FILE_PATH,
                                 _cts.Token
                             );
-                            string fetchedFileContent = await File.ReadAllTextAsync(TFS_SYNC_FILE_PATH, _cts.Token);
-                            IEnumerable<TagFilter> fetchedTFSs =
-                                JsonSerializer
-                                .Deserialize<IEnumerable<TagFilter>>
-                                (fetchedFileContent, TF_SERIALIZER_OPTIONS);
+                            string json = await File.ReadAllTextAsync(TFS_SYNC_FILE_PATH, _cts.Token);
+                            IEnumerable<TagFilter> fetchedTagFilters =
+                                JsonSerializer.Deserialize<IEnumerable<TagFilterSyncDTO>>(json)
+                                .Select(dto => dto.ToTagFilter(context.Tags));
                             // Overwrite
                             if (RadioButtons2SelectedIndex == 0) {
-                                _context.TagFilters.RemoveRange(_context.TagFilters);
-                                _context.TagFilters.AddRange(fetchedTFSs);
-                                _context.SaveChanges();
+                                TagFilterDAO.RemoveRange(TagFilterDAO.LocalTagFilters);
+                                TagFilterDAO.AddRange(fetchedTagFilters);
                             }
                             // Append
                             else {
-                                foreach (TagFilter fetchedTFS in fetchedTFSs) {
-                                    TagFilter existingTFS = _context.TagFilters.FirstOrDefault(tfs => tfs.Name == fetchedTFS.Name);
+                                foreach (TagFilter fetchedTF in fetchedTagFilters) {
+                                    TagFilter localTF = context.TagFilters.FirstOrDefault(tf => tf.Name == fetchedTF.Name);
                                     // no duplicate name so just add
-                                    if (existingTFS == null) {
-                                        _context.TagFilters.Add(fetchedTFS);
+                                    if (localTF == null) {
+                                        TagFilterDAO.Add(fetchedTF);
                                     }
                                     // if replace option is selected, replace local tfs tags with duplicate name
                                     else if (RadioButtons3SelectedIndex == 0) {
-                                        existingTFS.Tags = fetchedTFS.Tags;
+                                        TagFilterDAO.UpdateTags(localTF, fetchedTF.Tags);
                                     }
                                 }
-                                _context.SaveChanges();
                             }
                             SetInfoBarModel(
                                 TFInfoBarModel,
                                 InfoBarSeverity.Success,
                                 TEXT_TAG_FILTERS,
-                                _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString
+                                "InfoBar_Fetch_Success_Message".GetLocalized(SUBTREE_NAME)
                             );
                         } catch (TaskCanceledException) {
                             SetInfoBarModel(
                                 TFInfoBarModel,
                                 InfoBarSeverity.Informational,
                                 TEXT_TAG_FILTERS,
-                                _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString
+                                "InfoBar_Fetch_Canceled_Message".GetLocalized(SUBTREE_NAME)
                             );
                         } catch (Exception e) {
                             string message;
                             if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                                message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                                message = "InfoBar_Error_Unauthorized_Message".GetLocalized(SUBTREE_NAME);
                             } else {
-                                message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                                message = "InfoBar_Error_Unknown_Message".GetLocalized(SUBTREE_NAME);
                             }
                             SetInfoBarModel(
                                 TFInfoBarModel,
@@ -457,11 +472,13 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             TFInfoBarModel,
                             InfoBarSeverity.Error,
                             TEXT_TAG_FILTERS,
-                            _resourceMap.GetValue("InfoBar_Error_FileNotUploaded_Message").ValueAsString
+                            "InfoBar_Error_FileNotUploaded_Message".GetLocalized(SUBTREE_NAME)
                         );
                     }
                     // file exists
                     else {
+                        // TODO
+
                         //try {
                         //    string fetchedBookmarksData = await GetFile(galleriesFile, _cts.Token);
                         //    IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
@@ -484,18 +501,18 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         //    }
                         //    BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
                         //    BookmarkSyncResultInfoBar.Title = TEXT_GALLERIES;
-                        //    BookmarkSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Success_Message").ValueAsString;
+                        //    BookmarkSyncResultInfoBar.Message = "InfoBar_Fetch_Success_Message".GetLocalized(SUBTREE_NAME);
                         //} catch (TaskCanceledException) {
                         //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
                         //    TagFilterSyncResultInfoBar.Title = TEXT_GALLERIES;
-                        //    TagFilterSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Fetch_Canceled_Message").ValueAsString;
+                        //    TagFilterSyncResultInfoBar.Message = "InfoBar_Fetch_Canceled_Message".GetLocalized(SUBTREE_NAME);
                         //} catch (Exception e) {
                         //    BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
                         //    BookmarkSyncResultInfoBar.Title = TEXT_ERROR;
                         //    if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                        //        BookmarkSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unauthorized_Message").ValueAsString;
+                        //        BookmarkSyncResultInfoBar.Message = "InfoBar_Error_Unauthorized_Message".GetLocalized(SUBTREE_NAME);
                         //    } else {
-                        //        BookmarkSyncResultInfoBar.Message = _resourceMap.GetValue("InfoBar_Error_Unknown_Message").ValueAsString;
+                        //        BookmarkSyncResultInfoBar.Message = "InfoBar_Error_Unknown_Message".GetLocalized(SUBTREE_NAME);
                         //    }
                         //}
                     }

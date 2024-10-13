@@ -38,7 +38,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                 GallerySortProperty.Id => g.Id,
                 GallerySortProperty.Title => g.Title,
                 GallerySortProperty.Date => g.Date,
-                GallerySortProperty.DownloadTime => g.DownloadTime,
+                GallerySortProperty.LastDownloadTime => g.LastDownloadTime,
                 GallerySortProperty.GalleryType => g.GalleryType.GalleryType,
                 GallerySortProperty.GalleryLanguage => g.GalleryLanguage.SearchParamValue,
                 _ => throw new InvalidOperationException()

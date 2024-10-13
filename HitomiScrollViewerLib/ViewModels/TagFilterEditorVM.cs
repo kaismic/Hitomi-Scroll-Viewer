@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views;
@@ -15,7 +16,7 @@ using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : DQObservableObject {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(TagFilterEditor).Name);
+        private static readonly string SUBTREE_NAME = typeof(TagFilterEditor).Name;
 
         [ObservableProperty]
         private bool _isTFAutoSaveEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[nameof(IsTFAutoSaveEnabled)] ??= true);
@@ -89,7 +90,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             SelectedTagFilter = tf;
             MainWindowVM.ShowPopup(
                 string.Format(
-                    _resourceMap.GetValue("InfoBar_Message_Create_Complete").ValueAsString,
+                    "InfoBar_Message_Create_Complete".GetLocalized(SUBTREE_NAME),
                     name
                 )
             );
@@ -107,7 +108,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             TagFilterDAO.UpdateName(SelectedTagFilter, newName);
             MainWindowVM.ShowPopup(
                 string.Format(
-                    _resourceMap.GetValue("InfoBar_Message_Rename_Complete").ValueAsString,
+                    "InfoBar_Message_Rename_Complete".GetLocalized(SUBTREE_NAME),
                     oldName,
                     newName
                 )
@@ -126,7 +127,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             TagFilterDAO.UpdateTags(tf, args.Tags);
             MainWindowVM.ShowPopup(
                 string.Format(
-                    _resourceMap.GetValue("InfoBar_Message_Save_Complete").ValueAsString,
+                    "InfoBar_Message_Save_Complete".GetLocalized(SUBTREE_NAME),
                     tf.Name
                 )
             );
@@ -144,7 +145,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             TagFilterDAO.RemoveRange(cdvm.GetSelectedTagFilters());
             MainWindowVM.ShowPopup(
                 MultiPattern.Format(
-                    _resourceMap.GetValue("InfoBar_Message_Delete_Complete").ValueAsString,
+                    "InfoBar_Message_Delete_Complete".GetLocalized(SUBTREE_NAME),
                     DeletedTagFilterIds.Count
                 )
             );

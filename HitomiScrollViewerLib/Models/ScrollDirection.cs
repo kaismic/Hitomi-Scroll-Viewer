@@ -1,11 +1,10 @@
-﻿using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
-using static HitomiScrollViewerLib.SharedResources;
+﻿using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml.Controls;
 
 namespace HitomiScrollViewerLib.Models {
     public class ScrollDirection {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(ScrollDirection).Name);
+        private static readonly string SUBTREE_NAME = typeof(ScrollDirection).Name;
         public required Orientation Value { get; init; }
-        public string DisplayText => _resourceMap.GetValue(Value.ToString()).ValueAsString;
+        public string DisplayText => Value.ToString().GetLocalized(SUBTREE_NAME);
     }
 }

@@ -47,7 +47,7 @@
                                 Spacing="16"
                                 Padding="4">
                         <SymbolIcon Symbol="Sort"/>
-                        <TextBlock Text="{x:Bind ViewModel.SortDialogVM.DialogShowButtonText, Mode=OneWay}"/>
+                        <TextBlock Text="{x:Bind ViewModel.SortDialogVM.SortCountText, Mode=OneWay}"/>
                     </StackPanel>
                 </Button>
                 <StackPanel Orientation="Horizontal"

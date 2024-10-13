@@ -1,23 +1,22 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.DAOs;
-using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views.PageViews;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel.DataTransfer;
-using static HitomiScrollViewerLib.SharedResources;
+using CommunityToolkit.WinUI;
+using HitomiScrollViewerLib.DbContexts;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
     public partial class SearchPageVM : DQObservableObject, IDisposable {
-        private static readonly ResourceMap _resourceMap = MainResourceMap.GetSubtree(typeof(SearchPage).Name);
+        private static readonly string SUBTREE_NAME = typeof(SearchPage).Name;
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
         private static SearchPageVM _main;
@@ -86,8 +85,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
 
         public SearchFilterVM GetSearchFilterVM() {
-            HashSet<TagFilter> includeTagFilters = IncludeTFSelectorVM.GetSelectedTagFilters().ToHashSet();
-            HashSet<TagFilter> excludeTagFilters = ExcludeTFSelectorVM.GetSelectedTagFilters().ToHashSet();
+            HashSet<TagFilter> includeTagFilters = [.. IncludeTFSelectorVM.GetSelectedTagFilters()];
+            HashSet<TagFilter> excludeTagFilters = [.. ExcludeTFSelectorVM.GetSelectedTagFilters()];
             // if the selected tag filters contain the currently editing (selected) tag filter in ComboBox,
             // replace it with a copied instance where the Tags are replaced with current editing tags
             if (TagFilterEditorVM.SelectedTagFilter is not null) {
@@ -106,14 +105,12 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                     });
                 }
             }
-            IEnumerable<int> includeTagFilterIds = includeTagFilters.Select(tf => tf.Id);
-            IEnumerable<int> excludeTagFilterIds = excludeTagFilters.Select(tf => tf.Id);
-            _context.TagFilters
-                .Where(tf => includeTagFilterIds.Contains(tf.Id) || excludeTagFilterIds.Contains(tf.Id))
-                .Include(tf => tf.Tags)
-                .Load();
-            HashSet<Tag> includeTags = includeTagFilters.SelectMany(tf => tf.Tags).ToHashSet();
-            HashSet<Tag> excludeTags = excludeTagFilters.SelectMany(tf => tf.Tags).ToHashSet();
+            HashSet<int> includeTagFilterIds = [.. includeTagFilters.Select(tf => tf.Id)];
+            HashSet<int> excludeTagFilterIds = [.. excludeTagFilters.Select(tf => tf.Id)];
+
+            using HitomiContext context = new();
+            HashSet<Tag> includeTags = [.. context.TagFilters.AsNoTracking().Where(tf => includeTagFilterIds.Contains(tf.Id)).SelectMany(tf => tf.Tags)];
+            HashSet<Tag> excludeTags = [.. context.TagFilters.AsNoTracking().Where(tf => excludeTagFilterIds.Contains(tf.Id)).SelectMany(tf => tf.Tags)];
 
             IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
             if (dupTags.Any()) {
@@ -126,7 +123,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                     dupTagStrs.Add(category.ToString() + ": " + string.Join(", ", dupStrs));
                 }
                 _ = MainWindowVM.NotifyUser(new() {
-                    Title = _resourceMap.GetValue("Notification_DuplicateTags").ValueAsString,
+                    Title = "Notification_DuplicateTags".GetLocalized(SUBTREE_NAME),
                     Message = string.Join(Environment.NewLine, dupTagStrs)
                 });
                 return null;
@@ -167,7 +164,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             }
             if (extractedIds.Count == 0) {
-                _ = MainWindowVM.NotifyUser(new() { Title = _resourceMap.GetValue("Notification_InvalidInput").ValueAsString });
+                _ = MainWindowVM.NotifyUser(new() { Title = "Notification_InvalidInput".GetLocalized(SUBTREE_NAME) });
                 return;
             }
             DownloadInputText = "";

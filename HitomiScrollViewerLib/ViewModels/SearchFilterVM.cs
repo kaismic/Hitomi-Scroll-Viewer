@@ -1,16 +1,14 @@
-﻿using HitomiScrollViewerLib.Entities;
+﻿using CommunityToolkit.WinUI;
+using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public class SearchFilterVM {
-        private static readonly ResourceMap _tagCategoryRM = MainResourceMap.GetSubtree(nameof(TagCategory));
         private const string SEARCH_ADDRESS = "https://hitomi.la/search.html?";
         private static readonly Dictionary<TagCategory, string> CATEGORY_SEARCH_PARAM_DICT = new() {
             { TagCategory.Tag, "tag" },
@@ -84,7 +82,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 if (includeTags.Count > 0 || excludeTags.Count > 0) {
                     InExcludeTagCollections.Add(
                         new() {
-                            CategoryLabel = _tagCategoryRM.GetValue(category.ToString()).ValueAsString,
+                            CategoryLabel = category.ToString().GetLocalized(nameof(TagCategory)),
                             IncludeTags = includeTags,
                             ExcludeTags = excludeTags
                         }

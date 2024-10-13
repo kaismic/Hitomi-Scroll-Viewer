@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text.Json;
 using Windows.Storage;
 
 namespace HitomiScrollViewerLib {
@@ -26,11 +25,6 @@ namespace HitomiScrollViewerLib {
 
         public static readonly string TFS_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "tag_filter_sets.json");
         public static readonly string GALLERIES_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "galleries.json");
-
-        public static readonly JsonSerializerOptions GALLERY_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-        };
-        public static readonly JsonSerializerOptions TF_SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web);
 
         public const string GLYPH_REPEAT_ALL = "\xE8EE";
         public const string GLYPH_CANCEL = "\xE711";
