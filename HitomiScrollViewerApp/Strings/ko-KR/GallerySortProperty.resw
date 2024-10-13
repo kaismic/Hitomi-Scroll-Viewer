@@ -126,8 +126,8 @@
   <data name="Date" xml:space="preserve">
     <value>업로드 시간</value>
   </data>
-  <data name="DownloadTime" xml:space="preserve">
-    <value>다운로드 시간</value>
+  <data name="LastDownloadTime" xml:space="preserve">
+    <value>최근 다운로드 시간</value>
   </data>
   <data name="GalleryLanguage" xml:space="preserve">
     <value>언어</value>
