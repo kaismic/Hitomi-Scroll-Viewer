@@ -25,7 +25,6 @@ namespace HitomiScrollViewerLib.ViewModels {
         private readonly CRUDAction _action;
         private readonly InputValidationVM _inputValidationVM;
         private readonly TFSelectorVM _tfsSelectorVM;
-        private readonly ObservableCollection<TagFilter> _tagFilters;
 
         public string CloseButtonText { get; } = TEXT_CANCEL;
         [ObservableProperty]
@@ -37,6 +36,8 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private bool _isPrimaryButtonEnabled = false;
 
+        private readonly TagFilterDAO _tagFilterDAO;
+
         public CRUDContentDialogVM(CRUDAction action, TagFilterDAO tagFilterDAO, string oldName = null, ObservableCollection<TagFilter> tagFilters = null) {
             if (action == CRUDAction.Rename && oldName == null) {
                 throw new ArgumentException($"{nameof(oldName)} must be provided when {nameof(action)} is {nameof(CRUDAction.Rename)}", nameof(action));
@@ -44,6 +45,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                 throw new ArgumentException($"{nameof(tagFilters)} must be provided when {nameof(action)} is {nameof(CRUDAction.Delete)}", nameof(action));
             }
             _action = action;
+            _tagFilterDAO = tagFilterDAO;
             _oldName = oldName;
             TitleText = $"Title_{_action}".GetLocalized(SUBTREE_NAME);
             PrimaryButtonText = $"Text_{_action}".GetLocalized(SUBTREE_NAME);
@@ -63,7 +65,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                     Content = new InputValidation() { ViewModel = _inputValidationVM };
                     break;
                 case CRUDAction.Delete:
-                    _tagFilters = tagFilters;
                     _tfsSelectorVM = new(tagFilterDAO);
                     _tfsSelectorVM.SelectionChanged += SetIsPrimaryButtonEnabled;
                     Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
@@ -85,7 +86,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         private bool CheckDuplicate(string name, out string errorMessage) {
-            if (_tagFilters.Any(tfs => tfs.Name == name)) {
+            if (_tagFilterDAO.LocalTagFilters.Any(tfs => tfs.Name == name)) {
                 errorMessage = string.Format(
                     "Error_Message_Duplicate".GetLocalized(SUBTREE_NAME),
                     name

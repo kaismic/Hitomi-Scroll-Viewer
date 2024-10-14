@@ -1,6 +1,5 @@
 ﻿using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.DbContexts {

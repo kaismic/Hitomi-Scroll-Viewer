@@ -433,7 +433,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                     }
                                     // if replace option is selected, replace local tfs tags with duplicate name
                                     else if (RadioButtons3SelectedIndex == 0) {
-                                        _tagFilterDAO.UpdateTags(localTF, fetchedTF.Tags);
+                                        _tagFilterDAO.UpdateTags(localTF.Name, fetchedTF.Tags);
                                     }
                                 }
                             }

@@ -46,7 +46,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             IncludeTFSelectorVM = new(tagFilterDAO);
             ExcludeTFSelectorVM = new(tagFilterDAO);
 
-
             SearchLinkCreateButtonCommand = new RelayCommand(
                 HandleSearchLinkCreateButtonClick,
                 () => QueryBuilderVM.AnyQuerySelected || IncludeTFSelectorVM.AnySelected() || ExcludeTFSelectorVM.AnySelected()
@@ -65,10 +64,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
                 QueryBuilderVM.ClearSelectedTags();
                 using HitomiContext context = new();
-                TagFilter tagFilter = context.TagFilters.AsNoTracking().Include(tf => tf.Tags).First(tf => tf.Id == selectedTagFilter.Id);
-                //context.Entry(tagFilter).Collection(tf => tf.Tags).Load();
-                
-                QueryBuilderVM.InsertTags([.. tagFilter.Tags]);
+                context.TagFilters.Attach(selectedTagFilter);
+                context.Entry(selectedTagFilter).Collection(tf => tf.Tags).Load();
+                QueryBuilderVM.InsertTags([.. selectedTagFilter.Tags]);
             };
         }
 
