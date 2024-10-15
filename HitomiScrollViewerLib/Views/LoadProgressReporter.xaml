@@ -6,8 +6,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Style="{StaticResource DefaultContentDialogStyle}"
-    Title="{x:Bind ViewModel.TitleText}">
+    Style="{StaticResource DefaultContentDialogStyle}">
+    <ContentDialog.Title>
+        <TextBlock Text="{x:Bind ViewModel.TitleText}"
+                   FontWeight="Bold"/>
+    </ContentDialog.Title>
     <StackPanel>
         <TextBlock TextWrapping="WrapWholeWords" Text="{x:Bind ViewModel.PleaseWaitText}"/>
         <ProgressBar Margin="0 30 0 10"

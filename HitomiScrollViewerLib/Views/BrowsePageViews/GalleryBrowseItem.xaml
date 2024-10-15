@@ -8,7 +8,6 @@
     xmlns:views="using:HitomiScrollViewerLib.Views"
     xmlns:bpviews="using:HitomiScrollViewerLib.Views.BrowsePageViews"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
-    xmlns:models="using:HitomiScrollViewerLib.Models"
     SizeChanged="GalleryBrowseItem_SizeChanged"
     x:DefaultBindMode="OneWay">
     <UserControl.ContextFlyout>
@@ -76,13 +75,13 @@
                        />
         </Grid>
         <ItemsRepeater x:Name="ThumbnailImagePanel"
-                       ItemsSource="{x:Bind _pathCheckingImages, Mode=OneTime}"
+                       ItemsSource="{x:Bind _pathCheckingImageVMs, Mode=OneTime}"
                        Height="{x:Bind bpviews:GalleryBrowseItem.IMAGE_HEIGHT, Mode=OneTime}">
             <ItemsRepeater.Layout>
                 <StackLayout Orientation="Horizontal"/>
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
-                <DataTemplate x:DataType="models:PathCheckingImage">
+                <DataTemplate x:DataType="vms:PathCheckingImageVM">
                     <Image>
                         <Image.Source>
                             <BitmapImage UriSource="{x:Bind ImageSource}"

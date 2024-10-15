@@ -1,5 +1,5 @@
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.ViewModels;
 using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -9,7 +9,8 @@ using System.Linq;
 using System.Threading;
 using Windows.UI;
 
-namespace HitomiScrollViewerLib.Views.BrowsePageViews {
+namespace HitomiScrollViewerLib.Views.BrowsePageViews
+{
     public sealed partial class GalleryBrowseItem : UserControl {
         private SolidColorBrush TitleBackgroundBrush {
             get => (SolidColorBrush)GetValue(TitleBackgroundBrushProperty);
@@ -85,7 +86,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             }
         }
 
-        private readonly ObservableCollection<PathCheckingImage> _pathCheckingImages = [];
+        private readonly ObservableCollection<PathCheckingImageVM> _pathCheckingImageVMs = [];
         private const int MAX_THUMBNAIL_IMAGE_COUNT = 5;
         public const int IMAGE_HEIGHT = 200;
 
@@ -98,16 +99,16 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
             if (Monitor.TryEnter(_addingImageLock)) {
                 try {
                     double remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
-                    if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+                    if (remainingWidth <= 0 || _pathCheckingImageVMs.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
                         return;
                     }
-                    foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index).Skip(_pathCheckingImages.Count)) {
-                        if (remainingWidth <= 0 || _pathCheckingImages.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
+                    foreach (ImageInfo imageInfo in ViewModel.Gallery.Files.OrderBy(f => f.Index).Skip(_pathCheckingImageVMs.Count)) {
+                        if (remainingWidth <= 0 || _pathCheckingImageVMs.Count >= MAX_THUMBNAIL_IMAGE_COUNT) {
                             return;
                         }
-                        PathCheckingImage pci = new(imageInfo.ImageFilePath);
-                        pci.TrySetImageSource();
-                        _pathCheckingImages.Add(pci);
+                        PathCheckingImageVM vm = new(imageInfo.ImageFilePath);
+                        vm.TrySetImageSource();
+                        _pathCheckingImageVMs.Add(vm);
                         remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
                     }
                 } finally {
@@ -117,7 +118,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews {
         }
 
         public void TrySetImageSources() {
-            foreach (PathCheckingImage pci in _pathCheckingImages) {
+            foreach (PathCheckingImageVM pci in _pathCheckingImageVMs) {
                 pci.TrySetImageSource();
             }
         }

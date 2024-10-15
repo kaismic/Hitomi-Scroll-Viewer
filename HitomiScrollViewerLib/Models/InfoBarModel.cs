@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Xaml.Controls;
 using System.Windows.Input;
 

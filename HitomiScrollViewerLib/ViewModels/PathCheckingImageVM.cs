@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using System.IO;
 
-namespace HitomiScrollViewerLib.Models {
-    public class PathCheckingImage(string path) : INotifyPropertyChanged {
+namespace HitomiScrollViewerLib.ViewModels {
+    public class PathCheckingImageVM(string path) : INotifyPropertyChanged {
         private Uri _imageSource;
         public Uri ImageSource {
             get => _imageSource;
