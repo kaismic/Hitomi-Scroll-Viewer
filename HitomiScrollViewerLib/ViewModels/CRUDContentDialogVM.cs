@@ -38,11 +38,9 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         private readonly TagFilterDAO _tagFilterDAO;
 
-        public CRUDContentDialogVM(CRUDAction action, TagFilterDAO tagFilterDAO, string oldName = null, ObservableCollection<TagFilter> tagFilters = null) {
+        public CRUDContentDialogVM(CRUDAction action, TagFilterDAO tagFilterDAO, string oldName = null) {
             if (action == CRUDAction.Rename && oldName == null) {
                 throw new ArgumentException($"{nameof(oldName)} must be provided when {nameof(action)} is {nameof(CRUDAction.Rename)}", nameof(action));
-            } else if (action == CRUDAction.Delete && tagFilters == null) {
-                throw new ArgumentException($"{nameof(tagFilters)} must be provided when {nameof(action)} is {nameof(CRUDAction.Delete)}", nameof(action));
             }
             _action = action;
             _tagFilterDAO = tagFilterDAO;
@@ -54,6 +52,7 @@ namespace HitomiScrollViewerLib.ViewModels {
                     _inputValidationVM = new(TagFilter.TAG_FILTER_SET_NAME_MAX_LEN);
                     if (_action == CRUDAction.Rename) {
                         _inputValidationVM.InputText = _oldName;
+                        _inputValidationVM.SelectionLength = _oldName.Length;
                         _inputValidationVM.AddValidator(CheckSameNameAsBefore);
                     }
                     _inputValidationVM.AddValidator(CheckDuplicate);

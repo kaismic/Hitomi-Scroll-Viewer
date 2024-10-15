@@ -8,7 +8,6 @@ using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class SortDialogVM : DQObservableObject {
-        private readonly HitomiContext _context;
         public ObservableCollection<SortItemVM> ActiveSortItemVMs { get; }
         public ObservableCollection<SortItemVM> InactiveSortItemVMs { get; }
 
@@ -17,11 +16,11 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
 
         public event Action SortDirectionChanged;
 
-        public SortDialogVM(HitomiContext context) {
-            _context = context;
+        public SortDialogVM() {
+            using HitomiContext context = new();
             // TODO see if I need to create another DAO for GallerySort or SortItemVM
-            SortDirectionEntity[] sortDirections = [.. _context.SortDirections.OrderBy(sd => sd.SortDirection)];
-            GallerySortEntity[] gallerySortEntities = [.. _context.GallerySorts];
+            SortDirectionEntity[] sortDirections = [.. context.SortDirections.OrderBy(sd => sd.SortDirection)];
+            GallerySortEntity[] gallerySortEntities = [.. context.GallerySorts];
             foreach (GallerySortEntity gs in gallerySortEntities) {
                 gs.SortDirectionChanged += () => SortDirectionChanged?.Invoke();
             }
@@ -46,26 +45,34 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                 vm.RemoveRequested += DeactivateSortItem;
             }
             SortCountText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
-            ActiveSortItemVMs.CollectionChanged += (object _0, NotifyCollectionChangedEventArgs e) => {
-                SortCountText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
-                for (int i = 0; i < ActiveSortItemVMs.Count; i++) {
-                    ActiveSortItemVMs[i].GallerySort.Index = i;
-                }
-                _context.SaveChanges();
-            };
+            ActiveSortItemVMs.CollectionChanged += ActiveSortItemVMs_CollectionChanged;
+        }
+
+        private void ActiveSortItemVMs_CollectionChanged(object _0, NotifyCollectionChangedEventArgs e) {
+            using HitomiContext context = new();
+            SortCountText = $"{ActiveSortItemVMs.Count} sorts"; // TODO string localization
+            context.GallerySorts.AttachRange(ActiveSortItemVMs.Select(vm => vm.GallerySort));
+            for (int i = 0; i < ActiveSortItemVMs.Count; i++) {
+                ActiveSortItemVMs[i].GallerySort.Index = i;
+            }
+            context.SaveChanges();
         }
 
         private void ActivateSortItem(SortItemVM vm) {
             InactiveSortItemVMs.Remove(vm);
             ActiveSortItemVMs.Add(vm);
-            vm.GallerySort.IsActive = true;
-            _context.SaveChanges();
+            using HitomiContext context = new();
+            context.GallerySorts.Attach(vm.GallerySort);
+            vm.GallerySort.IsActive = true;;
+            context.SaveChanges();
         }
         private void DeactivateSortItem(SortItemVM vm) {
             ActiveSortItemVMs.Remove(vm);
             InactiveSortItemVMs.Add(vm);
+            using HitomiContext context = new();
+            context.GallerySorts.Attach(vm.GallerySort);
             vm.GallerySort.IsActive = false;
-            _context.SaveChanges();
+            context.SaveChanges();
         }
     }
 }

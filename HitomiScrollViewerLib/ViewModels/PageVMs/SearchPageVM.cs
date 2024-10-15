@@ -68,6 +68,11 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 context.Entry(selectedTagFilter).Collection(tf => tf.Tags).Load();
                 QueryBuilderVM.InsertTags([.. selectedTagFilter.Tags]);
             };
+            
+            // select the first tag filter on default
+            if (tagFilterDAO.LocalTagFilters.Count > 0) {
+                TagFilterEditorVM.SelectedTagFilter = tagFilterDAO.LocalTagFilters[0];
+            }
         }
 
         public RelayCommand SearchLinkCreateButtonCommand { get; }

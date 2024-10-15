@@ -5,7 +5,6 @@ using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -76,7 +75,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                     SearchPageVM.Main.TagFilterEditorVM.SaveTagFilter(SearchPageVM.Main.TagFilterEditorVM.SelectedTagFilter);
                 }
                 SearchPageVM.Main.Dispose();
-                //BrowsePageVM.Main.Dispose(); // TODO
             }
         }
     }

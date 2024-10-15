@@ -105,7 +105,7 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         private async void RenameButton_Click() {
             string oldName = SelectedTagFilter.Name;
-            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Rename, TagFilterDAO, oldName: oldName);
+            CRUDContentDialogVM cdvm = new(CRUDContentDialogVM.CRUDAction.Rename, TagFilterDAO, oldName);
             if (await ShowCRUDContentDialogRequested?.Invoke(cdvm) != ContentDialogResult.Primary) {
                 return;
             }

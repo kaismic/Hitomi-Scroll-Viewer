@@ -42,7 +42,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             QueryConfiguration.SelectionChanged += () => QueryChanged?.Invoke();
             TagTokenizingTBVMs = [..
                 Tag.TAG_CATEGORIES.Select(
-                    category => new TagTokenizingTextBoxVM(_context.Tags, category)
+                    category => new TagTokenizingTextBoxVM(_context.Tags.AsNoTracking(), category)
                 )
             ];
             foreach (var vm in TagTokenizingTBVMs) {

@@ -14,9 +14,11 @@
     <Grid.ColumnDefinitions>
         <ColumnDefinition/>
     </Grid.ColumnDefinitions>
-    <TextBox Grid.Row="0"
+    <TextBox x:Name="InputTextBox"
+             Grid.Row="0"
              Width="492"
              Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+             SelectionLength="{x:Bind ViewModel.SelectionLength, Mode=OneWay}"
              />
     <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>

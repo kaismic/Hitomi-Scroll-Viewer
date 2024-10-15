@@ -11,16 +11,14 @@ using System.Diagnostics;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
-    public partial class BrowsePageVM : DQObservableObject, IDisposable {
+    public partial class BrowsePageVM : DQObservableObject {
         private static BrowsePageVM _main;
         public static BrowsePageVM Main => _main ??= new();
-        private readonly HitomiContext _context = new();
-
         public QueryBuilderVM QueryBuilderVM { get; }
         public SortDialogVM SortDialogVM { get; }
 
         private BrowsePageVM() {
-            SortDialogVM = new(_context);
+            SortDialogVM = new();
             QueryBuilderVM = new(PageKind.BrowsePage);
             QueryBuilderVM.InsertTags([.. QueryBuilderVM.QueryConfiguration.Tags]);
             QueryBuilderVM.TagCollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => {
@@ -170,12 +168,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             }
             FilteredGalleries = [.. filtered];
-        }
-
-        public void Dispose() {
-            _context.SaveChanges();
-            _context.Dispose();
-            GC.SuppressFinalize(this);
         }
     }
 }

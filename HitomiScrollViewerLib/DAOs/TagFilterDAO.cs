@@ -8,8 +8,8 @@ using System.Linq;
 namespace HitomiScrollViewerLib.DAOs {
     /// <summary>
     /// I have no clue of why this happens but apparently you have to attach the entity to the local
-    /// context AND THEN you can add or do whatever to <see cref="LocalTagFilters"/>. Otherwise a bunch
-    /// of problems and errors happen.
+    /// context AND THEN you can add or do whatever to <see cref="LocalTagFilters"/>.
+    /// Otherwise this gets thrown: SqliteException: SQLite Error 19: 'UNIQUE constraint failed
     /// </summary>
     public class TagFilterDAO {
         /// <summary>
@@ -62,7 +62,7 @@ namespace HitomiScrollViewerLib.DAOs {
         /// </summary>
         /// <param name="tagFilter"></param>
         /// <param name="name"></param>
-        public void UpdateName(TagFilter tagFilter, string name) {
+        public static void UpdateName(TagFilter tagFilter, string name) {
             using HitomiContext context = new();
             context.TagFilters.Attach(tagFilter);
             tagFilter.Name = name;
@@ -74,7 +74,7 @@ namespace HitomiScrollViewerLib.DAOs {
         /// </summary>
         /// <param name="tagFilter"></param>
         /// <param name="tags"></param>
-        public void UpdateTags(TagFilter tagFilter, ICollection<Tag> tags) {
+        public static void UpdateTags(TagFilter tagFilter, ICollection<Tag> tags) {
             using HitomiContext context = new();
             context.TagFilters.Attach(tagFilter);
             tagFilter.Tags = tags;

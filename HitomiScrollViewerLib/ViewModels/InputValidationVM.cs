@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
 
 namespace HitomiScrollViewerLib.ViewModels {
@@ -21,6 +22,9 @@ namespace HitomiScrollViewerLib.ViewModels {
         private string _errorMessage = "";
         [ObservableProperty]
         private string _inputLengthDisplayText = "";
+
+        [ObservableProperty]
+        private int _selectionLength;
 
         public InputValidationVM(int maxInputLength) {
             MaxInputLength = maxInputLength;
