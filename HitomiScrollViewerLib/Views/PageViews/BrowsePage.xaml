@@ -89,10 +89,9 @@
                 </GridView.ItemsPanel>
                 <GridView.ItemTemplate>
                     <DataTemplate x:DataType="bpvms:GalleryBrowseItemVM">
-                        <ScrollViewer IsVerticalScrollChainingEnabled="True">
+                        <ScrollViewer Width="{Binding ElementName=RootBrowsePage, Path=GalleryBrowseItemWidth}"
+                                      Height="412">
                             <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
-                                                       Width="{Binding ElementName=RootBrowsePage, Path=GalleryBrowseItemWidth}"
-                                                       Height="412"
                                                        RightTapped="GalleryBrowseItem_RightTapped"/>
                         </ScrollViewer>
                     </DataTemplate>

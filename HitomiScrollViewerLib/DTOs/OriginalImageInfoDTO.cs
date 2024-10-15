@@ -1,17 +1,19 @@
-﻿using System.Text.RegularExpressions;
+﻿using HitomiScrollViewerLib.Entities;
+using System.Text.RegularExpressions;
 
-namespace HitomiScrollViewerLib.Entities {
-    public partial class OriginalImageInfo {
-        [GeneratedRegex("""(\d+).*""")]
-        private static partial Regex IndexFromNameRegex();
-
+namespace HitomiScrollViewerLib.DTOs {
+    public partial class OriginalImageInfoDTO {
         public string Name { get; set; }
         public int Height { get; set; }
         public int Width { get; set; }
         public string Hash { get; set; }
-        public int Haswebp { get; set; }
         public int Hasavif { get; set; }
         public int Hasjxl { get; set; }
+        public int Haswebp { get; set; }
+
+
+        [GeneratedRegex("""(\d+).*""")]
+        private static partial Regex IndexFromNameRegex();
 
         public ImageInfo ToImageInfo() {
             string fileName = IndexFromNameRegex().Match(Name).Groups[1].Value;

@@ -2,7 +2,6 @@
 using HitomiScrollViewerLib.Entities;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.DTOs {
@@ -11,8 +10,8 @@ namespace HitomiScrollViewerLib.DTOs {
         public string Title { get; set; }
         public string JapaneseTitle { get; set; }
         public DateTimeOffset Date { get; set; }
-        public IEnumerable<int> SceneIndexes { get; set; }
-        public IEnumerable<int> Related { get; set; }
+        public int[] SceneIndexes { get; set; }
+        public int[] Related { get; set; }
         public int GalleryLanguageId { get; set; }
         public GalleryType GalleryType { get; set; }
         public required IEnumerable<ImageInfoSyncDTO> Files { get; set; }

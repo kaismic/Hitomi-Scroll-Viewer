@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
@@ -18,7 +19,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using static HitomiScrollViewerLib.Constants;
 
-namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
+namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
+{
     public partial class DownloadItemVM : DQObservableObject {
         private static readonly string SUBTREE_NAME = typeof(DownloadItem).Name;
 
@@ -263,7 +265,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
                 ProgressText = "StatusText_ReadingGalleryInfo".GetLocalized(SUBTREE_NAME);
                 try {
-                    OriginalGalleryInfo ogi = JsonSerializer.Deserialize<OriginalGalleryInfo>(galleryInfo, OriginalGalleryInfo.SERIALIZER_OPTIONS);
+                    OriginalGalleryInfoDTO ogi = JsonSerializer.Deserialize<OriginalGalleryInfoDTO>(galleryInfo, OriginalGalleryInfoDTO.SERIALIZER_OPTIONS);
                     // sometimes the id in the url (ltn.hitomi.la/galleries/{id}.js) is different to the one in the .js file
                     // but points to the same gallery
                     if (Id != ogi.Id) {

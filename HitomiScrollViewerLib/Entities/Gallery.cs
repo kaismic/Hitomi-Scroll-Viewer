@@ -14,9 +14,9 @@ namespace HitomiScrollViewerLib.Entities {
         public string Title { get; set; }
         public string JapaneseTitle { get; set; }
         public DateTimeOffset Date { get; set; }
-        public IEnumerable<int> SceneIndexes { get; set; }
+        public int[] SceneIndexes { get; set; }
         [MaxLength(45)] // 7 digits * 5 items + "[]" + ", " * (5 - 1)
-        public IEnumerable<int> Related { get; set; }
+        public int[] Related { get; set; }
         public DateTime LastDownloadTime { get; set; }
         [Required]
         public GalleryLanguage GalleryLanguage { get; set; }

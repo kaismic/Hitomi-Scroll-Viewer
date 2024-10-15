@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.WinUI;
 using CommunityToolkit.WinUI.Collections;
 using HitomiScrollViewerLib.DbContexts;
+using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -76,10 +77,10 @@ namespace HitomiScrollViewerLib {
                 vm.IsIndeterminate = false;
                 vm.Value = 0;
                 vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingGalleries);
-                ICollection<OriginalGalleryInfo> originalGalleryInfos = (ICollection<OriginalGalleryInfo>)JsonSerializer.Deserialize(
+                ICollection<OriginalGalleryInfoDTO> originalGalleryInfos = (ICollection<OriginalGalleryInfoDTO>)JsonSerializer.Deserialize(
                     File.ReadAllText(BOOKMARKS_FILE_PATH_V2),
-                    typeof(List<OriginalGalleryInfo>),
-                    OriginalGalleryInfo.SERIALIZER_OPTIONS
+                    typeof(List<OriginalGalleryInfoDTO>),
+                    OriginalGalleryInfoDTO.SERIALIZER_OPTIONS
                 );
                 vm.Maximum = originalGalleryInfos.Count;
                 using HitomiContext context = new();

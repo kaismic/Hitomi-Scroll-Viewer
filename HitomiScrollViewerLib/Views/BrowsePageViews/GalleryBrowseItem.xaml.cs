@@ -93,6 +93,7 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews
 
         private void GalleryBrowseItem_SizeChanged(object _0, SizeChangedEventArgs _1) {
             TryAddThumnailImages();
+            TrySetImageSources();
         }
 
         private void TryAddThumnailImages() {
@@ -107,7 +108,6 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews
                             return;
                         }
                         PathCheckingImageVM vm = new(imageInfo.ImageFilePath);
-                        vm.TrySetImageSource();
                         _pathCheckingImageVMs.Add(vm);
                         remainingWidth = MainStackPanel.ActualWidth - ThumbnailImagePanel.ActualWidth;
                     }
@@ -118,8 +118,8 @@ namespace HitomiScrollViewerLib.Views.BrowsePageViews
         }
 
         public void TrySetImageSources() {
-            foreach (PathCheckingImageVM pci in _pathCheckingImageVMs) {
-                pci.TrySetImageSource();
+            foreach (PathCheckingImageVM vm in _pathCheckingImageVMs) {
+                vm.TrySetImageSource();
             }
         }
     }

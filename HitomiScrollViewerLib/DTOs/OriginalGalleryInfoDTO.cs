@@ -1,14 +1,17 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
-using Microsoft.EntityFrameworkCore;
+using HitomiScrollViewerLib.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace HitomiScrollViewerLib.Entities {
-    public class OriginalGalleryInfo {
-        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
+namespace HitomiScrollViewerLib.DTOs
+{
+    public class OriginalGalleryInfoDTO
+    {
+        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web)
+        {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
         private static readonly Dictionary<TagCategory, string> CATEGORY_PROP_KEY_DICT = new() {
@@ -32,14 +35,15 @@ namespace HitomiScrollViewerLib.Entities {
         public string LanguageLocalname { get; set; }
         public int[] SceneIndexes { get; set; }
         public int[] Related { get; set; }
-        public ICollection<ImageInfo> Files { get; set; }
+        public ICollection<OriginalImageInfoDTO> Files { get; set; }
         public Dictionary<string, string>[] Artists { get; set; }
         public Dictionary<string, string>[] Groups { get; set; }
         public Dictionary<string, string>[] Characters { get; set; }
         public Dictionary<string, string>[] Parodys { get; set; }
         public CompositeTag[] Tags { get; set; }
 
-        public struct CompositeTag {
+        public struct CompositeTag
+        {
             public string Tag { get; set; }
             [JsonConverter(typeof(EmptyStringNumberJsonConverter))]
             public int Male { get; set; }
@@ -47,25 +51,33 @@ namespace HitomiScrollViewerLib.Entities {
             public int Female { get; set; }
         }
 
-        private class EmptyStringNumberJsonConverter : JsonConverter<int> {
-            public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
-                try {
+        private class EmptyStringNumberJsonConverter : JsonConverter<int>
+        {
+            public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                try
+                {
                     string s = reader.GetString();
-                    if (s.Length == 0) {
+                    if (s.Length == 0)
+                    {
                         return 0;
                     }
                     return int.Parse(s);
-                } catch (InvalidOperationException) { }
+                }
+                catch (InvalidOperationException) { }
                 return 0;
             }
             public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options) => writer.WriteNumberValue(value);
         }
 
-        private class GalleryDateTimeOffsetConverter : JsonConverter<DateTimeOffset> {
-            public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+        private class GalleryDateTimeOffsetConverter : JsonConverter<DateTimeOffset>
+        {
+            public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
                 return DateTimeOffset.Parse(reader.GetString());
             }
-            public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options) {
+            public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
+            {
                 writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mmzzz"));
             }
         }
@@ -75,32 +87,38 @@ namespace HitomiScrollViewerLib.Entities {
             Dictionary<string, string>[] originalDictArr,
             List<Tag> tags,
             TagCategory category
-        ) {
-            if (originalDictArr != null) {
-                foreach (var dict in originalDictArr) {
+        )
+        {
+            if (originalDictArr != null)
+            {
+                foreach (var dict in originalDictArr)
+                {
                     tags.Add(Tag.GetTag(context.Tags, dict[CATEGORY_PROP_KEY_DICT[category]], category));
                 }
             }
         }
 
-        public Gallery ToGallery(HitomiContext context) {
+        public Gallery ToGallery(HitomiContext context)
+        {
             List<Tag> tags = [];
             SetGalleryProperty(context, Artists, tags, TagCategory.Artist);
             SetGalleryProperty(context, Groups, tags, TagCategory.Group);
             SetGalleryProperty(context, Characters, tags, TagCategory.Character);
             SetGalleryProperty(context, Parodys, tags, TagCategory.Series);
 
-            foreach (var compositeTag in Tags) {
+            foreach (var compositeTag in Tags)
+            {
                 tags.Add(Tag.GetTag(
                     context.Tags,
                     compositeTag.Tag,
-                    compositeTag.Male == 1   ? TagCategory.Male   :
+                    compositeTag.Male == 1 ? TagCategory.Male :
                     compositeTag.Female == 1 ? TagCategory.Female :
                                                TagCategory.Tag
                 ));
             }
-
-            Gallery gallery = new() {
+            
+            Gallery gallery = new()
+            {
                 Id = Id,
                 Title = Title,
                 JapaneseTitle = JapaneseTitle,
@@ -110,7 +128,7 @@ namespace HitomiScrollViewerLib.Entities {
                 SceneIndexes = SceneIndexes,
                 Related = Related,
                 LastDownloadTime = DateTime.UtcNow,
-                Files = Files,
+                Files = [.. Files.Select(f => f.ToImageInfo())],
                 Tags = tags
             };
 

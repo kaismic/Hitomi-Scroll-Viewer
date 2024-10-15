@@ -76,7 +76,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         public List<GalleryBrowseItemVM> SelectedGalleryBrowseItemVMs { get; set; }
 
-
         public int[] PageSizes { get; } = Enumerable.Range(1, 15).ToArray();
 
         [ObservableProperty]
