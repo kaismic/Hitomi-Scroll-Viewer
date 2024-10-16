@@ -40,14 +40,6 @@ namespace HitomiScrollViewerLib.DAOs {
             context.SaveChanges();
         }
 
-        // TODO add undo functionality by using context.ChangeTracker.Clear(); and passing removed entities
-        public void Remove(TagFilter tf) {
-            using HitomiContext context = new();
-            context.TagFilters.Remove(tf);
-            LocalTagFilters.Remove(tf);
-            context.SaveChanges();
-        }
-        
         public void RemoveRange(IEnumerable<TagFilter> tfs) {
             using HitomiContext context = new();
             context.TagFilters.RemoveRange(tfs);
