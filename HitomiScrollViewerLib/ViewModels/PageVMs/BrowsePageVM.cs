@@ -13,8 +13,7 @@ using Windows.Storage;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
     public partial class BrowsePageVM : DQObservableObject {
-        private static BrowsePageVM _main;
-        public static BrowsePageVM Main => _main ??= new();
+        public static BrowsePageVM Main { get; private set; }
         public QueryBuilderVM QueryBuilderVM { get; }
         public SortDialogVM SortDialogVM { get; }
 
@@ -36,7 +35,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             SortDialogVM.SortDirectionChanged += ExecuteQuery;
             SearchPageVM.Main.DownloadManagerVM.GalleryAdded += ExecuteQuery;
             SearchPageVM.Main.DownloadManagerVM.TrySetImageSourceRequested += (Gallery g) => {
-                CurrentGalleryBrowseItemVMs.First(vm => vm.Gallery.Id == g.Id).InvokeTrySetImageSourceRequested();
+                if (CurrentGalleryBrowseItemVMs.Select(vm => vm.Gallery.Id).Contains(g.Id)) {
+                    CurrentGalleryBrowseItemVMs.First(vm => vm.Gallery.Id == g.Id).InvokeTrySetImageSourceRequested();
+                }
             };
 
             IncrementCommand = new RelayCommand(Increment, CanIncrement);
@@ -45,30 +46,38 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             ExecuteQuery();
         }
 
+        public static void Init() {
+            Main = new();
+        }
+
         private void SetPages() {
             Pages = [.. Enumerable.Range(1, (int)Math.Ceiling((double)FilteredGalleries.Count / PageSizes[SelectedPageSizeIndex]))];
+            if (Pages.Count > 0) {
+                SelectedPageIndex = 0;
+            }
         }
 
         public event Action CurrentGalleryBrowseItemsChanged;
 
-        private void SetCurrentGalleryBrowseItemVMs() {
-            CurrentGalleryBrowseItemVMs =
-                FilteredGalleries.Count == 0 ?
-                [] :
-                [..
+        private async void SetCurrentGalleryBrowseItemVMs() {
+            List<GalleryBrowseItemVM> temp = [];
+            if (FilteredGalleries.Count > 0) {
+                IEnumerable<Gallery> galleries =
                     FilteredGalleries.Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
-                    .Take(PageSizes[SelectedPageSizeIndex])
-                    .Select(g => {
-                        GalleryBrowseItemVM vm = new(g);
-                        vm.DeleteCommand.ExecuteRequested += (_, _) => {
-                            if (SelectedGalleryBrowseItemVMs != null) {
-                                GalleryDAO.RemoveRange(SelectedGalleryBrowseItemVMs.Select(vm => vm.Gallery));
-                                ExecuteQuery();
-                            }
-                        };
-                        return vm;
-                    })
-                ];
+                    .Take(PageSizes[SelectedPageSizeIndex]);
+                foreach (Gallery gallery in galleries) {
+                    GalleryBrowseItemVM vm = new(gallery);
+                    await vm.Init();
+                    vm.DeleteCommand.ExecuteRequested += (_, _) => {
+                        if (SelectedGalleryBrowseItemVMs != null) {
+                            GalleryDAO.RemoveRange(SelectedGalleryBrowseItemVMs.Select(vm => vm.Gallery));
+                            ExecuteQuery();
+                        }
+                    };
+                    temp.Add(vm);
+                }
+            }
+            CurrentGalleryBrowseItemVMs = temp;
             CurrentGalleryBrowseItemsChanged?.Invoke();
             IncrementCommand.NotifyCanExecuteChanged();
             DecrementCommand.NotifyCanExecuteChanged();
@@ -84,7 +93,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [ObservableProperty]
         private int _selectedPageIndex = -1;
         partial void OnSelectedPageIndexChanged(int value) {
-            if (value == -1 && Pages.Count > 0) {
+            if (value == -1 && FilteredGalleries.Count > 0) {
 #pragma warning disable MVVMTK0034 // Direct field reference to [ObservableProperty] backing field
                 _selectedPageIndex = 0;
 #pragma warning restore MVVMTK0034 // Direct field reference to [ObservableProperty] backing field

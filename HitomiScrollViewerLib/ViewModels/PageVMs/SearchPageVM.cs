@@ -19,8 +19,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private static readonly string SUBTREE_NAME = typeof(SearchPage).Name;
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
-        private static SearchPageVM _main;
-        public static SearchPageVM Main => _main ??= new();
+        public static SearchPageVM Main { get; private set; }
 
         public TagFilterEditorVM TagFilterEditorVM { get; }
         public QueryBuilderVM QueryBuilderVM { get; }
@@ -73,6 +72,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             if (tagFilterDAO.LocalTagFilters.Count > 0) {
                 TagFilterEditorVM.SelectedTagFilter = tagFilterDAO.LocalTagFilters[0];
             }
+        }
+
+        public static void Init() {
+            Main = new();
         }
 
         public RelayCommand SearchLinkCreateButtonCommand { get; }

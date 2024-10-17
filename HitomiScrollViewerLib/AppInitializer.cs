@@ -4,6 +4,7 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -25,14 +26,13 @@ namespace HitomiScrollViewerLib {
             };
             ShowLoadProgressReporter.Invoke(vm);
 
-            vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
+            vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
 
             bool dbCreatedFirstTime;
             using (HitomiContext context = new()) {
                 //context.Database.EnsureDeleted(); // Uncomment to reset database @@@@@@@@@@@
                 dbCreatedFirstTime = context.Database.EnsureCreated();
                 if (dbCreatedFirstTime) {
-                    vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingDatabase);
                     vm.IsIndeterminate = false;
                     vm.Value = 0;
                     vm.Maximum = DATABASE_INIT_OP_COUNT;
@@ -128,7 +128,11 @@ namespace HitomiScrollViewerLib {
             //}
 
             vm.IsIndeterminate = true;
-            vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);
+            vm.SetText(LoadProgressReporterVM.LoadingStatus.InitialisingApp);
+
+            SearchPageVM.Init();
+            BrowsePageVM.Init();
+            ViewPageVM.Init();
 
             HideLoadProgressReporter.Invoke();
             Initialised?.Invoke();

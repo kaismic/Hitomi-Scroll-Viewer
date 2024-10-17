@@ -4,9 +4,13 @@ using System.Collections.ObjectModel;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
     public partial class ViewPageVM {
-        private static ViewPageVM _main;
-        public static ViewPageVM Main => _main ??= new();
+        public static ViewPageVM Main { get; private set; }
 
         public ObservableCollection<GalleryTabViewItemVM> GalleryTabViewItemsVMs;
+
+
+        public static void Init() {
+            Main = new();
+        }
     }
 }

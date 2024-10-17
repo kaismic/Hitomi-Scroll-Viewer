@@ -2,6 +2,7 @@
 using HitomiScrollViewerLib.ViewModels;
 using HitomiScrollViewerLib.Views.PageViews;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Text;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -82,7 +83,8 @@ namespace HitomiScrollViewerLib.Views {
                 DefaultButton = model.DefaultButton,
                 Title = new TextBlock() {
                     TextWrapping = TextWrapping.WrapWholeWords,
-                    Text = model.Title
+                    Text = model.Title,
+                    FontWeight = FontWeights.Bold
                 },
                 Content = new TextBlock() {
                     TextWrapping = TextWrapping.WrapWholeWords,

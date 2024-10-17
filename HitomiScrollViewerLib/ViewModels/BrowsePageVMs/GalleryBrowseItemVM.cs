@@ -1,10 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
     public partial class GalleryBrowseItemVM : DQObservableObject {
@@ -16,11 +18,10 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
         private List<TagItemsRepeaterVM> _tagItemsRepeaterVMs = [];
         public event Action TrySetImageSourceRequested;
 
-        public StandardUICommand DeleteCommand { get; }
+        public StandardUICommand DeleteCommand { get; private set; }
 
         public GalleryBrowseItemVM(Gallery gallery) {
             Gallery = gallery;
-            DeleteCommand = new(StandardUICommandKind.Delete);
             for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
                 ICollection<Tag> tags = Tag.SelectTagsFromCategory(
                     gallery.Tags,
@@ -35,6 +36,12 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
                     );
                 }
             }
+        }
+
+        public async Task Init() {
+            await MainWindow.MainDispatcherQueue.EnqueueAsync(() => {
+                DeleteCommand = new(StandardUICommandKind.Delete);
+            });
         }
 
         public void InvokeTrySetImageSourceRequested() {
