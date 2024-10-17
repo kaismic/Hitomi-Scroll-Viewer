@@ -106,7 +106,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
         private static DateTime _lastGgjsUpdateTime;
 
         public event Action<DownloadItemVM> RemoveDownloadItemEvent;
-        public event Action GalleryAdded;
+        public event Action InvokeGalleryAddedRequested;
 
         public DownloadItemVM(int id) {
             Id = id;
@@ -276,7 +276,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
                         Gallery = ogi.ToGallery(_context);
                         _context.Galleries.Add(Gallery);
                         _context.SaveChanges();
-                        GalleryAdded?.Invoke();
+                        InvokeGalleryAddedRequested.Invoke();
                     } else {
                         _context.Entry(Gallery).Collection(g => g.Files).Load();
                     }

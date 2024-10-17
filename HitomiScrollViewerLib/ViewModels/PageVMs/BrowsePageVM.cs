@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.BrowsePageVMs;
@@ -7,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
+using Windows.Storage;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
     public partial class BrowsePageVM : DQObservableObject {
@@ -45,30 +46,29 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         private void SetPages() {
-            int newPagesCount = (int)Math.Ceiling((double)FilteredGalleries.Count / PageSizes[SelectedPageSizeIndex]);
-            if (Pages == null || newPagesCount != Pages.Count) {
-                Pages = [.. Enumerable.Range(1, newPagesCount)];
-            }
+            Pages = [.. Enumerable.Range(1, (int)Math.Ceiling((double)FilteredGalleries.Count / PageSizes[SelectedPageSizeIndex]))];
         }
 
         public event Action CurrentGalleryBrowseItemsChanged;
 
         private void SetCurrentGalleryBrowseItemVMs() {
-            CurrentGalleryBrowseItemVMs = [..
-                FilteredGalleries.Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
-                .Take(PageSizes[SelectedPageSizeIndex])
-                .Select(g => {
-                    GalleryBrowseItemVM vm = new(g);
-                    vm.DeleteCommand.ExecuteRequested += (_, _) => {
-        // TODO undo functionality and correct keyboard focus delete
-                        foreach (var item in SelectedGalleryBrowseItemVMs) {
-                            Debug.WriteLine($"{item.Gallery.Id} - {item.Gallery.Title} is deleted (test)");
-                        }
-                        // ExecuteQuery();
-                    };
-                    return vm;
-                })
-            ];
+            CurrentGalleryBrowseItemVMs =
+                FilteredGalleries.Count == 0 ?
+                [] :
+                [..
+                    FilteredGalleries.Skip(SelectedPageIndex * PageSizes[SelectedPageSizeIndex])
+                    .Take(PageSizes[SelectedPageSizeIndex])
+                    .Select(g => {
+                        GalleryBrowseItemVM vm = new(g);
+                        vm.DeleteCommand.ExecuteRequested += (_, _) => {
+                            if (SelectedGalleryBrowseItemVMs != null) {
+                                GalleryDAO.RemoveRange(SelectedGalleryBrowseItemVMs.Select(vm => vm.Gallery));
+                                ExecuteQuery();
+                            }
+                        };
+                        return vm;
+                    })
+                ];
             CurrentGalleryBrowseItemsChanged?.Invoke();
             IncrementCommand.NotifyCanExecuteChanged();
             DecrementCommand.NotifyCanExecuteChanged();
@@ -84,9 +84,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         [ObservableProperty]
         private int _selectedPageIndex = -1;
         partial void OnSelectedPageIndexChanged(int value) {
-            if (value == -1 || FilteredGalleries.Count == 0) {
-                CurrentGalleryBrowseItemVMs = [];
-                return;
+            if (value == -1 && Pages.Count > 0) {
+#pragma warning disable MVVMTK0034 // Direct field reference to [ObservableProperty] backing field
+                _selectedPageIndex = 0;
+#pragma warning restore MVVMTK0034 // Direct field reference to [ObservableProperty] backing field
             }
             SetCurrentGalleryBrowseItemVMs();
         }
@@ -102,24 +103,21 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         private bool CanIncrement() => SelectedPageIndex >= 0 && Pages[SelectedPageIndex] * PageSizes[SelectedPageSizeIndex] < FilteredGalleries.Count;
         private bool CanDecrement() => SelectedPageIndex > 0;
 
-        [ObservableProperty]
-        private int _selectedPageSizeIndex = 3;
-        partial void OnSelectedPageSizeIndexChanged(int value) {
-            SetPages();
-            SelectedPageIndex = 0;
+
+        private int _selectedPageSizeIndex = (int)(ApplicationData.Current.LocalSettings.Values[nameof(SelectedPageSizeIndex)] ??= 3);
+        public int SelectedPageSizeIndex {
+            get => _selectedPageSizeIndex;
+            set {
+                _selectedPageSizeIndex = value;
+                ApplicationData.Current.LocalSettings.Values[nameof(SelectedPageSizeIndex)] = value;
+                SetPages();
+            }
         }
 
         [ObservableProperty]
         private List<Gallery> _filteredGalleries;
         partial void OnFilteredGalleriesChanged(List<Gallery> value) {
             SetPages();
-            if (value.Count > 0) {
-                if (SelectedPageIndex != 0) {
-                    SelectedPageIndex = 0;
-                } else {
-                    SetCurrentGalleryBrowseItemVMs();
-                }
-            }
         }
 
         [ObservableProperty]
@@ -157,7 +155,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 filtered = filtered.Intersect(tag.Galleries);
             }
             if (QueryBuilderVM.SearchTitleText.Length > 0) {
-                filtered = filtered.Where(g => g.Title.Contains(QueryBuilderVM.SearchTitleText));
+                filtered = filtered.Where(g => g.Title.Contains(QueryBuilderVM.SearchTitleText, StringComparison.CurrentCultureIgnoreCase));
             }
             // sort
             if (SortDialogVM.ActiveSortItemVMs.Count > 0) {

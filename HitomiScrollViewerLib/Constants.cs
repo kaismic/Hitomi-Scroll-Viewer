@@ -4,20 +4,20 @@ using Windows.Storage;
 
 namespace HitomiScrollViewerLib {
     public static class Constants {
-        public const string IMAGE_DIR_NAME = "images";
-        public const string ROOT_DIR_NAME_V2 = "HSV";
+        private const string IMAGE_DIR_NAME = "images";
+        private const string ROOT_DIR_NAME_V2 = "HSV";
         public static readonly string ROOT_DIR_V2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ROOT_DIR_NAME_V2);
         public static readonly string IMAGE_DIR_V2 = Path.Combine(ROOT_DIR_V2, IMAGE_DIR_NAME);
 
-        public const string TAG_FILTERS_FILE_NAME_V2 = "tag_filters.json";
+        private const string TAG_FILTERS_FILE_NAME_V2 = "tag_filters.json";
         public static readonly string TAG_FILTERS_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, TAG_FILTERS_FILE_NAME_V2);
-        public const string BOOKMARKS_FILE_NAME_V2 = "bookmarks.json";
+        private const string BOOKMARKS_FILE_NAME_V2 = "bookmarks.json";
         public static readonly string BOOKMARKS_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, BOOKMARKS_FILE_NAME_V2);
 
 
         public static readonly string LOCAL_DIR_V3 = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         public static readonly string ROAMING_DIR_V3 = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        public static readonly string NON_VIRTUAL_LOCAL_DIR_V3 = Path.Combine(ApplicationData.Current.LocalCacheFolder.Path, new DirectoryInfo(LOCAL_DIR_V3).Name);
+        private static readonly string NON_VIRTUAL_LOCAL_DIR_V3 = Path.Combine(ApplicationData.Current.LocalCacheFolder.Path, new DirectoryInfo(LOCAL_DIR_V3).Name);
         public static readonly string IMAGE_DIR_V3 = Path.Combine(LOCAL_DIR_V3, IMAGE_DIR_NAME);
         public static readonly string NON_VIRTUAL_IMAGE_DIR_V3 = Path.Combine(NON_VIRTUAL_LOCAL_DIR_V3, IMAGE_DIR_NAME);
 

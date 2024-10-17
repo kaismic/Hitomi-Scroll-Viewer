@@ -45,7 +45,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
                 return;
             }
             _itemsWrapGrid = GalleryGridView.ItemsPanelRoot as ItemsWrapGrid;
-            if (ViewModel.CurrentGalleryBrowseItemVMs.Count > 0) {
+            if (ViewModel.CurrentGalleryBrowseItemVMs.Count > 0 && GalleryGridView.ActualWidth > 0) {
                 GalleryBrowseItemWidth = GalleryGridView.ActualWidth / _itemsWrapGrid.MaximumRowsOrColumns - 8;
             }
         }

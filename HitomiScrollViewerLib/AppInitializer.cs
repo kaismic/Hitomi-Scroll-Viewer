@@ -122,9 +122,10 @@ namespace HitomiScrollViewerLib {
                 }
             }
 
-            if (Directory.Exists(ROOT_DIR_V2)) {
-                Directory.Delete(ROOT_DIR_V2);
-            }
+            // Uncomment on production @@@@@@@@@@@@@@@@@@@@@@@@@@
+            //if (Directory.Exists(ROOT_DIR_V2)) {
+            //    Directory.Delete(ROOT_DIR_V2);
+            //}
 
             vm.IsIndeterminate = true;
             vm.SetText(LoadProgressReporterVM.LoadingStatus.LoadingDatabase);

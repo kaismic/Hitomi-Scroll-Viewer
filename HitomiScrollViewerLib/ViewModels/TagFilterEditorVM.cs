@@ -2,19 +2,15 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DAOs;
-using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using Soluling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Foundation;
 using Windows.Storage;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.ViewModels {
     public partial class TagFilterEditorVM : DQObservableObject {

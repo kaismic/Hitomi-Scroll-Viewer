@@ -69,7 +69,7 @@
                             HorizontalAlignment="Right" VerticalAlignment="Center"
                             Spacing="8">
                     <TextBlock Text="Items per page" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{x:Bind ViewModel.PageSizes, Mode=OneWay}"
+                    <ComboBox ItemsSource="{x:Bind ViewModel.PageSizes}"
                               SelectedIndex="{x:Bind ViewModel.SelectedPageSizeIndex, Mode=TwoWay}"/>
                 </StackPanel>
             </Grid>

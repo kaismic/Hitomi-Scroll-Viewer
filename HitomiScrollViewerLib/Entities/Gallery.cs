@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Entities {
@@ -11,6 +12,7 @@ namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(LastDownloadTime))]
     public class Gallery {
         public int Id { get; set; }
+        public string ImageFilesDirectory => Path.Combine(Constants.IMAGE_DIR_V3, Id.ToString());
         public string Title { get; set; }
         public string JapaneseTitle { get; set; }
         public DateTimeOffset Date { get; set; }

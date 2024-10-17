@@ -16,16 +16,7 @@ namespace HitomiScrollViewerLib.Entities {
         private string _fullFileName;
         public string FullFileName => _fullFileName ??= FileName + '.' + FileExtension;
         public bool IsPlayable { get; set; }
-
-        private string _imageFilePath;
-        public string ImageFilePath {
-            get => _imageFilePath ??= Path.Combine(
-                Constants.IMAGE_DIR_V3,
-                Gallery.Id.ToString(),
-                FullFileName
-            );
-            private set => _imageFilePath = value;
-        }
+        public string ImageFilePath => Path.Combine(Constants.IMAGE_DIR_V3, Gallery.Id.ToString(), FullFileName);
 
         public string Hash { get; set; }
         public int Height { get; set; }

@@ -1,6 +1,5 @@
 ﻿using HitomiScrollViewerLib.Entities;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -20,7 +19,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 DownloadItemVMs.Remove(arg);
                 TrySetImageSourceRequested?.Invoke(arg.Gallery);
             };
-            vm.GalleryAdded += () => GalleryAdded?.Invoke();
+            vm.InvokeGalleryAddedRequested += GalleryAdded.Invoke;
             vm.StartDownload();
         }
     }
