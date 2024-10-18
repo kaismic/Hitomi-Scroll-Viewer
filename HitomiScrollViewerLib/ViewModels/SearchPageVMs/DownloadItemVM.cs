@@ -67,8 +67,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
 
         public Gallery Gallery { get; private set; }
         public int Id { get; private set; }
-        private readonly HitomiContext _context = new();
-
         public int[] ThreadNums { get; } = Enumerable.Range(1, 8).ToArray();
         [ObservableProperty]
         private int _threadNum = 1;
@@ -170,11 +168,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
         }
 
         private void RemoveSelf() {
-            //if (BookmarkItem != null) {
-            //    BookmarkItem.IsDownloading = false;
-            //    BookmarkItem.EnableRemoveBtn(true);
-            //}
-            _context.Dispose();
             RemoveDownloadItemEvent?.Invoke(this);
         }
 
@@ -248,7 +241,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
             CancellationToken ct = _cts.Token;
             CurrentDownloadStatus = DownloadStatus.Downloading;
             ProgressText = "";
-            //BookmarkItem?.EnableRemoveBtn(false);
             if (Gallery == null) {
                 ProgressText = "StatusText_FetchingGalleryInfo".GetLocalized(SUBTREE_NAME);
                 string galleryInfo;
@@ -271,14 +263,15 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
                     if (Id != ogi.Id) {
                         Id = ogi.Id;
                     }
-                    Gallery = _context.Galleries.Find(Id);
+                    using HitomiContext context = new();
+                    Gallery = context.Galleries.Find(Id);
                     if (Gallery == null) {
-                        Gallery = ogi.ToGallery(_context);
-                        _context.Galleries.Add(Gallery);
-                        _context.SaveChanges();
+                        Gallery = ogi.ToGallery(context);
+                        context.Galleries.Add(Gallery);
+                        context.SaveChanges();
                         InvokeGalleryAddedRequested.Invoke();
                     } else {
-                        _context.Entry(Gallery).Collection(g => g.Files).Load();
+                        context.Entry(Gallery).Collection(g => g.Files).Load();
                     }
                     ProgressBarMaximum = Gallery.Files.Count;
                     GalleryDescriptionText = $"{Gallery.Id} - {Gallery.Title}";
@@ -288,13 +281,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
                     return;
                 }
             }
-
-
-            // TODO uncomment and modify
-            //if (BookmarkItem == null) {
-            //    BookmarkItem = MainWindow.SearchPage.AddBookmark(Gallery);
-            //}
-
 
             _ = TryDownload(ct);
         }
