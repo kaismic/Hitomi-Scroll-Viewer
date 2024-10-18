@@ -92,7 +92,8 @@
                         <ScrollViewer Width="{Binding ElementName=RootBrowsePage, Path=GalleryBrowseItemWidth}"
                                       Height="412">
                             <bpviews:GalleryBrowseItem ViewModel="{x:Bind}"
-                                                       RightTapped="GalleryBrowseItem_RightTapped"/>
+                                                       RightTapped="GalleryBrowseItem_RightTapped"
+                                                       DoubleTapped="GalleryBrowseItem_DoubleTapped"/>
                         </ScrollViewer>
                     </DataTemplate>
                 </GridView.ItemTemplate>

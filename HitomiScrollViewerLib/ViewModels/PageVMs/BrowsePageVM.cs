@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using Windows.Storage;
 
@@ -16,6 +17,9 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public static BrowsePageVM Main { get; private set; }
         public QueryBuilderVM QueryBuilderVM { get; }
         public SortDialogVM SortDialogVM { get; }
+
+        public event Action<IEnumerable<Gallery>> OpenGalleriesRequested;
+        public event Action NavigateToViewPageRequested;
 
         private BrowsePageVM() {
             SortDialogVM = new();
@@ -68,6 +72,12 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 foreach (Gallery gallery in galleries) {
                     GalleryBrowseItemVM vm = new(gallery);
                     await vm.Init();
+                    vm.OpenCommand.ExecuteRequested += (_, _) => {
+                        if (SelectedGalleryBrowseItemVMs != null) {
+                            OpenGalleriesRequested.Invoke(SelectedGalleryBrowseItemVMs.Select(vm => vm.Gallery));
+                            NavigateToViewPageRequested.Invoke();
+                        }
+                    };
                     vm.DeleteCommand.ExecuteRequested += (_, _) => {
                         if (SelectedGalleryBrowseItemVMs != null) {
                             GalleryDAO.RemoveRange(SelectedGalleryBrowseItemVMs.Select(vm => vm.Gallery));

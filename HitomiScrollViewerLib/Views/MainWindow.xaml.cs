@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.PageViews;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Text;
@@ -46,6 +47,9 @@ namespace HitomiScrollViewerLib.Views {
             };
             AppInitializer.HideLoadProgressReporter += () => DispatcherQueue.TryEnqueue(_reporter.Hide);
             AppInitializer.Initialised += () => DispatcherQueue.TryEnqueue(() => {
+                BrowsePageVM.Main.NavigateToViewPageRequested += () => {
+                    MainSelectorBar.SelectedItem = MainSelectorBar.Items[2];
+                };
                 MainSelectorBar.IsEnabled = true;
                 SelectorBar_SelectionChanged(MainSelectorBar, null);
             });

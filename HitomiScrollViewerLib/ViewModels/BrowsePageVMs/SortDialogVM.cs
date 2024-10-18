@@ -18,7 +18,6 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
 
         public SortDialogVM() {
             using HitomiContext context = new();
-            // TODO see if I need to create another DAO for GallerySort or SortItemVM
             SortDirectionEntity[] sortDirections = [.. context.SortDirections.OrderBy(sd => sd.SortDirection)];
             GallerySortEntity[] gallerySortEntities = [.. context.GallerySorts];
             foreach (GallerySortEntity gs in gallerySortEntities) {

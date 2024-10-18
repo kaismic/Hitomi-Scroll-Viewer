@@ -133,6 +133,7 @@ namespace HitomiScrollViewerLib {
             SearchPageVM.Init();
             BrowsePageVM.Init();
             ViewPageVM.Init();
+            BrowsePageVM.Main.OpenGalleriesRequested += ViewPageVM.Main.OpenGalleries;
 
             HideLoadProgressReporter.Invoke();
             Initialised?.Invoke();

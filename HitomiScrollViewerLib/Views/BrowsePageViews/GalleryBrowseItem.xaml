@@ -12,8 +12,8 @@
     x:DefaultBindMode="OneWay">
     <UserControl.ContextFlyout>
         <MenuFlyout>
-            <MenuFlyoutItem Command="{x:Bind ViewModel.DeleteCommand}"
-                            CommandParameter="{x:Bind ViewModel}"/>
+            <MenuFlyoutItem Command="{x:Bind ViewModel.OpenCommand}"/>
+            <MenuFlyoutItem Command="{x:Bind ViewModel.DeleteCommand}"/>
         </MenuFlyout>
     </UserControl.ContextFlyout>
     <UserControl.Resources>

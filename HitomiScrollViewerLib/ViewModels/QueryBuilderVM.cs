@@ -39,7 +39,10 @@ namespace HitomiScrollViewerLib.ViewModels {
             GalleryLanguages = [.. _context.GalleryLanguages];
             GalleryTypes = [.. _context.GalleryTypes];
             QueryConfiguration = _context.QueryConfigurations.Find(pageKind);
-            QueryConfiguration.SelectionChanged += () => QueryChanged?.Invoke();
+            QueryConfiguration.SelectionChanged += () => {
+                QueryChanged?.Invoke();
+                _context.SaveChanges();
+            };
             TagTokenizingTBVMs = [..
                 Tag.TAG_CATEGORIES.Select(
                     category => new TagTokenizingTextBoxVM(_context.Tags.AsNoTracking(), category)

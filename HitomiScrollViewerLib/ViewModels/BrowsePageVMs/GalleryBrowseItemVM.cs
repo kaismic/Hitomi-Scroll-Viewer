@@ -18,6 +18,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
         private List<TagItemsRepeaterVM> _tagItemsRepeaterVMs = [];
         public event Action TrySetImageSourceRequested;
 
+        public StandardUICommand OpenCommand { get; private set; }
         public StandardUICommand DeleteCommand { get; private set; }
 
         public GalleryBrowseItemVM(Gallery gallery) {
@@ -40,6 +41,7 @@ namespace HitomiScrollViewerLib.ViewModels.BrowsePageVMs {
 
         public async Task Init() {
             await MainWindow.MainDispatcherQueue.EnqueueAsync(() => {
+                OpenCommand = new(StandardUICommandKind.Open);
                 DeleteCommand = new(StandardUICommandKind.Delete);
             });
         }

@@ -79,6 +79,11 @@ namespace HitomiScrollViewerLib.Views.PageViews {
             }
         }
 
+        private void GalleryBrowseItem_DoubleTapped(object sender, DoubleTappedRoutedEventArgs _1) {
+            GalleryBrowseItemVM vm = (sender as GalleryBrowseItem).ViewModel;
+            vm.OpenCommand.Execute(null);
+        }
+
         private void GalleryGridView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             ViewModel.SelectedGalleryBrowseItemVMs = [.. GalleryGridView.SelectedItems.Cast<GalleryBrowseItemVM>()];
         }

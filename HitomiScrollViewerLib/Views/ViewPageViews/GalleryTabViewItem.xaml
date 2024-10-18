@@ -18,7 +18,7 @@
               >
         <FlipView.ItemsPanel>
             <ItemsPanelTemplate>
-                <VirtualizingStackPanel Orientation="{Binding Source={StaticResource models:CommonSettings.Main}, Path=ScrollDirection.Value, Mode=OneWay}"/>
+                <VirtualizingStackPanel Orientation="{x:Bind models:CommonSettings.Main.ScrollDirection.Value, Mode=OneWay}"/>
             </ItemsPanelTemplate>
         </FlipView.ItemsPanel>
         <FlipView.ItemTemplate>

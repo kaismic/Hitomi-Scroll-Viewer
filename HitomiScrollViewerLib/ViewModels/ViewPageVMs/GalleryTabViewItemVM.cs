@@ -12,7 +12,7 @@ using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
     public partial class GalleryTabViewItemVM : DQObservableObject {
-        public Gallery Gallery { get; init; }
+        public Gallery Gallery { get; }
 
         public GalleryViewSettings GalleryViewSettings { get; } = new();
 
@@ -62,7 +62,8 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
 
         public event Action<string, string> RequestShowActionIcon;
 
-        public GalleryTabViewItemVM() {
+        public GalleryTabViewItemVM(Gallery gallery) {
+            Gallery = gallery;
             GalleryViewSettings.PropertyChanged += GalleryViewSettings_PropertyChanged;
         }
 
