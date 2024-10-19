@@ -4,11 +4,12 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Web.WebView2.Core;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.Views.ViewPageViews {
-    public sealed partial class ImageCollectionPanel : StackPanel {
+    public sealed partial class ImageCollectionPanel : UserControl {
         private static readonly string VIRTUAL_HOST_NAME = "images.example";
         // {0} = full file name
         private static readonly string IMAGE_HTML =
@@ -22,6 +23,11 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
         public ImageCollectionPanelVM ViewModel {
             get => _viewModel;
             set {
+                Debug.WriteLine("ImageCollectionPanelVM is set");
+                Debug.WriteLine("PageIndex = " + value.PageIndex);
+                if (_viewModel != null) {
+                    return;
+                }
                 _nonVirtualImageDir = Path.Combine(NON_VIRTUAL_IMAGE_DIR_V3, value.ImageInfos[0].Gallery.Id.ToString());
                 _viewModel = value;
                 for (int i = 0; i < value.ImageInfos.Length; i++) {
@@ -39,10 +45,11 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
                             Source = new BitmapImage() { UriSource = new(value.ImageInfos[i].ImageFilePath) }
                         };
                     }
+                    Debug.WriteLine($"ImageInfos[{i}].ImageFilePath = " + value.ImageInfos[i].ImageFilePath);
                     Viewbox wrapper = new() {
                         Child = image
                     };
-                    Children.Add(wrapper);
+                    MainStackPanel.Children.Add(wrapper);
                 }
             }
         }

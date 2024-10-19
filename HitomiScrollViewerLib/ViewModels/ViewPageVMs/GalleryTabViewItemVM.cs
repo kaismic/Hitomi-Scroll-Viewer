@@ -4,6 +4,7 @@ using HitomiScrollViewerLib.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,6 +66,8 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         public GalleryTabViewItemVM(Gallery gallery) {
             Gallery = gallery;
             GalleryViewSettings.PropertyChanged += GalleryViewSettings_PropertyChanged;
+
+            UpdateImageCollectionPanelVMs();
         }
 
         private void GalleryViewSettings_PropertyChanged(object _0, PropertyChangedEventArgs e) {
@@ -80,6 +83,9 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         }
 
         public async void UpdateImageCollectionPanelVMs() {
+            // TODO fix why image doesn't load properly
+            // possibly use x:DataType and apply different template for each derived class
+            // PlayableImage and Image
             DateTime localRecordedTime = _lastSizeChangedTime = DateTime.Now;
             await Task.Delay(SIZE_CHANGE_WAIT_TIME);
             if (_lastSizeChangedTime != localRecordedTime) {
@@ -109,6 +115,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
                 imageCollectionPanelVMs.Add(new() { ImageInfos = imageInfos[currentRange], PageIndex = pageIndex++ });
                 ImageCollectionPanelVMs = imageCollectionPanelVMs;
             } else {
+                // otherwise add according to ImagesPerPage
                 int vmsCount = (int)Math.Ceiling((double)imageInfos.Length / imagesPerPage);
                 ImageCollectionPanelVM[] imageCollectionPanelVMs = new ImageCollectionPanelVM[vmsCount];
                 for (int i = 0; i < vmsCount; i++) {
@@ -116,7 +123,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
                     int endIndex = Math.Min((i + 1) * imagesPerPage, imageInfos.Length);
                     imageCollectionPanelVMs[i] = new() { ImageInfos = imageInfos[startIndex..endIndex], PageIndex = i };
                 }
-                ImageCollectionPanelVMs = new(imageCollectionPanelVMs);
+                ImageCollectionPanelVMs = [.. imageCollectionPanelVMs];
             }
         }
     }

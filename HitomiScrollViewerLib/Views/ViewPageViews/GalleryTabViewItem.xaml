@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Grid
+<TabViewItem
     x:Class="HitomiScrollViewerLib.Views.ViewPageViews.GalleryTabViewItem"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,107 +8,110 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vpvms="using:HitomiScrollViewerLib.ViewModels.ViewPageVMs"
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
-    mc:Ignorable="d">
-    <FlipView UseTouchAnimationsForAllNavigation="{x:Bind models:CommonSettings.Main.IsPageFlipEffectEnabled, Mode=OneWay}"
-              FocusVisualPrimaryThickness="0" IsTabStop="True"
-              Loaded="FlipView_Loaded"
-              SizeChanged="FlipView_SizeChanged"
-              ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
-              SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
-              >
-        <FlipView.ItemsPanel>
-            <ItemsPanelTemplate>
-                <VirtualizingStackPanel Orientation="{x:Bind models:CommonSettings.Main.ScrollDirection.Value, Mode=OneWay}"/>
-            </ItemsPanelTemplate>
-        </FlipView.ItemsPanel>
-        <FlipView.ItemTemplate>
-            <DataTemplate x:DataType="vpvms:ImageCollectionPanelVM">
-                <vpviews:ImageCollectionPanel ViewModel="{x:Bind}"/>
-            </DataTemplate>
-        </FlipView.ItemTemplate>
-    </FlipView>
-    <CommandBar x:Name="TopCommandBar"
-                Background="{ThemeResource LayerFillColorAltBrush}"
-                ClosedDisplayMode="Compact"
-                OverflowButtonVisibility="Collapsed"
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Center"
-                IsOpen="True">
-        <AppBarButton x:Name="RefreshBtn" x:Uid="/ViewPage/RefreshBtn"
-                        MinWidth="50"
-                        Icon="Refresh"
-                        IsTabStop="False"/>
-        <AppBarSeparator MinWidth="30"/>
-        <AppBarElementContainer>
-            <Slider MinWidth="240"
-                    IsTabStop="False"
-                    Minimum="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_MIN_VALUE}"
-                    Maximum="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_MAX_VALUE}"
-                    TickFrequency="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_FREQUENCY}"
-                    StepFrequency="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_FREQUENCY}"
-                    Value="{x:Bind ViewModel.GalleryViewSettings.AutoScrollInterval, Mode=TwoWay}"
-                    >
-                <Slider.Header>
-                    <TextBlock x:Uid="/ViewPage/AutoScrollIntervalSliderTextBlock"
-                                   HorizontalAlignment="Center"/>
-                </Slider.Header>
-            </Slider>
-        </AppBarElementContainer>
-        <AppBarToggleButton x:Name="AutoScrollBtn"
-                            MinWidth="120"
-                            Icon="Play"
-                            Margin="16 0">
-            <AppBarToggleButton.KeyboardAccelerators>
-                <KeyboardAccelerator Key="Space"/>
-            </AppBarToggleButton.KeyboardAccelerators>
-        </AppBarToggleButton>
-        <AppBarToggleButton x:Name="LoopBtn"
-                            Icon="RepeatAll"
-                            MinWidth="90"
-                            IsChecked="{x:Bind ViewModel.GalleryViewSettings.IsLoopEnabled, Mode=TwoWay}">
-            <AppBarToggleButton.KeyboardAccelerators>
-                <KeyboardAccelerator Key="Q"/>
-            </AppBarToggleButton.KeyboardAccelerators>
-        </AppBarToggleButton>
-        <AppBarSeparator MinWidth="30"/>
-        <AppBarElementContainer>
-            <ComboBox MinWidth="120"
-                      ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
-                      SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
-                      DisplayMemberPath="PageIndex">
-                <ComboBox.Header>
-                    <TextBlock x:Uid="/ViewPage/PageNavigatorTextBlock"
-                                   HorizontalAlignment="Center"/>
-                </ComboBox.Header>
-            </ComboBox>
-        </AppBarElementContainer>
-    </CommandBar>
-    <Viewbox x:Name="ActionIndicator"
-             Width="500"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center"
-             Opacity="0"
-             IsHitTestVisible="False"
-             IsTabStop="False"
-             IsTapEnabled="False">
-        <Viewbox.Resources>
-            <Storyboard x:Name="FadeOutStoryboard">
-                <DoubleAnimation Storyboard.TargetName="ActionIndicator"
-                                 Storyboard.TargetProperty="Opacity"
-                                 From="1" To="0"
-                                 Duration="0:0:1">
-                </DoubleAnimation>
-            </Storyboard>
-        </Viewbox.Resources>
-        <Grid>
-            <FontIcon x:Name="ActionIcon1"
-                      FontFamily="{StaticResource SymbolThemeFontFamily}"
-                      Foreground="{ThemeResource AccentFillColorDefaultBrush}"
-                      FontSize="32"/>
-            <FontIcon x:Name="ActionIcon2" 
-                      FontFamily="{StaticResource SymbolThemeFontFamily}"
-                      Foreground="{ThemeResource AccentFillColorDefaultBrush}"
-                      FontSize="32"/>
-        </Grid>
-    </Viewbox>
-</Grid>
+    mc:Ignorable="d"
+    Header="{x:Bind ViewModel.Gallery.Title}"
+    >
+    <Grid>
+        <FlipView UseTouchAnimationsForAllNavigation="{x:Bind models:CommonSettings.Main.IsPageFlipEffectEnabled, Mode=OneWay}"
+                  FocusVisualPrimaryThickness="0" IsTabStop="True"
+                  Loaded="FlipView_Loaded"
+                  SizeChanged="FlipView_SizeChanged"
+                  ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
+                  SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
+                  >
+            <!--<FlipView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="{Binding models:CommonSettings.Main.ScrollDirection.Value, Mode=OneWay}"/>
+                </ItemsPanelTemplate>
+            </FlipView.ItemsPanel>-->
+            <FlipView.ItemTemplate>
+                <DataTemplate x:DataType="vpvms:ImageCollectionPanelVM">
+                    <vpviews:ImageCollectionPanel ViewModel="{x:Bind}"/>
+                </DataTemplate>
+            </FlipView.ItemTemplate>
+        </FlipView>
+        <CommandBar x:Name="TopCommandBar"
+                    Background="{ThemeResource LayerFillColorAltBrush}"
+                    ClosedDisplayMode="Compact"
+                    OverflowButtonVisibility="Collapsed"
+                    HorizontalAlignment="Center"
+                    IsOpen="True">
+            <AppBarButton x:Name="RefreshBtn" x:Uid="/ViewPage/RefreshBtn"
+                            MinWidth="50"
+                            Icon="Refresh"
+                            IsTabStop="False"/>
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarElementContainer>
+                <Slider MinWidth="240"
+                        IsTabStop="False"
+                        Minimum="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_MIN_VALUE}"
+                        Maximum="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_MAX_VALUE}"
+                        TickFrequency="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_FREQUENCY}"
+                        StepFrequency="{x:Bind models:GalleryViewSettings.AUTO_SCROLL_INTERVAL_FREQUENCY}"
+                        Value="{x:Bind ViewModel.GalleryViewSettings.AutoScrollInterval, Mode=TwoWay}"
+                        >
+                    <Slider.Header>
+                        <TextBlock x:Uid="/ViewPage/AutoScrollIntervalSliderTextBlock"
+                                       HorizontalAlignment="Center"/>
+                    </Slider.Header>
+                </Slider>
+            </AppBarElementContainer>
+            <AppBarToggleButton x:Name="AutoScrollBtn"
+                                MinWidth="120"
+                                Icon="Play"
+                                Margin="16 0">
+                <AppBarToggleButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="Space"/>
+                </AppBarToggleButton.KeyboardAccelerators>
+            </AppBarToggleButton>
+            <AppBarToggleButton x:Name="LoopBtn"
+                                Icon="RepeatAll"
+                                MinWidth="90"
+                                IsChecked="{x:Bind ViewModel.GalleryViewSettings.IsLoopEnabled, Mode=TwoWay}">
+                <AppBarToggleButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="Q"/>
+                </AppBarToggleButton.KeyboardAccelerators>
+            </AppBarToggleButton>
+            <AppBarSeparator MinWidth="30"/>
+            <AppBarElementContainer>
+                <ComboBox MinWidth="120"
+                          ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
+                          SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
+                          DisplayMemberPath="PageIndex">
+                    <ComboBox.Header>
+                        <TextBlock x:Uid="/ViewPage/PageNavigatorTextBlock"
+                                       HorizontalAlignment="Center"/>
+                    </ComboBox.Header>
+                </ComboBox>
+            </AppBarElementContainer>
+        </CommandBar>
+        <Viewbox x:Name="ActionIndicator"
+                 Width="500"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Opacity="0"
+                 IsHitTestVisible="False"
+                 IsTabStop="False"
+                 IsTapEnabled="False">
+            <Viewbox.Resources>
+                <Storyboard x:Name="FadeOutStoryboard">
+                    <DoubleAnimation Storyboard.TargetName="ActionIndicator"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="1" To="0"
+                                     Duration="0:0:1">
+                    </DoubleAnimation>
+                </Storyboard>
+            </Viewbox.Resources>
+            <Grid>
+                <FontIcon x:Name="ActionIcon1"
+                          FontFamily="{StaticResource SymbolThemeFontFamily}"
+                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                          FontSize="32"/>
+                <FontIcon x:Name="ActionIcon2" 
+                          FontFamily="{StaticResource SymbolThemeFontFamily}"
+                          Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                          FontSize="32"/>
+            </Grid>
+        </Viewbox>
+    </Grid>
+</TabViewItem>

@@ -23,7 +23,7 @@ namespace HitomiScrollViewerLib.Models {
         [ObservableProperty]
         private FlowDirectionModel _flowDirectionModel = FLOW_DIRECTION_MODELS.Find(fd => fd.Value == (FlowDirection)(ApplicationData.Current.LocalSettings.Values[nameof(FlowDirection)] ??= (int)FlowDirection.RightToLeft));
         partial void OnFlowDirectionModelChanged(FlowDirectionModel value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(FlowDirectionModel)] = value;
+            ApplicationData.Current.LocalSettings.Values[nameof(FlowDirectionModel)] = (int)value.Value;
         }
 
         [ObservableProperty]
@@ -35,7 +35,7 @@ namespace HitomiScrollViewerLib.Models {
         [ObservableProperty]
         private ScrollDirection _scrollDirection = SCROLL_DIRECTIONS.Find(sd => sd.Value == (Orientation)(ApplicationData.Current.LocalSettings.Values[nameof(ScrollDirection)] ??= (int)Orientation.Vertical));
         partial void OnScrollDirectionChanged(ScrollDirection value) {
-            ApplicationData.Current.LocalSettings.Values[nameof(ScrollDirection)] = value;
+            ApplicationData.Current.LocalSettings.Values[nameof(ScrollDirection)] = (int)value.Value;
         }
 
         [ObservableProperty]

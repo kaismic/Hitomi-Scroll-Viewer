@@ -9,10 +9,13 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     NavigationCacheMode="Required">
-    <TabView TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemsVMs}">
+    <TabView TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemVMs}"
+             SelectedItem="{x:Bind ViewModel.SelectedGalleryTabViewItemVM, Mode=OneWay}"
+             IsAddTabButtonVisible="False">
         <TabView.TabItemTemplate>
             <DataTemplate x:DataType="vpvms:GalleryTabViewItemVM">
-                <vpviews:GalleryTabViewItem ViewModel="{x:Bind}"/>
+                <vpviews:GalleryTabViewItem ViewModel="{x:Bind}"
+                                            CloseRequested="GalleryTabViewItem_CloseRequested"/>
             </DataTemplate>
         </TabView.TabItemTemplate>
     </TabView>

@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerLib.ViewModels.PageVMs;
+using HitomiScrollViewerLib.ViewModels.ViewPageVMs;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -13,6 +14,10 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         protected override void OnNavigatedTo(NavigationEventArgs e) {
             base.OnNavigatedTo(e);
             ViewModel = ViewPageVM.Main;
+        }
+
+        private void GalleryTabViewItem_CloseRequested(TabViewItem sender, TabViewTabCloseRequestedEventArgs args) {
+            ViewModel.GalleryTabViewItemVMs.Remove(args.Item as GalleryTabViewItemVM);
         }
     }
 }

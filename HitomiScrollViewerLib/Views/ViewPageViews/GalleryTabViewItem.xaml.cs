@@ -5,13 +5,15 @@ using Microsoft.UI.Xaml.Media;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Views.ViewPageViews {
-    public sealed partial class GalleryTabViewItem : Grid {
+    public sealed partial class GalleryTabViewItem : TabViewItem {
         private GalleryTabViewItemVM _viewModel;
         public GalleryTabViewItemVM ViewModel {
             get => _viewModel;
             set {
-                _viewModel = value;
-                ViewModel.RequestShowActionIcon += ShowActionIcon;
+                if (_viewModel == null) {
+                    _viewModel = value;
+                    ViewModel.RequestShowActionIcon += ShowActionIcon;
+                }
             }
         }
         public GalleryTabViewItem() {
@@ -25,6 +27,11 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
             foreach (var control in TopCommandBar.PrimaryCommands.Cast<Control>()) {
                 control.VerticalAlignment = VerticalAlignment.Stretch;
             }
+            CloseRequested += GalleryTabViewItem_CloseRequested;
+        }
+
+        private void GalleryTabViewItem_CloseRequested(TabViewItem sender, TabViewTabCloseRequestedEventArgs args) {
+            
         }
 
         private void FlipView_SizeChanged(object _0, SizeChangedEventArgs e) {

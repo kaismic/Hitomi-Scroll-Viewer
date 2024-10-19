@@ -122,7 +122,7 @@ namespace HitomiScrollViewerLib {
                 }
             }
 
-            // Uncomment on production @@@@@@@@@@@@@@@@@@@@@@@@@@
+            // TODO Uncomment on production @@@@@@@@@@@@@@@@@@@@@@@@@@
             //if (Directory.Exists(ROOT_DIR_V2)) {
             //    Directory.Delete(ROOT_DIR_V2);
             //}
@@ -133,7 +133,6 @@ namespace HitomiScrollViewerLib {
             SearchPageVM.Init();
             BrowsePageVM.Init();
             ViewPageVM.Init();
-            BrowsePageVM.Main.OpenGalleriesRequested += ViewPageVM.Main.OpenGalleries;
 
             HideLoadProgressReporter.Invoke();
             Initialised?.Invoke();

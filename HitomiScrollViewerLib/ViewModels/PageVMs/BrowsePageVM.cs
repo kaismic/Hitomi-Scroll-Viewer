@@ -20,6 +20,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         public event Action<IEnumerable<Gallery>> OpenGalleriesRequested;
         public event Action NavigateToViewPageRequested;
+        public event Action<Gallery> FocusGalleryTabViewItemRequested;
 
         private BrowsePageVM() {
             SortDialogVM = new();
@@ -76,6 +77,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                         if (SelectedGalleryBrowseItemVMs != null) {
                             OpenGalleriesRequested.Invoke(SelectedGalleryBrowseItemVMs.Select(vm => vm.Gallery));
                             NavigateToViewPageRequested.Invoke();
+                            FocusGalleryTabViewItemRequested.Invoke(SelectedGalleryBrowseItemVMs[0].Gallery);
                         }
                     };
                     vm.DeleteCommand.ExecuteRequested += (_, _) => {
