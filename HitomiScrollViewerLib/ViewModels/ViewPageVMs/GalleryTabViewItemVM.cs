@@ -4,7 +4,6 @@ using HitomiScrollViewerLib.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,9 +12,10 @@ using static HitomiScrollViewerLib.Constants;
 
 namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
     public partial class GalleryTabViewItemVM : DQObservableObject {
+        private readonly ImageInfo[] _imageInfos;
         public Gallery Gallery { get; }
-
         public GalleryViewSettings GalleryViewSettings { get; } = new();
+        public CommonSettings CommonSettings { get; } = CommonSettings.Main;
 
         private Size _currentTabViewSize;
         public Size CurrentTabViewSize {
@@ -64,6 +64,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         public event Action<string, string> RequestShowActionIcon;
 
         public GalleryTabViewItemVM(Gallery gallery) {
+            _imageInfos = [.. gallery.Files.OrderBy(f => f.Index)];
             Gallery = gallery;
             GalleryViewSettings.PropertyChanged += GalleryViewSettings_PropertyChanged;
 
@@ -91,19 +92,23 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
             if (_lastSizeChangedTime != localRecordedTime) {
                 return;
             }
-            ImageInfo[] imageInfos = [.. Gallery.Files.OrderBy(f => f.Index)];
             int imagesPerPage = CommonSettings.Main.ImagesPerPage;
             if (imagesPerPage == 0) {
                 // auto allocate images per page by aspect ratio
                 List<ImageCollectionPanelVM> imageCollectionPanelVMs = [];
                 double viewportAspectRatio = CurrentTabViewSize.Width / CurrentTabViewSize.Height;
-                double remainingAspectRatio = viewportAspectRatio - ((double)imageInfos[0].Width / imageInfos[0].Height);
+                double remainingAspectRatio = viewportAspectRatio - ((double)_imageInfos[0].Width / _imageInfos[0].Height);
                 Range currentRange = 0..1;
                 int pageIndex = 0;
-                for (int i = 1; i < imageInfos.Length; i++) {
-                    double imgAspectRatio = (double)imageInfos[i].Width / imageInfos[i].Height;
+                for (int i = 1; i < _imageInfos.Length; i++) {
+                    double imgAspectRatio = (double)_imageInfos[i].Width / _imageInfos[i].Height;
                     if (imgAspectRatio >= remainingAspectRatio) {
-                        imageCollectionPanelVMs.Add(new() { ImageInfos = imageInfos[currentRange], PageIndex = pageIndex++ });
+                        imageCollectionPanelVMs.Add(new() {
+                            PageIndex = pageIndex++,
+                            GalleryId = Gallery.Id,
+                            ImageInfos = _imageInfos[currentRange],
+                            CommonSettings = CommonSettings
+                        });
                         remainingAspectRatio = viewportAspectRatio;
                         currentRange = i..(i + 1);
                     } else {
@@ -112,16 +117,26 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
                     }
                 }
                 // add last range
-                imageCollectionPanelVMs.Add(new() { ImageInfos = imageInfos[currentRange], PageIndex = pageIndex++ });
+                imageCollectionPanelVMs.Add(new() {
+                    PageIndex = pageIndex++,
+                    GalleryId = Gallery.Id,
+                    ImageInfos = _imageInfos[currentRange],
+                    CommonSettings = CommonSettings
+                });
                 ImageCollectionPanelVMs = imageCollectionPanelVMs;
             } else {
                 // otherwise add according to ImagesPerPage
-                int vmsCount = (int)Math.Ceiling((double)imageInfos.Length / imagesPerPage);
+                int vmsCount = (int)Math.Ceiling((double)_imageInfos.Length / imagesPerPage);
                 ImageCollectionPanelVM[] imageCollectionPanelVMs = new ImageCollectionPanelVM[vmsCount];
                 for (int i = 0; i < vmsCount; i++) {
-                    int startIndex = i * imagesPerPage;
-                    int endIndex = Math.Min((i + 1) * imagesPerPage, imageInfos.Length);
-                    imageCollectionPanelVMs[i] = new() { ImageInfos = imageInfos[startIndex..endIndex], PageIndex = i };
+                    int start = i * imagesPerPage;
+                    int end = Math.Min((i + 1) * imagesPerPage, _imageInfos.Length);
+                    imageCollectionPanelVMs[i] = new() {
+                        PageIndex = i,
+                        GalleryId = Gallery.Id,
+                        ImageInfos = _imageInfos[start..end],
+                        CommonSettings = CommonSettings
+                    };
                 }
                 ImageCollectionPanelVMs = [.. imageCollectionPanelVMs];
             }

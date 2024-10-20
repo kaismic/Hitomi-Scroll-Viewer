@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TabViewItem
+    x:Name="Root"
     x:Class="HitomiScrollViewerLib.Views.ViewPageViews.GalleryTabViewItem"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,11 +20,11 @@
                   ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
                   SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
                   >
-            <!--<FlipView.ItemsPanel>
+            <FlipView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <VirtualizingStackPanel Orientation="{Binding models:CommonSettings.Main.ScrollDirection.Value, Mode=OneWay}"/>
+                    <VirtualizingStackPanel Orientation="{Binding ViewModel.CommonSettings.ScrollDirection.Value, ElementName=Root, Mode=OneWay}"/>
                 </ItemsPanelTemplate>
-            </FlipView.ItemsPanel>-->
+            </FlipView.ItemsPanel>
             <FlipView.ItemTemplate>
                 <DataTemplate x:DataType="vpvms:ImageCollectionPanelVM">
                     <vpviews:ImageCollectionPanel ViewModel="{x:Bind}"/>

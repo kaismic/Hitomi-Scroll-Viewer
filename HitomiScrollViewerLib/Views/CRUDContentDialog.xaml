@@ -18,6 +18,7 @@
     <ContentDialog.Title>
         <TextBlock TextWrapping="WrapWholeWords"
                    Text="{x:Bind ViewModel.TitleText, Mode=OneWay}"
+                   FontWeight="Bold"
                    />
     </ContentDialog.Title>
 </ContentDialog>
