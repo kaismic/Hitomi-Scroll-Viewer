@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DAOs;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.SearchPageVMs;
 using HitomiScrollViewerLib.Views.PageViews;
@@ -11,11 +13,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel.DataTransfer;
-using CommunityToolkit.WinUI;
-using HitomiScrollViewerLib.DbContexts;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
-    public partial class SearchPageVM : DQObservableObject, IDisposable {
+    public partial class SearchPageVM : DQObservableObject {
         private static readonly string SUBTREE_NAME = typeof(SearchPage).Name;
         private static readonly Range GALLERY_ID_LENGTH_RANGE = 6..7;
 
@@ -38,7 +38,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
 
         private SearchPageVM() {
             TagFilterDAO tagFilterDAO = new();
-            
+
             TagFilterEditorVM = new(tagFilterDAO);
             QueryBuilderVM = new(PageKind.SearchPage);
             SyncManagerVM = new(tagFilterDAO);
@@ -62,15 +62,12 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             TagFilterEditorVM.CurrentTagsRequested += e => e.Tags = QueryBuilderVM.GetCurrentTags();
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
                 QueryBuilderVM.ClearSelectedTags();
-                using HitomiContext context = new();
-                context.TagFilters.Attach(selectedTagFilter);
-                context.Entry(selectedTagFilter).Collection(tf => tf.Tags).Load();
-                QueryBuilderVM.InsertTags([.. selectedTagFilter.Tags]);
+                QueryBuilderVM.InsertTags(selectedTagFilter.Tags);
             };
-            
-            // select the first tag filter on default
+
+            // select the default
             if (tagFilterDAO.LocalTagFilters.Count > 0) {
-                TagFilterEditorVM.SelectedTagFilter = tagFilterDAO.LocalTagFilters[0];
+                TagFilterEditorVM.SelectedTagFilter = tagFilterDAO.LocalTagFilters.Last();
             }
         }
 
@@ -181,11 +178,6 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             foreach (int id in extractedIds) {
                 DownloadManagerVM.TryDownload(id);
             }
-        }
-
-        public void Dispose() {
-            QueryBuilderVM.Dispose();
-            GC.SuppressFinalize(this);
         }
     }
 }

@@ -1,15 +1,12 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
-using Windows.UI;
 
 namespace HitomiScrollViewerLib.ViewModels {
-    public class QueryBuilderVM : IDisposable {
+    public class QueryBuilderVM {
         public GalleryLanguage[] GalleryLanguages { get; }
         public GalleryTypeEntity[] GalleryTypes { get; }
 
@@ -33,19 +30,21 @@ namespace HitomiScrollViewerLib.ViewModels {
             QueryConfiguration.SelectedType.GalleryType != GalleryType.All ||
             SearchTitleText.Length > 0;
 
-        private readonly HitomiContext _context = new();
 
         public QueryBuilderVM(PageKind pageKind) {
-            GalleryLanguages = [.. _context.GalleryLanguages];
-            GalleryTypes = [.. _context.GalleryTypes];
-            QueryConfiguration = _context.QueryConfigurations.Find(pageKind);
+            using HitomiContext context = new();
+            GalleryLanguages = [.. context.GalleryLanguages];
+            GalleryTypes = [.. context.GalleryTypes];
+            QueryConfiguration = context.QueryConfigurations.First(qc => qc.PageKind == pageKind);
             QueryConfiguration.SelectionChanged += () => {
                 QueryChanged?.Invoke();
-                _context.SaveChanges();
+                using HitomiContext innerCtx = new();
+                innerCtx.QueryConfigurations.Attach(QueryConfiguration);
+                innerCtx.SaveChanges();
             };
             TagTokenizingTBVMs = [..
                 Tag.TAG_CATEGORIES.Select(
-                    category => new TagTokenizingTextBoxVM(_context.Tags.AsNoTracking(), category)
+                    category => new TagTokenizingTextBoxVM(category)
                 )
             ];
             foreach (var vm in TagTokenizingTBVMs) {
@@ -72,11 +71,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                 .Select(i => TagTokenizingTBVMs[i].SelectedTags)
                 .SelectMany(tags => tags)
                 .ToHashSet();
-        }
-
-        public void Dispose() {
-            _context.Dispose();
-            GC.SuppressFinalize(this);
         }
     }
 }

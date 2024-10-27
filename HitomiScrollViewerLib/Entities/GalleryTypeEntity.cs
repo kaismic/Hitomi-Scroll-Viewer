@@ -1,10 +1,7 @@
 ﻿using CommunityToolkit.WinUI;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using static HitomiScrollViewerLib.SharedResources;
 
 namespace HitomiScrollViewerLib.Entities {
     public enum GalleryType {
@@ -16,7 +13,8 @@ namespace HitomiScrollViewerLib.Entities {
         private static readonly string SUBTREE_NAME = typeof(GalleryType).Name;
 
         private GalleryType _galleryType;
-        [Key]
+        
+        public int Id { get; private set; }
         public required GalleryType GalleryType {
             get => _galleryType;
             init {

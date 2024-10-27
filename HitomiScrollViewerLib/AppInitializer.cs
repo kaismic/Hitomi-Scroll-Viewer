@@ -124,7 +124,7 @@ namespace HitomiScrollViewerLib {
 
             // TODO Uncomment on production @@@@@@@@@@@@@@@@@@@@@@@@@@
             //if (Directory.Exists(ROOT_DIR_V2)) {
-            //    Directory.Delete(ROOT_DIR_V2);
+            //    Directory.Delete(ROOT_DIR_V2, true);
             //}
 
             vm.IsIndeterminate = true;
@@ -224,12 +224,12 @@ namespace HitomiScrollViewerLib {
                 new QueryConfiguration() {
                     PageKind = PageKind.SearchPage,
                     SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                    SelectedType = context.GalleryTypes.Find(GalleryType.All)
+                    SelectedType = context.GalleryTypes.First(gt => gt.GalleryType == GalleryType.All)
                 },
                 new QueryConfiguration() {
                     PageKind = PageKind.BrowsePage,
                     SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                    SelectedType = context.GalleryTypes.Find(GalleryType.All)
+                    SelectedType = context.GalleryTypes.First(gt => gt.GalleryType == GalleryType.All)
                 }
             );
 
@@ -238,9 +238,9 @@ namespace HitomiScrollViewerLib {
                 Enumerable.Range(0, Enum.GetNames(typeof(SortDirection)).Length)
                 .Select(i => new SortDirectionEntity() { SortDirection = (SortDirection)i })
             );
+            context.SaveChanges();
 
             // add gallery sorts
-            context.SaveChanges();
             context.GallerySorts.AddRange(
                 Enumerable.Range(0, Enum.GetNames(typeof(GallerySortProperty)).Length)
                 .Select(i => new GallerySortEntity() {
@@ -248,9 +248,12 @@ namespace HitomiScrollViewerLib {
                     SortDirectionEntity = context.SortDirections.First()
                 })
             );
-            // default DownloadTime sort
-            context.GallerySorts.Find(GallerySortProperty.LastDownloadTime).IsActive = true;
-            context.GallerySorts.Find(GallerySortProperty.LastDownloadTime).SortDirectionEntity = context.SortDirections.Find(SortDirection.Descending);
+            context.SaveChanges();
+
+            // default GallerySort
+            var defaultGallerySort = context.GallerySorts.First(gs => gs.GallerySortProperty == GallerySortProperty.LastDownloadTime);
+            defaultGallerySort.IsActive = true;
+            defaultGallerySort.SortDirectionEntity = context.SortDirections.First(sd => sd.SortDirection == SortDirection.Descending);
 
             context.SaveChanges();
             ClearInvocationList();

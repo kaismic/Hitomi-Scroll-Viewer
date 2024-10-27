@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace HitomiScrollViewerLib.DTOs {
     public class TagFilterSyncDTO {
         public required string Name { get; set; }
-        public required IEnumerable<long> TagIds { get; set; }
+        public required IEnumerable<int> TagIds { get; set; }
 
         public TagFilter ToTagFilter(IQueryable<Tag> tags) {
             return new() {

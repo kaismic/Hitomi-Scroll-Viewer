@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Controls;
+using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System.Collections.Generic;
@@ -22,10 +24,10 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private Tag[] _suggestedItemsSource;
 
-        private readonly IQueryable<Tag> _tags;
 
-        public TagTokenizingTextBoxVM(IQueryable<Tag> tags, TagCategory category) {
-            _tags = tags;
+
+        public TagTokenizingTextBoxVM(TagCategory category) {
+
             Category = category;
             SelectedTags.CollectionChanged += SelectedTags_CollectionChanged;
             
@@ -50,7 +52,8 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         private Tag[] GetSuggestions() {
-            IQueryable<Tag> tags = _tags.Where(tag => tag.Category == Category);
+            using HitomiContext context = new();
+            IQueryable<Tag> tags = context.Tags.AsNoTracking().Where(tag => tag.Category == Category);
             if (Text.Length != 0) {
                 tags = tags.Where(tag => tag.Value.StartsWith(Text));
             }
@@ -71,8 +74,9 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         public void TokenizingTextBox_TokenItemAdding(TokenizingTextBox _0, TokenItemAddingEventArgs args) {
+            using HitomiContext context = new();
             if (args.TokenText != null) {
-                Tag tag = Tag.GetTag(_tags, args.TokenText, Category);
+                Tag tag = Tag.GetTag(context.Tags.AsNoTracking(), args.TokenText, Category);
                 if (tag == null || _selectedTagIds.Contains(tag.Id)) {
                     args.Cancel = true;
                 } else {

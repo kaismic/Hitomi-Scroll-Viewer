@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace HitomiScrollViewerLib.Entities {
     public enum PageKind {
         SearchPage, BrowsePage
     }
     public class QueryConfiguration {
-        [Key]
+        public int Id { get; private set; }
         public required PageKind PageKind { get; init; }
         private GalleryLanguage _selectedLanguage;
         public required GalleryLanguage SelectedLanguage {

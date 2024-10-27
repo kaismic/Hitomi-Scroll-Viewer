@@ -15,7 +15,7 @@ namespace HitomiScrollViewerLib.DTOs {
         public int GalleryLanguageId { get; set; }
         public GalleryType GalleryType { get; set; }
         public required IEnumerable<ImageInfoSyncDTO> Files { get; set; }
-        public IEnumerable<long> TagIds { get; set; }
+        public IEnumerable<int> TagIds { get; set; }
 
         public Gallery ToGallery(HitomiContext context) => new() {
             Id = Id,

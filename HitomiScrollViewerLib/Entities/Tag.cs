@@ -17,7 +17,7 @@ namespace HitomiScrollViewerLib.Entities {
             .Select(i => (TagCategory)i)
             .ToArray();
 
-        public long Id { get; set; }
+        public int Id { get; set; }
         public required TagCategory Category { get; set; }
 
         private string _value;

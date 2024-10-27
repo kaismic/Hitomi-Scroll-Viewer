@@ -6,11 +6,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.DAOs {
-    /// <summary>
-    /// I have no clue of why this happens but apparently you have to attach the entity to the local
-    /// context AND THEN you can add or do whatever to <see cref="LocalTagFilters"/>.
-    /// Otherwise this gets thrown: SqliteException: SQLite Error 19: 'UNIQUE constraint failed
-    /// </summary>
     public class TagFilterDAO {
         /// <summary>
         /// Do not manipulate this collection or any properties of the items in this collection directly.
@@ -20,33 +15,32 @@ namespace HitomiScrollViewerLib.DAOs {
 
         public TagFilterDAO() {
             using HitomiContext context = new();
-            context.TagFilters.Load();
-            LocalTagFilters = new(context.TagFilters.Local.ToObservableCollection());
+            LocalTagFilters = new([.. context.TagFilters.Include(tf => tf.Tags)]);
         }
 
         public void Add(TagFilter tf) {
             using HitomiContext context = new();
             context.TagFilters.Add(tf);
-            LocalTagFilters.Add(tf);
             context.SaveChanges();
+            LocalTagFilters.Add(tf);
         }
 
         public void AddRange(IEnumerable<TagFilter> tfs) {
             using HitomiContext context = new();
             context.TagFilters.AddRange(tfs);
+            context.SaveChanges();
             foreach (TagFilter tf in tfs) {
                 LocalTagFilters.Add(tf);
             }
-            context.SaveChanges();
         }
 
         public void RemoveRange(IEnumerable<TagFilter> tfs) {
             using HitomiContext context = new();
             context.TagFilters.RemoveRange(tfs);
+            context.SaveChanges();
             foreach (var tf in tfs) {
                 LocalTagFilters.Remove(tf);
             }
-            context.SaveChanges();
         }
 
         /// <summary>
