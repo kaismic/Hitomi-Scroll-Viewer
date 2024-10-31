@@ -15,11 +15,12 @@ namespace HitomiScrollViewerLib.DAOs {
 
         public TagFilterDAO() {
             using HitomiContext context = new();
-            LocalTagFilters = new([.. context.TagFilters.Include(tf => tf.Tags)]);
+            LocalTagFilters = new([.. context.TagFilters.AsNoTracking()]);
         }
 
         public void Add(TagFilter tf) {
             using HitomiContext context = new();
+            context.Tags.AttachRange(tf.Tags);
             context.TagFilters.Add(tf);
             context.SaveChanges();
             LocalTagFilters.Add(tf);
@@ -27,6 +28,7 @@ namespace HitomiScrollViewerLib.DAOs {
 
         public void AddRange(IEnumerable<TagFilter> tfs) {
             using HitomiContext context = new();
+            context.Tags.AttachRange(tfs.SelectMany(tfs => tfs.Tags));
             context.TagFilters.AddRange(tfs);
             context.SaveChanges();
             foreach (TagFilter tf in tfs) {
@@ -65,6 +67,7 @@ namespace HitomiScrollViewerLib.DAOs {
             context.TagFilters.Attach(tagFilter);
             tagFilter.Tags = tags;
             context.SaveChanges();
+            // TODO figure out why not working
         }
 
         public void UpdateTags(string name, ICollection<Tag> tags) {
