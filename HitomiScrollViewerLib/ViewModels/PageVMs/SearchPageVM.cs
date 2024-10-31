@@ -63,8 +63,7 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
             TagFilterEditorVM.SelectedTagFilterChanged += selectedTagFilter => {
                 QueryBuilderVM.ClearSelectedTags();
                 using HitomiContext context = new();
-                var entry = context.Entry(selectedTagFilter);
-                QueryBuilderVM.InsertTags([.. entry.Collection(tf => tf.Tags).Query()]);
+                QueryBuilderVM.InsertTags([.. context.Entry(selectedTagFilter).Collection(tf => tf.Tags).Query()]);
             };
 
             // select the default

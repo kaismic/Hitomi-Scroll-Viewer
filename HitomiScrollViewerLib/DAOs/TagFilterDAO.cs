@@ -64,17 +64,21 @@ namespace HitomiScrollViewerLib.DAOs {
         /// <param name="tags"></param>
         public static void UpdateTags(TagFilter tagFilter, ICollection<Tag> tags) {
             using HitomiContext context = new();
-            context.TagFilters.Attach(tagFilter);
-            tagFilter.Tags = tags;
+            TagFilter dbTagFilter = context.TagFilters.Include(tf => tf.Tags).First(tf => tf.Id == tagFilter.Id);
+            dbTagFilter.Tags.Clear();
+            foreach (var tag in tags) {
+                dbTagFilter.Tags.Add(context.Tags.Find(tag.Id));
+            }
             context.SaveChanges();
-            // TODO figure out why not working
         }
 
         public void UpdateTags(string name, ICollection<Tag> tags) {
             using HitomiContext context = new();
-            TagFilter tagFilter = LocalTagFilters.First(tf => tf.Name == name);
-            context.TagFilters.Attach(tagFilter);
-            tagFilter.Tags = tags;
+            TagFilter dbTagFilter = context.TagFilters.Include(tf => tf.Tags).First(tf => tf.Name == name);
+            dbTagFilter.Tags.Clear();
+            foreach (var tag in tags) {
+                dbTagFilter.Tags.Add(context.Tags.Find(tag.Id));
+            }
             context.SaveChanges();
         }
     }
