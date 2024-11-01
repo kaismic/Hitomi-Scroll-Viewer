@@ -235,8 +235,8 @@ namespace HitomiScrollViewerLib {
 
             // add sort directions
             context.SortDirections.AddRange(
-                Enumerable.Range(0, Enum.GetNames(typeof(SortDirection)).Length)
-                .Select(i => new SortDirectionEntity() { SortDirection = (SortDirection)i })
+                new SortDirectionEntity() { SortDirection = SortDirection.Ascending },
+                new SortDirectionEntity() { SortDirection = SortDirection.Descending }
             );
             context.SaveChanges();
 

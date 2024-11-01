@@ -106,12 +106,10 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
                 if (includeTagFilters.RemoveWhere(t => t.Id == TagFilterEditorVM.SelectedTagFilter.Id) > 0) {
                     includeTagFilters.Add(new() {
-                        Name = "", // don't need name (nor Id), only need Tags
                         Tags = currentTags
                     });
                 } else if (excludeTagFilters.RemoveWhere(t => t.Id == TagFilterEditorVM.SelectedTagFilter.Id) > 0) {
                     excludeTagFilters.Add(new() {
-                        Name = "", // don't need name (nor Id), only need Tags
                         Tags = currentTags
                     });
                 }

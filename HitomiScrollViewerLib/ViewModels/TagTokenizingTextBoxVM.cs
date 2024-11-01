@@ -24,13 +24,9 @@ namespace HitomiScrollViewerLib.ViewModels {
         [ObservableProperty]
         private Tag[] _suggestedItemsSource;
 
-
-
         public TagTokenizingTextBoxVM(TagCategory category) {
-
             Category = category;
             SelectedTags.CollectionChanged += SelectedTags_CollectionChanged;
-            
         }
 
         private void SelectedTags_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {

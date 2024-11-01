@@ -36,12 +36,7 @@ namespace HitomiScrollViewerLib.ViewModels {
             GalleryLanguages = [.. context.GalleryLanguages];
             GalleryTypes = [.. context.GalleryTypes];
             QueryConfiguration = context.QueryConfigurations.First(qc => qc.PageKind == pageKind);
-            QueryConfiguration.SelectionChanged += () => {
-                QueryChanged?.Invoke();
-                using HitomiContext innerCtx = new();
-                innerCtx.QueryConfigurations.Attach(QueryConfiguration);
-                innerCtx.SaveChanges();
-            };
+            QueryConfiguration.QueryChanged += () => QueryChanged?.Invoke();
             TagTokenizingTBVMs = [..
                 Tag.TAG_CATEGORIES.Select(
                     category => new TagTokenizingTextBoxVM(category)

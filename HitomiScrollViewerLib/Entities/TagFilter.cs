@@ -15,7 +15,7 @@ namespace HitomiScrollViewerLib.Entities {
         private string _name;
         [MaxLength(TAG_FILTER_SET_NAME_MAX_LEN)]
         [Required]
-        public required string Name {
+        public string Name {
             get => _name;
             set {
                 if (_name != value) {
