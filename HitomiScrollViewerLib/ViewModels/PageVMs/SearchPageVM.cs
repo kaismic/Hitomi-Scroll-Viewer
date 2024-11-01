@@ -94,30 +94,31 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         public SearchFilterVM GetSearchFilterVM() {
             HashSet<TagFilter> includeTagFilters = [.. IncludeTFSelectorVM.GetSelectedTagFilters()];
             HashSet<TagFilter> excludeTagFilters = [.. ExcludeTFSelectorVM.GetSelectedTagFilters()];
+            HashSet<int> includeTagFilterIds = [.. includeTagFilters.Select(tf => tf.Id)];
+            HashSet<int> excludeTagFilterIds = [.. excludeTagFilters.Select(tf => tf.Id)];
+            using HitomiContext context = new();
+            includeTagFilters = [.. context.TagFilters.AsNoTracking().Include(tf => tf.Tags).Where(tf => includeTagFilterIds.Contains(tf.Id))];
+            excludeTagFilters = [.. context.TagFilters.AsNoTracking().Include(tf => tf.Tags).Where(tf => excludeTagFilterIds.Contains(tf.Id))];
+
             // if the selected tag filters contain the currently editing (selected) tag filter in ComboBox,
             // replace it with a copied instance where the Tags are replaced with current editing tags
             if (TagFilterEditorVM.SelectedTagFilter is not null) {
                 HashSet<Tag> currentTags = QueryBuilderVM.GetCurrentTags();
                 if (includeTagFilters.RemoveWhere(t => t.Id == TagFilterEditorVM.SelectedTagFilter.Id) > 0) {
                     includeTagFilters.Add(new() {
-                        Id = TagFilterEditorVM.SelectedTagFilter.Id,
-                        Name = TagFilterEditorVM.SelectedTagFilter.Name,
+                        Name = "", // don't need name (nor Id), only need Tags
                         Tags = currentTags
                     });
                 } else if (excludeTagFilters.RemoveWhere(t => t.Id == TagFilterEditorVM.SelectedTagFilter.Id) > 0) {
                     excludeTagFilters.Add(new() {
-                        Id = TagFilterEditorVM.SelectedTagFilter.Id,
-                        Name = TagFilterEditorVM.SelectedTagFilter.Name,
+                        Name = "", // don't need name (nor Id), only need Tags
                         Tags = currentTags
                     });
                 }
             }
-            HashSet<int> includeTagFilterIds = [.. includeTagFilters.Select(tf => tf.Id)];
-            HashSet<int> excludeTagFilterIds = [.. excludeTagFilters.Select(tf => tf.Id)];
 
-            using HitomiContext context = new();
-            HashSet<Tag> includeTags = [.. context.TagFilters.AsNoTracking().Where(tf => includeTagFilterIds.Contains(tf.Id)).SelectMany(tf => tf.Tags)];
-            HashSet<Tag> excludeTags = [.. context.TagFilters.AsNoTracking().Where(tf => excludeTagFilterIds.Contains(tf.Id)).SelectMany(tf => tf.Tags)];
+            HashSet<Tag> includeTags = [.. includeTagFilters.SelectMany(tf => tf.Tags)];
+            HashSet<Tag> excludeTags = [.. excludeTagFilters.SelectMany(tf => tf.Tags)];
 
             IEnumerable<Tag> dupTags = includeTags.Intersect(excludeTags);
             if (dupTags.Any()) {
