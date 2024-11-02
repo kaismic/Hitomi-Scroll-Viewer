@@ -12,7 +12,8 @@
     xmlns:dtss="using:HitomiScrollViewerLib.DataTemplateSelectors"
     >
     <Viewbox>
-        <ListView ItemsSource="{x:Bind ViewModel.ImageInfos}">
+        <ListView ItemsSource="{x:Bind ViewModel.ImageInfos}"
+                  SelectionMode="None" IsItemClickEnabled="False">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <ItemsStackPanel FlowDirection="{Binding ViewModel.CommonSettings.FlowDirectionModel.Value, ElementName=Root, Mode=OneWay}"
