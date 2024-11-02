@@ -85,8 +85,6 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
 
         public async void UpdateImageCollectionPanelVMs() {
             // TODO fix why image doesn't load properly
-            // possibly use x:DataType and apply different template for each derived class
-            // PlayableImage and Image
             DateTime localRecordedTime = _lastSizeChangedTime = DateTime.Now;
             await Task.Delay(SIZE_CHANGE_WAIT_TIME);
             if (_lastSizeChangedTime != localRecordedTime) {
