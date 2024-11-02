@@ -27,11 +27,6 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
             foreach (var control in TopCommandBar.PrimaryCommands.Cast<Control>()) {
                 control.VerticalAlignment = VerticalAlignment.Stretch;
             }
-            CloseRequested += GalleryTabViewItem_CloseRequested;
-        }
-
-        private void GalleryTabViewItem_CloseRequested(TabViewItem sender, TabViewTabCloseRequestedEventArgs args) {
-            
         }
 
         private void FlipView_SizeChanged(object _0, SizeChangedEventArgs e) {
