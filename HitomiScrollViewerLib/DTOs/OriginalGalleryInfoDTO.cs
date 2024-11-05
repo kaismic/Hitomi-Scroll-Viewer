@@ -6,8 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace HitomiScrollViewerLib.DTOs
-{
+namespace HitomiScrollViewerLib.DTOs {
     public class OriginalGalleryInfoDTO
     {
         public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web)
@@ -64,8 +63,9 @@ namespace HitomiScrollViewerLib.DTOs
                     }
                     return int.Parse(s);
                 }
-                catch (InvalidOperationException) { }
-                return 0;
+                catch (InvalidOperationException) {
+                    return reader.GetInt32();
+                }
             }
             public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options) => writer.WriteNumberValue(value);
         }
