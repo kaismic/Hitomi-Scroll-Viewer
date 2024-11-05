@@ -4,6 +4,7 @@ using HitomiScrollViewerLib.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
     public partial class GalleryTabViewItemVM : DQObservableObject {
         private readonly ImageInfo[] _imageInfos;
         public Gallery Gallery { get; }
+        public string NonVirtualImageDirPath { get; private init; }
         public GalleryViewSettings GalleryViewSettings { get; } = new();
         public CommonSettings CommonSettings { get; } = CommonSettings.Main;
 
@@ -66,6 +68,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         public GalleryTabViewItemVM(Gallery gallery) {
             _imageInfos = [.. gallery.Files.OrderBy(f => f.Index)];
             Gallery = gallery;
+            NonVirtualImageDirPath = Path.Combine(NON_VIRTUAL_IMAGE_DIR_V3, gallery.Id.ToString());
             GalleryViewSettings.PropertyChanged += GalleryViewSettings_PropertyChanged;
 
             UpdateImageCollectionPanelVMs();

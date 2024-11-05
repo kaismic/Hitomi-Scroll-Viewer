@@ -1,7 +1,9 @@
+using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.ViewPageVMs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Web.WebView2.Core;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Views.ViewPageViews {
@@ -12,7 +14,7 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
             set {
                 if (_viewModel == null) {
                     _viewModel = value;
-                    ViewModel.RequestShowActionIcon += ShowActionIcon;
+                    value.RequestShowActionIcon += ShowActionIcon;
                 }
             }
         }
@@ -60,6 +62,29 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
                 ActionIcon2.Glyph = glyph2;
             }
             FadeOutStoryboard.Begin();
+        }
+
+        private static readonly string VIRTUAL_HOST_NAME = "images";
+        // {0} = full file name
+        private static readonly string IMAGE_HTML =
+            """<body style="margin: 0;"><img src="https://""" +
+            VIRTUAL_HOST_NAME +
+            """/{0}" style="width:100%; height:100%;"></img></body>""";
+
+        private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs _1) {
+            sender.CoreWebView2.SetVirtualHostNameToFolderMapping(VIRTUAL_HOST_NAME, ViewModel.NonVirtualImageDirPath, CoreWebView2HostResourceAccessKind.Allow);
+            ImageInfo imageInfo = sender.Tag as ImageInfo;
+            sender.NavigateToString(string.Format(IMAGE_HTML, imageInfo.FullFileName));
+            sender.Width = imageInfo.Width;
+            sender.Height = imageInfo.Height;
+        }
+
+        // TODO evenly distribute image sizes in regrads to the image ratio and SizeChanged arg 
+
+        private void WebView2_Loaded(object sender, RoutedEventArgs e) {
+            var webview2 = sender as WebView2;
+            webview2.Loaded -= WebView2_Loaded;
+            _ = webview2.EnsureCoreWebView2Async();
         }
     }
 }

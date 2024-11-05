@@ -6,10 +6,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vpvms="using:HitomiScrollViewerLib.ViewModels.ViewPageVMs"
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
-    mc:Ignorable="d"
+    xmlns:entities="using:HitomiScrollViewerLib.Entities"
+    xmlns:dtss="using:HitomiScrollViewerLib.DataTemplateSelectors"
     Header="{x:Bind ViewModel.Gallery.Title}"
     >
     <Grid>
@@ -27,7 +29,43 @@
             </FlipView.ItemsPanel>
             <FlipView.ItemTemplate>
                 <DataTemplate x:DataType="vpvms:ImageCollectionPanelVM">
-                    <vpviews:ImageCollectionPanel ViewModel="{x:Bind}"/>
+                    <Viewbox>
+                        <ListView ItemsSource="{x:Bind ImageInfos}"
+                                  SelectionMode="None"
+                                  IsItemClickEnabled="False">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsStackPanel FlowDirection="{Binding ViewModel.CommonSettings.FlowDirectionModel.Value, ElementName=Root, Mode=OneWay}"
+                                                     Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplateSelector>
+                                <dtss:ImageDataTemplateSelector>
+                                    <dtss:ImageDataTemplateSelector.PlayableGalleryImageTemplate>
+                                        <DataTemplate x:DataType="entities:ImageInfo">
+                                            <WebView2 IsHitTestVisible="False"
+                                                    Loaded="WebView2_Loaded"
+                                                    CoreWebView2Initialized="WebView2_CoreWebView2Initialized"
+                                                    Tag="{x:Bind}">
+                                            </WebView2>
+                                        </DataTemplate>
+                                    </dtss:ImageDataTemplateSelector.PlayableGalleryImageTemplate>
+                                    <dtss:ImageDataTemplateSelector.GalleryImageTemplate>
+                                        <DataTemplate x:DataType="entities:ImageInfo">
+                                            <Image>
+                                                <Image.Source>
+                                                    <BitmapImage UriSource="{x:Bind ImageFilePath}"></BitmapImage>
+                                                </Image.Source>
+                                            </Image>
+                                        </DataTemplate>
+                                    </dtss:ImageDataTemplateSelector.GalleryImageTemplate>
+                                </dtss:ImageDataTemplateSelector>
+                            </ListView.ItemTemplateSelector>
+                            <ListView.ItemContainerTransitions>
+                                <TransitionCollection/>
+                            </ListView.ItemContainerTransitions>
+                        </ListView>
+                    </Viewbox>
                 </DataTemplate>
             </FlipView.ItemTemplate>
         </FlipView>
