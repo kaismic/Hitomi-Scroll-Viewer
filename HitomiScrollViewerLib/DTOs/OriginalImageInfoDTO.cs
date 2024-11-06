@@ -11,15 +11,8 @@ namespace HitomiScrollViewerLib.DTOs {
         public int Hasjxl { get; set; }
         public int Haswebp { get; set; }
 
-
-        [GeneratedRegex("""(\d+).*""")]
-        private static partial Regex IndexFromNameRegex();
-
         public ImageInfo ToImageInfo() {
-            string fileName = IndexFromNameRegex().Match(Name).Groups[1].Value;
             return new() {
-                Index = int.Parse(fileName),
-                FileName = fileName,
                 IsPlayable = Name.EndsWith(".gif"),
                 Height = Height,
                 Width = Width,

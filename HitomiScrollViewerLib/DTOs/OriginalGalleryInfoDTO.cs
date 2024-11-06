@@ -116,7 +116,9 @@ namespace HitomiScrollViewerLib.DTOs {
                                                TagCategory.Tag
                 ));
             }
-            
+
+            // appends leading zeros
+            string indexFormat = "D" + Math.Floor(Math.Log10(Files.Count) + 1);
             Gallery gallery = new()
             {
                 Id = Id,
@@ -128,7 +130,16 @@ namespace HitomiScrollViewerLib.DTOs {
                 SceneIndexes = SceneIndexes,
                 Related = Related,
                 LastDownloadTime = DateTime.UtcNow,
-                Files = [.. Files.Select(f => f.ToImageInfo())],
+                Files = [..
+                    Files.Select(
+                        (f, i) => {
+                            ImageInfo imageInfo = f.ToImageInfo();
+                            imageInfo.Index = i + 1;
+                            imageInfo.FileName = imageInfo.Index.ToString(indexFormat);
+                            return imageInfo;
+                        }
+                    )
+                ],
                 Tags = tags
             };
 
