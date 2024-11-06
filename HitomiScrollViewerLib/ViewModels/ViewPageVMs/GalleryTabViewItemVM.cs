@@ -73,8 +73,15 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
             Gallery = gallery;
             NonVirtualImageDirPath = Path.Combine(NON_VIRTUAL_IMAGE_DIR_V3, gallery.Id.ToString());
             GalleryViewSettings.PropertyChanged += GalleryViewSettings_PropertyChanged;
+            CommonSettings.PropertyChanged += CommonSettings_PropertyChanged;
 
             UpdateImageCollectionPanelVMs();
+        }
+
+        private void CommonSettings_PropertyChanged(object _0, PropertyChangedEventArgs e) {
+            if (e.PropertyName == nameof(CommonSettings.ImagesPerPage)) {
+                UpdateImageCollectionPanelVMs();
+            }
         }
 
         private void GalleryViewSettings_PropertyChanged(object _0, PropertyChangedEventArgs e) {
