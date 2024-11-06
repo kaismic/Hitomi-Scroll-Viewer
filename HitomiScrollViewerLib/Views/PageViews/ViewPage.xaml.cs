@@ -17,7 +17,7 @@ namespace HitomiScrollViewerLib.Views.PageViews {
         }
 
         private void GalleryTabViewItem_CloseRequested(TabViewItem sender, TabViewTabCloseRequestedEventArgs args) {
-            ViewModel.GalleryTabViewItemVMs.Remove(args.Item as GalleryTabViewItemVM);
+            ViewModel.CloseTab(args.Item as GalleryTabViewItemVM);
         }
     }
 }

@@ -6,12 +6,23 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vpvms="using:HitomiScrollViewerLib.ViewModels.ViewPageVMs"
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
+    xmlns:mvvminput="using:CommunityToolkit.Mvvm.Input"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     NavigationCacheMode="Required">
-    <TabView TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemVMs}"
-             SelectedItem="{x:Bind ViewModel.SelectedGalleryTabViewItemVM, Mode=OneWay}"
+    <TabView x:Name="MainTabView"
+             TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemVMs}"
+             SelectedItem="{x:Bind ViewModel.SelectedGalleryTabViewItemVM, Mode=TwoWay}"
              IsAddTabButtonVisible="False">
+        <TabView.ContextFlyout>
+            <MenuFlyout>
+                <MenuFlyoutItem>
+                    <MenuFlyoutItem.Command>
+                        <StandardUICommand Kind="Close" Command="{x:Bind ViewModel.CloseTabCommand}"/>
+                    </MenuFlyoutItem.Command>
+                </MenuFlyoutItem>
+            </MenuFlyout>
+        </TabView.ContextFlyout>
         <TabView.TabItemTemplate>
             <DataTemplate x:DataType="vpvms:GalleryTabViewItemVM">
                 <vpviews:GalleryTabViewItem ViewModel="{x:Bind}"

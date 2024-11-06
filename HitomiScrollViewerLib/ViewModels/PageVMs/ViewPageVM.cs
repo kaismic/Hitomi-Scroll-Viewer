@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerLib.Entities;
+﻿using CommunityToolkit.Mvvm.Input;
+using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.ViewModels.ViewPageVMs;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,8 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 BrowsePageVM.Main.FocusGalleryTabViewItemRequested += SelectGalleryTabViewItem;
             };
             GalleryTabViewItemVMs.CollectionChanged += GalleryTabViewItemVMs_CollectionChanged;
+
+            CloseTabCommand = new(() => CloseTab(SelectedGalleryTabViewItemVM));
         }
 
         private void GalleryTabViewItemVMs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
@@ -58,6 +61,13 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                 }
             }
         }
+        public RelayCommand CloseTabCommand { get; }
+        public void CloseTab(GalleryTabViewItemVM vm) {
+            if (vm != null) {
+                GalleryTabViewItemVMs.Remove(vm);
+            }
+        }
+
 
         private void SelectGalleryTabViewItem(Gallery gallery) {
             SelectedGalleryTabViewItemVM = GalleryTabViewItemVMs.First(vm => vm.Gallery.Id == gallery.Id);

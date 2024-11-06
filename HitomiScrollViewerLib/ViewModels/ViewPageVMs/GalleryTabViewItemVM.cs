@@ -23,6 +23,9 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         public Size CurrentTabViewSize {
             get => _currentTabViewSize;
             set {
+                if (value.Width == _currentTabViewSize.Width && value.Height == _currentTabViewSize.Height) {
+                    return;
+                }
                 _currentTabViewSize = value;
                 UpdateImageCollectionPanelVMs();
             }
@@ -87,7 +90,6 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         }
 
         public async void UpdateImageCollectionPanelVMs() {
-            // TODO fix why image doesn't load properly
             DateTime localRecordedTime = _lastSizeChangedTime = DateTime.Now;
             await Task.Delay(SIZE_CHANGE_WAIT_TIME);
             if (_lastSizeChangedTime != localRecordedTime) {
@@ -104,12 +106,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
                 for (int i = 1; i < _imageInfos.Length; i++) {
                     double imgAspectRatio = (double)_imageInfos[i].Width / _imageInfos[i].Height;
                     if (imgAspectRatio >= remainingAspectRatio) {
-                        imageCollectionPanelVMs.Add(new() {
-                            PageIndex = pageIndex++,
-                            GalleryId = Gallery.Id,
-                            ImageInfos = _imageInfos[currentRange],
-                            CommonSettings = CommonSettings
-                        });
+                        imageCollectionPanelVMs.Add(GetImageCollectionPanelVM(pageIndex++, _imageInfos[currentRange]));
                         remainingAspectRatio = viewportAspectRatio;
                         currentRange = i..(i + 1);
                     } else {
@@ -118,12 +115,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
                     }
                 }
                 // add last range
-                imageCollectionPanelVMs.Add(new() {
-                    PageIndex = pageIndex++,
-                    GalleryId = Gallery.Id,
-                    ImageInfos = _imageInfos[currentRange],
-                    CommonSettings = CommonSettings
-                });
+                imageCollectionPanelVMs.Add(GetImageCollectionPanelVM(pageIndex++, _imageInfos[currentRange]));
                 ImageCollectionPanelVMs = imageCollectionPanelVMs;
             } else {
                 // otherwise add according to ImagesPerPage
@@ -132,15 +124,30 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
                 for (int i = 0; i < vmsCount; i++) {
                     int start = i * imagesPerPage;
                     int end = Math.Min((i + 1) * imagesPerPage, _imageInfos.Length);
-                    imageCollectionPanelVMs[i] = new() {
-                        PageIndex = i,
-                        GalleryId = Gallery.Id,
-                        ImageInfos = _imageInfos[start..end],
-                        CommonSettings = CommonSettings
-                    };
+                    imageCollectionPanelVMs[i] = GetImageCollectionPanelVM(i, _imageInfos[start..end]);
                 }
                 ImageCollectionPanelVMs = [.. imageCollectionPanelVMs];
             }
+        }
+
+        public ImageCollectionPanelVM GetImageCollectionPanelVM(int pageIndex, ImageInfo[] imageInfos) {
+            return new() {
+                PageIndex = pageIndex,
+                GalleryId = Gallery.Id,
+                SizeAdjustedImageInfos =
+                    imageInfos
+                    .Select(
+                        info => new SizeAdjustedImageInfo() {
+                            FullFileName = info.FullFileName,
+                            ImageFilePath = info.ImageFilePath,
+                            Height = CurrentTabViewSize.Height,
+                            Width = CurrentTabViewSize.Height * info.Width / info.Height,
+                            IsPlayable = info.IsPlayable
+                        }
+                    )
+                    .ToArray(),
+                CommonSettings = CommonSettings
+            };
         }
     }
 }

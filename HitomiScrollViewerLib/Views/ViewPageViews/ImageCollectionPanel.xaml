@@ -12,7 +12,7 @@
     xmlns:dtss="using:HitomiScrollViewerLib.DataTemplateSelectors"
     >
     <Viewbox>
-        <ListView ItemsSource="{x:Bind ViewModel.ImageInfos}"
+        <ListView ItemsSource="{x:Bind ViewModel.SizeAdjustedImageInfos}"
                   SelectionMode="None" IsItemClickEnabled="False">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
