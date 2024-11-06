@@ -53,7 +53,8 @@
                        FontWeight="SemiBold"
                        Text="{x:Bind ViewModel.Gallery.Title}"
                        HorizontalAlignment="Left"
-                       IsTextSelectionEnabled="True"/>
+                       IsTextSelectionEnabled="True"
+                       TextWrapping="WrapWholeWords"/>
         </Grid>
         <Grid x:Name="SubtitleGrid" ColumnSpacing="16"
               Padding="8 4"
