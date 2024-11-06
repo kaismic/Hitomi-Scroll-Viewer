@@ -9,7 +9,9 @@ namespace HitomiScrollViewerLib.DAOs {
             using HitomiContext context = new();
             context.Galleries.RemoveRange(galleries);
             foreach (Gallery gallery in galleries) {
-                Directory.Delete(gallery.ImageFilesDirectory, true);
+                if (Directory.Exists(gallery.ImageFilesDirectory)) {
+                    Directory.Delete(gallery.ImageFilesDirectory, true);
+                }
             }
             context.SaveChanges();
         }
