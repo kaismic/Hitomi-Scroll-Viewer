@@ -12,12 +12,14 @@
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
     xmlns:dtss="using:HitomiScrollViewerLib.DataTemplateSelectors"
     Header="{x:Bind ViewModel.Gallery.Title}"
+    PreviewKeyDown="Root_PreviewKeyDown"
     >
     <Grid>
         <FlipView UseTouchAnimationsForAllNavigation="{x:Bind models:CommonSettings.Main.IsPageFlipEffectEnabled, Mode=OneWay}"
                   FocusVisualPrimaryThickness="0" IsTabStop="True"
                   Loaded="FlipView_Loaded"
                   SizeChanged="FlipView_SizeChanged"
+                  PreviewKeyDown="FlipView_PreviewKeyDown"
                   ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
                   SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
                   >
@@ -74,14 +76,18 @@
         </FlipView>
         <CommandBar x:Name="TopCommandBar"
                     Background="{ThemeResource LayerFillColorAltBrush}"
-                    ClosedDisplayMode="Compact"
+                    ClosedDisplayMode="Minimal"
                     OverflowButtonVisibility="Collapsed"
-                    HorizontalAlignment="Center"
-                    IsOpen="True">
-            <AppBarButton x:Name="RefreshBtn" x:Uid="/ViewPage/RefreshBtn"
-                            MinWidth="50"
-                            Icon="Refresh"
-                            IsTabStop="False"/>
+                    HorizontalAlignment="Center">
+            <AppBarButton x:Uid="/ViewPage/RefreshBtn"
+                          MinWidth="50"
+                          Icon="Refresh"
+                          IsTabStop="False">
+                <AppBarButton.Command>
+                    <XamlUICommand Command="{x:Bind ViewModel.RefreshCommand}"
+                                   Label="Refresh"/>
+                </AppBarButton.Command>
+            </AppBarButton>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <Slider MinWidth="240"
@@ -98,28 +104,24 @@
                     </Slider.Header>
                 </Slider>
             </AppBarElementContainer>
-            <AppBarToggleButton x:Name="AutoScrollBtn"
-                                MinWidth="120"
-                                Icon="Play"
-                                Margin="16 0">
-                <AppBarToggleButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="Space"/>
-                </AppBarToggleButton.KeyboardAccelerators>
-            </AppBarToggleButton>
-            <AppBarToggleButton x:Name="LoopBtn"
-                                Icon="RepeatAll"
-                                MinWidth="90"
-                                IsChecked="{x:Bind ViewModel.GalleryViewSettings.IsLoopEnabled, Mode=TwoWay}">
-                <AppBarToggleButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Key="Q"/>
-                </AppBarToggleButton.KeyboardAccelerators>
-            </AppBarToggleButton>
+            <AppBarToggleButton MinWidth="120"
+                                Margin="16 0"
+                                Icon="{x:Bind ViewModel.AutoScrollButtonIcon, Mode=OneWay}"
+                                Label="{x:Bind ViewModel.AutoScrollButtonLabel, Mode=OneWay}"
+                                IsChecked="{x:Bind ViewModel.IsAutoScrolling, Mode=TwoWay}"
+                                IsTabStop="False"/>
+            <AppBarElementContainer>
+                <ToggleSwitch Header="Loop"
+                              IsOn="{x:Bind ViewModel.GalleryViewSettings.IsLoopEnabled, Mode=TwoWay}"
+                              IsTabStop="False"/>
+            </AppBarElementContainer>
             <AppBarSeparator MinWidth="30"/>
             <AppBarElementContainer>
                 <ComboBox MinWidth="120"
                           ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
                           SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
-                          DisplayMemberPath="PageIndex">
+                          DisplayMemberPath="PageIndex"
+                          IsTabStop="False">
                     <ComboBox.Header>
                         <TextBlock x:Uid="/ViewPage/PageNavigatorTextBlock"
                                        HorizontalAlignment="Center"/>

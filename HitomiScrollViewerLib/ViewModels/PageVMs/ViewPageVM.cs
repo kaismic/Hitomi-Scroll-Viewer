@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.ViewModels.PageVMs {
@@ -55,19 +56,23 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
         }
 
         private void OpenGalleries(IEnumerable<Gallery> galleries) {
+            Debug.WriteLine("OpenGalleries method");
+            Debug.WriteLine("galleries count = " + galleries.Count());
             foreach (Gallery gallery in galleries) {
+                Debug.Write("gallery id = " + gallery.Id + ", title = " + gallery.Title);
                 if (!_openGalleryIds.Contains(gallery.Id)) {
+                    Debug.WriteLine(" inserted");
                     GalleryTabViewItemVMs.Add(new(gallery));
                 }
             }
         }
+
         public RelayCommand CloseTabCommand { get; }
         public void CloseTab(GalleryTabViewItemVM vm) {
             if (vm != null) {
                 GalleryTabViewItemVMs.Remove(vm);
             }
         }
-
 
         private void SelectGalleryTabViewItem(Gallery gallery) {
             SelectedGalleryTabViewItemVM = GalleryTabViewItemVMs.First(vm => vm.Gallery.Id == gallery.Id);

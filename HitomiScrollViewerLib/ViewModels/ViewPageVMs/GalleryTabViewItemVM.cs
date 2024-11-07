@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -35,6 +37,13 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
 
         [ObservableProperty]
         private List<ImageCollectionPanelVM> _imageCollectionPanelVMs;
+        partial void OnImageCollectionPanelVMsChanged(List<ImageCollectionPanelVM> value) {
+            _ = Task.Run(async () => {
+                await Task.Delay(100);
+                FlipViewSelectedIndex = -1;
+                FlipViewSelectedIndex = 0;
+            });
+        }
 
         [ObservableProperty]
         private int _flipViewSelectedIndex;
@@ -42,21 +51,34 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         private CancellationTokenSource _autoScrollCts;
 
         [ObservableProperty]
+        private SymbolIcon _autoScrollButtonIcon = new(Symbol.Play);
+        [ObservableProperty]
+        private string _autoScrollButtonLabel = "Start Auto Scrolling";
+
+        [ObservableProperty]
         private bool _isAutoScrolling = false;
         partial void OnIsAutoScrollingChanged(bool value) {
             if (value) {
-                RequestShowActionIcon?.Invoke(GLYPH_PLAY, null);
+                AutoScrollButtonIcon = new(Symbol.Pause);
+                AutoScrollButtonLabel = "Stop Auto Scrolling";
+                ShowActionIconRequested?.Invoke(GLYPH_PLAY, null);
                 _autoScrollCts = new();
-                Task.Run(StartAutoScrolling, _autoScrollCts.Token);
+                Task.Run(() => StartAutoScrolling(_autoScrollCts.Token), _autoScrollCts.Token);
             } else {
-                RequestShowActionIcon?.Invoke(GLYPH_PAUSE, null);
+                AutoScrollButtonIcon = new(Symbol.Play);
+                AutoScrollButtonLabel = "Start Auto Scrolling";
+                ShowActionIconRequested?.Invoke(GLYPH_PAUSE, null);
                 _autoScrollCts.Cancel();
             }
         }
 
-        private async void StartAutoScrolling() {
+        private async void StartAutoScrolling(CancellationToken ct) {
             while (IsAutoScrolling) {
-                await Task.Delay((int)(GalleryViewSettings.AutoScrollInterval * 1000));
+                try {
+                    await Task.Delay((int)(GalleryViewSettings.AutoScrollInterval * 1000), ct);
+                } catch (TaskCanceledException) {
+                    return;
+                }
                 if (!GalleryViewSettings.IsLoopEnabled && FlipViewSelectedIndex == ImageCollectionPanelVMs.Count - 1) {
                     IsAutoScrolling = false;
                     return;
@@ -66,7 +88,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
             }
         }
 
-        public event Action<string, string> RequestShowActionIcon;
+        public event Action<string, string> ShowActionIconRequested;
 
         public GalleryTabViewItemVM(Gallery gallery) {
             _imageInfos = [.. gallery.Files.OrderBy(f => f.Index)];
@@ -74,7 +96,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
             NonVirtualImageDirPath = Path.Combine(NON_VIRTUAL_IMAGE_DIR_V3, gallery.Id.ToString());
             GalleryViewSettings.PropertyChanged += GalleryViewSettings_PropertyChanged;
             CommonSettings.PropertyChanged += CommonSettings_PropertyChanged;
-
+            RefreshCommand = new(UpdateImageCollectionPanelVMs);
             UpdateImageCollectionPanelVMs();
         }
 
@@ -85,18 +107,19 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         }
 
         private void GalleryViewSettings_PropertyChanged(object _0, PropertyChangedEventArgs e) {
-            switch (e.PropertyName) {
-                case nameof(GalleryViewSettings.IsLoopEnabled):
-                    if (GalleryViewSettings.IsLoopEnabled) {
-                        RequestShowActionIcon?.Invoke(GLYPH_REPEAT_ALL, null);
-                    } else {
-                        RequestShowActionIcon?.Invoke(GLYPH_REPEAT_ALL, GLYPH_CANCEL);
-                    }
-                    break;
+            if (e.PropertyName == nameof(GalleryViewSettings.IsLoopEnabled)) {
+                if (GalleryViewSettings.IsLoopEnabled) {
+                    ShowActionIconRequested?.Invoke(GLYPH_REPEAT_ALL, null);
+                } else {
+                    ShowActionIconRequested?.Invoke(GLYPH_REPEAT_ALL, GLYPH_CANCEL);
+                }
             }
         }
 
+        public RelayCommand RefreshCommand { get; }
+
         public async void UpdateImageCollectionPanelVMs() {
+            IsAutoScrolling = false;
             DateTime localRecordedTime = _lastSizeChangedTime = DateTime.Now;
             await Task.Delay(SIZE_CHANGE_WAIT_TIME);
             if (_lastSizeChangedTime != localRecordedTime) {

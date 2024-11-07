@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
+using System.Diagnostics;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Views.PageViews {
@@ -86,6 +87,10 @@ namespace HitomiScrollViewerLib.Views.PageViews {
 
         private void GalleryGridView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             ViewModel.SelectedGalleryBrowseItemVMs = [.. GalleryGridView.SelectedItems.Cast<GalleryBrowseItemVM>()];
+            Debug.WriteLine("GalleryGridView_SelectionChanged");
+            foreach (var g in ViewModel.SelectedGalleryBrowseItemVMs) {
+                Debug.WriteLine("id = " + g.Gallery.Id + ", title = " + g.Gallery.Title);
+            }
         }
     }
 }

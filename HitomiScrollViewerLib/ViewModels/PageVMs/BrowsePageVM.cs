@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using Windows.Storage;
 
@@ -74,7 +75,12 @@ namespace HitomiScrollViewerLib.ViewModels.PageVMs {
                     await vm.Init();
                     vm.OpenCommand.ExecuteRequested += (_, _) => {
                         if (SelectedGalleryBrowseItemVMs != null) {
-                            OpenGalleriesRequested.Invoke(SelectedGalleryBrowseItemVMs.Select(vm => vm.Gallery));
+                            var galleries = SelectedGalleryBrowseItemVMs.Select(selectedVM => selectedVM.Gallery);
+                            Debug.WriteLine("GalleryBrowseItemVM.OpenCommand.ExecuteRequested");
+                            foreach (var g in galleries) {
+                                Debug.WriteLine("id = " + g.Id + ", title = " + g.Title);
+                            }
+                            OpenGalleriesRequested.Invoke(galleries);
                             NavigateToViewPageRequested.Invoke();
                             FocusGalleryTabViewItemRequested.Invoke(SelectedGalleryBrowseItemVMs[0].Gallery);
                         }

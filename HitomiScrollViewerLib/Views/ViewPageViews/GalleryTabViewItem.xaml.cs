@@ -2,8 +2,10 @@ using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.ViewPageVMs;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Web.WebView2.Core;
+using System;
 using System.Linq;
 
 namespace HitomiScrollViewerLib.Views.ViewPageViews {
@@ -14,21 +16,27 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
             set {
                 if (_viewModel == null) {
                     _viewModel = value;
-                    value.RequestShowActionIcon += ShowActionIcon;
+                    value.ShowActionIconRequested += ShowActionIcon;
                 }
             }
         }
         public GalleryTabViewItem() {
             InitializeComponent();
 
-            TopCommandBar.PointerEntered += (_, _) => {
-                TopCommandBar.Opacity = 1;
-                TopCommandBar.IsOpen = true;
-            };
-            TopCommandBar.Closing += (_, _) => TopCommandBar.Opacity = 0;
+            TopCommandBar.PointerEntered += TopCommandBar_PointerEntered;
+            TopCommandBar.Closing += TopCommandBar_Closing;
             foreach (var control in TopCommandBar.PrimaryCommands.Cast<Control>()) {
                 control.VerticalAlignment = VerticalAlignment.Stretch;
             }
+        }
+
+        private void TopCommandBar_PointerEntered(object _0, PointerRoutedEventArgs _1) {
+            TopCommandBar.Opacity = 1;
+            TopCommandBar.IsOpen = true;
+        }
+        
+        private void TopCommandBar_Closing(object _0, object _1) {
+            TopCommandBar.Opacity = 0.25;
         }
 
         private void FlipView_SizeChanged(object _0, SizeChangedEventArgs e) {
@@ -100,6 +108,20 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
                     fd == FlowDirection.LeftToRight ? "" : INVERT_Y_AXIS_STYLE_CSS
                 )
             );
+        }
+
+        private void FlipView_PreviewKeyDown(object _0, KeyRoutedEventArgs e) {
+            if (e.Key == Windows.System.VirtualKey.Space) {
+                ViewModel.IsAutoScrolling = !ViewModel.IsAutoScrolling;
+                e.Handled = true;
+            }
+        }
+
+        private void Root_PreviewKeyDown(object _0, KeyRoutedEventArgs e) {
+            if (e.Key == Windows.System.VirtualKey.Space) {
+                ViewModel.IsAutoScrolling = !ViewModel.IsAutoScrolling;
+                e.Handled = true;
+            }
         }
     }
 }
