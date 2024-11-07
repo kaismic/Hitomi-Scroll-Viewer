@@ -13,7 +13,6 @@ categories = ["males", "females", "tags"]
 alphabetsWith123 = list(string.ascii_lowercase)
 alphabetsWith123.insert(0, "123")
 
-# write male, female and tag tags
 MALE_SYMBOL = "♂"
 FEMALE_SYMBOL = "♀"
 
@@ -33,8 +32,7 @@ for letterOr123 in alphabetsWith123:
     content: str = re.findall(r"""<div class="content">(.+?)</div>""", html)[0]
     tagInfoTuples: list[tuple[str, str]] = re.findall(r"""<a href="[^"]+">(.+?)</a> \((\d+)\)""", content)
     for tagInfoTuple in tagInfoTuples:
-        tag_with_symbol = tagInfoTuple[0]
-        gallery_count = tagInfoTuple[1]
+        tag_with_symbol, gallery_count = tagInfoTuple
         if tag_with_symbol.endswith(MALE_SYMBOL):
             outputs_list[0].append(tag_with_symbol[:-2] + DELIMITER + gallery_count)
         elif tag_with_symbol.endswith(FEMALE_SYMBOL):
