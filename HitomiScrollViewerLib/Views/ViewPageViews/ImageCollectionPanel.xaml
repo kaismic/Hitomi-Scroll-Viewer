@@ -11,7 +11,7 @@
     xmlns:dtss="using:HitomiScrollViewerLib.DataTemplateSelectors"
     >
     <Viewbox>
-        <ListView ItemsSource="{x:Bind ViewModel.SizeAdjustedImageInfos}"
+        <ListView ItemsSource="{x:Bind ViewModel.SizeAdjustedImageInfos, Mode=OneWay}"
                   SelectionMode="None"
                   IsItemClickEnabled="False">
             <ListView.ItemsPanel>
@@ -36,7 +36,7 @@
                     <dtss:ImageDataTemplateSelector.GalleryImageTemplate>
                         <DataTemplate x:DataType="models:SizeAdjustedImageInfo">
                             <Image Width="{x:Bind Width}"
-                                                   Height="{x:Bind Height}">
+                                   Height="{x:Bind Height}">
                                 <Image.Source>
                                     <BitmapImage UriSource="{x:Bind ImageFilePath}"
                                                  DecodePixelHeight="{x:Bind DecodePixelHeight}"/>
