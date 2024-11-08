@@ -10,7 +10,6 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vpvms="using:HitomiScrollViewerLib.ViewModels.ViewPageVMs"
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
-    xmlns:dtss="using:HitomiScrollViewerLib.DataTemplateSelectors"
     Header="{x:Bind ViewModel.Gallery.Title}"
     PreviewKeyDown="Root_PreviewKeyDown"
     >
@@ -30,47 +29,7 @@
             </FlipView.ItemsPanel>
             <FlipView.ItemTemplate>
                 <DataTemplate x:DataType="vpvms:ImageCollectionPanelVM">
-                    <Viewbox>
-                        <ListView ItemsSource="{x:Bind SizeAdjustedImageInfos}"
-                                  SelectionMode="None"
-                                  IsItemClickEnabled="False">
-                            <ListView.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <ItemsStackPanel FlowDirection="{Binding ViewModel.CommonSettings.FlowDirectionModel.Value, ElementName=Root, Mode=OneWay}"
-                                                     Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ListView.ItemsPanel>
-                            <ListView.ItemTemplateSelector>
-                                <dtss:ImageDataTemplateSelector>
-                                    <dtss:ImageDataTemplateSelector.PlayableGalleryImageTemplate>
-                                        <DataTemplate x:DataType="models:SizeAdjustedImageInfo">
-                                            <WebView2 IsHitTestVisible="False"
-                                                      Loaded="WebView2_Loaded"
-                                                      CoreWebView2Initialized="WebView2_CoreWebView2Initialized"
-                                                      Tag="{x:Bind}"
-                                                      Width="{x:Bind Width}"
-                                                      Height="{x:Bind Height}">
-                                            </WebView2>
-                                        </DataTemplate>
-                                    </dtss:ImageDataTemplateSelector.PlayableGalleryImageTemplate>
-                                    <dtss:ImageDataTemplateSelector.GalleryImageTemplate>
-                                        <DataTemplate x:DataType="models:SizeAdjustedImageInfo">
-                                            <Image Width="{x:Bind Width}"
-                                                   Height="{x:Bind Height}">
-                                                <Image.Source>
-                                                    <BitmapImage UriSource="{x:Bind ImageFilePath}"
-                                                                 DecodePixelHeight="{x:Bind DecodePixelHeight}"/>
-                                                </Image.Source>
-                                            </Image>
-                                        </DataTemplate>
-                                    </dtss:ImageDataTemplateSelector.GalleryImageTemplate>
-                                </dtss:ImageDataTemplateSelector>
-                            </ListView.ItemTemplateSelector>
-                            <ListView.ItemContainerTransitions>
-                                <TransitionCollection/>
-                            </ListView.ItemContainerTransitions>
-                        </ListView>
-                    </Viewbox>
+                    <vpviews:ImageCollectionPanel ViewModel="{x:Bind Mode=OneWay}"/>
                 </DataTemplate>
             </FlipView.ItemTemplate>
         </FlipView>
