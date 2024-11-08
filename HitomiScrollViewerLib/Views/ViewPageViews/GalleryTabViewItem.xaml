@@ -10,8 +10,9 @@
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vpvms="using:HitomiScrollViewerLib.ViewModels.ViewPageVMs"
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
-    Header="{x:Bind ViewModel.Gallery.Title}"
+    Header="{x:Bind ViewModel.TabHeader}"
     PreviewKeyDown="Root_PreviewKeyDown"
+    MinWidth="300"
     >
     <Grid>
         <FlipView UseTouchAnimationsForAllNavigation="{x:Bind models:CommonSettings.Main.IsPageFlipEffectEnabled, Mode=OneWay}"

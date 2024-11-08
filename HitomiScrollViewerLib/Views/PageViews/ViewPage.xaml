@@ -8,12 +8,12 @@
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
     xmlns:mvvminput="using:CommunityToolkit.Mvvm.Input"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    NavigationCacheMode="Required">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <TabView x:Name="MainTabView"
              TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemVMs}"
              SelectedItem="{x:Bind ViewModel.SelectedGalleryTabViewItemVM, Mode=TwoWay}"
-             IsAddTabButtonVisible="False">
+             IsAddTabButtonVisible="False"
+             TabWidthMode="Equal">
         <TabView.ContextFlyout>
             <MenuFlyout>
                 <MenuFlyoutItem>

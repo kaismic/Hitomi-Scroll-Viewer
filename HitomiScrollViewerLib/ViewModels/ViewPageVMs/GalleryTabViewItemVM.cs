@@ -17,6 +17,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
     public partial class GalleryTabViewItemVM : DQObservableObject {
         private readonly ImageInfo[] _imageInfos;
         public Gallery Gallery { get; }
+        public string TabHeader => Gallery.Id + " - " + Gallery.Title;
         public string NonVirtualImageDirPath { get; private init; }
         public GalleryViewSettings GalleryViewSettings { get; } = new();
         public CommonSettings CommonSettings { get; } = CommonSettings.Main;
