@@ -72,7 +72,7 @@ namespace HitomiScrollViewerLib.DAOs {
             context.SaveChanges();
         }
 
-        public void UpdateTags(string name, ICollection<Tag> tags) {
+        public static void UpdateTags(string name, ICollection<Tag> tags) {
             using HitomiContext context = new();
             TagFilter dbTagFilter = context.TagFilters.Include(tf => tf.Tags).First(tf => tf.Name == name);
             dbTagFilter.Tags.Clear();

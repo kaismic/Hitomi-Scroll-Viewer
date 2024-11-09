@@ -53,7 +53,7 @@ namespace HitomiScrollViewerLib.Views {
                 MainSelectorBar.IsEnabled = true;
                 SelectorBar_SelectionChanged(MainSelectorBar, null);
             });
-            _ = Task.Run(AppInitializer.Start);
+            _ = AppInitializer.StartAsync();
         }
 
         private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs _1) {

@@ -266,7 +266,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
                     using HitomiContext context = new();
                     Gallery = context.Galleries.Find(Id);
                     if (Gallery == null) {
-                        Gallery = ogi.ToGallery(context);
+                        Gallery = await ogi.ToGallery(context);
                         context.Galleries.Add(Gallery);
                         context.SaveChanges();
                         InvokeGalleryAddedRequested.Invoke();

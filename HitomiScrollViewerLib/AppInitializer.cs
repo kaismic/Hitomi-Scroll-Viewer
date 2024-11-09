@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using static HitomiScrollViewerLib.Constants;
 
@@ -20,7 +21,7 @@ namespace HitomiScrollViewerLib {
         public static event Action HideLoadProgressReporter;
         public static event Action Initialised;
 
-        public static void Start() {
+        public static async Task StartAsync() {
             LoadProgressReporterVM vm = new() {
                 IsIndeterminate = true
             };
@@ -85,7 +86,8 @@ namespace HitomiScrollViewerLib {
                 vm.Maximum = originalGalleryInfos.Count;
                 using HitomiContext context = new();
                 foreach (var ogi in originalGalleryInfos) {
-                    context.Galleries.Add(ogi.ToGallery(context));
+                    Gallery gallery = await ogi.ToGallery(context);
+                    context.Galleries.Add(gallery);
                     vm.Value++;
                 }
                 context.SaveChanges();

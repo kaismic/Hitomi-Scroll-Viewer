@@ -2,15 +2,15 @@
 using HitomiScrollViewerLib.Entities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace HitomiScrollViewerLib.DTOs {
-    public class OriginalGalleryInfoDTO
-    {
-        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web)
-        {
+    public class OriginalGalleryInfoDTO {
+        public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
         private static readonly Dictionary<TagCategory, string> CATEGORY_PROP_KEY_DICT = new() {
@@ -41,8 +41,7 @@ namespace HitomiScrollViewerLib.DTOs {
         public Dictionary<string, string>[] Parodys { get; set; }
         public CompositeTag[] Tags { get; set; }
 
-        public struct CompositeTag
-        {
+        public struct CompositeTag {
             public string Tag { get; set; }
             [JsonConverter(typeof(EmptyStringNumberJsonConverter))]
             public int Male { get; set; }
@@ -50,64 +49,63 @@ namespace HitomiScrollViewerLib.DTOs {
             public int Female { get; set; }
         }
 
-        private class EmptyStringNumberJsonConverter : JsonConverter<int>
-        {
-            public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            {
-                try
-                {
+        private class EmptyStringNumberJsonConverter : JsonConverter<int> {
+            public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+                try {
                     string s = reader.GetString();
-                    if (s.Length == 0)
-                    {
+                    if (s.Length == 0) {
                         return 0;
                     }
                     return int.Parse(s);
-                }
-                catch (InvalidOperationException) {
+                } catch (InvalidOperationException) {
                     return reader.GetInt32();
                 }
             }
             public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options) => writer.WriteNumberValue(value);
         }
 
-        private class GalleryDateTimeOffsetConverter : JsonConverter<DateTimeOffset>
-        {
-            public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-            {
+        private class GalleryDateTimeOffsetConverter : JsonConverter<DateTimeOffset> {
+            public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
                 return DateTimeOffset.Parse(reader.GetString());
             }
-            public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
-            {
+            public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options) {
                 writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mmzzz"));
             }
         }
 
-        private static void SetGalleryProperty(
+        private static async Task SetGalleryPropertyAsync(
             HitomiContext context,
             Dictionary<string, string>[] originalDictArr,
             List<Tag> tags,
             TagCategory category
-        )
-        {
-            if (originalDictArr != null)
-            {
-                foreach (var dict in originalDictArr)
-                {
-                    tags.Add(Tag.GetTag(context.Tags, dict[CATEGORY_PROP_KEY_DICT[category]], category));
+        ) {
+            if (originalDictArr != null) {
+                foreach (var dict in originalDictArr) {
+                    string tagValue = dict[CATEGORY_PROP_KEY_DICT[category]];
+                    Tag tag = Tag.GetTag(context.Tags, tagValue, category);
+                    if (tag == null) {
+                        await Tag.FetchAndUpdateTagsAsync(context, category, tagValue);
+                        tag = Tag.GetTag(context.Tags, tagValue, category);
+                        if (tag == null) {
+                            Debug.WriteLine($"Could not fetch Tag: Value = {tagValue}, Category: {category}");
+                        } else {
+                            tags.Add(tag);
+                        }
+                    } else {
+                        tags.Add(tag);
+                    }
                 }
             }
         }
 
-        public Gallery ToGallery(HitomiContext context)
-        {
+        public async Task<Gallery> ToGallery(HitomiContext context) {
             List<Tag> tags = [];
-            SetGalleryProperty(context, Artists, tags, TagCategory.Artist);
-            SetGalleryProperty(context, Groups, tags, TagCategory.Group);
-            SetGalleryProperty(context, Characters, tags, TagCategory.Character);
-            SetGalleryProperty(context, Parodys, tags, TagCategory.Series);
+            await SetGalleryPropertyAsync(context, Artists, tags, TagCategory.Artist);
+            await SetGalleryPropertyAsync(context, Groups, tags, TagCategory.Group);
+            await SetGalleryPropertyAsync(context, Characters, tags, TagCategory.Character);
+            await SetGalleryPropertyAsync(context, Parodys, tags, TagCategory.Series);
 
-            foreach (var compositeTag in Tags)
-            {
+            foreach (var compositeTag in Tags) {
                 tags.Add(Tag.GetTag(
                     context.Tags,
                     compositeTag.Tag,
@@ -119,8 +117,7 @@ namespace HitomiScrollViewerLib.DTOs {
 
             // appends leading zeros
             string indexFormat = "D" + Math.Floor(Math.Log10(Files.Count) + 1);
-            Gallery gallery = new()
-            {
+            Gallery gallery = new() {
                 Id = Id,
                 Title = Title,
                 JapaneseTitle = JapaneseTitle,

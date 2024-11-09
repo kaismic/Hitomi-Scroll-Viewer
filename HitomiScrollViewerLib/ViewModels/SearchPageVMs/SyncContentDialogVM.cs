@@ -9,12 +9,10 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
-using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -433,7 +431,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                     }
                                     // if replace option is selected, replace local tfs tags with duplicate name
                                     else if (RadioButtons3SelectedIndex == 0) {
-                                        _tagFilterDAO.UpdateTags(localTF.Name, fetchedTF.Tags);
+                                        TagFilterDAO.UpdateTags(localTF.Name, fetchedTF.Tags);
                                     }
                                 }
                             }
