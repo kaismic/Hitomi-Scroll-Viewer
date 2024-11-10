@@ -13,11 +13,11 @@ using HitomiScrollViewerLib.DAOs;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.Windows.ApplicationModel.Resources;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using static HitomiScrollViewerLib.Constants;
 using static HitomiScrollViewerLib.SharedResources;
 
@@ -26,8 +26,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private const string USER_EMAIL_FILE_NAME = "user_email.txt";
         private static readonly string USER_EMAIL_FILE_PATH_V2 = Path.Combine(ROOT_DIR_V2, USER_EMAIL_FILE_NAME);
         private static readonly string USER_EMAIL_FILE_PATH_V3 = Path.Combine(ROAMING_DIR_V3, USER_EMAIL_FILE_NAME);
-        // WARNING: Do not replace this with SharedResources.APP_DISPLAY_NAME because app name not in English will throw eror
-        private const string USER_AGENT_HEADER_APP_NAME = "Hitomi Scroll Viewer";
 
         private static readonly string SUBTREE_NAME = typeof(SyncManager).Name;
 
@@ -74,7 +72,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     );
                     Initializer = new BaseClientService.Initializer() {
                         HttpClientInitializer = _userCredential,
-                        ApplicationName = USER_AGENT_HEADER_APP_NAME
+                        ApplicationName = AppInfo.Current.DisplayInfo.DisplayName
                     };
                     if (File.Exists(USER_EMAIL_FILE_PATH_V2)) {
                         File.Move(USER_EMAIL_FILE_PATH_V2, USER_EMAIL_FILE_PATH_V3);
@@ -136,7 +134,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             _userCredential = await authTask;
                             Initializer = new() {
                                 HttpClientInitializer = _userCredential,
-                                ApplicationName = USER_AGENT_HEADER_APP_NAME
+                                ApplicationName = AppInfo.Current.DisplayInfo.DisplayName
                             };
                             Userinfo userInfo = await new Oauth2Service(Initializer).Userinfo.Get().ExecuteAsync();
                             await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V2, userInfo.Email);

@@ -3,8 +3,6 @@
 namespace HitomiScrollViewerLib {
     public class SharedResources {
         private static readonly string SUBTREE_NAME = typeof(SharedResources).Name;
-
-        public static readonly string APP_DISPLAY_NAME = "AppDisplayName".GetLocalized(SUBTREE_NAME);
         
         public static readonly string TEXT_YES = "Text_Yes".GetLocalized(SUBTREE_NAME);
         public static readonly string TEXT_NO = "Text_No".GetLocalized(SUBTREE_NAME);
