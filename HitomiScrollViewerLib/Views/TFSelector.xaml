@@ -8,10 +8,7 @@
     xmlns:ct="using:CommunityToolkit.WinUI.Controls"
     xmlns:models="using:HitomiScrollViewerLib.Models"
     mc:Ignorable="d"
-    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-    CornerRadius="{StaticResource OverlayCornerRadius}"
-    BorderThickness="1"
+
     Padding="16">
     <ScrollViewer>
         <ItemsRepeater ItemsSource="{x:Bind ViewModel.TFCheckBoxModels, Mode=OneWay}">

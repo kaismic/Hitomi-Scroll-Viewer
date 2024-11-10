@@ -10,6 +10,7 @@
     xmlns:spvms="using:HitomiScrollViewerLib.ViewModels.SearchPageVMs"
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:vms="using:HitomiScrollViewerLib.ViewModels"
+    xmlns:lib="using:HitomiScrollViewerLib"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     NavigationCacheMode="Required"
     >
@@ -33,8 +34,40 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <views:TFSSelector Grid.Column="0" ViewModel="{x:Bind ViewModel.IncludeTFSelectorVM}"/>
-                <views:TFSSelector Grid.Column="1" ViewModel="{x:Bind ViewModel.ExcludeTFSelectorVM}"/>
+                <Grid Grid.Column="0"
+                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                      CornerRadius="{StaticResource OverlayCornerRadius}"
+                      BorderThickness="1"
+                      Padding="0 16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0"
+                               FontSize="20"
+                               HorizontalAlignment="Center"
+                               Text="{x:Bind lib:SharedResources.TEXT_INCLUDE}"
+                               Foreground="Green"/>
+                    <views:TFSSelector Grid.Row="1" ViewModel="{x:Bind ViewModel.IncludeTFSelectorVM}"/>
+                </Grid>
+                <Grid Grid.Column="1"
+                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                      CornerRadius="{StaticResource OverlayCornerRadius}"
+                      BorderThickness="1"
+                      Padding="0 16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0"
+                               FontSize="20"
+                               HorizontalAlignment="Center"
+                               Text="{x:Bind lib:SharedResources.TEXT_EXCLUDE}"
+                               Foreground="Red"/>
+                    <views:TFSSelector Grid.Row="1" ViewModel="{x:Bind ViewModel.ExcludeTFSelectorVM}"/>
+                </Grid>
             </Grid>
         </Grid>
         <Grid Grid.Column="1" RowSpacing="8">
