@@ -8,6 +8,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Foundation;
 
@@ -52,7 +53,7 @@ namespace HitomiScrollViewerLib.Views {
                 MainSelectorBar.IsEnabled = true;
                 SelectorBar_SelectionChanged(MainSelectorBar, null);
             });
-            _ = AppInitializer.StartAsync();
+            _ = Task.Run(AppInitializer.StartAsync);
         }
 
         private void SelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs _1) {
