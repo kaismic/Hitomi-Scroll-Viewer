@@ -41,83 +41,68 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             };
         }
 
-        public DriveService DriveService { get; }
+        public DriveService DriveService { get; private init; }
 
         private bool _closeDialog = true;
         private bool _isSyncing = false;
         private CancellationTokenSource _cts;
 
         [ObservableProperty]
-        private bool _isEnabled;
+        private bool _isEnabled = true;
         [ObservableProperty]
-        private bool _isPrimaryButtonEnabled;
+        private bool _isPrimaryButtonEnabled = false;
 
         [ObservableProperty]
-        private string _closeButtonText;
+        private string _closeButtonText = TEXT_CLOSE;
         [ObservableProperty]
-        private Visibility _progressBarVisibility;
+        private Visibility _progressBarVisibility = Visibility.Collapsed;
         [ObservableProperty]
-        private bool _isProgressBarIndeterminate;
+        private bool _isProgressBarIndeterminate = false;
         [ObservableProperty]
         private double _progressBarValue;
         [ObservableProperty]
         private double _progressBarMaximum;
         [ObservableProperty]
-        private bool _isUploadWarningInfoBarOpen;
+        private bool _isUploadWarningInfoBarOpen = false;
 
         // Tag filter and Gallery separator
         [ObservableProperty]
-        private Visibility _border1Visibility;
+        private Visibility _border1Visibility = Visibility.Collapsed;
         // Gallery sync options separator
         [ObservableProperty]
-        private Visibility _border2Visibility;
+        private Visibility _border2Visibility = Visibility.Collapsed;
 
         [ObservableProperty]
         private bool _isTFOptionChecked;
         partial void OnIsTFOptionCheckedChanged(bool value) {
             // if checked and option is fetch
-            if (value && RadioButtons1SelectedIndex == 1) {
-                FetchTFOptionsVisibility = Visibility.Visible;
-            }
-            // if above has problem use below
-            //if (value) {
-            //    FetchTFOptionsVisibility =
-            //        RadioButtons1SelectedIndex == 0 ?
-            //        Visibility.Collapsed :
-            //        Visibility.Visible;
-            //}
+            FetchTFOptionsVisibility = value && RadioButtons1SelectedIndex == 1 ?
+                Visibility.Visible :
+                Visibility.Collapsed;
         }
 
         [ObservableProperty]
-        private Visibility _tfCheckBoxVisibility;
+        private Visibility _tfCheckBoxVisibility = Visibility.Collapsed;
         [ObservableProperty]
-        private Visibility _fetchTFOptionsVisibility;
+        private Visibility _fetchTFOptionsVisibility = Visibility.Collapsed;
         [ObservableProperty]
-        private Visibility _radioButtons3Visibility;
-
+        private Visibility _radioButtons3Visibility = Visibility.Collapsed;
 
         [ObservableProperty]
         private bool _isGalleryOptionChecked;
         partial void OnIsGalleryOptionCheckedChanged(bool value) {
-            if (value && RadioButtons1SelectedIndex == 1) {
-                FetchGalleryOptionsVisibility = Visibility.Visible;
-            }
-            // if above has problem use below
-            //if (value) {
-            //    FetchGalleryOptionsVisibility =
-            //        RadioButtons1SelectedIndex == 0 ?
-            //        Visibility.Collapsed :
-            //        Visibility.Visible;
-            //}
+            FetchGalleryOptionsVisibility = value && RadioButtons1SelectedIndex == 1 ?
+                Visibility.Visible :
+                Visibility.Collapsed;
         }
         [ObservableProperty]
-        private Visibility _galleryCheckBoxVisibility;
+        private Visibility _galleryCheckBoxVisibility = Visibility.Collapsed;
         [ObservableProperty]
-        private Visibility _fetchGalleryOptionsVisibility;
+        private Visibility _fetchGalleryOptionsVisibility = Visibility.Collapsed;
 
         // Sync direction (Upload or Fetch)
         [ObservableProperty]
-        private int _radioButtons1SelectedIndex;
+        private int _radioButtons1SelectedIndex = -1;
         partial void OnRadioButtons1SelectedIndexChanged(int value) {
             if (value == -1) {
                 return;
@@ -151,7 +136,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         // Tag Filter Fetch option 1 (Overwrite or Append)
         [ObservableProperty]
-        private int _radioButtons2SelectedIndex;
+        private int _radioButtons2SelectedIndex = -1;
         partial void OnRadioButtons2SelectedIndexChanged(int value) {
             switch (value) {
                 // Overwrite option selected
@@ -169,11 +154,11 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         // Tag Filter Fetch option 2 (Keep duplicate or Replace duplicate)
         [ObservableProperty]
-        private int _radioButtons3SelectedIndex;
+        private int _radioButtons3SelectedIndex = -1;
 
         // Gallery Fetch option 1 (Download after fetching or not)
         [ObservableProperty]
-        private int _radioButtons4SelectedIndex;
+        private int _radioButtons4SelectedIndex = -1;
 
         public InfoBarModel TFInfoBarModel { get; } = new() { IsOpen = false };
         public InfoBarModel GalleryInfoBarModel { get; } = new() { IsOpen = false };
@@ -355,7 +340,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             infoBarModel.Message = message;
         }
 
-        public async void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args) {
+        public async void ContentDialog_PrimaryButtonClick(ContentDialog _0, ContentDialogButtonClickEventArgs args) {
             args.Cancel = true;
             _cts = new();
             _closeDialog = false;

@@ -6,6 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    
+    xmlns:lib="using:HitomiScrollViewerLib"
 
     x:Uid="/SyncContentDialog/SyncContentDialog"
     Style="{ThemeResource DefaultContentDialogStyle}"
@@ -16,11 +18,14 @@
     CloseButtonText="{x:Bind ViewModel.CloseButtonText}"
     Closing="{x:Bind ViewModel.ContentDialog_Closing}"
     >
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMaxWidth">4294967296</x:Double>
+    </ContentDialog.Resources>
     <ContentDialog.Title>
         <TextBlock x:Uid="/SyncContentDialog/TitleTextBlock" TextWrapping="WrapWholeWords" />
     </ContentDialog.Title>
     <UserControl IsEnabled="{x:Bind ViewModel.IsEnabled}">
-        <StackPanel x:Name="MainStackPanel" Spacing="8" MinWidth="700" x:DefaultBindMode="OneWay">
+        <StackPanel Spacing="8" MinWidth="700" x:DefaultBindMode="OneWay">
             <InfoBar x:Uid="/SyncContentDialog/UploadWarningInfoBar"
                  IsOpen="{x:Bind ViewModel.IsUploadWarningInfoBarOpen, Mode=TwoWay}"
                  Severity="Warning"
@@ -71,9 +76,11 @@
             <StackPanel Visibility="{x:Bind ViewModel.FetchGalleryOptionsVisibility}">
                 <TextBlock x:Uid="/SyncContentDialog/RadioButtons4TextBlock"
                        Style="{StaticResource BaseTextBlockStyle}"/>
-                <RadioButtons x:Name="RadioButtons_4" MaxColumns="2"
-                          SelectedIndex="{x:Bind ViewModel.RadioButtons4SelectedIndex, Mode=TwoWay}"
-                          />
+                <RadioButtons MaxColumns="2"
+                              SelectedIndex="{x:Bind ViewModel.RadioButtons4SelectedIndex, Mode=TwoWay}">
+                    <RadioButton Content="{x:Bind lib:SharedResources.TEXT_YES, Mode=OneTime}"/>
+                    <RadioButton Content="{x:Bind lib:SharedResources.TEXT_NO, Mode=OneTime}"/>
+                </RadioButtons>
             </StackPanel>
             <ProgressBar Visibility="{x:Bind ViewModel.ProgressBarVisibility}"
                      IsIndeterminate="{x:Bind ViewModel.IsProgressBarIndeterminate}"
