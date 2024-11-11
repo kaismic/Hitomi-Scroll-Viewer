@@ -48,7 +48,7 @@ namespace HitomiScrollViewerLib {
             if (v2TagFilterExists) {
                 vm.IsIndeterminate = false;
                 vm.Value = 0;
-                vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingTFSs);
+                vm.SetText(LoadProgressReporterVM.LoadingStatus.MigratingTFs);
                 Dictionary<string, LegacyTagFilter> legacyTagFilters = JsonSerializer.Deserialize<Dictionary<string, LegacyTagFilter>>(
                     File.ReadAllText(TAG_FILTERS_FILE_PATH_V2),
                     LegacyTagFilter.SERIALIZER_OPTIONS
@@ -67,7 +67,7 @@ namespace HitomiScrollViewerLib {
             // AND is starting the app for the first time
             if (!v2TagFilterExists && dbCreatedFirstTime) {
                 vm.IsIndeterminate = true;
-                vm.SetText(LoadProgressReporterVM.LoadingStatus.AddingExampleTFSs);
+                vm.SetText(LoadProgressReporterVM.LoadingStatus.AddingExampleTFs);
                 using HitomiContext context = new();
                 AddExampleTagFilters(context);
                 context.SaveChanges();

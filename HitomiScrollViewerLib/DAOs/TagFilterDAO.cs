@@ -1,6 +1,7 @@
 ﻿using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.Entities;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace HitomiScrollViewerLib.DAOs {
         /// Instead, use the provided methods.
         /// </summary>
         public ObservableCollection<TagFilter> LocalTagFilters { get; }
+
+        public event Action<IEnumerable<string>> TagFiltersUpdated;
 
         public TagFilterDAO() {
             using HitomiContext context = new();
@@ -72,12 +75,14 @@ namespace HitomiScrollViewerLib.DAOs {
             context.SaveChanges();
         }
 
-        public static void UpdateTags(string name, ICollection<Tag> tags) {
+        public static void UpdateTagsRange(List<string> names, List<IEnumerable<int>> tagIds) {
             using HitomiContext context = new();
-            TagFilter dbTagFilter = context.TagFilters.Include(tf => tf.Tags).First(tf => tf.Name == name);
-            dbTagFilter.Tags.Clear();
-            foreach (var tag in tags) {
-                dbTagFilter.Tags.Add(context.Tags.Find(tag.Id));
+            for (int i = 0; i < tagIds.Count; i++) {
+                TagFilter dbTagFilter = context.TagFilters.Include(tf => tf.Tags).First(tf => tf.Name == names[i]);
+                dbTagFilter.Tags.Clear();
+                foreach (int id in tagIds[i]) {
+                    dbTagFilter.Tags.Add(context.Tags.Find(id));
+                }
             }
             context.SaveChanges();
         }

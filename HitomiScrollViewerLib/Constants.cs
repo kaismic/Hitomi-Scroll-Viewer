@@ -23,8 +23,8 @@ namespace HitomiScrollViewerLib {
 
         public static readonly string MAIN_DATABASE_PATH_V3 = Path.Combine(ApplicationData.Current.LocalFolder.Path, "main.db");
 
-        public static readonly string TFS_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "tag_filter_sets.json");
-        public static readonly string GALLERIES_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "galleries.json");
+        public static readonly string TF_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "tag_filters_v3.json");
+        public static readonly string GALLERIES_SYNC_FILE_PATH = Path.Combine(ApplicationData.Current.LocalFolder.Path, "galleries_v3.json");
 
         public const string GLYPH_REPEAT_ALL = "\xE8EE";
         public const string GLYPH_CANCEL = "\xE711";

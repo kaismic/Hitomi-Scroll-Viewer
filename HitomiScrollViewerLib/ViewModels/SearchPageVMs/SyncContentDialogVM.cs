@@ -178,6 +178,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         private void StartStopSync(bool start) {
             _isSyncing = start;
             IsEnabled = !start;
+            IsPrimaryButtonEnabled = !start;
             if (start) {
                 ProgressBarVisibility = Visibility.Visible;
                 IsProgressBarIndeterminate = true;
@@ -192,7 +193,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
 
         public enum UserDataType {
-            TagFilterSet, Gallery
+            TagFilter, Gallery
         }
 
         public static FilesResource.ListRequest GetListRequest(DriveService driveService) {
@@ -256,14 +257,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private async Task StartUploadAsync(UserDataType userDataType, Google.Apis.Drive.v3.Data.File file) {
             string uploadFileName = userDataType switch {
-                UserDataType.TagFilterSet => Path.GetFileName(TFS_SYNC_FILE_PATH),
+                UserDataType.TagFilter => Path.GetFileName(TF_SYNC_FILE_PATH),
                 UserDataType.Gallery => Path.GetFileName(GALLERIES_SYNC_FILE_PATH),
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             using HitomiContext context = new();
             string uploadFileContent;
             switch (userDataType) {
-                case UserDataType.TagFilterSet:
+                case UserDataType.TagFilter:
                     IEnumerable<TagFilterSyncDTO> tfDTOs =
                         context.TagFilters.AsNoTracking()
                         .Include(tf => tf.Tags)
@@ -273,6 +274,8 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 case UserDataType.Gallery:
                     IEnumerable<GallerySyncDTO> galleryDTOs =
                         context.Galleries.AsNoTracking()
+                        .Include(g => g.GalleryLanguage)
+                        .Include(g => g.GalleryType)
                         .Include(g => g.Files)
                         .Include(g => g.Tags)
                         .Select(g => g.ToGallerySyncDTO());
@@ -282,12 +285,12 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}");
             };
             InfoBarModel infoBarModel = userDataType switch {
-                UserDataType.TagFilterSet => TFInfoBarModel,
+                UserDataType.TagFilter => TFInfoBarModel,
                 UserDataType.Gallery => GalleryInfoBarModel,
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
             string infoBarTitle = userDataType switch {
-                UserDataType.TagFilterSet => TEXT_TAG_FILTERS,
+                UserDataType.TagFilter => TEXT_TAG_FILTERS,
                 UserDataType.Gallery => TEXT_GALLERIES,
                 _ => throw new InvalidOperationException($"Invalid {nameof(userDataType)}: {userDataType}")
             };
@@ -346,14 +349,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             _closeDialog = false;
             StartStopSync(true);
 
-            Google.Apis.Drive.v3.Data.File tfssFile = null;
+            Google.Apis.Drive.v3.Data.File tfsFile = null;
             Google.Apis.Drive.v3.Data.File galleriesFile = null;
             try {
                 Google.Apis.Drive.v3.Data.FileList fileList = await GetListRequest(DriveService).ExecuteAsync(_cts.Token);
                 if (fileList != null) {
                     foreach (var file in fileList.Files) {
-                        if (file.Name == Path.GetFileName(TFS_SYNC_FILE_PATH)) {
-                            tfssFile = file;
+                        if (file.Name == Path.GetFileName(TF_SYNC_FILE_PATH)) {
+                            tfsFile = file;
                         } else if (file.Name == Path.GetFileName(GALLERIES_SYNC_FILE_PATH)) {
                             galleriesFile = file;
                         }
@@ -365,7 +368,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
             if (RadioButtons1SelectedIndex == 0) {
                 // Upload tag filter sets
                 if (IsTFOptionChecked) {
-                    await StartUploadAsync(UserDataType.TagFilterSet, tfssFile);
+                    await StartUploadAsync(UserDataType.TagFilter, tfsFile);
                 }
                 // Upload galleries
                 if (IsGalleryOptionChecked) {
@@ -377,7 +380,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 // Fetch tag filter sets
                 if (IsTFOptionChecked) {
                     // file is not uploaded yet
-                    if (tfssFile == null) {
+                    if (tfsFile == null) {
                         SetInfoBarModel(
                             TFInfoBarModel,
                             InfoBarSeverity.Error,
@@ -387,37 +390,45 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     }
                     // file exists
                     else {
-                        using HitomiContext context = new();
-                        context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
                         try {
-                            FilesResource.GetRequest request = DriveService.Files.Get(tfssFile.Id);
-                            AttachProgressChangedEventHandler(request, tfssFile.Size.Value);
+                            using HitomiContext context = new();
+                            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+                            FilesResource.GetRequest request = DriveService.Files.Get(tfsFile.Id);
+                            AttachProgressChangedEventHandler(request, tfsFile.Size.Value);
                             await DownloadAndWriteAsync(
                                 request,
-                                TFS_SYNC_FILE_PATH,
+                                TF_SYNC_FILE_PATH,
                                 _cts.Token
                             );
-                            string json = await File.ReadAllTextAsync(TFS_SYNC_FILE_PATH, _cts.Token);
-                            IEnumerable<TagFilter> fetchedTagFilters =
-                                JsonSerializer.Deserialize<IEnumerable<TagFilterSyncDTO>>(json)
-                                .Select(dto => dto.ToTagFilter(context.Tags));
+                            string json = await File.ReadAllTextAsync(TF_SYNC_FILE_PATH, _cts.Token);
+                            List<TagFilterSyncDTO> fetchedTagFilterDTOs = JsonSerializer.Deserialize<IEnumerable<TagFilterSyncDTO>>(json).ToList();
                             // Overwrite
                             if (RadioButtons2SelectedIndex == 0) {
                                 _tagFilterDAO.RemoveRange(_tagFilterDAO.LocalTagFilters);
-                                _tagFilterDAO.AddRange(fetchedTagFilters);
+                                _tagFilterDAO.AddRange(fetchedTagFilterDTOs.Select(dto => dto.ToTagFilter(context.Tags)));
                             }
                             // Append
                             else {
-                                foreach (TagFilter fetchedTF in fetchedTagFilters) {
-                                    TagFilter localTF = context.TagFilters.AsNoTracking().FirstOrDefault(tf => tf.Name == fetchedTF.Name);
+                                List<TagFilter> addingTFs = [];
+                                List<string> updatingTFNames = [];
+                                List<IEnumerable<int>> updatingTFTagIds = [];
+                                foreach (TagFilterSyncDTO dto in fetchedTagFilterDTOs) {
+                                    TagFilter localTF = context.TagFilters.FirstOrDefault(tf => tf.Name == dto.Name);
                                     // no duplicate name so just add
                                     if (localTF == null) {
-                                        _tagFilterDAO.Add(fetchedTF);
+                                        addingTFs.Add(dto.ToTagFilter(context.Tags));
                                     }
                                     // if replace option is selected, replace local tfs tags with duplicate name
                                     else if (RadioButtons3SelectedIndex == 0) {
-                                        TagFilterDAO.UpdateTags(localTF.Name, fetchedTF.Tags);
+                                        updatingTFNames.Add(dto.Name);
+                                        updatingTFTagIds.Add(dto.TagIds);
                                     }
+                                }
+                                if (addingTFs.Count > 0) {
+                                    _tagFilterDAO.AddRange(addingTFs);
+                                }
+                                if (updatingTFNames.Count > 0) {
+                                    TagFilterDAO.UpdateTagsRange(updatingTFNames, updatingTFTagIds);
                                 }
                             }
                             SetInfoBarModel(
@@ -453,7 +464,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 // Fetch bookmarks
                 if (IsGalleryOptionChecked) {
                     // file is not uploaded yet
-                    if (tfssFile == null) {
+                    if (tfsFile == null) {
                         SetInfoBarModel(
                             TFInfoBarModel,
                             InfoBarSeverity.Error,
@@ -509,6 +520,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
 
         private bool CanClickPrimaryButton() {
+            if (_isSyncing) {
+                return false;
+            }
             // Nothing selected
             if (RadioButtons1SelectedIndex == -1) {
                 return false;

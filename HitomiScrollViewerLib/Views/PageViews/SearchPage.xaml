@@ -49,7 +49,7 @@
                                HorizontalAlignment="Center"
                                Text="{x:Bind lib:SharedResources.TEXT_INCLUDE}"
                                Foreground="Green"/>
-                    <views:TFSSelector Grid.Row="1" ViewModel="{x:Bind ViewModel.IncludeTFSelectorVM}"/>
+                    <views:TFSelector Grid.Row="1" ViewModel="{x:Bind ViewModel.IncludeTFSelectorVM}"/>
                 </Grid>
                 <Grid Grid.Column="1"
                       Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -66,7 +66,7 @@
                                HorizontalAlignment="Center"
                                Text="{x:Bind lib:SharedResources.TEXT_EXCLUDE}"
                                Foreground="Red"/>
-                    <views:TFSSelector Grid.Row="1" ViewModel="{x:Bind ViewModel.ExcludeTFSelectorVM}"/>
+                    <views:TFSelector Grid.Row="1" ViewModel="{x:Bind ViewModel.ExcludeTFSelectorVM}"/>
                 </Grid>
             </Grid>
         </Grid>

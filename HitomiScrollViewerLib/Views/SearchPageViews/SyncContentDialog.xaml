@@ -15,8 +15,9 @@
     DefaultButton="Primary"
     PrimaryButtonClick="{x:Bind ViewModel.ContentDialog_PrimaryButtonClick}"
     CloseButtonClick="{x:Bind ViewModel.ContentDialog_CloseButtonClick}"
-    CloseButtonText="{x:Bind ViewModel.CloseButtonText}"
+    CloseButtonText="{x:Bind ViewModel.CloseButtonText, Mode=OneWay}"
     Closing="{x:Bind ViewModel.ContentDialog_Closing}"
+    IsPrimaryButtonEnabled="{x:Bind ViewModel.IsPrimaryButtonEnabled, Mode=OneWay}"
     >
     <ContentDialog.Resources>
         <x:Double x:Key="ContentDialogMaxWidth">4294967296</x:Double>
@@ -24,8 +25,9 @@
     <ContentDialog.Title>
         <TextBlock x:Uid="/SyncContentDialog/TitleTextBlock" TextWrapping="WrapWholeWords" />
     </ContentDialog.Title>
-    <UserControl IsEnabled="{x:Bind ViewModel.IsEnabled}">
-        <StackPanel Spacing="8" MinWidth="700" x:DefaultBindMode="OneWay">
+    <UserControl x:DefaultBindMode="OneWay"
+                 IsEnabled="{x:Bind ViewModel.IsEnabled}">
+        <StackPanel Spacing="8" MinWidth="700">
             <InfoBar x:Uid="/SyncContentDialog/UploadWarningInfoBar"
                  IsOpen="{x:Bind ViewModel.IsUploadWarningInfoBarOpen, Mode=TwoWay}"
                  Severity="Warning"

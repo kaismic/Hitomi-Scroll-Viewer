@@ -29,29 +29,23 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         private static readonly string SUBTREE_NAME = typeof(SyncManager).Name;
 
-        private static readonly ClientSecrets CLIENT_SECRETS = new() {
+        public static readonly ClientSecrets CLIENT_SECRETS = new() {
             ClientId = "OAuthAppClientId".GetLocalized("Credentials"),
             ClientSecret = "OAuthAppClientSecret".GetLocalized("Credentials")
         };
 
-        private static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
-        private static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
+        public static readonly string[] SCOPES = ["email", DriveService.Scope.DriveAppdata];
+        public static readonly FileDataStore FILE_DATA_STORE = new(GoogleWebAuthorizationBroker.Folder);
 
         private static UserCredential _userCredential;
         private static BaseClientService.Initializer Initializer { get; set; }
 
         [ObservableProperty]
         private bool _isSignedIn = false;
-        partial void OnIsSignedInChanged(bool value) {
-            IsSyncButtonEnabled = value;
-        }
-
         [ObservableProperty]
         private string _signInButtonText;
         [ObservableProperty]
-        private bool _isSignInButtonEnabled;
-        [ObservableProperty]
-        private bool _isSyncButtonEnabled;
+        private bool _isSignInButtonEnabled = false;
 
         private readonly TagFilterDAO _tagFilterDAO;
         public SyncManagerVM(TagFilterDAO tagFilterDAO) {
@@ -77,7 +71,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                     if (File.Exists(USER_EMAIL_FILE_PATH_V2)) {
                         File.Move(USER_EMAIL_FILE_PATH_V2, USER_EMAIL_FILE_PATH_V3);
                     }
-                    userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH_V3);
+                    try {
+                        userEmail = await File.ReadAllTextAsync(USER_EMAIL_FILE_PATH_V3);
+                    } catch (FileNotFoundException) {}
                 }
                 IsSignInButtonEnabled = true;
                 IsSignedIn = tokenExists && userEmail != null;
@@ -137,7 +133,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                 ApplicationName = AppInfo.Current.DisplayInfo.DisplayName
                             };
                             Userinfo userInfo = await new Oauth2Service(Initializer).Userinfo.Get().ExecuteAsync();
-                            await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V2, userInfo.Email);
+                            await File.WriteAllTextAsync(USER_EMAIL_FILE_PATH_V3, userInfo.Email);
                             SignInButtonText = string.Format("ButtonText_SignedIn".GetLocalized(SUBTREE_NAME), userInfo.Email);
                             IsSignedIn = true;
                         } else {
@@ -168,12 +164,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
 
         public event Func<SyncContentDialogVM, Task> ShowDialogRequested;
 
-        [RelayCommand(CanExecute = nameof(IsSyncButtonEnabled))]
+        [RelayCommand(CanExecute = nameof(IsSignedIn))]
         public async Task HandleSyncButtonClick() {
-            IsSyncButtonEnabled = false;
             SyncContentDialogVM vm = new(new(Initializer), _tagFilterDAO);
             await ShowDialogRequested?.Invoke(vm);
-            IsSyncButtonEnabled = true;
         }
     }
 }

@@ -21,24 +21,24 @@ namespace HitomiScrollViewerLib.ViewModels {
 
         public enum LoadingStatus {
             LoadingDatabase,
-            MigratingTFSs,
+            MigratingTFs,
             MigratingGalleries,
             MovingImageFolder,
             RenamingImageFiles,
             InitialisingDatabase,
-            AddingExampleTFSs,
+            AddingExampleTFs,
             InitialisingApp
         }
 
         public void SetText(LoadingStatus loadingStatus) {
             Text = loadingStatus switch {
                 LoadingStatus.LoadingDatabase => LoadingStatus.LoadingDatabase.ToString().GetLocalized(SUBTREE_NAME),
-                LoadingStatus.MigratingTFSs => LoadingStatus.MigratingTFSs.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.MigratingTFs => LoadingStatus.MigratingTFs.ToString().GetLocalized(SUBTREE_NAME),
                 LoadingStatus.MigratingGalleries => LoadingStatus.MigratingGalleries.ToString().GetLocalized(SUBTREE_NAME),
                 LoadingStatus.MovingImageFolder => LoadingStatus.MovingImageFolder.ToString().GetLocalized(SUBTREE_NAME),
                 LoadingStatus.RenamingImageFiles => LoadingStatus.RenamingImageFiles.ToString().GetLocalized(SUBTREE_NAME),
                 LoadingStatus.InitialisingDatabase => LoadingStatus.InitialisingDatabase.ToString().GetLocalized(SUBTREE_NAME),
-                LoadingStatus.AddingExampleTFSs => LoadingStatus.AddingExampleTFSs.ToString().GetLocalized(SUBTREE_NAME),
+                LoadingStatus.AddingExampleTFs => LoadingStatus.AddingExampleTFs.ToString().GetLocalized(SUBTREE_NAME),
                 LoadingStatus.InitialisingApp => LoadingStatus.InitialisingApp.ToString().GetLocalized(SUBTREE_NAME),
                 _ => throw new ArgumentException($"Invalid {nameof(LoadingStatus)}: {loadingStatus}", nameof(loadingStatus)),
             };

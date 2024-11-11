@@ -20,7 +20,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         private readonly string _oldName;
         private readonly CRUDAction _action;
         private readonly InputValidationVM _inputValidationVM;
-        private readonly TFSelectorVM _tfsSelectorVM;
+        private readonly TFSelectorVM _tfSelectorVM;
 
         public string CloseButtonText { get; } = TEXT_CANCEL;
         [ObservableProperty]
@@ -60,9 +60,9 @@ namespace HitomiScrollViewerLib.ViewModels {
                     Content = new InputValidation() { ViewModel = _inputValidationVM };
                     break;
                 case CRUDAction.Delete:
-                    _tfsSelectorVM = new(tagFilterDAO);
-                    _tfsSelectorVM.SelectionChanged += SetIsPrimaryButtonEnabled;
-                    Content = new TFSSelector() { ViewModel = _tfsSelectorVM };
+                    _tfSelectorVM = new(tagFilterDAO);
+                    _tfSelectorVM.SelectionChanged += SetIsPrimaryButtonEnabled;
+                    Content = new TFSelector() { ViewModel = _tfSelectorVM };
                     break;
             }
         }
@@ -70,7 +70,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         private void SetIsPrimaryButtonEnabled() {
             IsPrimaryButtonEnabled =
                 _action == CRUDAction.Delete ?
-                _tfsSelectorVM.AnySelected() :
+                _tfSelectorVM.AnySelected() :
                 _inputValidationVM.InputText.Length != 0;
         }
 
@@ -106,7 +106,7 @@ namespace HitomiScrollViewerLib.ViewModels {
         }
 
         public IEnumerable<TagFilter> GetSelectedTagFilters() {
-            return _tfsSelectorVM.GetSelectedTagFilters();
+            return _tfSelectorVM.GetSelectedTagFilters();
         }
     }
 }
