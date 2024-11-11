@@ -34,7 +34,7 @@ namespace HitomiScrollViewerLib.Views {
             RootFrame.Loaded -= RootFrame_Loaded;
             
             MainWindowVM.RequestNotifyUser += NotifyUser;
-            MainWindowVM.RequestHideCurrentNotification += () => DispatcherQueue.TryEnqueue(_currentNotification.Hide);
+            MainWindowVM.RequestHideCurrentNotification += () => { _currentNotification?.Hide(); };
             MainWindowVM.RequestMinimizeWindow += () => (AppWindow.Presenter as OverlappedPresenter).Minimize();
             MainWindowVM.RequestActivateWindow += Activate;
 
