@@ -21,7 +21,7 @@ namespace HitomiScrollViewerLib.Models {
 
         public event Action<float, int> ZoomFactorChanged;
 
-        private float _zoomFactor = 2.0f;
+        private float _zoomFactor = 1.0f;
         public float ZoomFactor => _zoomFactor;
         public void NotifyZoomFactorChanged(float value, int pageIndex) {
             _zoomFactor = value;
