@@ -19,13 +19,18 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
             get => (ImageCollectionPanelVM)GetValue(ViewModelProperty);
             set {
                 SetValue(ViewModelProperty, value);
+                SetScrollViewerZoomFactor(value.GalleryViewSettings.ZoomFactor);
                 value.GalleryViewSettings.ZoomFactorChanged += (zf, pageIndex) => {
                     if (pageIndex != ViewModel.PageIndex) {
-                        _zoomFactorLastChangedByUser = false;
-                        MainScrollViewer.ChangeView(null, 0, zf);
+                        SetScrollViewerZoomFactor(zf);
                     }
                 };
             }
+        }
+
+        private void SetScrollViewerZoomFactor(float zf) {
+            _zoomFactorLastChangedByUser = false;
+            MainScrollViewer.ChangeView(null, 0, zf);
         }
 
         public ImageCollectionPanel() {
