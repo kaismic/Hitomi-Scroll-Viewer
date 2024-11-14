@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using Windows.Storage;
 
 namespace HitomiScrollViewerLib.Models {
@@ -17,6 +18,12 @@ namespace HitomiScrollViewerLib.Models {
                 ApplicationData.Current.LocalSettings.Values[nameof(AutoScrollInterval)] = value;
             }
         }
+
+        public event Action<float, int> ZoomFactorChanged;
+        public void NotifyZoomFactorChanged(float value, int pageIndex) {
+            ZoomFactorChanged?.Invoke(value, pageIndex);
+        }
+
 
         private bool _isLoopEnabled = (bool)(ApplicationData.Current.LocalSettings.Values[nameof(IsLoopEnabled)] ??= true);
 

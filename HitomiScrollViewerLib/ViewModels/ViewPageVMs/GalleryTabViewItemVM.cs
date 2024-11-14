@@ -177,7 +177,8 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
                         }
                     )
                     .ToArray(),
-                CommonSettings = CommonSettings
+                CommonSettings = CommonSettings,
+                GalleryViewSettings = GalleryViewSettings
             };
         }
     }

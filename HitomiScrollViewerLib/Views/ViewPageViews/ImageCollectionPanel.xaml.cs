@@ -13,13 +13,25 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
             null
         );
 
+        private bool _zoomFactorLastChangedByUser = true;
+
         public ImageCollectionPanelVM ViewModel {
             get => (ImageCollectionPanelVM)GetValue(ViewModelProperty);
-            set => SetValue(ViewModelProperty, value);
+            set {
+                SetValue(ViewModelProperty, value);
+                value.GalleryViewSettings.ZoomFactorChanged += (zf, pageIndex) => {
+                    if (pageIndex != ViewModel.PageIndex) {
+                        _zoomFactorLastChangedByUser = false;
+                        MainScrollViewer.ChangeView(null, 0, zf);
+                    }
+                };
+            }
         }
 
         public ImageCollectionPanel() {
             InitializeComponent();
+
+            MainScrollViewer.RegisterPropertyChangedCallback(ScrollViewer.ZoomFactorProperty, OnZoomFactorChanged);
         }
 
         private static readonly string VIRTUAL_HOST_NAME = "images";
@@ -60,5 +72,12 @@ namespace HitomiScrollViewerLib.Views.ViewPageViews {
             );
         }
 
+        private void OnZoomFactorChanged(DependencyObject sender, DependencyProperty dp) {
+            float zf = (sender as ScrollViewer).ZoomFactor;
+            if (_zoomFactorLastChangedByUser) {
+                ViewModel.GalleryViewSettings.NotifyZoomFactorChanged(zf, ViewModel.PageIndex);
+            }
+            _zoomFactorLastChangedByUser = true;
+        }
     }
 }

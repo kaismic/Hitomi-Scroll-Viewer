@@ -1,5 +1,4 @@
-﻿using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.Models;
+﻿using HitomiScrollViewerLib.Models;
 using System.IO;
 using static HitomiScrollViewerLib.Constants;
 
@@ -16,6 +15,7 @@ namespace HitomiScrollViewerLib.ViewModels.ViewPageVMs {
         }
         public SizeAdjustedImageInfo[] SizeAdjustedImageInfos { get; init; }
         public CommonSettings CommonSettings { get; init; }
+        public GalleryViewSettings GalleryViewSettings { get; init; }
         public string NonVirtualImageDirPath { get; private set; }
     }
 }

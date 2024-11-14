@@ -16,7 +16,7 @@ namespace HitomiScrollViewerLib.Models {
             new() { Value = Orientation.Horizontal }
         ];
         public static readonly List<string> IMAGES_PER_PAGE_ITEMS = [
-            "Auto (Recommended)",
+            "Auto",
             .. Enumerable.Range(1, 5).Select(x => x.ToString())
         ];
 
@@ -39,7 +39,7 @@ namespace HitomiScrollViewerLib.Models {
         }
 
         [ObservableProperty]
-        private int _imagesPerPage = (int)(ApplicationData.Current.LocalSettings.Values[nameof(ImagesPerPage)] ??= 0);
+        private int _imagesPerPage = (int)(ApplicationData.Current.LocalSettings.Values[nameof(ImagesPerPage)] ??= 1);
         partial void OnImagesPerPageChanged(int value) {
             ApplicationData.Current.LocalSettings.Values[nameof(ImagesPerPage)] = value;
         }

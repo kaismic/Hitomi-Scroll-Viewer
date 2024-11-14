@@ -9,15 +9,18 @@
     mc:Ignorable="d"
     xmlns:models="using:HitomiScrollViewerLib.Models"
     xmlns:dtss="using:HitomiScrollViewerLib.DataTemplateSelectors"
+    Margin="32 0"
     >
-    <Viewbox>
+    <ScrollViewer x:Name="MainScrollViewer"
+                  ZoomMode="Enabled">
         <ListView ItemsSource="{x:Bind ViewModel.SizeAdjustedImageInfos, Mode=OneWay}"
-                  SelectionMode="None"
-                  IsItemClickEnabled="False">
+                      SelectionMode="None"
+                      IsItemClickEnabled="False"
+                      HorizontalAlignment="Center">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <ItemsStackPanel FlowDirection="{Binding ViewModel.CommonSettings.FlowDirectionModel.Value, ElementName=Root, Mode=OneWay}"
-                                     Orientation="Horizontal"/>
+                                         Orientation="Horizontal"/>
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemTemplateSelector>
@@ -25,21 +28,21 @@
                     <dtss:ImageDataTemplateSelector.PlayableGalleryImageTemplate>
                         <DataTemplate x:DataType="models:SizeAdjustedImageInfo">
                             <WebView2 IsHitTestVisible="False"
-                                      Loaded="WebView2_Loaded"
-                                      CoreWebView2Initialized="WebView2_CoreWebView2Initialized"
-                                      Tag="{x:Bind}"
-                                      Width="{x:Bind Width}"
-                                      Height="{x:Bind Height}">
+                                          Loaded="WebView2_Loaded"
+                                          CoreWebView2Initialized="WebView2_CoreWebView2Initialized"
+                                          Tag="{x:Bind}"
+                                          Width="{x:Bind Width}"
+                                          Height="{x:Bind Height}">
                             </WebView2>
                         </DataTemplate>
                     </dtss:ImageDataTemplateSelector.PlayableGalleryImageTemplate>
                     <dtss:ImageDataTemplateSelector.GalleryImageTemplate>
                         <DataTemplate x:DataType="models:SizeAdjustedImageInfo">
                             <Image Width="{x:Bind Width}"
-                                   Height="{x:Bind Height}">
+                                       Height="{x:Bind Height}">
                                 <Image.Source>
                                     <BitmapImage UriSource="{x:Bind ImageFilePath}"
-                                                 DecodePixelHeight="{x:Bind DecodePixelHeight}"/>
+                                                     DecodePixelHeight="{x:Bind DecodePixelHeight}"/>
                                 </Image.Source>
                             </Image>
                         </DataTemplate>
@@ -50,5 +53,5 @@
                 <TransitionCollection/>
             </ListView.ItemContainerTransitions>
         </ListView>
-    </Viewbox>
+    </ScrollViewer>
 </UserControl>
