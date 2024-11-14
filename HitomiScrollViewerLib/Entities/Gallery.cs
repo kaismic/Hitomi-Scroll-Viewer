@@ -35,7 +35,7 @@ namespace HitomiScrollViewerLib.Entities {
             SceneIndexes = SceneIndexes,
             Related = Related,
             GalleryLanguageId = GalleryLanguage.Id,
-            GalleryType = GalleryType.GalleryType,
+            GalleryTypeId = GalleryType.Id,
             Files = Files.Select(f => f.ToImageInfoSyncDTO()),
             TagIds = Tags.Select(tag => tag.Id)
         };

@@ -13,7 +13,7 @@ namespace HitomiScrollViewerLib.DTOs {
         public int[] SceneIndexes { get; set; }
         public int[] Related { get; set; }
         public int GalleryLanguageId { get; set; }
-        public GalleryType GalleryType { get; set; }
+        public int GalleryTypeId { get; set; }
         public required IEnumerable<ImageInfoSyncDTO> Files { get; set; }
         public IEnumerable<int> TagIds { get; set; }
 
@@ -25,7 +25,7 @@ namespace HitomiScrollViewerLib.DTOs {
             SceneIndexes = SceneIndexes,
             Related = Related,
             GalleryLanguage = context.GalleryLanguages.Find(GalleryLanguageId),
-            GalleryType = context.GalleryTypes.Find(),
+            GalleryType = context.GalleryTypes.Find(GalleryTypeId),
             LastDownloadTime = DateTime.UtcNow,
             Files = [.. Files.Select(f => f.ToImageInfo())],
             Tags = [.. TagIds.Select(id => context.Tags.Find(id))]

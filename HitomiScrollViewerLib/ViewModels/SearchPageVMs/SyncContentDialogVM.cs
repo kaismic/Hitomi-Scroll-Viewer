@@ -9,6 +9,7 @@ using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
@@ -388,7 +389,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                             "InfoBar_Error_FileNotUploaded_Message".GetLocalized(SUBTREE_NAME)
                         );
                     }
-                    // file exists
                     else {
                         try {
                             using HitomiContext context = new();
@@ -464,54 +464,64 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                 // Fetch bookmarks
                 if (IsGalleryOptionChecked) {
                     // file is not uploaded yet
-                    if (tfsFile == null) {
+                    if (galleriesFile == null) {
                         SetInfoBarModel(
-                            TFInfoBarModel,
+                            GalleryInfoBarModel,
                             InfoBarSeverity.Error,
                             TEXT_TAG_FILTERS,
                             "InfoBar_Error_FileNotUploaded_Message".GetLocalized(SUBTREE_NAME)
                         );
                     }
-                    // file exists
                     else {
-                        // TODO
-
-                        //try {
-                        //    string fetchedBookmarksData = await GetFile(galleriesFile, _cts.Token);
-                        //    IEnumerable<Gallery> fetchedBookmarkGalleries = (IEnumerable<Gallery>)JsonSerializer.Deserialize(
-                        //        fetchedBookmarksData,
-                        //        typeof(IEnumerable<Gallery>),
-                        //        DEFAULT_SERIALIZER_OPTIONS
-                        //    );
-                        //    // append fetched galleries to existing bookmark if they are not already in the bookmark
-                        //    IEnumerable<Gallery> localBookmarkGalleries = SearchPage.BookmarkItems.Select(item => item.gallery);
-                        //    IEnumerable<Gallery> appendingGalleries = fetchedBookmarkGalleries.ExceptBy(
-                        //        localBookmarkGalleries.Select(gallery => gallery.id),
-                        //        gallery => gallery.id
-                        //    );
-                        //    foreach (var gallery in appendingGalleries) {
-                        //        BookmarkItem appendedBookmarkItem = MainWindow.SearchPage.AddBookmark(gallery);
-                        //        // start downloading all appended galleries if the corresponding option is checked
-                        //        if (FetchBookmarkOption1.SelectedIndex == 0) {
-                        //            MainWindow.SearchPage.TryDownload(gallery.id, appendedBookmarkItem);
-                        //        }
-                        //    }
-                        //    BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Success;
-                        //    BookmarkSyncResultInfoBar.Title = TEXT_GALLERIES;
-                        //    BookmarkSyncResultInfoBar.Message = "InfoBar_Fetch_Success_Message".GetLocalized(SUBTREE_NAME);
-                        //} catch (TaskCanceledException) {
-                        //    TagFilterSyncResultInfoBar.Severity = InfoBarSeverity.Informational;
-                        //    TagFilterSyncResultInfoBar.Title = TEXT_GALLERIES;
-                        //    TagFilterSyncResultInfoBar.Message = "InfoBar_Fetch_Canceled_Message".GetLocalized(SUBTREE_NAME);
-                        //} catch (Exception e) {
-                        //    BookmarkSyncResultInfoBar.Severity = InfoBarSeverity.Error;
-                        //    BookmarkSyncResultInfoBar.Title = TEXT_ERROR;
-                        //    if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
-                        //        BookmarkSyncResultInfoBar.Message = "InfoBar_Error_Unauthorized_Message".GetLocalized(SUBTREE_NAME);
-                        //    } else {
-                        //        BookmarkSyncResultInfoBar.Message = "InfoBar_Error_Unknown_Message".GetLocalized(SUBTREE_NAME);
-                        //    }
-                        //}
+                        try {
+                            FilesResource.GetRequest request = DriveService.Files.Get(galleriesFile.Id);
+                            AttachProgressChangedEventHandler(request, galleriesFile.Size.Value);
+                            await DownloadAndWriteAsync(
+                                request,
+                                GALLERIES_SYNC_FILE_PATH,
+                                _cts.Token
+                            );
+                            string json = await File.ReadAllTextAsync(GALLERIES_SYNC_FILE_PATH, _cts.Token);
+                            List<GallerySyncDTO> fetchedGalleryDTOs = JsonSerializer.Deserialize<IEnumerable<GallerySyncDTO>>(json).ToList();
+                            using HitomiContext context = new();
+                            foreach (GallerySyncDTO dto in fetchedGalleryDTOs) {
+                                context.Galleries.Add(dto.ToGallery(context));
+                            }
+                            // Start downloading images immediately
+                            if (RadioButtons4SelectedIndex == 0) {
+                                _ = Task.Run(() => {
+                                    foreach (GallerySyncDTO dto in fetchedGalleryDTOs) {
+                                        SearchPageVM.Main.DownloadManagerVM.TryDownload(dto.Id);
+                                    }
+                                });
+                            }
+                            SetInfoBarModel(
+                                GalleryInfoBarModel,
+                                InfoBarSeverity.Success,
+                                TEXT_GALLERIES,
+                                "InfoBar_Fetch_Success_Message".GetLocalized(SUBTREE_NAME)
+                            );
+                        } catch (TaskCanceledException) {
+                            SetInfoBarModel(
+                                GalleryInfoBarModel,
+                                InfoBarSeverity.Informational,
+                                TEXT_GALLERIES,
+                                "InfoBar_Fetch_Canceled_Message".GetLocalized(SUBTREE_NAME)
+                            );
+                        } catch (Exception e) {
+                            string message;
+                            if (e is GoogleApiException googleApiException && googleApiException.HttpStatusCode == System.Net.HttpStatusCode.Forbidden) {
+                                message = "InfoBar_Error_Unauthorized_Message".GetLocalized(SUBTREE_NAME);
+                            } else {
+                                message = "InfoBar_Error_Unknown_Message".GetLocalized(SUBTREE_NAME);
+                            }
+                            SetInfoBarModel(
+                                GalleryInfoBarModel,
+                                InfoBarSeverity.Error,
+                                TEXT_ERROR,
+                                message
+                            );
+                        }
                     }
                     GalleryInfoBarModel.IsOpen = true;
                 }
