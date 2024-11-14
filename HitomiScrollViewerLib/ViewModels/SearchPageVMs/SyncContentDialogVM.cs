@@ -10,6 +10,7 @@ using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
 using HitomiScrollViewerLib.Models;
 using HitomiScrollViewerLib.ViewModels.PageVMs;
+using HitomiScrollViewerLib.Views;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.UI.Xaml;
@@ -237,7 +238,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
         }
 
         /**
-         * <returns>The file content from Google Drive<c>string</c>.</returns>
+         * <returns>The file content from Google Drive.</returns>
          * <exception cref="Exception"/>
          * <exception cref="TaskCanceledException"/>
          * <exception cref="GoogleApiException"/>
@@ -468,7 +469,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                         SetInfoBarModel(
                             GalleryInfoBarModel,
                             InfoBarSeverity.Error,
-                            TEXT_TAG_FILTERS,
+                            TEXT_GALLERIES,
                             "InfoBar_Error_FileNotUploaded_Message".GetLocalized(SUBTREE_NAME)
                         );
                     }
@@ -482,17 +483,16 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs {
                                 _cts.Token
                             );
                             string json = await File.ReadAllTextAsync(GALLERIES_SYNC_FILE_PATH, _cts.Token);
-                            List<GallerySyncDTO> fetchedGalleryDTOs = JsonSerializer.Deserialize<IEnumerable<GallerySyncDTO>>(json).ToList();
-                            using HitomiContext context = new();
-                            foreach (GallerySyncDTO dto in fetchedGalleryDTOs) {
-                                context.Galleries.Add(dto.ToGallery(context));
-                            }
+                            IEnumerable<GallerySyncDTO> fetchedGalleryDTOs = JsonSerializer.Deserialize<IEnumerable<GallerySyncDTO>>(json);
+                            GalleryDAO.AddRange(fetchedGalleryDTOs);
                             // Start downloading images immediately
                             if (RadioButtons4SelectedIndex == 0) {
                                 _ = Task.Run(() => {
-                                    foreach (GallerySyncDTO dto in fetchedGalleryDTOs) {
-                                        SearchPageVM.Main.DownloadManagerVM.TryDownload(dto.Id);
-                                    }
+                                    MainWindow.MainDispatcherQueue.TryEnqueue(() => {
+                                        foreach (GallerySyncDTO dto in fetchedGalleryDTOs) {
+                                            SearchPageVM.Main.DownloadManagerVM.TryDownload(dto.Id);
+                                        }
+                                    });
                                 });
                             }
                             SetInfoBarModel(

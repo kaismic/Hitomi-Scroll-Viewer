@@ -175,7 +175,7 @@
                         </ListView.ItemsPanel>
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="spvms:DownloadItemVM">
-                                <spviews:DownloadItem ViewModel="{x:Bind}"
+                                <spviews:DownloadItem ViewModel="{x:Bind Mode=OneWay}"
                                                       HorizontalAlignment="Stretch"/>
                             </DataTemplate>
                         </ListView.ItemTemplate>
