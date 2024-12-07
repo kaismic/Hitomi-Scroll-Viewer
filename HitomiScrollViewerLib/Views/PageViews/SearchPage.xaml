@@ -136,9 +136,36 @@
                   RowSpacing="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" ColumnSpacing="10">
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <ToggleSwitch Grid.Column="0"
+                                  OnContent="Sequential Download"
+                                  OffContent="Sequential Download">
+                        <ToolTipService.ToolTip>
+                            <ToolTip Content="Use this if too much 503 errors occur"/>
+                        </ToolTipService.ToolTip>
+                    </ToggleSwitch>
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right">
+                        <TextBlock Text="Download Threads"
+                                   VerticalAlignment="Center"/>
+                        <ComboBox SelectedIndex="0">
+                            <ComboBoxItem>1</ComboBoxItem>
+                            <ComboBoxItem>2</ComboBoxItem>
+                            <ComboBoxItem>3</ComboBoxItem>
+                            <ComboBoxItem>4</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Row="1" ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -156,7 +183,7 @@
                         <SymbolIcon Symbol="Download"/>
                     </Button>
                 </Grid>
-                <ScrollViewer Grid.Row="1">
+                <ScrollViewer Grid.Row="2">
                     <ListView ItemsSource="{x:Bind ViewModel.DownloadManagerVM.DownloadItemVMs}"
                               SelectionMode="None"
                               IsItemClickEnabled="False">
