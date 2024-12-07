@@ -148,7 +148,7 @@
                                   OnContent="Sequential Download"
                                   OffContent="Sequential Download">
                         <ToolTipService.ToolTip>
-                            <ToolTip Content="Use this if too much 503 errors occur"/>
+                            <ToolTip Content="Use this option if 503 errors occur frequently"/>
                         </ToolTipService.ToolTip>
                     </ToggleSwitch>
                     <StackPanel Grid.Column="1"
