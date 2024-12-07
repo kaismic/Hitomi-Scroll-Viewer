@@ -14,8 +14,6 @@ namespace HitomiScrollViewerLib.DAOs {
         /// </summary>
         public ObservableCollection<TagFilter> LocalTagFilters { get; }
 
-        public event Action<IEnumerable<string>> TagFiltersUpdated;
-
         public TagFilterDAO() {
             using HitomiContext context = new();
             LocalTagFilters = new([.. context.TagFilters.AsNoTracking()]);
