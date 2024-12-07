@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HitomiScrollViewerTestApp",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerUnitTest", "HitomiScrollViewerUnitTest\HitomiScrollViewerUnitTest.csproj", "{540A1129-6C2D-4F41-8CE4-D30B9D08C1B3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalServerSample", "LocalServerSample\LocalServerSample.csproj", "{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,26 @@ Global
 		{540A1129-6C2D-4F41-8CE4-D30B9D08C1B3}.Release|x86.ActiveCfg = Release|x86
 		{540A1129-6C2D-4F41-8CE4-D30B9D08C1B3}.Release|x86.Build.0 = Release|x86
 		{540A1129-6C2D-4F41-8CE4-D30B9D08C1B3}.Release|x86.Deploy.0 = Release|x86
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|ARM32.ActiveCfg = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|ARM32.Build.0 = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|arm64.Build.0 = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|x64.Build.0 = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Debug|x86.Build.0 = Debug|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|ARM32.ActiveCfg = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|ARM32.Build.0 = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|arm64.ActiveCfg = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|arm64.Build.0 = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|x64.ActiveCfg = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|x64.Build.0 = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|x86.ActiveCfg = Release|Any CPU
+		{8EBE2F8A-DEC1-4F4A-B12A-D8040EC60C59}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

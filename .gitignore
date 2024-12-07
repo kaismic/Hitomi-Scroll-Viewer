@@ -11,6 +11,7 @@ HitomiScrollViewerApp/DatabaseResources/*
 # ignore test app
 HitomiScrollViewerTestApp/
 HitomiScrollViewerUnitTest/
+LocalServerSample/
 
 # ignore Credentials.resw
 Credentials.resw
