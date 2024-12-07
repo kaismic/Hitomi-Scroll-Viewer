@@ -22,6 +22,7 @@
                   PreviewKeyDown="FlipView_PreviewKeyDown"
                   ItemsSource="{x:Bind ViewModel.ImageCollectionPanelVMs, Mode=OneWay}"
                   SelectedIndex="{x:Bind ViewModel.FlipViewSelectedIndex, Mode=TwoWay}"
+                  Background="Black"
                   >
             <FlipView.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -30,12 +31,12 @@
             </FlipView.ItemsPanel>
             <FlipView.ItemTemplate>
                 <DataTemplate x:DataType="vpvms:ImageCollectionPanelVM">
-                    <vpviews:ImageCollectionPanel ViewModel="{x:Bind Mode=OneWay}"/>
+                    <vpviews:ImageCollectionPanel ViewModel="{x:Bind}"/>
                 </DataTemplate>
             </FlipView.ItemTemplate>
         </FlipView>
         <CommandBar x:Name="TopCommandBar"
-                    Background="{ThemeResource LayerFillColorAltBrush}"
+                    Background="{ThemeResource AppBarBackgroundThemeBrush}"
                     ClosedDisplayMode="Minimal"
                     OverflowButtonVisibility="Collapsed"
                     HorizontalAlignment="Center">
