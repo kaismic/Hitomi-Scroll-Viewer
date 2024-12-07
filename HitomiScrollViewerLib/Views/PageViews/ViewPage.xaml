@@ -8,7 +8,8 @@
     xmlns:vpviews="using:HitomiScrollViewerLib.Views.ViewPageViews"
     xmlns:mvvminput="using:CommunityToolkit.Mvvm.Input"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    SizeChanged="Page_SizeChanged">
     <TabView x:Name="MainTabView"
              TabItemsSource="{x:Bind ViewModel.GalleryTabViewItemVMs}"
              SelectedItem="{x:Bind ViewModel.SelectedGalleryTabViewItemVM, Mode=TwoWay}"

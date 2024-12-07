@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.ViewModels.ViewPageVMs;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -18,6 +19,10 @@ namespace HitomiScrollViewerLib.Views.PageViews {
 
         private void GalleryTabViewItem_CloseRequested(TabViewItem sender, TabViewTabCloseRequestedEventArgs args) {
             ViewModel.CloseTab(args.Item as GalleryTabViewItemVM);
+        }
+
+        private void Page_SizeChanged(object sender, SizeChangedEventArgs e) {
+            MainTabView.Height = e.NewSize.Height;
         }
     }
 }
