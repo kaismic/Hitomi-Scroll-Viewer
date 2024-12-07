@@ -17,6 +17,14 @@
                       SelectionMode="None"
                       IsItemClickEnabled="False"
                       HorizontalAlignment="Center">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                    <!--see https://github.com/dotnet/maui/issues/8564
+                            https://github.com/dotnet/maui/pull/10250
+                            https://github.com/dotnet/maui/pull/10250/commits/ca8a76576ee3b4f692bd3a3182972120c6c8e071-->
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <ItemsStackPanel FlowDirection="{Binding ViewModel.CommonSettings.FlowDirectionModel.Value, ElementName=Root, Mode=OneWay}"
