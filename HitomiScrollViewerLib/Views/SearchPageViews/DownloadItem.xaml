@@ -11,7 +11,7 @@
     IsEnabled="{x:Bind ViewModel.IsEnabled}"
     >
     <Grid ColumnSpacing="8"
-          RowSpacing="4"
+          RowSpacing="8"
           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
           BorderBrush="{ThemeResource ControlElevationBorderBrush}"
           CornerRadius="{StaticResource OverlayCornerRadius}"
@@ -20,7 +20,6 @@
           >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -32,33 +31,27 @@
                    TextWrapping="WrapWholeWords" IsTextSelectionEnabled="True"
                    Text="{x:Bind ViewModel.GalleryDescriptionText}"
                    />
-        <ProgressBar Grid.Row="1" Grid.Column="0"
+        <TextBlock Grid.Row="1" Grid.Column="0"
+                   TextWrapping="WrapWholeWords" IsTextSelectionEnabled="True"
+                   Text="{x:Bind ViewModel.ProgressText}"/>
+        <ProgressBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                      Value="{x:Bind ViewModel.ProgressBarValue}"
                      Maximum="{x:Bind ViewModel.ProgressBarMaximum}"
                      />
-        <TextBlock Grid.Row="2" Grid.Column="0"
-                   TextWrapping="WrapWholeWords" IsTextSelectionEnabled="True"
-                   Text="{x:Bind ViewModel.ProgressText}"/>
         <Button Grid.Row="0" Grid.Column="1"
                 HorizontalAlignment="Stretch"
                 Click="{x:Bind ViewModel.DownloadToggleButton_Clicked, Mode=OneTime}"
                 ToolTipService.ToolTip="{x:Bind ViewModel.DownloadToggleButtonToolTip}"
+                IsEnabled="{x:Bind ViewModel.IsDownloadToggleButtonEnabled}"
                 >
             <SymbolIcon Symbol="{x:Bind ViewModel.DownloadToggleButtonSymbol}"/>
         </Button>
-        <Button Grid.Row="0" Grid.Column="2"
+        <Button Grid.Row="1" Grid.Column="2"
                 x:Uid="/DownloadItem/CancelBtn"
                 HorizontalAlignment="Stretch"
                 Click="{x:Bind ViewModel.RemoveDownloadButton_Click, Mode=OneTime}"
                 >
             <SymbolIcon Symbol="Delete"/>
         </Button>
-        <ComboBox Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2"
-                  ItemsSource="{x:Bind ViewModel.ThreadNums, Mode=OneTime}"
-                  SelectedItem="{x:Bind ViewModel.ThreadNum, Mode=TwoWay}">
-            <ComboBox.Header>
-                <TextBlock x:Uid="/DownloadItem/ThreadNumComboBoxHeader"/>
-            </ComboBox.Header>
-        </ComboBox>
     </Grid>
 </UserControl>
