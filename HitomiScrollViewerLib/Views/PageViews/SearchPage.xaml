@@ -141,29 +141,51 @@
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <ToggleSwitch Grid.Column="0"
-                                  OnContent="Sequential Download"
-                                  OffContent="Sequential Download">
+                    <Grid Grid.Column="0"
+                          ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
                         <ToolTipService.ToolTip>
                             <ToolTip Content="Use this option if 503 errors occur frequently"/>
                         </ToolTipService.ToolTip>
-                    </ToggleSwitch>
-                    <StackPanel Grid.Column="1"
-                                Orientation="Horizontal"
-                                Spacing="8"
-                                HorizontalAlignment="Right">
-                        <TextBlock Text="Download Threads"
+                        <TextBlock Grid.Column="0"
+                                   Text="Sequential Download"
+                                   TextWrapping="WrapWholeWords"
                                    VerticalAlignment="Center"/>
-                        <ComboBox SelectedIndex="0">
-                            <ComboBoxItem>1</ComboBoxItem>
-                            <ComboBoxItem>2</ComboBoxItem>
-                            <ComboBoxItem>3</ComboBoxItem>
-                            <ComboBoxItem>4</ComboBoxItem>
+                        <ToggleSwitch Grid.Column="1"
+                                      MinWidth="0"
+                                      OnContent="" OffContent=""
+                                      IsOn="{x:Bind ViewModel.DownloadManagerVM.IsSequentialDownload, Mode=TwoWay}"/>
+                    </Grid>
+                    <AppBarSeparator Grid.Column="1"
+                                     Foreground="{StaticResource AppBarSeparatorForegroundThemeBrush}"
+                                     Margin="16 0"/>
+                    <Grid Grid.Column="2"
+                          ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="Download Threads"
+                                   TextWrapping="WrapWholeWords"
+                                   VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1"
+                                  SelectedIndex="0"
+                                  SelectedItem="{x:Bind ViewModel.DownloadManagerVM.DownloadThreadNum, Mode=TwoWay}"
+                                  VerticalAlignment="Center">
+                            <x:Int32>1</x:Int32>
+                            <x:Int32>2</x:Int32>
+                            <x:Int32>3</x:Int32>
+                            <x:Int32>4</x:Int32>
                         </ComboBox>
-                    </StackPanel>
+                    </Grid>
                 </Grid>
                 <Grid Grid.Row="1" ColumnSpacing="10">
                     <Grid.ColumnDefinitions>

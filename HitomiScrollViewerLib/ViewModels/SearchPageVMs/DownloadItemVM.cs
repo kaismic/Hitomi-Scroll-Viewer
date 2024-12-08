@@ -3,6 +3,7 @@ using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
+using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -64,17 +65,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
         }
 
         private CancellationTokenSource _cts;
+        private readonly int _threadNum;
 
         public Gallery Gallery { get; private set; }
-        public int Id { get; private set; }
-        public int[] ThreadNums { get; } = Enumerable.Range(1, 8).ToArray();
-        [ObservableProperty]
-        private int _threadNum = 1;
-        partial void OnThreadNumChanged(int value) {
-            if (CurrentDownloadStatus == DownloadStatus.Downloading) {
-                CancelDownloadTask(TaskCancelReason.ThreadNumChanged);
-            }
-        }
+        public int Id { get; private set;` }
 
         [ObservableProperty]
         private string _galleryDescriptionText;
@@ -85,7 +79,9 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
         [ObservableProperty]
         private double _progressBarMaximum;
         [ObservableProperty]
-        private bool _isEnabled = false;
+        private bool _isEnabled = true;
+        [ObservableProperty]
+        private bool _isDownloadToggleButtonEnabled = false;
         [ObservableProperty]
         private Symbol _downloadToggleButtonSymbol = Symbol.Pause;
         [ObservableProperty]
@@ -106,13 +102,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
         public event Action<DownloadItemVM> RemoveDownloadItemEvent;
         public event Action InvokeGalleryAddedRequested;
 
-        public DownloadItemVM(int id) {
+        public DownloadItemVM(int id, int threadNum) {
             Id = id;
+            _threadNum = threadNum;
             GalleryDescriptionText = id.ToString();
         }
 
         public void StartDownload() {
-            IsEnabled = true;
+            IsDownloadToggleButtonEnabled = true;
             _retryCount = 0;
             PreCheckDownload();
         }
@@ -184,7 +181,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
 
         private enum TaskCancelReason {
             PausedByUser,
-            ThreadNumChanged,
             Http404MaxLimitReached
         }
         private TaskCancelReason _taskCancelReason;
@@ -201,11 +197,6 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
                     case TaskCancelReason.PausedByUser:
                         CurrentDownloadStatus = DownloadStatus.Paused;
                         ProgressText = "StatusText_Paused".GetLocalized(SUBTREE_NAME);
-                        break;
-                    case TaskCancelReason.ThreadNumChanged:
-                        // continue download
-                        _cts = new();
-                        _ = TryDownload(_cts.Token);
                         break;
                     case TaskCancelReason.Http404MaxLimitReached:
                         _retryCount++;
@@ -401,7 +392,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
             ProgressBarValue = Gallery.Files.Count - missingFiles.Length;
             /*
                 example:
-                fetchInfos.Length = 8, indexes = [0,1,4,5,7,9,10,11,14,15,17], concurrentTaskNum = 3
+                fetchInfos.Length = 8, indexes = [0,1,4,5,7,9,10,11,14,15,17], _threadNum = 3
                 11 / 3 = 3 r 2
                 -----------------
                 |3+1 | 3+1 |  3 |
@@ -410,15 +401,14 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
                  4     10    17
                  5     11
             */
-            int concurrentTaskNum = ThreadNum;
-            int quotient = missingFiles.Length / concurrentTaskNum;
-            int remainder = missingFiles.Length % concurrentTaskNum;
-            Task[] tasks = new Task[concurrentTaskNum];
+            int quotient = missingFiles.Length / _threadNum;
+            int remainder = missingFiles.Length % _threadNum;
+            Task[] tasks = new Task[_threadNum];
 
             int startIdx = 0;
             int http404ErrorCount = 0;
             object http404ErrorCountLock = new();
-            for (int i = 0; i < concurrentTaskNum; i++) {
+            for (int i = 0; i < _threadNum; i++) {
                 int thisStartIdx = startIdx;
                 int thisJMax = quotient + (i < remainder ? 1 : 0);
                 tasks[i] = Task.Run(async () => {
