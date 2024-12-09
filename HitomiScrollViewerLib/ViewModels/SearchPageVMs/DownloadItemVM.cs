@@ -3,7 +3,6 @@ using CommunityToolkit.WinUI;
 using HitomiScrollViewerLib.DbContexts;
 using HitomiScrollViewerLib.DTOs;
 using HitomiScrollViewerLib.Entities;
-using HitomiScrollViewerLib.ViewModels.PageVMs;
 using HitomiScrollViewerLib.Views.SearchPageViews;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -66,9 +65,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
 
         private CancellationTokenSource _cts;
         private readonly int _threadNum;
+        public bool HasStarted { get; private set; } = false;
 
         public Gallery Gallery { get; private set; }
-        public int Id { get; private set;` }
+        public int Id { get; private set; }
 
         [ObservableProperty]
         private string _galleryDescriptionText;
@@ -99,6 +99,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
         private DateTime _downloadStartTime;
         private static DateTime _lastGgjsUpdateTime;
 
+        public event Action DownloadStarted;
         public event Action<DownloadItemVM> RemoveDownloadItemEvent;
         public event Action InvokeGalleryAddedRequested;
 
@@ -109,6 +110,10 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
         }
 
         public void StartDownload() {
+            if (!HasStarted) {
+                HasStarted = true;
+                DownloadStarted?.Invoke();
+            }
             IsDownloadToggleButtonEnabled = true;
             _retryCount = 0;
             PreCheckDownload();
@@ -275,7 +280,7 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
 
             _ = TryDownload(ct);
         }
-
+         
         private async Task TryDownload(CancellationToken ct) {
             _downloadStartTime = DateTime.UtcNow;
             ProgressText = "StatusText_Downloading".GetLocalized(SUBTREE_NAME);
@@ -351,34 +356,27 @@ namespace HitomiScrollViewerLib.ViewModels.SearchPageVMs
          */
         private async Task<bool> GetImage(ImageInfo imageInfo, CancellationToken ct) {
             try {
-                HttpResponseMessage response = null;
-                try {
-                    response = await HitomiHttpClient.GetAsync(
-                        imageInfo.GetImageAddress(_subdomainPickerSet, _subdomainCandidates, _serverTime),
-                        ct
-                    );
-                    response.EnsureSuccessStatusCode();
-                } catch (HttpRequestException e) {
-                    if (e.StatusCode == HttpStatusCode.NotFound) {
-                        throw;
-                    }
-                    Debug.WriteLine(e.Message);
-                    Debug.WriteLine($"Fetching {imageInfo.FullFileName} of {Id} failed. Status Code: {e.StatusCode}");
-                    return false;
+                HttpResponseMessage response = await HitomiHttpClient.GetAsync(
+                    imageInfo.GetImageAddress(_subdomainPickerSet, _subdomainCandidates, _serverTime),
+                    ct
+                );
+                response.EnsureSuccessStatusCode();
+                byte[] imageBytes = await response.Content.ReadAsByteArrayAsync(ct);
+                await File.WriteAllBytesAsync(
+                    imageInfo.ImageFilePath,
+                    imageBytes,
+                    CancellationToken.None
+                );
+                return true;
+            } catch (HttpRequestException e) {
+                if (e.StatusCode == HttpStatusCode.NotFound) {
+                    throw;
                 }
-                try {
-                    byte[] imageBytes = await response.Content.ReadAsByteArrayAsync(ct);
-                    await File.WriteAllBytesAsync(
-                        imageInfo.ImageFilePath,
-                        imageBytes,
-                        CancellationToken.None
-                    );
-                    return true;
-                } catch (DirectoryNotFoundException) {
-                    return false;
-                } catch (IOException) {
-                    return false;
-                }
+                Debug.WriteLine(e.Message);
+                Debug.WriteLine($"Fetching {imageInfo.FullFileName} of {Id} failed. Status Code: {e.StatusCode}");
+                return false;
+            } catch (IOException) {
+                return false;
             } catch (TaskCanceledException) {
                 throw;
             }
