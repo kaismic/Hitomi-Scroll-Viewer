@@ -1,12 +1,11 @@
+using Microsoft.FluentUI.AspNetCore.Components;
 using HitomiScrollViewerWebApp.Components;
 
-var builder = WebApplication.CreateBuilder();
-
+var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls();
-
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddFluentUIComponents();
 
 var app = builder.Build();
 

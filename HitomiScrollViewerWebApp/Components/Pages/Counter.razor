@@ -5,9 +5,11 @@
 
 <h1>Counter</h1>
 
-<p role="status">Current count: @currentCount</p>
+<div role="status" style="padding-bottom: 1em;">
+    Current count: <FluentBadge Appearance="Appearance.Neutral">@currentCount</FluentBadge>
+</div>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<FluentButton Appearance="Appearance.Accent" @onclick="IncrementCount">Click me</FluentButton>
 
 @code {
     private int currentCount = 0;

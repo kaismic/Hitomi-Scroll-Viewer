@@ -13,31 +13,17 @@
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th aria-label="Temperature in Celsius">Temp. (C)</th>
-                <th aria-label="Temperature in Farenheit">Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <!-- This page is rendered in SSR mode, so the FluentDataGrid component does not offer any interactivity (like sorting). -->
+    <FluentDataGrid Id="weathergrid" Items="@forecasts" GridTemplateColumns="1fr 1fr 1fr 2fr" TGridItem="WeatherForecast">
+        <PropertyColumn Title="Date" Property="@(c => c!.Date)" Align="Align.Start"/>
+        <PropertyColumn Title="Temp. (C)" Property="@(c => c!.TemperatureC)" Align="Align.Center"/>
+        <PropertyColumn Title="Temp. (F)" Property="@(c => c!.TemperatureF)" Align="Align.Center"/>
+        <PropertyColumn Title="Summary" Property="@(c => c!.Summary)" Align="Align.End"/>
+    </FluentDataGrid>
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private IQueryable<WeatherForecast>? forecasts;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,7 +37,7 @@ else
             Date = startDate.AddDays(index),
             TemperatureC = Random.Shared.Next(-20, 55),
             Summary = summaries[Random.Shared.Next(summaries.Length)]
-        }).ToArray();
+        }).AsQueryable();
     }
 
     private class WeatherForecast
