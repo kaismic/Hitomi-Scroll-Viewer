@@ -1,8 +1,9 @@
 using Microsoft.FluentUI.AspNetCore.Components;
 using HitomiScrollViewerWebApp.Components;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
@@ -20,4 +21,16 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+Task appTask = app.RunAsync();
+OpenBrowser(app.Urls.First());
+appTask.Wait();
+
+static void OpenBrowser(string url) {
+    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+    } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+        Process.Start("xdg-open", url);
+    } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+        Process.Start("open", url);
+    }
+}
