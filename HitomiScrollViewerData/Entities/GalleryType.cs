@@ -6,7 +6,6 @@ namespace HitomiScrollViewerData.Entities {
     public class GalleryType {
         public int Id { get; private set; }
         public required bool IsAll { get; set; }
-        // possible values: doujinshi, manga, artistcg, gamecg, imageset, anime
         private string _value;
         public required string Value {
             get {

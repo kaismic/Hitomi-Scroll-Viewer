@@ -8,9 +8,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HitomiScrollViewerApp", "HitomiScrollViewerApp\HitomiScrollViewerApp.csproj", "{99CEA19C-E5D2-4AE6-AD0A-BA9546AB9ABB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerWebApp", "HitomiScrollViewerWebApp\HitomiScrollViewerWebApp.csproj", "{0FD5C9FD-178C-462D-B932-E75DD43B2E74}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1C01DEED-F179-4090-9A34-3BF24CC9AC6F} = {1C01DEED-F179-4090-9A34-3BF24CC9AC6F}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerData", "HitomiScrollViewerData\HitomiScrollViewerData.csproj", "{D109DFDC-D31C-4924-92F5-A793B3D9AF9D}"
 EndProject

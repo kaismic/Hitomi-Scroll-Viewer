@@ -1,5 +1,4 @@
 ﻿using HitomiScrollViewerData.DTOs;
-using HitomiScrollViewerWebLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 

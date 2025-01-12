@@ -1,6 +1,5 @@
 ﻿using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
-using HitomiScrollViewerWebLib.Entities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -74,7 +73,7 @@ namespace HitomiScrollViewerData.DTOs {
             }
         }
 
-        private static async Task SetGalleryPropertyAsync(
+        private static void SetGalleryPropertyAsync(
             HitomiContext context,
             Dictionary<string, string>[] originalDictArr,
             List<Tag> tags,
@@ -83,10 +82,10 @@ namespace HitomiScrollViewerData.DTOs {
             if (originalDictArr != null) {
                 foreach (var dict in originalDictArr) {
                     string tagValue = dict[CATEGORY_PROP_KEY_DICT[category]];
-                    Tag tag = Tag.GetTag(context.Tags, tagValue, category);
+                    Tag tag = Utils.GetTag(context.Tags, tagValue, category);
                     if (tag == null) {
-                        await Tag.FetchAndUpdateTagsAsync(context, category, tagValue);
-                        tag = Tag.GetTag(context.Tags, tagValue, category);
+                        //await Utils.FetchAndUpdateTagsAsync(context, category, tagValue);
+                        tag = Utils.GetTag(context.Tags, tagValue, category);
                         if (tag == null) {
                             Debug.WriteLine($"Could not fetch Tag: Value = {tagValue}, Category: {category}");
                         } else {
@@ -99,15 +98,15 @@ namespace HitomiScrollViewerData.DTOs {
             }
         }
 
-        public async Task<Gallery> ToGallery(HitomiContext context) {
+        public Gallery ToGallery(HitomiContext context) {
             List<Tag> tags = [];
-            await SetGalleryPropertyAsync(context, Artists, tags, TagCategory.Artist);
-            await SetGalleryPropertyAsync(context, Groups, tags, TagCategory.Group);
-            await SetGalleryPropertyAsync(context, Characters, tags, TagCategory.Character);
-            await SetGalleryPropertyAsync(context, Parodys, tags, TagCategory.Series);
+            SetGalleryPropertyAsync(context, Artists, tags, TagCategory.Artist);
+            SetGalleryPropertyAsync(context, Groups, tags, TagCategory.Group);
+            SetGalleryPropertyAsync(context, Characters, tags, TagCategory.Character);
+            SetGalleryPropertyAsync(context, Parodys, tags, TagCategory.Series);
 
             foreach (var compositeTag in Tags) {
-                tags.Add(Tag.GetTag(
+                tags.Add(Utils.GetTag(
                     context.Tags,
                     compositeTag.Tag,
                     compositeTag.Male == 1 ? TagCategory.Male :
@@ -122,7 +121,7 @@ namespace HitomiScrollViewerData.DTOs {
                 Id = Id,
                 Title = Title,
                 JapaneseTitle = JapaneseTitle,
-                GalleryLanguage = context.GalleryLanguages.First(l => l.Value == Language),
+                GalleryLanguage = context.GalleryLanguages.First(l => l.EnglishName == Language),
                 GalleryType = context.GalleryTypes.First(t => t.Value == Type),
                 Date = Date,
                 SceneIndexes = SceneIndexes,

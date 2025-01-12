@@ -5,8 +5,6 @@ using System.ComponentModel.DataAnnotations;
 namespace HitomiScrollViewerData.Entities {
     [Index(nameof(Index))]
     public class ImageInfo {
-        private const string BASE_DOMAIN = "hitomi.la";
-
         public long Id { get; set; }
         public int Index { get; set; }
         public string FileName { get; set; }
@@ -21,12 +19,6 @@ namespace HitomiScrollViewerData.Entities {
 
         [Required]
         public Gallery Gallery { get; set; }
-
-        public string GetImageAddress(HashSet<string> subdomainPickerSet, (string notContains, string contains) subdomainCandidates, string serverTime) {
-            string hashFragment = Convert.ToInt32(Hash[^1..] + Hash[^3..^1], 16).ToString();
-            string subdomain = subdomainPickerSet.Contains(hashFragment) ? subdomainCandidates.contains : subdomainCandidates.notContains;
-            return $"https://{subdomain}.{BASE_DOMAIN}/{FileExtension}/{serverTime}/{hashFragment}/{Hash}.{FileExtension}";
-        }
 
         public ImageInfoSyncDTO ToImageInfoSyncDTO() => new() {
             Index = Index,

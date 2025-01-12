@@ -1,5 +1,4 @@
 ﻿using HitomiScrollViewerData.Entities;
-using HitomiScrollViewerWebLib.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
