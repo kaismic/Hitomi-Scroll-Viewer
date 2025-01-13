@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerData.DbContexts;
+﻿using HitomiScrollViewerData;
+using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 
 namespace HitomiScrollViewerWebApp.Services {
@@ -71,7 +72,7 @@ namespace HitomiScrollViewerWebApp.Services {
             }
 
             // add gallery languages and its local names
-            Console.Write("Adding gallery languages and types... ");
+            Console.Write("Adding gallery languages and types...");
             string[][] languages = File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter)).ToArray();
             context.GalleryLanguages.Add(new GalleryLanguage() {
                 IsAll = true,
@@ -103,44 +104,41 @@ namespace HitomiScrollViewerWebApp.Services {
             Console.WriteLine();
             Console.WriteLine("Done.");
 
+
             // add query configurations
+            Console.Write("Adding query configurations...");
             context.QueryConfigurations.AddRange(
                 new QueryConfiguration() {
                     PageKind = PageKind.SearchPage,
-                    SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                    SelectedType = context.GalleryTypes.First(gt => gt.GalleryType == GalleryType.All)
+                    GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
+                    GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
                 },
                 new QueryConfiguration() {
-                    PageKind = PageKind.BrowsePage,
-                    SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                    SelectedType = context.GalleryTypes.First(gt => gt.GalleryType == GalleryType.All)
+                    PageKind = PageKind.SearchPage,
+                    GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
+                    GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
                 }
             );
-
-            // add sort directions
-            context.SortDirections.AddRange(
-                new SortDirectionEntity() { SortDirection = SortDirection.Ascending },
-                new SortDirectionEntity() { SortDirection = SortDirection.Descending }
-            );
             context.SaveChanges();
+            Console.WriteLine("Done.");
 
             // add gallery sorts
-            context.GallerySorts.AddRange(
-                Enumerable.Range(0, Enum.GetNames(typeof(GallerySortProperty)).Length)
-                .Select(i => new GallerySortEntity() {
-                    GallerySortProperty = (GallerySortProperty)i,
-                    SortDirectionEntity = context.SortDirections.First()
-                })
-            );
+            Console.Write("Adding gallery sorts...");
+            GallerySort[] sorts =
+                [.. Enumerable.Range(0, Enum.GetNames<GalleryProperty>().Length)
+                    .Select(i => new GallerySort() {
+                        Property = (GalleryProperty)i,
+                        SortDirection = SortDirection.Ascending,
+                        IsActive = false
+                    })
+                ];
+            // default GallerySort as LastDownloadTime Descending
+            GallerySort lastDownloadTimeSort = sorts.First(s => s.Property == GalleryProperty.LastDownloadTime);
+            lastDownloadTimeSort.IsActive = true;
+            lastDownloadTimeSort.SortDirection = SortDirection.Descending;
+            context.GallerySorts.AddRange(sorts);
             context.SaveChanges();
-
-            // default GallerySort
-            var defaultGallerySort = context.GallerySorts.First(gs => gs.GallerySortProperty == GallerySortProperty.LastDownloadTime);
-            defaultGallerySort.IsActive = true;
-            defaultGallerySort.SortDirectionEntity = context.SortDirections.First(sd => sd.SortDirection == SortDirection.Descending);
-
-            context.SaveChanges();
-            ClearInvocationList();
+            Console.WriteLine("Done.");
         }
 
         private static void AddExampleTagFilters(HitomiContext context) {
@@ -148,34 +146,35 @@ namespace HitomiScrollViewerWebApp.Services {
             IQueryable<Tag> tags = context.Tags;
             context.TagFilters.AddRange(
                 new() {
-                    Name = "ExampleTagFilterName_1".GetLocalized("ExampleTagFilterNames"),
+                    Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_1,
                     Tags = [
-                        Tag.GetTag(tags, "full color", TagCategory.Tag),
-                        Tag.GetTag(tags, "very long hair", TagCategory.Female),
+                        Utils.GetTag(tags, "full color", TagCategory.Tag),
+                        Utils.GetTag(tags, "very long hair", TagCategory.Female),
                     ]
                 },
                 new() {
-                    Name = "ExampleTagFilterName_2".GetLocalized("ExampleTagFilterNames"),
+                    Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_2,
                     Tags = [
-                        Tag.GetTag(tags, "glasses", TagCategory.Female),
-                        Tag.GetTag(tags, "sole male", TagCategory.Male),
+                        Utils.GetTag(tags, "glasses", TagCategory.Female),
+                        Utils.GetTag(tags, "sole male", TagCategory.Male),
                     ]
                 },
                 new() {
-                    Name = "ExampleTagFilterName_3".GetLocalized("ExampleTagFilterNames"),
+                    Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_3,
                     Tags = [
-                        Tag.GetTag(tags, "naruto", TagCategory.Series),
-                        Tag.GetTag(tags, "big breasts", TagCategory.Female),
+                        Utils.GetTag(tags, "naruto", TagCategory.Series),
+                        Utils.GetTag(tags, "big breasts", TagCategory.Female),
                     ]
                 },
                 new() {
-                    Name = "ExampleTagFilterName_4".GetLocalized("ExampleTagFilterNames"),
+                    Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_4,
                     Tags = [
-                        Tag.GetTag(tags, "non-h imageset", TagCategory.Tag)
+                        Utils.GetTag(tags, "non-h imageset", TagCategory.Tag)
                     ]
                 }
             );
             context.SaveChanges();
+            Console.WriteLine("Done.");
         }
     }
 }

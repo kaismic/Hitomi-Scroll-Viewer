@@ -1,20 +1,27 @@
 using HitomiScrollViewerWebApp.Components;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.FluentUI.AspNetCore.Components;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace HitomiScrollViewerWebApp {
     public class Program {
+        private static readonly string[] SUPPORTED_CULTURES = ["en", "ko"];
+
         public static void Main(string[] args) {
-            Task.Delay(1000).Wait();
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
             builder.Services.AddFluentUIComponents();
-            
+            builder.Services.AddLocalization();
 
-            Task.Delay(1000).Wait();
             var app = builder.Build();
+
+            app.UseRequestLocalization(new RequestLocalizationOptions() {
+                SupportedCultures = SUPPORTED_CULTURES.Select(culture => new CultureInfo(culture)).ToList(),
+                SupportedUICultures = SUPPORTED_CULTURES.Select(culture => new CultureInfo(culture)).ToList()
+            });
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment()) {

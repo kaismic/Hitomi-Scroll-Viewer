@@ -10,9 +10,9 @@ namespace HitomiScrollViewerData.Entities {
     [Index(nameof(IsActive))]
     public class GallerySort {
         public int Id { get; private set; }
-        public GalleryProperty Property { get; init; }
-        public SortDirection SortDirection { get; set; }
-        public bool IsActive { get; set; }
+        public required GalleryProperty Property { get; init; }
+        public required SortDirection SortDirection { get; set; }
+        public required bool IsActive { get; set; }
         public int Index { get; set; }
     }
 }

@@ -7,10 +7,11 @@
 # ignore downloaded tag text files (which are in the subfolders)
 **/DatabaseResources/*/
 
-
 # ignore Credentials.resw
 Credentials.resw
 
+# ignore automatically generated resource desinger files
+*.Designer.cs
 
 # User-specific files
 *.rsuser
