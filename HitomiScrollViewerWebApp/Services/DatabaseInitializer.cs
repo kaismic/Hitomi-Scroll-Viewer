@@ -30,18 +30,31 @@ namespace HitomiScrollViewerWebApp.Services {
             { TagCategory.Series, "Series" }
         };
 
-        public void Start() {
-            bool dbCreatedFirstTime;
-            using HitomiContext context = new();
-            //context.Database.EnsureDeleted(); // Uncomment to reset database @@@@@@@@@@@
-            dbCreatedFirstTime = context.Database.EnsureCreated();
-            if (dbCreatedFirstTime) {
-                AddDefaultData(context);
-                AddExampleTagFilters(context);
-            }
+        public event Action? Initialized;
+        public bool IsInitializing { get; private set; } = false;
+        public bool IsInitialized { get; private set; } = false;
+
+        public async void StartAsync() {
+            if (IsInitializing || IsInitialized) return;
+            IsInitializing = true;
+            Console.Write("Initializing");
+            ConsoleLoadingDots loadingDots = new(3, 500);
+            await Task.Delay(5000);
+            await loadingDots.StopAsync();
+            Console.WriteLine("Done");
+            //bool dbCreatedFirstTime;
+            //using HitomiContext context = new();
+            ////context.Database.EnsureDeleted(); // Uncomment to reset database @@@@@@@@@@@
+            //dbCreatedFirstTime = context.Database.EnsureCreated();
+            //if (dbCreatedFirstTime) {
+            //    AddDefaultData(context);
+            //    AddExampleTagFilters(context);
+            //}
+            IsInitialized = true;
+            Initialized?.Invoke();
         }
 
-        private static void AddDefaultData(HitomiContext context) {
+        private async Task AddDefaultDataAsync(HitomiContext context) {
             Console.WriteLine("Adding default data to the database...");
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
@@ -100,7 +113,7 @@ namespace HitomiScrollViewerWebApp.Services {
             Console.Write("Saving changes");
             ConsoleLoadingDots loadingDots = new(3, 500);
             context.SaveChanges();
-            loadingDots.StopAsync();
+            await loadingDots.StopAsync();
             Console.WriteLine();
             Console.WriteLine("Done.");
 

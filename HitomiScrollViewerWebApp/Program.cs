@@ -1,5 +1,5 @@
 using HitomiScrollViewerWebApp.Components;
-using Microsoft.AspNetCore.Localization;
+using HitomiScrollViewerWebApp.Services;
 using Microsoft.FluentUI.AspNetCore.Components;
 using System.Diagnostics;
 using System.Globalization;
@@ -15,9 +15,9 @@ namespace HitomiScrollViewerWebApp {
                 .AddInteractiveServerComponents();
             builder.Services.AddFluentUIComponents();
             builder.Services.AddLocalization();
+            builder.Services.AddSingleton<DatabaseInitializer>();
 
             var app = builder.Build();
-
             app.UseRequestLocalization(new RequestLocalizationOptions() {
                 SupportedCultures = SUPPORTED_CULTURES.Select(culture => new CultureInfo(culture)).ToList(),
                 SupportedUICultures = SUPPORTED_CULTURES.Select(culture => new CultureInfo(culture)).ToList()
@@ -29,15 +29,16 @@ namespace HitomiScrollViewerWebApp {
             }
 
             app.UseAntiforgery();
-
             app.MapStaticAssets();
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+            app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
             Task appTask = app.RunAsync();
             OpenBrowser(app.Urls.First());
+            DatabaseInitializer dbInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
+            dbInitializer.StartAsync();
             appTask.Wait();
         }
+
         private static void OpenBrowser(string url) {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
