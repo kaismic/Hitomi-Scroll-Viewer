@@ -6,31 +6,35 @@
         public CancellationTokenSource _cts = new();
         public Task Animation { get; private set; }
 
-        private readonly IEnumerable<char> _backspaces;
+        private readonly string _allDeleteString;
 
         public ConsoleLoadingDots(int max, int interval) {
             _max = max;
             _interval = interval;
-            _backspaces = Enumerable.Repeat('\b', max);
+            _allDeleteString = string.Join(null, Enumerable.Repeat("\b \b", max));
 
             Animation = Task.Run(async () => {
                 while (true) {
-                    if (_count > _max) {
-                        Console.Write(_backspaces);
+                    if (_count >= _max) {
+                        Console.Write(_allDeleteString);
                         _count = 0;
                     } else {
                         Console.Write('.');
                         _count++;
                     }
-                    await Task.Delay(_interval, _cts.Token);
+                    try {
+                        await Task.Delay(_interval, _cts.Token);
+                    } catch (TaskCanceledException) {
+                        break;
+                    }
                 }
             });
         }
 
-        public async void StopAsync() {
+        public async Task StopAsync() {
             _cts.Cancel();
             await Animation;
-            Console.Write(Enumerable.Repeat('\b', _count));
+            Console.WriteLine(string.Join(null, Enumerable.Repeat('.', _max - _count)));
         }
     }
 }
