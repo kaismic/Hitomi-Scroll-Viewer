@@ -1,12 +1,10 @@
-﻿namespace HitomiScrollViewerWebApp {
-    using System;
-    using System.Text;
-    using System.Threading;
+﻿using System.Text;
 
+namespace ConsoleUtilities {
     /// <summary>
     /// An ASCII progress bar. From https://gist.github.com/DanielSWolf/0ab6a96899cc5377bf54
     /// </summary>
-    public class ConsoleProgressBar : IDisposable, IProgress<double> {
+    public class ProgressBar : IDisposable, IProgress<double> {
         private const int blockCount = 10;
         private readonly TimeSpan animationInterval = TimeSpan.FromSeconds(1.0 / 8);
         private const string animation = @"|/-\";
@@ -18,7 +16,7 @@
         private bool disposed = false;
         private int animationIndex = 0;
 
-        public ConsoleProgressBar() {
+        public ProgressBar() {
             timer = new Timer(TimerHandler);
 
             // A progress bar is only for temporary display in a console window.

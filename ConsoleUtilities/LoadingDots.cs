@@ -1,5 +1,5 @@
-﻿namespace HitomiScrollViewerWebApp {
-    public class ConsoleLoadingDots {
+﻿namespace ConsoleUtilities {
+    public class LoadingDots {
         private readonly int _max;
         private readonly int _interval;
         private int _count = 0;
@@ -8,7 +8,7 @@
 
         private readonly string _allDeleteString;
 
-        public ConsoleLoadingDots(int max, int interval) {
+        public LoadingDots(int max, int interval) {
             _max = max;
             _interval = interval;
             _allDeleteString = string.Join(null, Enumerable.Repeat("\b \b", max));

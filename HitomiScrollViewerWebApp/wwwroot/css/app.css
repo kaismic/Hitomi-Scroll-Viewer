@@ -18,6 +18,16 @@ body {
     align-items: stretch !important;
 }
 
+.app-loading-progress {
+    min-height: calc(100dvh - 86px);
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2dvh
+}
+
 .body-content {
     align-self: stretch;
     height: calc(100dvh - 86px) !important;
@@ -28,10 +38,6 @@ body {
     padding: 0.5rem 1.5rem;
     align-self: stretch !important;
     width: 100%;
-}
-
-.manage {
-    width: 100dvw;
 }
 
 footer {

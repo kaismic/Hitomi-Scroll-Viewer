@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerData;
+﻿using ConsoleUtilities;
+using HitomiScrollViewerData;
 using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 
@@ -30,18 +31,12 @@ namespace HitomiScrollViewerWebApp.Services {
             { TagCategory.Series, "Series" }
         };
 
-        public event Action? Initialized;
-        public bool IsInitializing { get; private set; } = false;
+        public event Action Initialized;
+        public event Action<string> StatusChanged; // TODO use this event to update UI status
         public bool IsInitialized { get; private set; } = false;
-
+        
         public async void StartAsync() {
-            if (IsInitializing || IsInitialized) return;
-            IsInitializing = true;
-            Console.Write("Initializing");
-            ConsoleLoadingDots loadingDots = new(3, 500);
-            await Task.Delay(5000);
-            await loadingDots.StopAsync();
-            Console.WriteLine("Done");
+            await Task.Delay(4000);
             //bool dbCreatedFirstTime;
             //using HitomiContext context = new();
             ////context.Database.EnsureDeleted(); // Uncomment to reset database @@@@@@@@@@@
@@ -52,6 +47,7 @@ namespace HitomiScrollViewerWebApp.Services {
             //}
             IsInitialized = true;
             Initialized?.Invoke();
+
         }
 
         private async Task AddDefaultDataAsync(HitomiContext context) {
@@ -59,7 +55,7 @@ namespace HitomiScrollViewerWebApp.Services {
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
                 Console.WriteLine($"Adding {category} tags...");
-                using var pb = new ConsoleProgressBar();
+                using var pb = new ProgressBar();
                 int progress = 0;
                 string categoryStr = CATEGORY_DIR_DICT[category];
                 string dir = Path.Combine(
@@ -111,7 +107,7 @@ namespace HitomiScrollViewerWebApp.Services {
             Console.WriteLine("Done.");
 
             Console.Write("Saving changes");
-            ConsoleLoadingDots loadingDots = new(3, 500);
+            LoadingDots loadingDots = new(3, 500);
             context.SaveChanges();
             await loadingDots.StopAsync();
             Console.WriteLine();
