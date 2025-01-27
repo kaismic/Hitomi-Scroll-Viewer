@@ -7,8 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<Content Include="DatabaseResources\**\*.txt">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
+  </ItemGroup>
+
+
+	<ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
   </ItemGroup>
+
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ConsoleUtilities\ConsoleUtilities.csproj" />
+	</ItemGroup>
 
 </Project>

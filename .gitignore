@@ -10,8 +10,8 @@
 # ignore Credentials.resw
 Credentials.resw
 
-# ignore automatically generated resource desinger files
 *.Designer.cs
+*.db
 
 # User-specific files
 *.rsuser

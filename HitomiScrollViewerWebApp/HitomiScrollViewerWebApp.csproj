@@ -4,21 +4,13 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
-	<Content Include="DatabaseResources\**\*.txt">
-	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</Content>
-  </ItemGroup>
-
-	<ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.11.0" />
     <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.11.0" />
   </ItemGroup>
   <ItemGroup>
-	<ProjectReference Include="..\ConsoleUtilities\ConsoleUtilities.csproj" />
 	<ProjectReference Include="..\HitomiScrollViewerData\HitomiScrollViewerData.csproj" />
   </ItemGroup>
   <ItemGroup>

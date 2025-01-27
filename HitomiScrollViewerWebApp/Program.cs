@@ -1,4 +1,3 @@
-using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.FluentUI.AspNetCore.Components;
@@ -12,16 +11,8 @@ namespace HitomiScrollViewerWebApp {
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddFluentUIComponents();
-            builder.Services.AddSingleton<DatabaseInitializer>();
-
-
-
             var app = builder.Build();
-
-            Task appTask = app.RunAsync();
-            DatabaseInitializer dbInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
-            dbInitializer.StartAsync();
-            await appTask;
+            await app.RunAsync();
         }
     }
 }
