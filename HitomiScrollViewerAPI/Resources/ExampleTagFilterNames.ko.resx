@@ -120,13 +120,13 @@
   <data name="ExampleTagFilterName_4" xml:space="preserve">
     <value>태그: Non-H</value>
   </data>
-	<data name="ExampleTagFilterName_3" xml:space="preserve">
+  <data name="ExampleTagFilterName_3" xml:space="preserve">
     <value>시리즈: 나루토, 여성: 거유</value>
   </data>
-	<data name="ExampleTagFilterName_1" xml:space="preserve">
+  <data name="ExampleTagFilterName_1" xml:space="preserve">
     <value>태그: 풀컬러, 여성: 장발</value>
   </data>
-	<data name="ExampleTagFilterName_2" xml:space="preserve">
+  <data name="ExampleTagFilterName_2" xml:space="preserve">
     <value>여성: 안경, 남성: 1인 남성</value>
   </data>
 </root>

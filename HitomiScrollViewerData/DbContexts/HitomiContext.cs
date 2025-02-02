@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 namespace HitomiScrollViewerData.DbContexts {
     public class HitomiContext : DbContext {
         //public static readonly string MAIN_DATABASE_PATH = "full-main.db";
+        public HitomiContext() { }
+        public HitomiContext(DbContextOptions options) : base(options) { }
 
         public DbSet<TagFilter> TagFilters { get; set; }
         public DbSet<Gallery> Galleries { get; set; }

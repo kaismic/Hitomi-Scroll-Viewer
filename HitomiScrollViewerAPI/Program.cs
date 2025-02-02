@@ -1,4 +1,5 @@
 
+using HitomiScrollViewerAPI.Hubs;
 using HitomiScrollViewerData.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,20 +18,21 @@ namespace HitomiScrollViewerAPI {
                 .EnableSensitiveDataLogging()
             );
             builder.Services.AddOpenApi();
+            builder.Services.AddSignalRCore();
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment()) {
                 app.MapOpenApi();
+                app.MapGet("/debug/routes", (IEnumerable<EndpointDataSource> endpointSources) =>
+                    string.Join("\n", endpointSources.SelectMany(source => source.Endpoints)));
             }
-
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
+
+            app.MapHub<DbStatusHub>("/api/initialize");
 
             app.Run();
         }

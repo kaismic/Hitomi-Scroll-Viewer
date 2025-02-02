@@ -1,23 +1,23 @@
-using HitomiScrollViewerData.DbContexts;
+﻿using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    public class GalleryController(HitomiContext context) : ControllerBase {
+    public class TagFilterController(HitomiContext context) : ControllerBase {
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Gallery> GetGallery(int id) {
-            Gallery? result = context.Galleries.Find(id);
+        public ActionResult<TagFilter> GetTagFilter(int id) {
+            TagFilter? result = context.TagFilters.Find(id);
             return result == null ? NotFound() : Ok(result);
         }
 
-        [HttpGet("count")]
+        [HttpGet("/")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<int> GetGalleryCount() {
-            return Ok(new JsonResult(context.Galleries.Count()));
+        public ActionResult<IEnumerable<TagFilter>> GetTagFilters() {
+            return Ok(context.TagFilters);
         }
     }
 }

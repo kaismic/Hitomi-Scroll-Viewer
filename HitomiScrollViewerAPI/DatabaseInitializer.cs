@@ -3,7 +3,7 @@ using HitomiScrollViewerData;
 using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 
-namespace HitomiScrollViewerWebApp.Services {
+namespace HitomiScrollViewerAPI {
     public class DatabaseInitializer {
         private static readonly string[] ALPHABETS_WITH_123 =
             ["123", .. Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())];
@@ -31,8 +31,8 @@ namespace HitomiScrollViewerWebApp.Services {
             { TagCategory.Series, "Series" }
         };
 
-        public event Action Initialized;
-        public event Action<string> StatusChanged; // TODO use this event to update UI status
+        public event Action? Initialized;
+        public event Action<string>? StatusChanged; // TODO use this event to update UI status
         public bool IsInitialized { get; private set; } = false;
         
         public async void StartAsync() {

@@ -1,12 +1,23 @@
 @HitomiScrollViewerAPI_HostAddress = http://localhost:5155
 
-GET {{HitomiScrollViewerAPI_HostAddress}}/gallery/2823006
-Accept: application/json
+
+GET {{HitomiScrollViewerAPI_HostAddress}}/debug/routes
+
+###
+
+GET {{HitomiScrollViewerAPI_HostAddress}}/api/gallery/2823006
 
 ###
     
-GET {{HitomiScrollViewerAPI_HostAddress}}/gallerycount
-Accept: application/json
+GET {{HitomiScrollViewerAPI_HostAddress}}/api/tagfilter
+
+###
+
+GET {{HitomiScrollViewerAPI_HostAddress}}/api/tagfilter/3
+
+###
+
+GET {{HitomiScrollViewerAPI_HostAddress}}/api/database/isinitialized
 
 ###
     
