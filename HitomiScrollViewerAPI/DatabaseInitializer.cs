@@ -4,7 +4,8 @@ using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 
 namespace HitomiScrollViewerAPI {
-    public class DatabaseInitializer {
+    public static class DatabaseInitializer {
+        private const string INITIALIZED_FLAG_FILE_PATH = "db-initialized.txt";
         private static readonly string[] ALPHABETS_WITH_123 =
             ["123", .. Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())];
 
@@ -31,30 +32,37 @@ namespace HitomiScrollViewerAPI {
             { TagCategory.Series, "Series" }
         };
 
-        public event Action? Initialized;
-        public event Action<string>? StatusChanged; // TODO use this event to update UI status
-        public bool IsInitialized { get; private set; } = false;
-        
-        public async void StartAsync() {
-            await Task.Delay(4000);
-            //bool dbCreatedFirstTime;
-            //using HitomiContext context = new();
-            ////context.Database.EnsureDeleted(); // Uncomment to reset database @@@@@@@@@@@
-            //dbCreatedFirstTime = context.Database.EnsureCreated();
-            //if (dbCreatedFirstTime) {
-            //    AddDefaultData(context);
-            //    AddExampleTagFilters(context);
-            //}
+        public static event Action<InitStatus, InitProgress?>? StatusChanged;
+        public static bool IsInitialized { get; private set; } = false;
+        public static void Start() {
+            using HitomiContext context = new();
+            bool initializedFlagFileExists = File.Exists(INITIALIZED_FLAG_FILE_PATH);
+            if (initializedFlagFileExists) {
+                bool isInitialized = bool.Parse(File.ReadAllText(INITIALIZED_FLAG_FILE_PATH));
+                if (isInitialized) {
+                    IsInitialized = true;
+                    StatusChanged?.Invoke(InitStatus.Complete, null);
+                    return;
+                } else {
+                    context.Database.EnsureDeleted();
+                }
+            } else {
+                File.WriteAllText(INITIALIZED_FLAG_FILE_PATH, false.ToString());
+            }
+            context.Database.EnsureCreated();
+            AddDefaultDataAsync(context);
+            AddExampleTagFilters(context);
             IsInitialized = true;
-            Initialized?.Invoke();
-
+            StatusChanged?.Invoke(InitStatus.Complete, null);
+            StatusChanged = null; // clear event handlers
         }
 
-        private async Task AddDefaultDataAsync(HitomiContext context) {
+        private static void AddDefaultDataAsync(HitomiContext context) {
+            StatusChanged?.Invoke(InitStatus.InProgress, InitProgress.AddingTags);
             Console.WriteLine("Adding default data to the database...");
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                Console.WriteLine($"Adding {category} tags...");
+                Console.Write($"Adding {category} tags... ");
                 using var pb = new ProgressBar();
                 int progress = 0;
                 string categoryStr = CATEGORY_DIR_DICT[category];
@@ -77,11 +85,12 @@ namespace HitomiScrollViewerAPI {
                     ));
                     pb.Report((double)++progress / ALPHABETS_WITH_123.Length);
                 }
-                Console.WriteLine("Done.");
+                Console.WriteLine("Complete.");
             }
 
             // add gallery languages and its local names
-            Console.Write("Adding gallery languages and types...");
+            StatusChanged?.Invoke(InitStatus.InProgress, InitProgress.AddingGalleryLanguagesAndTypes);
+            Console.Write("Adding gallery languages and types... ");
             string[][] languages = File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter)).ToArray();
             context.GalleryLanguages.Add(new GalleryLanguage() {
                 IsAll = true,
@@ -104,18 +113,13 @@ namespace HitomiScrollViewerAPI {
                 Value = null
             });
             context.GalleryTypes.AddRange(types.Select(t => new GalleryType() { IsAll = false, Value = t }));
-            Console.WriteLine("Done.");
-
-            Console.Write("Saving changes");
-            LoadingDots loadingDots = new(3, 500);
             context.SaveChanges();
-            await loadingDots.StopAsync();
-            Console.WriteLine();
-            Console.WriteLine("Done.");
+            Console.WriteLine("Complete.");
 
 
             // add query configurations
-            Console.Write("Adding query configurations...");
+            Console.Write("Adding query configurations... ");
+            StatusChanged?.Invoke(InitStatus.InProgress, InitProgress.AddingQueryConfigurations);
             context.QueryConfigurations.AddRange(
                 new QueryConfiguration() {
                     PageKind = PageKind.SearchPage,
@@ -129,10 +133,11 @@ namespace HitomiScrollViewerAPI {
                 }
             );
             context.SaveChanges();
-            Console.WriteLine("Done.");
+            Console.WriteLine("Complete.");
 
             // add gallery sorts
-            Console.Write("Adding gallery sorts...");
+            Console.Write("Adding gallery sorts... ");
+            StatusChanged?.Invoke(InitStatus.InProgress, InitProgress.AddingGallerySorts);
             GallerySort[] sorts =
                 [.. Enumerable.Range(0, Enum.GetNames<GalleryProperty>().Length)
                     .Select(i => new GallerySort() {
@@ -147,11 +152,12 @@ namespace HitomiScrollViewerAPI {
             lastDownloadTimeSort.SortDirection = SortDirection.Descending;
             context.GallerySorts.AddRange(sorts);
             context.SaveChanges();
-            Console.WriteLine("Done.");
+            Console.WriteLine("Complete.");
         }
 
         private static void AddExampleTagFilters(HitomiContext context) {
-            Console.WriteLine("Adding example tag filters...");
+            StatusChanged?.Invoke(InitStatus.InProgress, InitProgress.AddingExampleTagFilters);
+            Console.Write("Adding example tag filters... ");
             IQueryable<Tag> tags = context.Tags;
             context.TagFilters.AddRange(
                 new() {
@@ -183,7 +189,7 @@ namespace HitomiScrollViewerAPI {
                 }
             );
             context.SaveChanges();
-            Console.WriteLine("Done.");
+            Console.WriteLine("Complete.");
         }
     }
 }

@@ -16,8 +16,3 @@ GET {{HitomiScrollViewerAPI_HostAddress}}/api/tagfilter
 GET {{HitomiScrollViewerAPI_HostAddress}}/api/tagfilter/3
 
 ###
-
-GET {{HitomiScrollViewerAPI_HostAddress}}/api/database/isinitialized
-
-###
-    
