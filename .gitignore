@@ -3,6 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+db-initialized.txt
 
 # ignore downloaded tag text files (which are in the subfolders)
 **/DatabaseResources/*/
