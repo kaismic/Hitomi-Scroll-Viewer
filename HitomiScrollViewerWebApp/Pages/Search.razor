@@ -1,7 +1,4 @@
 ﻿@page "/search"
-@using HitomiScrollViewerData
-@using Microsoft.AspNetCore.SignalR.Client
-@implements IAsyncDisposable
 
 <PageTitle>Search</PageTitle>
 
@@ -12,59 +9,12 @@
         </div>
     </div>
     <div style="grid-column: 2; grid-template-rows: min-content 1fr 1fr;">
-        <div>@_status</div>
-        <button @onclick="StartInitialize">Start Initialize</button>
+
     </div>
 </div>
 
 @code {
-    private HubConnection hubConnection;
-    private string _status = "Waiting to receive status...";
-
     protected override void OnInitialized()
     {
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl("https://localhost:7076/api/initialize")
-            .Build();
-
-        hubConnection.On<InitStatus, InitProgress?>("ReceiveStatus", UpdateStatus);
-    }
-
-    private void StartInitialize()
-    {
-        hubConnection.StartAsync();
-    }
-
-    private void UpdateStatus(InitStatus status, InitProgress? progress)
-    {
-        switch (status)
-        {
-            case InitStatus.InProgress:
-                {
-                    // TODO
-                    switch (progress)
-                    {
-                        case InitProgress.AddingTags:
-                            {
-                                _status = "Adding tags...";
-                                break;
-                            }
-                    }
-                    break;
-                }
-            case InitStatus.Complete:
-                {
-                    break;
-                }
-        }
-        InvokeAsync(StateHasChanged);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection is not null)
-        {
-            await hubConnection.DisposeAsync();
-        }
     }
 }

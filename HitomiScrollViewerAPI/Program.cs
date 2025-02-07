@@ -1,6 +1,7 @@
 
 using HitomiScrollViewerAPI.Hubs;
 using HitomiScrollViewerData.DbContexts;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerAPI {
@@ -38,6 +39,11 @@ namespace HitomiScrollViewerAPI {
             app.UseCors("AllowLocalhostOrigins");
             app.MapControllers();
             app.MapHub<DbStatusHub>("/api/initialize");
+
+            _ = Task.Run(() => {
+                DatabaseInitializer dbInitializer = new(app.Services.GetRequiredService<IHubContext<DbStatusHub, IStatusClient>>());
+                dbInitializer.Start();
+            });
 
             app.Run();
         }

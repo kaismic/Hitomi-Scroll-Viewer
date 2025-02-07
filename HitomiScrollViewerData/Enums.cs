@@ -3,11 +3,4 @@
         InProgress,
         Complete
     }
-    public enum InitProgress {
-        AddingTags,
-        AddingGalleryLanguagesAndTypes,
-        AddingQueryConfigurations,
-        AddingGallerySorts,
-        AddingExampleTagFilters
-    }
 }

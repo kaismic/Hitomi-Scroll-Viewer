@@ -1,37 +1,107 @@
 ﻿@inherits LayoutComponentBase
+@using HitomiScrollViewerData
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+@inject NavigationManager NavigationManager
 
 <FluentLayout>
     <FluentHeader>Hitomi Scroll Viewer</FluentHeader>
-    <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
-        <NavMenu />
-        <FluentBodyContent Class="body-content">
-            <ErrorBoundary>
-                <ChildContent>
+    @if (_isInitialized)
+    {
+        <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
+            <NavMenu />
+            <FluentBodyContent Class="body-content">
+                <ErrorBoundary>
+                    <ChildContent>
                         <div class="content">
                             @Body
                         </div>
-                </ChildContent>
-                <ErrorContent Context="ex">
-                    <div class="blazor-error-boundary">@ex.Message</div>
-                </ErrorContent>
-            </ErrorBoundary>
-        </FluentBodyContent>
-    </FluentStack>
-    @*
-    @if (DbInitializer.IsInitialized)
-    {
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <div class="blazor-error-boundary">@ex.Message</div>
+                    </ErrorContent>
+                </ErrorBoundary>
+            </FluentBodyContent>
+        </FluentStack>
     }
     else
     {
         <div class="app-loading-progress">
-            <FluentProgressRing Width="8dvh"></FluentProgressRing>
-            <span>Loading...</span>
+            @if (_connectionError)
+            {
+                <FluentIcon Width="8dvh" Value="@(new Icons.Regular.Size20.ErrorCircle())"></FluentIcon>
+            }
+            else
+            {
+                <FluentProgressRing Width="8dvh"></FluentProgressRing>
+            }
+            <span>@_status</span>
         </div>
     }
-    *@
     <FluentFooter>
         <FluentSpacer />
         <a href="https://github.com/kaismic/Hitomi-Scroll-Viewer" target="_blank">About</a>
     </FluentFooter>
 </FluentLayout>
 
+@code {
+    private HubConnection _hubConnection;
+    private bool _isInitialized = false;
+    private bool _connectionError = false;
+    private string _status = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _status = "Connecting to local server...";
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl("https://localhost:7076/api/initialize") // TODO replace with value read from appsettings.json
+                .Build();
+            _hubConnection.On<InitStatus, int>("ReceiveStatus", UpdateStatus);
+            await _hubConnection.StartAsync();
+        }
+        catch (HttpRequestException)
+        {
+            _connectionError = true;
+            _status = "Connection error. Please reload after starting the local server.";
+        }
+    }
+
+    private async void UpdateStatus(InitStatus status, int progress)
+    {
+        switch (status)
+        {
+            case InitStatus.InProgress:
+                _status = progress switch
+                {
+                    0 => "Adding tags...",
+                    1 => "Adding gallery language and types...",
+                    2 => "Adding query configurations...",
+                    3 => "Adding gallery sorts...",
+                    4 => "Adding example tag filters...",
+                    _ => "Unknown status"
+                };
+                break;
+            case InitStatus.Complete:
+                _status = "Initialization complete.";
+                _isInitialized = true;
+                await _hubConnection.StopAsync();
+                Console.WriteLine("complete: stop async");
+                await _hubConnection.DisposeAsync();
+                Console.WriteLine("complete: dispose async");
+                NavigationManager.NavigateTo("/search");
+                break;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+                Console.WriteLine("MainLayout dispose async");
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}
