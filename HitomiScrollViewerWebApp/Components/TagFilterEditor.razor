@@ -1,12 +1,26 @@
-﻿
+﻿@inject IHttpClientFactory HttpClientFactory
+
 <div style="grid-template-columns: 2fr min-content min-content 3fr min-content min-content 2fr;">
     <FluentButton style="grid-column: 2;" IconEnd="@(new Icons.Regular.Size20.Add())"></FluentButton>
     <FluentButton style="grid-column: 3;" IconEnd="@(new Icons.Regular.Size20.Edit())"></FluentButton>
-    <FluentSelect style="grid-column: 4;" TOption="TagFilter"/>
+    <FluentSelect style="grid-column: 4;"
+                  TOption="TagFilter"
+                  Items="@_tagFilters"
+                  OptionText="@(tf => tf.Name)"
+                  @bind-SelectedOption="@SelectedTagFilter" />
     <FluentButton style="grid-column: 5;" IconEnd="@(new Icons.Regular.Size20.Save())"></FluentButton>
     <FluentButton style="grid-column: 6;" IconEnd="@(new Icons.Regular.Size20.Delete())"></FluentButton>
 </div>
 
 @code {
+    private IEnumerable<TagFilter> _tagFilters;
+    public TagFilter SelectedTagFilter;
+    protected override async Task OnInitializedAsync()
+    {
+        HttpClient hitomiClient = HttpClientFactory.CreateClient("HitomiAPI");
+        HttpResponseMessage response = await hitomiClient.GetAsync("api/tagfilter");
+        _tagFilters = await response.Content.ReadFromJsonAsync<IEnumerable<TagFilter>>();
 
+        await base.OnInitializedAsync();
+    }
 }

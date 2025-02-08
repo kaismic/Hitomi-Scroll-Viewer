@@ -87,9 +87,7 @@
                 _status = "Initialization complete";
                 _isInitialized = true;
                 await _hubConnection.StopAsync();
-                Console.WriteLine("complete: stop async");
                 await _hubConnection.DisposeAsync();
-                Console.WriteLine("complete: dispose async");
                 NavigationManager.NavigateTo("/search");
                 break;
         }
@@ -100,7 +98,6 @@
     {
         if (_hubConnection is not null)
         {
-                Console.WriteLine("MainLayout dispose async");
             await _hubConnection.DisposeAsync();
         }
     }

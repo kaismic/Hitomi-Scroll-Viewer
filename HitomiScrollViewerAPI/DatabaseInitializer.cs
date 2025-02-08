@@ -61,14 +61,14 @@ namespace HitomiScrollViewerAPI {
         }
 
         private const int MAX_DESC_TEXT_LENGTH = 40;
-        private const int TOTAL_LEFT_ALIGNMENT = MAX_DESC_TEXT_LENGTH + ProgressBar.TOTAL_TEXT_LENGTH;
+        private static readonly ProgressBar _progressBar = new(10);
+        private static readonly int _totalLeftAlignment = MAX_DESC_TEXT_LENGTH + _progressBar.TotalLength;
 
         private void AddDefaultDataAsync(HitomiContext context) {
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 0);
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
                 Console.Write("{0,-" + MAX_DESC_TEXT_LENGTH + "}", $"Adding {category} tags... ");
-                ProgressBar pb = new();
                 int progress = 0;
                 string categoryStr = CATEGORY_DIR_DICT[category];
                 string dir = Path.Combine(DB_RES_ROOT_DIR, categoryStr);
@@ -85,14 +85,15 @@ namespace HitomiScrollViewerAPI {
                             };
                         }
                     ));
-                    pb.Report((double)++progress / ALPHABETS_WITH_123.Length);
+                    _progressBar.Report((double)++progress / ALPHABETS_WITH_123.Length);
                 }
+                _progressBar.Reset();
                 Console.WriteLine("  Complete");
             }
 
             // add gallery languages and its local names
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 1);
-            Console.Write("{0,-" + TOTAL_LEFT_ALIGNMENT + "}", "Adding gallery languages and types... ");
+            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding gallery languages and types... ");
             string[][] languages = File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter)).ToArray();
             context.GalleryLanguages.Add(new GalleryLanguage() {
                 IsAll = true,
@@ -120,7 +121,7 @@ namespace HitomiScrollViewerAPI {
 
 
             // add query configurations
-            Console.Write("{0,-" + TOTAL_LEFT_ALIGNMENT + "}", "Adding query configurations... ");
+            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding query configurations... ");
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 2);
             context.QueryConfigurations.AddRange(
                 new QueryConfiguration() {
@@ -138,7 +139,7 @@ namespace HitomiScrollViewerAPI {
             Console.WriteLine("  Complete");
 
             // add gallery sorts
-            Console.Write("{0,-" + TOTAL_LEFT_ALIGNMENT + "}", "Adding gallery sorts... ");
+            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding gallery sorts... ");
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 3);
             GallerySort[] sorts =
                 [.. Enumerable.Range(0, Enum.GetNames<GalleryProperty>().Length)
@@ -159,7 +160,7 @@ namespace HitomiScrollViewerAPI {
 
         private void AddExampleTagFilters(HitomiContext context) {
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 4);
-            Console.Write("{0,-" + TOTAL_LEFT_ALIGNMENT + "}", "Adding example tag filters... ");
+            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding example tag filters... ");
             IQueryable<Tag> tags = context.Tags;
             context.TagFilters.AddRange(
                 new() {

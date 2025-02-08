@@ -4,12 +4,12 @@ namespace ConsoleUtilities {
     /// <summary>
     /// An ASCII progress bar. Original code from https://gist.github.com/DanielSWolf/0ab6a96899cc5377bf54
     /// </summary>
-    public class ProgressBar : IProgress<double> {
-        private const int PROGRESS_BLOCK_LENGTH = 16;
+    public class ProgressBar(int barLength) : IProgress<double> {
         private const int PERCENT_BLOCK_LENGTH = 3;
-        public const int TOTAL_TEXT_LENGTH = PROGRESS_BLOCK_LENGTH + PERCENT_BLOCK_LENGTH + 4; // '[', ']', ' ', '%'
-
-        private int _lastProgressBlockCount = 0;
+        public int TotalLength { get; } = barLength + PERCENT_BLOCK_LENGTH + 4; // '[', ']', ' ', '%'
+        
+        private readonly int _barLength = barLength;
+        private int _lastProgress = 0;
         private string _currentText = string.Empty;
 
         public void Report(double value) {
@@ -19,11 +19,12 @@ namespace ConsoleUtilities {
             if (Console.IsOutputRedirected) return;
             // Make sure value is in [0..1] range
             value = Math.Max(0, Math.Min(1, value));
-            int progressBlockCount = (int)(value * PROGRESS_BLOCK_LENGTH);
-            if (_lastProgressBlockCount == progressBlockCount) return;
+            int currentProgress = (int)(value * _barLength);
+            if (_lastProgress == currentProgress) return;
+            _lastProgress = currentProgress;
             int percent = (int)(value * 100);
             string text = string.Format("[{0}{1}] {2," + PERCENT_BLOCK_LENGTH + "}%",
-                new string('#', progressBlockCount), new string('-', PROGRESS_BLOCK_LENGTH - progressBlockCount),
+                new string('#', currentProgress), new string('-', _barLength - currentProgress),
                 percent);
             UpdateText(text);
         }
@@ -52,6 +53,10 @@ namespace ConsoleUtilities {
 
             Console.Write(outputBuilder);
             _currentText = text;
+        }
+
+        public void Reset() {
+            _currentText = "";
         }
     }
 }

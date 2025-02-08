@@ -9,6 +9,10 @@ GET {{HitomiScrollViewerAPI_HostAddress}}/api/gallery/2823006
 
 ###
     
+GET {{HitomiScrollViewerAPI_HostAddress}}/api/gallery/count
+
+###
+    
 GET {{HitomiScrollViewerAPI_HostAddress}}/api/tagfilter
 
 ###

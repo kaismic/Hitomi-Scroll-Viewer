@@ -17,7 +17,7 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpGet("count")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<int> GetGalleryCount() {
-            return Ok(new JsonResult(context.Galleries.Count()));
+            return Ok(context.Galleries.Count());
         }
     }
 }

@@ -14,7 +14,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             return result == null ? NotFound() : Ok(result);
         }
 
-        [HttpGet("/")]
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<TagFilter>> GetTagFilters() {
             return Ok(context.TagFilters);

@@ -9,7 +9,10 @@ namespace HitomiScrollViewerWebApp {
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            // TODO change uri to the api address in appsettings.json
+            // TODO or add service and use dependency injection
+            //builder.Configuration.GetValue<string>("applicationUrl");
+            builder.Services.AddHttpClient("HitomiAPI", client => client.BaseAddress = new Uri("https://localhost:7076/"));
             builder.Services.AddFluentUIComponents();
             var app = builder.Build();
             await app.RunAsync();
