@@ -84,7 +84,7 @@
                 };
                 break;
             case InitStatus.Complete:
-                _status = "Initialization complete.";
+                _status = "Initialization complete";
                 _isInitialized = true;
                 await _hubConnection.StopAsync();
                 Console.WriteLine("complete: stop async");
