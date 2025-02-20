@@ -3,6 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+PrevWebApp
+
 # Database initialize flag
 db-init-flag.txt
 
@@ -14,6 +16,8 @@ Credentials.resw
 
 *.Designer.cs
 *.db
+*.db-shm
+*.db-wal
 
 # User-specific files
 *.rsuser

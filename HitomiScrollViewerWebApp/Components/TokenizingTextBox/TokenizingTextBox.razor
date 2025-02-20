@@ -1,0 +1,41 @@
+﻿@inherits ComponentBase
+@typeparam TValue
+
+<div style="height: 100%; display: grid; grid-template-rows: auto 1fr;">
+    <MudAutocomplete T="TValue"
+                     Label="@Label"
+                     DebounceInterval="500"
+                     SearchFunc="SearchFunc"
+                     ToStringFunc="ToStringFunc"
+                     Clearable="true"
+                     AdornmentIcon="@Icons.Material.Filled.Search"
+                     Color="Color.Primary"
+                     Style="grid-row: 1; width: 90%; margin: auto;">
+    </MudAutocomplete>
+    <div style="grid-row: 2; overflow-y: auto;">
+        @foreach (TValue value in _values) {
+            <Token Value="value"
+                   ToStringFunc="ToStringFunc"
+                   OnTokenClick="HandleTokenClick"
+                   Closed="@(EventCallback.Factory.Create<MudChip<TValue>>(this, HandleClosed))" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public required Func<TValue, string> ToStringFunc { get; set; }
+    [Parameter, EditorRequired] public required Func<string, CancellationToken, Task<IEnumerable<TValue>>> SearchFunc { get; set; }
+    private List<TValue> _values = [];
+
+    private void HandleTokenClick(MouseEventArgs args) {
+
+        // TODO ctrl, shift modifier handling
+        // shift: multi selection range IndexOf
+        Console.WriteLine("Token clicked");
+    }
+
+    private void HandleClosed(MudChip<TValue> mudChip) {
+        _values.Remove(mudChip.Value!);
+    }
+}

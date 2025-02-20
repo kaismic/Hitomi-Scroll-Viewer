@@ -1,0 +1,29 @@
+﻿@inherits ComponentBase
+@typeparam TValue
+
+<MudChip T="TValue"
+         Value="Value"
+         Color="@_color"
+         OnClick="OnTokenClick"
+         OnClose="Closed">
+    @ToStringFunc(Value)
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public required TValue Value { get; set; }
+    [Parameter, EditorRequired] public required Func<TValue, string> ToStringFunc { get; set; }
+    [Parameter, EditorRequired] public required EventCallback<MouseEventArgs> OnTokenClick { get; set; }
+    [Parameter, EditorRequired] public required EventCallback<MudChip<TValue>> Closed { get; set; }
+
+    private bool _isSelected = false;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            _isSelected = value;
+            _color = _isSelected ? Color.Primary : Color.Default;
+        }
+    }
+    private Color _color = Color.Default;
+}

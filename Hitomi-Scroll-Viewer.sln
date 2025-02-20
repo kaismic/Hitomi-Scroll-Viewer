@@ -9,16 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HitomiScrollViewerApp", "Hi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerData", "HitomiScrollViewerData\HitomiScrollViewerData.csproj", "{D109DFDC-D31C-4924-92F5-A793B3D9AF9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerWebApp", "HitomiScrollViewerWebApp\HitomiScrollViewerWebApp.csproj", "{5D496F36-270E-473A-9922-161764955723}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D109DFDC-D31C-4924-92F5-A793B3D9AF9D} = {D109DFDC-D31C-4924-92F5-A793B3D9AF9D}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleUtilities", "ConsoleUtilities\ConsoleUtilities.csproj", "{D0D458E9-A220-4FD2-A2BF-7BD29A25E2FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerAPI", "HitomiScrollViewerAPI\HitomiScrollViewerAPI.csproj", "{CD3ABFD5-4015-47F3-B070-D6343498AA6C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTestApp", "ConsoleTestApp\ConsoleTestApp.csproj", "{71783D1D-C4C7-4149-A72A-DC52B851F112}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerWebApp", "HitomiScrollViewerWebApp\HitomiScrollViewerWebApp.csproj", "{EF2E959C-4C5E-423C-80C4-630D216543E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,26 +101,6 @@ Global
 		{D109DFDC-D31C-4924-92F5-A793B3D9AF9D}.Release|x64.Build.0 = Release|Any CPU
 		{D109DFDC-D31C-4924-92F5-A793B3D9AF9D}.Release|x86.ActiveCfg = Release|Any CPU
 		{D109DFDC-D31C-4924-92F5-A793B3D9AF9D}.Release|x86.Build.0 = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|ARM32.ActiveCfg = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|ARM32.Build.0 = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|arm64.ActiveCfg = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|arm64.Build.0 = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|x64.Build.0 = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Debug|x86.Build.0 = Debug|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|ARM32.ActiveCfg = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|ARM32.Build.0 = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|arm64.ActiveCfg = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|arm64.Build.0 = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|x64.ActiveCfg = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|x64.Build.0 = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|x86.ActiveCfg = Release|Any CPU
-		{5D496F36-270E-473A-9922-161764955723}.Release|x86.Build.0 = Release|Any CPU
 		{D0D458E9-A220-4FD2-A2BF-7BD29A25E2FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0D458E9-A220-4FD2-A2BF-7BD29A25E2FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0D458E9-A220-4FD2-A2BF-7BD29A25E2FF}.Debug|ARM32.ActiveCfg = Debug|Any CPU
@@ -184,6 +161,26 @@ Global
 		{71783D1D-C4C7-4149-A72A-DC52B851F112}.Release|x64.Build.0 = Release|Any CPU
 		{71783D1D-C4C7-4149-A72A-DC52B851F112}.Release|x86.ActiveCfg = Release|Any CPU
 		{71783D1D-C4C7-4149-A72A-DC52B851F112}.Release|x86.Build.0 = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|ARM32.ActiveCfg = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|ARM32.Build.0 = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|arm64.Build.0 = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|x64.Build.0 = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Debug|x86.Build.0 = Debug|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|ARM32.ActiveCfg = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|ARM32.Build.0 = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|arm64.ActiveCfg = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|arm64.Build.0 = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|x64.Build.0 = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|x86.ActiveCfg = Release|Any CPU
+		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

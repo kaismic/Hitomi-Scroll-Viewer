@@ -4,77 +4,74 @@
 @implements IAsyncDisposable
 @inject NavigationManager NavigationManager
 
-<FluentLayout>
-    <FluentHeader>Hitomi Scroll Viewer</FluentHeader>
-    @if (_isInitialized)
-    {
-        <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
-            <NavMenu />
-            <FluentBodyContent Class="body-content">
-                <ErrorBoundary>
-                    <ChildContent>
-                        <div class="content">
-                            @Body
-                        </div>
-                    </ChildContent>
-                    <ErrorContent Context="ex">
-                        <div class="blazor-error-boundary">@ex.Message</div>
-                    </ErrorContent>
-                </ErrorBoundary>
-            </FluentBodyContent>
-        </FluentStack>
-    }
-    else
-    {
-        <div class="app-loading-progress">
-            @if (_connectionError)
-            {
-                <FluentIcon Width="8dvh" Value="@(new Icons.Regular.Size20.ErrorCircle())"></FluentIcon>
-            }
-            else
-            {
-                <FluentProgressRing Width="8dvh"></FluentProgressRing>
-            }
-            <span>@_status</span>
+<MudThemeProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+    @if (_isInitialized) {
+        <MudAppBar Elevation="0">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudText Typo="Typo.h5" Class="ml-3">Hitomi Scroll Viewer</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        </MudAppBar>
+        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+            <MudNavMenu>
+                <MudNavLink Href="/search" Icon="@Icons.Material.Filled.Search">Search</MudNavLink>
+                <MudNavLink Href="/browse" Icon="@Icons.Material.Filled.Folder">Browse</MudNavLink>
+            </MudNavMenu>
+        </MudDrawer>
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+    } else {
+        <div style="min-height: 100dvh; display: flex; justify-content: center; align-items: center;">
+            <div style="display: flex; flex-direction: column; align-items: center;
+                        justify-content: center; gap: 2dvh;">
+                @if (_connectionError) {
+                    <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Primary" />
+                } else {
+                    <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                }
+                <span>@_status</span>
+            </div>
         </div>
     }
-    <FluentFooter>
-        <FluentSpacer />
-        <a href="https://github.com/kaismic/Hitomi-Scroll-Viewer" target="_blank">About</a>
-    </FluentFooter>
-</FluentLayout>
+</MudLayout>
 
 @code {
-    private HubConnection _hubConnection;
+    private HubConnection? _hubConnection;
     private bool _isInitialized = false;
     private bool _connectionError = false;
     private string _status = "";
+    private bool _drawerOpen = true;
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
+    private void DrawerToggle() {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    protected override async Task OnInitializedAsync() {
+        try {
             _status = "Connecting to local server...";
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl("https://localhost:7076/api/initialize") // TODO replace with value read from appsettings.json
                 .Build();
             _hubConnection.On<InitStatus, int>("ReceiveStatus", UpdateStatus);
             await _hubConnection.StartAsync();
-        }
-        catch (HttpRequestException)
-        {
+        } catch (HttpRequestException) {
             _connectionError = true;
             _status = "Connection error. Please reload after starting the local server.";
         }
     }
 
-    private async void UpdateStatus(InitStatus status, int progress)
-    {
-        switch (status)
-        {
+    protected override void OnInitialized() {
+        base.OnInitialized();
+    }
+
+    private async void UpdateStatus(InitStatus status, int progress) {
+        switch (status) {
             case InitStatus.InProgress:
-                _status = progress switch
-                {
+                _status = progress switch {
                     0 => "Adding tags...",
                     1 => "Adding gallery language and types...",
                     2 => "Adding query configurations...",
@@ -86,18 +83,18 @@
             case InitStatus.Complete:
                 _status = "Initialization complete";
                 _isInitialized = true;
-                await _hubConnection.StopAsync();
-                await _hubConnection.DisposeAsync();
+                if (_hubConnection is not null) {
+                    await _hubConnection.StopAsync();
+                    await _hubConnection.DisposeAsync();
+                }
                 NavigationManager.NavigateTo("/search");
                 break;
         }
         await InvokeAsync(StateHasChanged);
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        if (_hubConnection is not null)
-        {
+    public async ValueTask DisposeAsync() {
+        if (_hubConnection is not null) {
             await _hubConnection.DisposeAsync();
         }
     }

@@ -1,0 +1,14 @@
+﻿@using HitomiScrollViewerWebApp.Components.TokenizingTextBox
+@inject TagService TagService
+
+<TokenizingTextBox TValue="Tag" Label="@TagCategory.ToString()" ToStringFunc="@(tag => tag.Value)" SearchFunc="Search"/>
+
+@code {
+    [Parameter] public TagCategory TagCategory { get; set; }
+
+    private async Task<IEnumerable<Tag>> Search(string text, CancellationToken ct)
+    {
+        List<Tag>? result = await TagService.GetTagsAsync(TagCategory, 8, text);
+        return result == null ? [] : result;
+    }
+}

@@ -35,7 +35,8 @@ namespace HitomiScrollViewerAPI {
             Task appTask = app.RunAsync();
             Task.Run(() => {
                 if (OperatingSystem.IsWindows()) {
-                    Console.SetWindowSize(80, 24);
+                    Console.BufferWidth = 80;
+                    Console.WindowWidth = 80;
                 }
                 DatabaseInitializer dbInitializer = new(app.Services.GetRequiredService<IHubContext<DbStatusHub, IStatusClient>>());
                 dbInitializer.Start();

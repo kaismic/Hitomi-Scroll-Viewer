@@ -39,7 +39,7 @@ namespace HitomiScrollViewerAPI {
 
         private void CompleteInitialization(bool fileExists) {
             if (!fileExists) {
-                File.WriteAllText(DB_INIT_FLAG_PATH, "Delete this file to re-initialize database.");
+                //File.WriteAllText(DB_INIT_FLAG_PATH, "Delete this file to re-initialize database.");
             }
             IsInitialized = true;
             _hubContext.Clients.All.ReceiveStatus(InitStatus.Complete, -1);
@@ -94,7 +94,7 @@ namespace HitomiScrollViewerAPI {
             // add gallery languages and its local names
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 1);
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding gallery languages and types... ");
-            string[][] languages = File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter)).ToArray();
+            string[][] languages = [.. File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter))];
             context.GalleryLanguages.Add(new GalleryLanguage() {
                 IsAll = true,
                 EnglishName = "All",

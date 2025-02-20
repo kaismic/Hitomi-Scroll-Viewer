@@ -1,0 +1,7 @@
+﻿/* don't show tag-filter-selector underline and its transition */
+div:has(#tag-filter-selector)::before {
+    display: none;
+}
+div:has(#tag-filter-selector)::after {
+    display: none;
+}

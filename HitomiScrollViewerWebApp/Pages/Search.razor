@@ -2,18 +2,29 @@
 
 <PageTitle>Search</PageTitle>
 
-<div style="grid-template-columns: 75% 25%; height: 100%">
-    <div style="grid-column: 1; grid-template-rows: min-content 1fr;">
+<div style="display: grid; grid-template-columns: 75% 25%; height: 100%; padding: 32px;">
+    <MudPaper Style="display: grid; grid-column: 1; grid-template-rows: auto 40dvh; gap: 16px; padding: 32px;">
         <div style="grid-row: 1">
             <TagFilterEditor></TagFilterEditor>
         </div>
-    </div>
-    <div style="grid-column: 2; grid-template-rows: min-content 1fr 1fr;">
-
+        <div style="grid-row: 2; display: grid; grid-template-columns: repeat(@TAG_CATEGORIES.Length, 1fr);
+                    border: @BORDER_SOLID_PRIMARY; border-radius: inherit;">
+            @for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
+                <div style="grid-column: @(i + 1); border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none");">
+                    <TagTokenizingTextBox TagCategory="@((TagCategory)i)"></TagTokenizingTextBox>
+                </div>
+            }
+        </div>
+    </MudPaper>
+    <div style="display: grid; grid-column: 2; grid-template-rows: auto 1fr 1fr;">
     </div>
 </div>
 
 @code {
+    private static readonly TagCategory[] TAG_CATEGORIES = Enum.GetValues<TagCategory>();
+    private const string BORDER_SOLID_PRIMARY = "1px solid var(--mud-palette-primary)";
+
+
     protected override void OnInitialized()
     {
     }

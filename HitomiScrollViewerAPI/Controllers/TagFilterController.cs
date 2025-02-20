@@ -1,6 +1,7 @@
 ﻿using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
@@ -16,8 +17,8 @@ namespace HitomiScrollViewerAPI.Controllers {
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<TagFilter>> GetTagFilters() {
-            return Ok(context.TagFilters);
+        public ActionResult<List<TagFilter>> GetTagFilters() {
+            return Ok(context.TagFilters.AsNoTracking());
         }
     }
 }

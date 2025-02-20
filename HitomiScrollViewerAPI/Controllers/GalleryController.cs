@@ -1,6 +1,7 @@
 using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
@@ -17,7 +18,7 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpGet("count")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<int> GetGalleryCount() {
-            return Ok(context.Galleries.Count());
+            return Ok(context.Galleries.AsNoTracking().Count());
         }
     }
 }
