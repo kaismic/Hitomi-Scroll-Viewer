@@ -37,16 +37,7 @@ namespace HitomiScrollViewerAPI {
         public static bool IsInitialized { get; private set; } = false;
         private readonly IHubContext<DbStatusHub, IStatusClient> _hubContext = hubContext;
 
-        private void CompleteInitialization(bool fileExists) {
-            if (!fileExists) {
-                //File.WriteAllText(DB_INIT_FLAG_PATH, "Delete this file to re-initialize database.");
-            }
-            IsInitialized = true;
-            _hubContext.Clients.All.ReceiveStatus(InitStatus.Complete, -1);
-        }
-
         public void Start() {
-            // TODO test below
             bool flagExists = File.Exists(DB_INIT_FLAG_PATH);
             if (!flagExists) {
                 using HitomiContext context = new();
@@ -58,6 +49,14 @@ namespace HitomiScrollViewerAPI {
                 Console.WriteLine("\n--- Database initialization complete ---\n");
             }
             CompleteInitialization(flagExists);
+        }
+
+        private void CompleteInitialization(bool fileExists) {
+            if (!fileExists) {
+                File.WriteAllText(DB_INIT_FLAG_PATH, "Delete this file to re-initialize database.");
+            }
+            IsInitialized = true;
+            _hubContext.Clients.All.ReceiveStatus(InitStatus.Complete, -1);
         }
 
         private const int MAX_DESC_TEXT_LENGTH = 40;

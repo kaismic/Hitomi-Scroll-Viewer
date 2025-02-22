@@ -6,11 +6,11 @@ namespace HitomiScrollViewerWebApp.Services {
         private readonly HttpClient _httpClient = httpClient;
 
         public async Task<List<TagFilter>?> GetTagFiltersAsync() {
-            return await _httpClient.GetFromJsonAsync<List<TagFilter>>("api/tagfilter");
+            return await _httpClient.GetFromJsonAsync<List<TagFilter>>("api/tagfilter/all");
         }
 
         public async Task<TagFilter?> GetTagFilterAsync(int id) {
-            return await _httpClient.GetFromJsonAsync<TagFilter>($"api/tagfilter/{id}");
+            return await _httpClient.GetFromJsonAsync<TagFilter>($"api/tagfilter?id={id}");
         }
     }
 }

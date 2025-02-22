@@ -1,17 +1,19 @@
 ﻿@page "/search"
+@inject TagService TagService
+@inject TagFilterService TagFilterService
 
 <PageTitle>Search</PageTitle>
 
 <div style="display: grid; grid-template-columns: 75% 25%; height: 100%; padding: 32px;">
     <MudPaper Style="display: grid; grid-column: 1; grid-template-rows: auto 40dvh; gap: 16px; padding: 32px;">
         <div style="grid-row: 1">
-            <TagFilterEditor></TagFilterEditor>
+            <TagFilterEditor SelectedTagFiltersChanged="@SelectedTagFiltersChanged"></TagFilterEditor>
         </div>
         <div style="grid-row: 2; display: grid; grid-template-columns: repeat(@TAG_CATEGORIES.Length, 1fr);
                     border: @BORDER_SOLID_PRIMARY; border-radius: inherit;">
-            @for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
+            @for (int i = 0; i < _tagSearchChipSetModels.Length; i++) {
                 <div style="grid-column: @(i + 1); border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none");">
-                    <TagTokenizingTextBox TagCategory="@((TagCategory)i)"></TagTokenizingTextBox>
+                    <TagSearchChipSet Model="_tagSearchChipSetModels[i]" />
                 </div>
             }
         </div>
@@ -24,8 +26,28 @@
     private static readonly TagCategory[] TAG_CATEGORIES = Enum.GetValues<TagCategory>();
     private const string BORDER_SOLID_PRIMARY = "1px solid var(--mud-palette-primary)";
 
+    private TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
 
-    protected override void OnInitialized()
-    {
+    public Search() {
+        _tagSearchChipSetModels = [.. TAG_CATEGORIES.Select(tagCategory => new TagSearchChipSetModel() {
+            TagCategory = tagCategory,
+            Label = tagCategory.ToString(),
+            ToStringFunc = (tag => tag.Value),
+            SearchFunc = async (string text, CancellationToken ct) => {
+                List<Tag>? tags = await TagService.GetTagsAsync(tagCategory, 8, text, ct);
+                return tags == null ? [] : tags.Select(tag => tag.ToTagDTO());
+            }
+        })];
+    }
+
+    private async void SelectedTagFiltersChanged(IEnumerable<TagFilter> tagFilters) {
+        List<TagDTO>? tags = await TagService.GetTagsFromTagFilter(tagFilters.First().Id);
+        if (tags != null) {
+            foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
+                model.Values.Clear();
+                model.Values.AddRange(tags.Where(t => t.Category == model.TagCategory));
+            }
+        }
+        StateHasChanged();
     }
 }

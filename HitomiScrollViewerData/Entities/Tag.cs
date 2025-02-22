@@ -1,18 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HitomiScrollViewerData.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerData.Entities {
     public enum TagCategory {
-        Artist, Group, Character, Series, Male, Female, Tag
+        Tag = 0,
+        Artist = 1,
+        Male = 2,
+        Female = 3,
+        Group = 4,
+        Character = 5,
+        Series = 6
     }
 
     [Index(nameof(Value))]
     [Index(nameof(Category), nameof(Value), nameof(GalleryCount))]
     [Index(nameof(Category), nameof(GalleryCount))]
     public partial class Tag {
-        public static readonly TagCategory[] TAG_CATEGORIES =
-            Enumerable.Range(0, Enum.GetNames<TagCategory>().Length)
-            .Select(i => (TagCategory)i)
-            .ToArray();
+        public static readonly TagCategory[] TAG_CATEGORIES = Enum.GetValues<TagCategory>();
 
         public int Id { get; set; }
         public required TagCategory Category { get; set; }
@@ -29,5 +33,12 @@ namespace HitomiScrollViewerData.Entities {
         public required int GalleryCount { get; set; }
         public ICollection<TagFilter> TagFilters { get; } = [];
         public ICollection<Gallery> Galleries { get; } = [];
+
+        public TagDTO ToTagDTO() => new() {
+            Id = Id,
+            Category = Category,
+            Value = Value,
+            GalleryCount = GalleryCount
+        };
     }
 }

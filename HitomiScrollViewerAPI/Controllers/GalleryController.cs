@@ -7,7 +7,7 @@ namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/[controller]")]
     public class GalleryController(HitomiContext context) : ControllerBase {
-        [HttpGet("{id:int}")]
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<Gallery> GetGallery(int id) {

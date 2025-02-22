@@ -1,0 +1,23 @@
+﻿@inherits ComponentBase
+@typeparam TValue
+
+<div style="height: 100%; display: grid; grid-template-rows: auto 1fr;">
+    <MudAutocomplete T="TValue"
+                     Label="@Model.Label"
+                     DebounceInterval="500"
+                     SearchFunc="@Model.SearchFunc"
+                     ToStringFunc="@Model.ToStringFunc"
+                     Clearable="true"
+                     AdornmentIcon="@Icons.Material.Filled.Search"
+                     Color="@Color.Primary"
+                     Style="grid-row: 1; width: 90%; margin: auto;">
+    </MudAutocomplete>
+    <MudChipSet T="TValue"
+                SelectionMode="SelectionMode.MultiSelection"
+                SelectedColor="@Color.Primary"
+                Style="grid-row: 2; overflow-y: auto;">
+        @foreach (TValue value in Model.Values) {
+            <MudChip T="@TValue" Value="@value" OnClose="@HandleClosed" Variant="Variant.Text">@Model.ToStringFunc(value)</MudChip>
+        }
+    </MudChipSet>
+</div>

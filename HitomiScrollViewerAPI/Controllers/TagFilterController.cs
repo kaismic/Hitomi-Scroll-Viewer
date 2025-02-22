@@ -7,7 +7,7 @@ namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/[controller]")]
     public class TagFilterController(HitomiContext context) : ControllerBase {
-        [HttpGet("{id:int}")]
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<TagFilter> GetTagFilter(int id) {
@@ -15,7 +15,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             return result == null ? NotFound() : Ok(result);
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<List<TagFilter>> GetTagFilters() {
             return Ok(context.TagFilters.AsNoTracking());

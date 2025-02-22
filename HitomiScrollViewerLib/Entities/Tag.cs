@@ -16,10 +16,7 @@ namespace HitomiScrollViewerLib.Entities {
     [Index(nameof(Category), nameof(Value), nameof(GalleryCount))]
     [Index(nameof(Category), nameof(GalleryCount))]
     public partial class Tag {
-        public static readonly TagCategory[] TAG_CATEGORIES =
-            Enumerable.Range(0, Enum.GetNames(typeof(TagCategory)).Length)
-            .Select(i => (TagCategory)i)
-            .ToArray();
+        public static readonly TagCategory[] TAG_CATEGORIES = Enum.GetValues<TagCategory>();
 
         public int Id { get; set; }
         public required TagCategory Category { get; set; }

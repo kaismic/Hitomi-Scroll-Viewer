@@ -2,15 +2,15 @@
 @inject TagFilterService TagFilterService
 
 <div class="gap-4 align-center" style="display: grid; grid-template-columns: auto auto 1fr auto auto;">
-    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Style="grid-column: 1"/>
+    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Style="grid-column: 1" />
     <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" Style="grid-column: 2" />
     <MudSelect id="tag-filter-selector"
-               T="TagFilter"
-               ToStringFunc="@(tf => tf.Name)"
-               Style="grid-column: 3; border-color: var(--mud-palette-primary);"
-               Class="border-solid border-2 rounded pl-2">
-        @foreach (TagFilter tagFilter in _tagFilters)
-        {
+    T="TagFilter"
+    ToStringFunc="@(tf => tf.Name)"
+    SelectedValuesChanged="@SelectedTagFiltersChanged"
+    Style="grid-column: 3; border-color: var(--mud-palette-primary);"
+    Class="border-solid border-2 rounded pl-2">
+        @foreach (TagFilter tagFilter in _tagFilters) {
             <MudSelectItem Value="tagFilter" />
         }
     </MudSelect>
@@ -19,9 +19,11 @@
 </div>
 
 @code {
+    [Parameter, EditorRequired] public EventCallback<IEnumerable<TagFilter>> SelectedTagFiltersChanged { get; set; }
+
     private List<TagFilter> _tagFilters = [];
-    protected override async Task OnInitializedAsync()
-    {
+
+    protected override async Task OnInitializedAsync() {
         List<TagFilter>? result = await TagFilterService.GetTagFiltersAsync();
         _tagFilters = result == null ? [] : result;
         await base.OnInitializedAsync();

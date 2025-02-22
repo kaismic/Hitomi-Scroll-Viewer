@@ -29,9 +29,9 @@
             <div style="display: flex; flex-direction: column; align-items: center;
                         justify-content: center; gap: 2dvh;">
                 @if (_connectionError) {
-                    <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Primary" />
+                    <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Primary" Style="font-size: 4rem" />
                 } else {
-                    <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                    <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" Style="font-size: 4rem" />
                 }
                 <span>@_status</span>
             </div>
