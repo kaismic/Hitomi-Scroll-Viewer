@@ -12,12 +12,36 @@
                      Color="@Color.Primary"
                      Style="grid-row: 1; width: 90%; margin: auto;">
     </MudAutocomplete>
-    <MudChipSet T="TValue"
+    <MudChipSet T="@(SearchChipModel<TValue>)"
                 SelectionMode="SelectionMode.MultiSelection"
                 SelectedColor="@Color.Primary"
+                Variant="@Variant.Filled"
                 Style="grid-row: 2; overflow-y: auto;">
-        @foreach (TValue value in Model.Values) {
-            <MudChip T="@TValue" Value="@value" OnClose="@HandleClosed" Variant="Variant.Text">@Model.ToStringFunc(value)</MudChip>
+        @foreach (SearchChipModel<TValue> model in Model.ChipModels) {
+            <MudChip T="@(SearchChipModel<TValue>)"
+                     Value="@model"
+                     OnClose="@HandleClosed"
+                     OnClick="@((arg) => HandleChipClick(model))"
+                     @key="model"
+                     id="@model.Id"
+            >
+                @Model.ToStringFunc(model.Value)
+            </MudChip>
         }
     </MudChipSet>
+    <script>
+        function setChipClass(model) {
+            // gotta wait for a bit to let MudChip's click handler to modify class
+            setTimeout(
+                () => {
+                    const mudChip = document.getElementById(model.id)
+                    if (mudChip.className.endsWith("mud-chip-selected")) {
+
+                    }
+                    mudChip.className = mudChip.className.replace("mud-chip-text", "mud-chip-filled");
+                },
+                20
+            )
+        }
+    </script>
 </div>

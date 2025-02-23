@@ -44,8 +44,10 @@
         List<TagDTO>? tags = await TagService.GetTagsFromTagFilter(tagFilters.First().Id);
         if (tags != null) {
             foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
-                model.Values.Clear();
-                model.Values.AddRange(tags.Where(t => t.Category == model.TagCategory));
+                model.ChipModels = [..
+                    tags.Where(t => t.Category == model.TagCategory)
+                        .Select(t => new SearchChipModel<TagDTO>() { Value = t })
+                ];
             }
         }
         StateHasChanged();
