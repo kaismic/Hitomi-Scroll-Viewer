@@ -36,9 +36,8 @@
                 () => {
                     const mudChip = document.getElementById(model.id)
                     if (mudChip.className.endsWith("mud-chip-selected")) {
-
+                        mudChip.className = mudChip.className.replace("mud-chip-text", "mud-chip-filled");
                     }
-                    mudChip.className = mudChip.className.replace("mud-chip-text", "mud-chip-filled");
                 },
                 20
             )
