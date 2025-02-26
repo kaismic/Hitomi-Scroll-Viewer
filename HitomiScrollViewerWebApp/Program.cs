@@ -15,9 +15,6 @@ public class Program
 
         builder.Services.AddMudServices();
 
-        // TODO change url to the api address in appsettings.json
-        // TODO or add service and use dependency injection
-
         string apiUrl = builder.Configuration["apiUrl"]!;
         builder.Services.AddSingleton(new ApiUrlService(apiUrl));
         builder.Services.AddHttpClient<TagFilterService>(client => client.BaseAddress = new Uri(apiUrl));

@@ -9,6 +9,8 @@
                      ToStringFunc="@Model.ToStringFunc"
                      Clearable="true"
                      AdornmentIcon="@Icons.Material.Filled.Search"
+                     ShowProgressIndicator="true"
+                     @bind-Value="@SearchValue"
                      Color="@Color.Primary"
                      Style="grid-row: 1; width: 90%; margin: auto;">
     </MudAutocomplete>
@@ -23,24 +25,9 @@
                      OnClose="@HandleClosed"
                      OnClick="@((arg) => HandleChipClick(model))"
                      @key="model"
-                     id="@model.Id"
-            >
+                     id="@model.Id">
                 @Model.ToStringFunc(model.Value)
             </MudChip>
         }
     </MudChipSet>
-    <script>
-        function setChipClass(model) {
-            // gotta wait for a bit to let MudChip's click handler to modify class
-            setTimeout(
-                () => {
-                    const mudChip = document.getElementById(model.id)
-                    if (mudChip.className.endsWith("mud-chip-selected")) {
-                        mudChip.className = mudChip.className.replace("mud-chip-text", "mud-chip-filled");
-                    }
-                },
-                20
-            )
-        }
-    </script>
 </div>

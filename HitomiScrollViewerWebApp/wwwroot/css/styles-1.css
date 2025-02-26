@@ -5,3 +5,13 @@ div:has(#tag-filter-selector)::before {
 div:has(#tag-filter-selector)::after {
     display: none;
 }
+/* override
+    mud-chip.mud-chip-size-medium height: 32px => auto
+    mud-chip: white-space => nowrap
+*/
+.mud-chip {
+    overflow-wrap: anywhere;
+    min-height: 32px;
+    height: auto !important;
+    white-space: normal !important;
+}

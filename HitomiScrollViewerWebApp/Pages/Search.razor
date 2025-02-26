@@ -11,17 +11,18 @@
         </div>
         <div style="grid-row: 2" class="d-flex justify-space-between">
             <div class="d-flex gap-4">
-                <MudButton Color="Color.Warning" EndIcon="@Icons.Material.Filled.ClearAll">Clear All Tags</MudButton>
-                <MudButton Color="Color.Default" EndIcon="@Icons.Material.Filled.Refresh">Reload Tags</MudButton>
+                <MudButton Color="Color.Primary" EndIcon="@Icons.Material.Filled.Clear" OnClick="ClearAllTags">Clear All Tags</MudButton>
+                <MudButton Color="Color.Primary" EndIcon="@Icons.Material.Filled.Refresh" OnClick="LoadTags">Reload Tags</MudButton>
             </div>
             <div>
-                <MudSwitch T="bool" Label="Auto save" Color="Color.Primary"/>
+                <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" />
             </div>
         </div>
         <div style="grid-row: 3; display: grid; grid-template-columns: repeat(@TAG_CATEGORIES.Length, 1fr);
-                    border: @BORDER_SOLID_PRIMARY; border-radius: inherit;">
+                    border: @BORDER_SOLID_PRIMARY; border-radius: inherit; height: 100%">
             @for (int i = 0; i < _tagSearchChipSetModels.Length; i++) {
-                <div style="grid-column: @(i + 1); border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none");">
+                <div style="grid-column: @(i + 1); border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none");
+                            max-height: 100%; overflow: hidden">
                     <TagSearchChipSet Model="_tagSearchChipSetModels[i]" />
                 </div>
             }
@@ -35,6 +36,7 @@
     private static readonly TagCategory[] TAG_CATEGORIES = Enum.GetValues<TagCategory>();
     private const string BORDER_SOLID_PRIMARY = "1px solid var(--mud-palette-primary)";
 
+    private TagFilter? _currentTagFilter;
     private TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
 
     public Search() {
@@ -50,15 +52,26 @@
     }
 
     private async void SelectedTagFiltersChanged(IEnumerable<TagFilter> tagFilters) {
-        List<TagDTO>? tags = await TagService.GetTagsFromTagFilter(tagFilters.First().Id);
-        if (tags != null) {
-            foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
-                model.ChipModels = [..
-                    tags.Where(t => t.Category == model.TagCategory)
-                        .Select(t => new SearchChipModel<TagDTO>() { Value = t })
-                ];
-            }
+        _currentTagFilter = tagFilters.First();
+        await LoadTags();
+    }
+
+    private void ClearAllTags() {
+        foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
+            model.ChipModels = [];
         }
-        StateHasChanged();
+    }
+
+    private async Task LoadTags() {
+        if (_currentTagFilter != null) {
+            List<TagDTO>? tags = await TagService.GetTagsFromTagFilter(_currentTagFilter.Id);
+            if (tags != null) {
+                foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
+                    model.ChipModels = [.. tags.Where(t => t.Category == model.TagCategory)
+                                       .Select(t => new SearchChipModel<TagDTO>() { Value = t })];
+                }
+            }
+            StateHasChanged();
+        }
     }
 }

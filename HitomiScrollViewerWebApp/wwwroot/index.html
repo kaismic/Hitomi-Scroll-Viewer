@@ -33,6 +33,24 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script>
+        function setChipClass(model) {
+            // gotta wait for a bit to let MudChip's click handler to modify class
+            setTimeout(
+                () => {
+                    const mudChip = document.getElementById(model.id)
+                    if (mudChip.className.endsWith("mud-chip-selected")) {
+                        mudChip.className = mudChip.className.replace("mud-chip-text", "mud-chip-filled");
+                    }
+                },
+                20
+            )
+        }
+        function scrollToElement(id) {
+            const element = document.getElementById(id);
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    </script>
 </body>
 
 </html>

@@ -7,6 +7,7 @@ namespace HitomiScrollViewerWebApp.Components {
     public partial class SearchChipSet<TValue> : ComponentBase {
         [Parameter, EditorRequired] public virtual SearchChipSetModel<TValue> Model { get; init; } = null!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
+        protected virtual TValue? SearchValue { get; set; }
 
         private async Task HandleChipClick(SearchChipModel<TValue> model) {
             Console.WriteLine(model.Id);
