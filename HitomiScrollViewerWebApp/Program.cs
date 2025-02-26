@@ -15,11 +15,14 @@ public class Program
 
         builder.Services.AddMudServices();
 
-        // TODO change uri to the api address in appsettings.json
+        // TODO change url to the api address in appsettings.json
         // TODO or add service and use dependency injection
-        //builder.Configuration.GetValue<string>("applicationUrl");
-        builder.Services.AddHttpClient<TagFilterService>(client => client.BaseAddress = new Uri("https://localhost:7076/"));
-        builder.Services.AddHttpClient<TagService>(client => client.BaseAddress = new Uri("https://localhost:7076/"));
+
+        string apiUrl = builder.Configuration["apiUrl"]!;
+        builder.Services.AddSingleton(new ApiUrlService(apiUrl));
+        builder.Services.AddHttpClient<TagFilterService>(client => client.BaseAddress = new Uri(apiUrl));
+        builder.Services.AddHttpClient<TagService>(client => client.BaseAddress = new Uri(apiUrl));
+
         var app = builder.Build();
         await app.RunAsync();
     }

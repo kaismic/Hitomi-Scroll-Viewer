@@ -1,8 +1,9 @@
-﻿@inherits LayoutComponentBase
-@using HitomiScrollViewerData
+﻿@using HitomiScrollViewerData
 @using Microsoft.AspNetCore.SignalR.Client
+@inherits LayoutComponentBase
 @implements IAsyncDisposable
 @inject NavigationManager NavigationManager
+@inject ApiUrlService ApiUrlService
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -19,6 +20,7 @@
             <MudNavMenu>
                 <MudNavLink Href="/search" Icon="@Icons.Material.Filled.Search">Search</MudNavLink>
                 <MudNavLink Href="/browse" Icon="@Icons.Material.Filled.Folder">Browse</MudNavLink>
+                <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
             </MudNavMenu>
         </MudDrawer>
         <MudMainContent>
@@ -54,7 +56,7 @@
         try {
             _status = "Connecting to local server...";
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7076/api/initialize") // TODO replace with value read from appsettings.json
+                .WithUrl(ApiUrlService.BaseUrl + "api/initialize")
                 .Build();
             _hubConnection.On<InitStatus, int>("ReceiveStatus", UpdateStatus);
             await _hubConnection.StartAsync();
@@ -84,7 +86,6 @@
                 _status = "Initialization complete";
                 _isInitialized = true;
                 if (_hubConnection is not null) {
-                    await _hubConnection.StopAsync();
                     await _hubConnection.DisposeAsync();
                 }
                 NavigationManager.NavigateTo("/search");

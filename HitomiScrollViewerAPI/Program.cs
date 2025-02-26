@@ -1,4 +1,3 @@
-
 using HitomiScrollViewerAPI.Hubs;
 using HitomiScrollViewerData.DbContexts;
 using Microsoft.AspNetCore.SignalR;
@@ -10,27 +9,51 @@ namespace HitomiScrollViewerAPI {
 
             builder.Services.AddControllers();
             builder.Services.AddDbContext<HitomiContext>();
+            //builder.Services.AddDbContext<ApplicationDbContext>();
             builder.Services.AddSignalR();
-            builder.Services.AddCors(policy => {
-                policy.AddPolicy("AllowLocalhostOrigins", builder =>
-                    builder.WithOrigins("https://localhost:5214")
-                        .SetIsOriginAllowed(host => true) // this for using localhost address
-                        .AllowAnyMethod()
+            string webAppUrl = builder.Configuration["webAppUrl"]!;
+            builder.Services.AddCors(options => {
+                options.AddPolicy("AllowLocalhostOrigins", builder =>
+                    builder.WithOrigins(webAppUrl)
+                        .SetIsOriginAllowed(host => true)
                         .AllowAnyHeader()
-                        .AllowCredentials());
+                        //.AllowAnyMethod()
+                        //.AllowCredentials()
+                        );
             });
+            //builder.Services.AddAuthorization();
+            //builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
             var app = builder.Build();
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment()) {
                 app.MapOpenApi();
+            } else {
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
             }
+
             app.UseHttpsRedirection();
-            app.UseAuthorization();
+            //app.UseStaticFiles();
+            // app.UseCookiePolicy();
+
+            app.UseRouting();
+            // app.UseRateLimiter();
+            // app.UseRequestLocalization();
             app.UseCors("AllowLocalhostOrigins");
-            app.MapControllers();
+
+            //app.UseAuthentication();
+            //app.UseAuthorization();
+            // app.UseSession();
+            // app.UseResponseCompression(
+
             app.MapHub<DbStatusHub>("/api/initialize");
+            app.MapControllers();
+
+            //app.MapIdentityApi<IdentityUser>();
 
             Task appTask = app.RunAsync();
             Task.Run(() => {
