@@ -1,31 +1,32 @@
 ﻿@inherits ComponentBase
-@inject TagFilterService TagFilterService
 
 <div class="gap-4 align-center" style="display: grid; grid-template-columns: auto auto 1fr auto auto;">
-    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Style="grid-column: 1" />
-    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" Style="grid-column: 2" />
-    <MudSelect id="tag-filter-selector"
-    T="TagFilter"
-    ToStringFunc="@(tf => tf.Name)"
-    SelectedValuesChanged="@SelectedTagFiltersChanged"
-    Style="grid-column: 3; border-color: var(--mud-palette-primary);"
-    Class="border-solid border-2 rounded pl-2">
-        @foreach (TagFilter tagFilter in _tagFilters) {
+    <MudFab Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.Add"
+            Style="grid-column: 1"
+            OnClick="@OnCreateButtonClicked" />
+    <MudFab Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.Edit"
+            Style="grid-column: 2"
+            OnClick="@OnRenameButtonClicked"
+            Disabled="@(CurrentTagFilter == null)" />
+    <MudSelect T="TagFilter"
+               SelectedValuesChanged="@SelectedTagFiltersChangedInternal"
+               ToStringFunc="@(tf => tf.Name)"
+               Style="grid-column: 3; border-color: var(--mud-palette-primary);"
+               Class="tag-filter-selector border-solid border-2 rounded pl-2">
+        @foreach (TagFilter tagFilter in TagFilters) {
             <MudSelectItem Value="tagFilter" />
         }
     </MudSelect>
-    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" Style="grid-column: 4" />
-    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Delete" Style="grid-column: 5" />
+    <MudFab Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.Save"
+            Style="grid-column: 4"
+            OnClick="@OnSaveButtonClicked"
+            Disabled="@(CurrentTagFilter == null)" />
+    <MudFab Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.Delete"
+            Style="grid-column: 5"
+            OnClick="@OnDeleteButtonClicked"
+            Disabled="@(CurrentTagFilter == null)" />
 </div>
-
-@code {
-    [Parameter, EditorRequired] public EventCallback<IEnumerable<TagFilter>> SelectedTagFiltersChanged { get; set; }
-
-    private List<TagFilter> _tagFilters = [];
-
-    protected override async Task OnInitializedAsync() {
-        List<TagFilter>? result = await TagFilterService.GetTagFiltersAsync();
-        _tagFilters = result == null ? [] : result;
-        await base.OnInitializedAsync();
-    }
-}

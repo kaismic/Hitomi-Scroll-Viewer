@@ -1,8 +1,8 @@
 ﻿/* don't show tag-filter-selector underline and its transition */
-div:has(#tag-filter-selector)::before {
+.tag-filter-selector .mud-input.mud-input-underline:before {
     display: none;
 }
-div:has(#tag-filter-selector)::after {
+.tag-filter-selector .mud-input.mud-input-underline:after {
     display: none;
 }
 /* override

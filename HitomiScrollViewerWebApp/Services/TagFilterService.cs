@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerData.Entities;
+﻿using HitomiScrollViewerData.DTOs;
+using HitomiScrollViewerData.Entities;
 using System.Net.Http.Json;
 
 namespace HitomiScrollViewerWebApp.Services {
@@ -11,6 +12,10 @@ namespace HitomiScrollViewerWebApp.Services {
 
         public async Task<TagFilter?> GetTagFilterAsync(int id) {
             return await _httpClient.GetFromJsonAsync<TagFilter>($"api/tagfilter?id={id}");
+        }
+        
+        public async Task<HttpResponseMessage> UpdateTagFilterAsync(int id, IEnumerable<TagDTO> tags) {
+            return await _httpClient.PatchAsync($"api/tagfilter?id={id}", JsonContent.Create(tags));
         }
     }
 }

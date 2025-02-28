@@ -17,7 +17,7 @@ namespace HitomiScrollViewerAPI {
                     builder.WithOrigins(webAppUrl)
                         .SetIsOriginAllowed(host => true)
                         .AllowAnyHeader()
-                        //.AllowAnyMethod()
+                        .AllowAnyMethod()
                         //.AllowCredentials()
                         );
             });
