@@ -1,12 +1,8 @@
 ﻿using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace HitomiScrollViewerData.DTOs {
     public class OriginalGalleryInfoDTO {
@@ -24,22 +20,22 @@ namespace HitomiScrollViewerData.DTOs {
         };
 
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string JapaneseTitle { get; set; }
-        public string Language { get; set; }
-        public string Type { get; set; }
+        public required string Title { get; set; }
+        public string? JapaneseTitle { get; set; }
+        public required string Language { get; set; }
+        public required string Type { get; set; }
         [JsonConverter(typeof(GalleryDateTimeOffsetConverter))]
         public DateTimeOffset Date { get; set; }
-        public string LanguageUrl { get; set; }
-        public string LanguageLocalname { get; set; }
-        public int[] SceneIndexes { get; set; }
-        public int[] Related { get; set; }
-        public ICollection<OriginalImageInfoDTO> Files { get; set; }
-        public Dictionary<string, string>[] Artists { get; set; }
-        public Dictionary<string, string>[] Groups { get; set; }
-        public Dictionary<string, string>[] Characters { get; set; }
-        public Dictionary<string, string>[] Parodys { get; set; }
-        public CompositeTag[] Tags { get; set; }
+        public required string LanguageUrl { get; set; }
+        public required string LanguageLocalname { get; set; }
+        public required int[] SceneIndexes { get; set; }
+        public required int[] Related { get; set; }
+        public required ICollection<OriginalImageInfoDTO> Files { get; set; }
+        public Dictionary<string, string>[]? Artists { get; set; }
+        public Dictionary<string, string>[]? Groups { get; set; }
+        public Dictionary<string, string>[]? Characters { get; set; }
+        public Dictionary<string, string>[]? Parodys { get; set; }
+        public required CompositeTag[] Tags { get; set; }
 
         public struct CompositeTag {
             public string Tag { get; set; }
@@ -52,7 +48,7 @@ namespace HitomiScrollViewerData.DTOs {
         private class EmptyStringNumberJsonConverter : JsonConverter<int> {
             public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
                 try {
-                    string s = reader.GetString();
+                    string s = reader.GetString()!;
                     if (s.Length == 0) {
                         return 0;
                     }
@@ -66,7 +62,7 @@ namespace HitomiScrollViewerData.DTOs {
 
         private class GalleryDateTimeOffsetConverter : JsonConverter<DateTimeOffset> {
             public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
-                return DateTimeOffset.Parse(reader.GetString());
+                return DateTimeOffset.Parse(reader.GetString()!);
             }
             public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options) {
                 writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mmzzz"));
@@ -75,7 +71,7 @@ namespace HitomiScrollViewerData.DTOs {
 
         private static void SetGalleryPropertyAsync(
             HitomiContext context,
-            Dictionary<string, string>[] originalDictArr,
+            Dictionary<string, string>[]? originalDictArr,
             List<Tag> tags,
             TagCategory category
         ) {

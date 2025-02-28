@@ -12,7 +12,7 @@ namespace HitomiScrollViewerData.DTOs {
         public TagFilter ToTagFilter(DbSet<Tag> tags) {
             return new() {
                 Name = Name,
-                Tags = [.. TagIds.Select(id => tags.Find(id))]
+                Tags = [.. TagIds.Select(id => tags.Find(id)!)]
             };
         }
     }

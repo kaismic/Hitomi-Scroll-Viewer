@@ -7,13 +7,13 @@ namespace HitomiScrollViewerData.Entities {
         public int Id { get; private set; }
         public required bool IsAll { get; set; }
 
-        private string _englishName;
+        private string _englishName = null!;
         public required string EnglishName {
             get => _englishName;
             init => _englishName = value;
         }
 
-        private string _localName;
+        private string _localName = null!;
         public required string LocalName {
             get {
                 if (IsAll) {

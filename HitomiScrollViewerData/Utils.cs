@@ -9,7 +9,7 @@ namespace HitomiScrollViewerData {
         }
 
         /// <returns><see cref="Tag"/> or <c>null</c></returns>
-        public static Tag GetTag(IQueryable<Tag> tags, string value, TagCategory category) {
+        public static Tag? GetTag(IQueryable<Tag> tags, string value, TagCategory category) {
             string formattedValue = value.ToLower(); // all tags are lowercase
             return tags
                 .FirstOrDefault(tag =>
