@@ -16,14 +16,16 @@ namespace HitomiScrollViewerWebApp.Components {
             set {
                 _searchValue = value;
                 if (value != null) {
-                    if (Model.ChipModels.Any(m => m.Value.Id == value.Id)) {
-                        // already exists in ChipModels
-#pragma warning disable CA2012 // Use ValueTasks correctly
-                        _ = JSRuntime.InvokeVoidAsync("scrollToElement", value.Id);
-#pragma warning restore CA2012 // Use ValueTasks correctly
-                    } else {
+                    SearchChipModel<TagDTO>? chipModel = Model.ChipModels.Find(m => m.Value.Id == value.Id);
+                    if (chipModel == null) {
+                        // create new ChipModel
                         Model.ChipModels.Add(new SearchChipModel<TagDTO> { Value = value });
                         _searchValue = null;
+                    } else {
+                        // already exists in ChipModels
+#pragma warning disable CA2012 // Use ValueTasks correctly
+                        _ = JSRuntime.InvokeVoidAsync("scrollToElement", chipModel.Id);
+#pragma warning restore CA2012 // Use ValueTasks correctly
                     }
                 }
             }

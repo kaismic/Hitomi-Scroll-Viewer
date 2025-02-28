@@ -10,7 +10,6 @@ namespace HitomiScrollViewerWebApp.Components {
         protected virtual TValue? SearchValue { get; set; }
 
         private async Task HandleChipClick(SearchChipModel<TValue> model) {
-            Console.WriteLine(model.Id);
             // override the default behavior of MudChip Variant display. see: https://github.com/MudBlazor/MudBlazor/issues/9731
             await JSRuntime.InvokeVoidAsync("setChipClass", model);
         }
