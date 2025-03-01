@@ -20,5 +20,8 @@ namespace HitomiScrollViewerData.Entities {
                 TagIds = Tags.Select(tag => tag.Id)
             };
         }
+
+        public TagFilterDTO ToTagFilterDTO() => new() { Id = Id, Name = Name };
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerData;
+using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
@@ -7,25 +8,27 @@ namespace HitomiScrollViewerWebApp.Components {
     public partial class TagFilterEditor : ComponentBase {
         [Inject] private TagFilterService TagFilterService { get; set; } = null!;
 
-        [Parameter, EditorRequired] public EventCallback<ValueChangedEventArgs<TagFilter>> SelectedTagFilterChanged { get; set; }
+        [Parameter, EditorRequired] public EventCallback<ValueChangedEventArgs<TagFilterDTO>> SelectedTagFilterChanged { get; set; }
         [Parameter, EditorRequired] public EventCallback OnCreateButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnRenameButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnSaveButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnDeleteButtonClicked { get; set; }
 
-        public List<TagFilter> TagFilters = [];
-        private TagFilter? _oldTagFilter;
-        public TagFilter? CurrentTagFilter;
-
-        protected override async Task OnInitializedAsync() {
-            TagFilters = await TagFilterService.GetTagFiltersAsync() ?? [];
-            await base.OnInitializedAsync();
+        public List<TagFilterDTO> TagFilters = [];
+        private TagFilterDTO? _currentTagFilter;
+        public TagFilterDTO? CurrentTagFilter {
+            get => _currentTagFilter;
+            set {
+                TagFilterDTO? oldValue = _currentTagFilter;
+                _currentTagFilter = value;
+                SelectedTagFilterChanged.InvokeAsync(new(oldValue, value));
+            }
         }
 
-        private void SelectedTagFiltersChangedInternal(IEnumerable<TagFilter> tagFilters) {
-            CurrentTagFilter = tagFilters.FirstOrDefault();
-            SelectedTagFilterChanged.InvokeAsync(new(_oldTagFilter, CurrentTagFilter));
-            _oldTagFilter = CurrentTagFilter;
+        protected override async Task OnInitializedAsync() {
+            IEnumerable<TagFilterDTO>? result = await TagFilterService.GetTagFiltersAsync();
+            TagFilters = result == null ? [] : [.. result];
+            await base.OnInitializedAsync();
         }
     }
 }

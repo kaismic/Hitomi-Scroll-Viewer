@@ -3,6 +3,7 @@
 @inject TagService TagService
 @inject TagFilterService TagFilterService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <PageTitle>Search</PageTitle>
 
@@ -11,6 +12,7 @@
         <div style="grid-row: 1">
             <TagFilterEditor @ref="_tagFilterEditor"
                              SelectedTagFilterChanged="@SelectedTagFilterChanged"
+                             OnCreateButtonClicked="@CreateTagFilter"
                              OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))" />
         </div>
         <div style="grid-row: 2" class="d-flex justify-space-between">

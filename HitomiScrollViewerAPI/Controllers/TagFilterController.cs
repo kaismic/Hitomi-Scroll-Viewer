@@ -11,27 +11,21 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<TagFilter> GetTagFilter(int id) {
+        public ActionResult<TagFilterDTO> GetTagFilter(int id) {
             TagFilter? result = context.TagFilters.Find(id);
-            return result == null ? NotFound() : Ok(result);
-        }
-
-        [HttpGet("all")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<List<TagFilter>> GetTagFilters() {
-            return Ok(context.TagFilters.AsNoTracking());
+            return result == null ? NotFound() : Ok(result.ToTagFilterDTO());
         }
 
         [HttpPatch]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult UpdateTagsInTagFilters(int id, [FromBody] IEnumerable<TagDTO> tags) {
             TagFilter? tagFilter = context.TagFilters.Find(id);
             if (tagFilter == null) {
                 return NotFound();
             }
-            context.Entry(tagFilter).Collection(tf => tf.Tags).Load();
-            tagFilter.Tags.Clear();
+            context.Entry(tagFilter).Collection(tf => tf.Tags!).Load();
+            tagFilter.Tags!.Clear();
             foreach (TagDTO tagDto in tags) {
                 Tag? tag = context.Tags.Find(tagDto.Id);
                 if (tag != null) {
@@ -39,7 +33,24 @@ namespace HitomiScrollViewerAPI.Controllers {
                 }
             }
             context.SaveChanges();
-            return NoContent();
+            return Ok();
+        }
+
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<TagFilterDTO> CreateTagFilter(string name, [FromBody] IEnumerable<TagDTO> tagDtos) {
+            List<Tag> tags = [.. tagDtos.Select(t => t.ToTag())];
+            TagFilter tagFilter = new() { Name = name, Tags = tags };
+            context.Tags.AttachRange(tags);
+            context.TagFilters.Add(tagFilter);
+            context.SaveChanges();
+            return Ok(tagFilter.ToTagFilterDTO());
+        }
+
+        [HttpGet("all")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<TagFilterDTO>> GetTagFilters() {
+            return Ok(context.TagFilters.AsNoTracking().Select(tf => tf.ToTagFilterDTO()));
         }
     }
 }

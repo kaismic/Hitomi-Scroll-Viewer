@@ -10,12 +10,14 @@
             Style="grid-column: 2"
             OnClick="@OnRenameButtonClicked"
             Disabled="@(CurrentTagFilter == null)" />
-    <MudSelect T="TagFilter"
-               SelectedValuesChanged="@SelectedTagFiltersChangedInternal"
+    <MudSelect T="TagFilterDTO"
+               Variant="Variant.Outlined"
+               Label="Tag Filter"
+               @bind-Value="CurrentTagFilter"
                ToStringFunc="@(tf => tf.Name)"
-               Style="grid-column: 3; border-color: var(--mud-palette-primary);"
-               Class="tag-filter-selector border-solid border-2 rounded pl-2">
-        @foreach (TagFilter tagFilter in TagFilters) {
+               Style="grid-column: 3;"
+               Class="tag-filter-selector">
+        @foreach (TagFilterDTO tagFilter in TagFilters) {
             <MudSelectItem Value="tagFilter" />
         }
     </MudSelect>

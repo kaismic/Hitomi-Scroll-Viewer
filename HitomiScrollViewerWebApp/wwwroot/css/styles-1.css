@@ -1,11 +1,4 @@
-﻿/* don't show tag-filter-selector underline and its transition */
-.tag-filter-selector .mud-input.mud-input-underline:before {
-    display: none;
-}
-.tag-filter-selector .mud-input.mud-input-underline:after {
-    display: none;
-}
-/* override
+﻿/* override
     mud-chip.mud-chip-size-medium height: 32px => auto
     mud-chip: white-space => nowrap
 */

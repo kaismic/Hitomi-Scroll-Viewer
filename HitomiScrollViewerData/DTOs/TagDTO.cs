@@ -7,5 +7,12 @@ namespace HitomiScrollViewerData.DTOs {
 
         public required string Value { get; set; }
         public required int GalleryCount { get; set; }
+
+        public Tag ToTag() => new() {
+            Id = Id,
+            Category = Category,
+            Value = Value,
+            GalleryCount = GalleryCount
+        };
     }
 }

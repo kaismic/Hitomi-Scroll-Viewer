@@ -1,9 +1,9 @@
-﻿using HitomiScrollViewerData.DTOs;
-using HitomiScrollViewerData;
+﻿using HitomiScrollViewerData;
+using HitomiScrollViewerData.DTOs;
+using HitomiScrollViewerData.Entities;
+using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Models;
 using MudBlazor;
-using HitomiScrollViewerWebApp.Components;
-using HitomiScrollViewerData.Entities;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class Search {
@@ -35,7 +35,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         })];
         }
 
-        private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilter> args) {
+        private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {
             if (_isAutoSaveEnabled) {
                 await SaveTagFilter(args.OldValue);
             }
@@ -67,7 +67,41 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        private async Task SaveTagFilter(TagFilter? tagFilter) {
+        private async Task CreateTagFilter() {
+            var parameters = new DialogParameters<TextInputDialog> {
+                { d => d.ActionText, "Create" },
+                { d => d.Validators, [IsDuplicate] }
+            };
+            IDialogReference dialog = await DialogService.ShowAsync<TextInputDialog>("Create Tag Filter", parameters);
+            DialogResult result = (await dialog.Result)!;
+            if (!result.Canceled) {
+                string name = result.Data!.ToString()!;
+                TagFilterDTO? tagFilter = await TagFilterService.CreateTagFilterAsync(
+                    name,
+                    _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value)
+                );
+                if (tagFilter != null) {
+                    _tagFilterEditor.TagFilters.Add(tagFilter);
+                    _tagFilterEditor.CurrentTagFilter = tagFilter;
+                    Snackbar.Add($"Created {name}.", Severity.Success, SNACKBAR_OPTIONS);
+                } else {
+                    Snackbar.Add($"Failed to create {name}.", Severity.Error, SNACKBAR_OPTIONS);
+                }
+            }
+        }
+
+        private async Task<string?> IsDuplicate(string name) {
+            IEnumerable<TagFilterDTO>? tagFilters = await TagFilterService.GetTagFiltersAsync();
+            if (tagFilters == null) {
+                return "An error has occurred while while fetching tag filters.";
+            }
+            if (tagFilters.Any(tf => tf.Name == name)) {
+                return $"\"{name}\" already exists.";
+            }
+            return null;
+        }
+
+        private async Task SaveTagFilter(TagFilterDTO? tagFilter) {
             if (tagFilter != null) {
                 HttpResponseMessage response = await TagFilterService.UpdateTagFilterAsync(
                     tagFilter.Id,
