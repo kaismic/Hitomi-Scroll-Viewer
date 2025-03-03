@@ -10,14 +10,17 @@ namespace HitomiScrollViewerWebApp.Components {
 
         private string _errorMessage = "";
         private bool _showErrorMessage = false;
+        private bool _disableActionButton = false;
 
         private void TextChanged() {
             _showErrorMessage = false;
+            _disableActionButton = Text.Length == 0;
         }
 
         private void Cancel() => MudDialog.Cancel();
 
         private async Task Submit() {
+            _disableActionButton = true;
             foreach (Func<string, Task<string?>> validator in Validators) {
                 string? error = await validator(Text);
                 if (error != null) {

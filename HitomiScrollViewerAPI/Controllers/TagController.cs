@@ -18,7 +18,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok(tags.OrderByDescending(tag => tag.GalleryCount).Take(count).ToList());
         }
 
-        [HttpGet("from-tag-filter")]
+        [HttpGet("tagfilter")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<List<TagDTO>> GetTagsFromTagFilter(int tagFilterId) {
@@ -26,8 +26,8 @@ namespace HitomiScrollViewerAPI.Controllers {
             if (tagFilter == null) {
                 return NotFound();
             }
-            context.Entry(tagFilter).Collection(tf => tf.Tags).Load();
-            return Ok(tagFilter.Tags.Select(tag => tag.ToTagDTO()).ToList());
+            context.Entry(tagFilter).Collection(tf => tf.Tags!).Load();
+            return Ok(tagFilter.Tags!.Select(tag => tag.ToTagDTO()).ToList());
         }
     }
 }

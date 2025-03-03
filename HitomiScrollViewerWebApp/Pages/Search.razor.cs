@@ -19,6 +19,9 @@ namespace HitomiScrollViewerWebApp.Pages {
             options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
         });
 
+        // TODO bind with TagFilterEditor and TagFilterSelector
+        private List<TagFilterDTO> TagFilters = [];
+
         private TagFilterEditor _tagFilterEditor = null!;
         private TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
         private bool _isAutoSaveEnabled = true;
@@ -59,7 +62,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                     foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
                         model.ChipModels = [..
                 tags.Where(t => t.Category == model.TagCategory)
-                    .Select(t => new SearchChipModel<TagDTO>() { Value = t })
+                    .Select(t => new ChipModel<TagDTO>() { Value = t })
                         ];
                     }
                 }
@@ -83,9 +86,29 @@ namespace HitomiScrollViewerWebApp.Pages {
                 if (tagFilter != null) {
                     _tagFilterEditor.TagFilters.Add(tagFilter);
                     _tagFilterEditor.CurrentTagFilter = tagFilter;
-                    Snackbar.Add($"Created {name}.", Severity.Success, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Created \"{name}\".", Severity.Success, SNACKBAR_OPTIONS);
                 } else {
-                    Snackbar.Add($"Failed to create {name}.", Severity.Error, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Failed to create \"{name}\".", Severity.Error, SNACKBAR_OPTIONS);
+                }
+            }
+        }
+
+        private async Task RenameTagFilter() {
+            var parameters = new DialogParameters<TextInputDialog> {
+                { d => d.ActionText, "Rename" },
+                { d => d.Validators, [IsDuplicate] }
+            };
+            IDialogReference dialog = await DialogService.ShowAsync<TextInputDialog>("Rename Tag Filter", parameters);
+            DialogResult result = (await dialog.Result)!;
+            if (!result.Canceled) {
+                string oldName = _tagFilterEditor.CurrentTagFilter!.Name;
+                string name = result.Data!.ToString()!;
+                bool success = await TagFilterService.UpdateTagFilterAsync(_tagFilterEditor.CurrentTagFilter!.Id, name);
+                if (success) {
+                    _tagFilterEditor.CurrentTagFilter.Name = name;
+                    Snackbar.Add($"Renamed \"{oldName} to \"{name}\".", Severity.Success, SNACKBAR_OPTIONS);
+                } else {
+                    Snackbar.Add($"Failed to rename \"{oldName}\".", Severity.Error, SNACKBAR_OPTIONS);
                 }
             }
         }
@@ -103,14 +126,14 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task SaveTagFilter(TagFilterDTO? tagFilter) {
             if (tagFilter != null) {
-                HttpResponseMessage response = await TagFilterService.UpdateTagFilterAsync(
+                bool success = await TagFilterService.UpdateTagFilterAsync(
                     tagFilter.Id,
                     _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value)
                 );
-                if (response.IsSuccessStatusCode) {
-                    Snackbar.Add($"Saved {tagFilter.Name}", Severity.Success, SNACKBAR_OPTIONS);
+                if (success) {
+                    Snackbar.Add($"Saved \"{tagFilter.Name}\"", Severity.Success, SNACKBAR_OPTIONS);
                 } else {
-                    Snackbar.Add($"Failed to save {tagFilter.Name}", Severity.Error, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Failed to save \"{tagFilter.Name}\"", Severity.Error, SNACKBAR_OPTIONS);
                 }
             }
         }

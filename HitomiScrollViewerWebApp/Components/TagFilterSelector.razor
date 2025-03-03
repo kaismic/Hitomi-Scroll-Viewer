@@ -1,0 +1,17 @@
+﻿@inherits ChipSetBase<TagFilterDTO>
+
+<MudChipSet T="@(ChipModel<TagFilterDTO>)"
+            SelectionMode="SelectionMode.MultiSelection"
+            SelectedValues="@SelectedChipModels"
+            SelectedColor="@Color.Primary"
+            Variant="@Variant.Filled">
+    @foreach (ChipModel<TagFilterDTO> model in ChipModels) {
+        <MudChip T="@(ChipModel<TagFilterDTO>)"
+                 Value="@model"
+                 OnClick="@((arg) => HandleChipClick(model))"
+                 @key="model"
+                 id="@model.Id">
+            @(model.Value.Name)
+        </MudChip>
+    }
+</MudChipSet>

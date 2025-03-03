@@ -16,7 +16,7 @@ namespace HitomiScrollViewerWebApp.Services {
         }
 
         public async Task<List<TagDTO>?> GetTagsFromTagFilter(int tagFilterId) {
-            return await _httpClient.GetFromJsonAsync<List<TagDTO>>($"api/tag/from-tag-filter?tagFilterId={tagFilterId}");
+            return await _httpClient.GetFromJsonAsync<List<TagDTO>>($"api/tag/tagfilter?tagFilterId={tagFilterId}");
         }
     }
 }

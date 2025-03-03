@@ -16,10 +16,10 @@ namespace HitomiScrollViewerWebApp.Components {
             set {
                 _searchValue = value;
                 if (value != null) {
-                    SearchChipModel<TagDTO>? chipModel = Model.ChipModels.Find(m => m.Value.Id == value.Id);
+                    ChipModel<TagDTO>? chipModel = Model.ChipModels.Find(m => m.Value.Id == value.Id);
                     if (chipModel == null) {
                         // create new ChipModel
-                        Model.ChipModels.Add(new SearchChipModel<TagDTO> { Value = value });
+                        Model.ChipModels.Add(new ChipModel<TagDTO> { Value = value });
                         _searchValue = null;
                     } else {
                         // already exists in ChipModels

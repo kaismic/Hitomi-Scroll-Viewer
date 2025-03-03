@@ -1,4 +1,4 @@
-﻿@inherits ComponentBase
+﻿@inherits ChipSetBase<TValue>
 @typeparam TValue
 
 <div style="height: 100%; display: grid; grid-template-rows: auto 1fr;">
@@ -14,13 +14,13 @@
                      Color="@Color.Primary"
                      Style="grid-row: 1; width: 90%; margin: auto;">
     </MudAutocomplete>
-    <MudChipSet T="@(SearchChipModel<TValue>)"
+    <MudChipSet T="@(ChipModel<TValue>)"
                 SelectionMode="SelectionMode.MultiSelection"
                 SelectedColor="@Color.Primary"
                 Variant="@Variant.Filled"
                 Style="grid-row: 2; overflow-y: auto;">
-        @foreach (SearchChipModel<TValue> model in Model.ChipModels) {
-            <MudChip T="@(SearchChipModel<TValue>)"
+        @foreach (ChipModel<TValue> model in Model.ChipModels) {
+            <MudChip T="@(ChipModel<TValue>)"
                      Value="@model"
                      OnClose="@HandleClosed"
                      OnClick="@((arg) => HandleChipClick(model))"
