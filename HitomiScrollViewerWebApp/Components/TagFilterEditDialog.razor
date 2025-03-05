@@ -1,0 +1,14 @@
+﻿@inherits MudDialog
+
+<MudDialog>
+    <DialogContent>@DialogContent</DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Submit"
+                   Disabled="@_disableActionButton">
+            @ActionText
+        </MudButton>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>

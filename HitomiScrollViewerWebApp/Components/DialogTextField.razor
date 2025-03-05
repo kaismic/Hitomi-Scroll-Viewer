@@ -1,0 +1,10 @@
+﻿<MudTextField FullWidth="true"
+              Label="Name"
+              Counter="50"
+              MaxLength="50"
+              Immediate="true"
+              T="string"
+              @bind-Value="@Text"
+              @bind-Value:after="@AfterTextChanged"
+              Error="@_showErrorMessage"
+              ErrorText="@_errorMessage" />

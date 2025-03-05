@@ -1,17 +1,22 @@
 ﻿@inherits ChipSetBase<TagFilterDTO>
 
-<MudChipSet T="@(ChipModel<TagFilterDTO>)"
-            SelectionMode="SelectionMode.MultiSelection"
-            SelectedValues="@SelectedChipModels"
-            SelectedColor="@Color.Primary"
-            Variant="@Variant.Filled">
-    @foreach (ChipModel<TagFilterDTO> model in ChipModels) {
-        <MudChip T="@(ChipModel<TagFilterDTO>)"
-                 Value="@model"
-                 OnClick="@((arg) => HandleChipClick(model))"
-                 @key="model"
-                 id="@model.Id">
-            @(model.Value.Name)
-        </MudChip>
-    }
-</MudChipSet>
+<div class="d-flex flex-column pa-8 gap-4">
+    <MudText Color="@HeaderTextColor" Typo="Typo.h6" Align="Align.Center">@HeaderText</MudText>
+    <MudChipSet T="@(ChipModel<TagFilterDTO>)"
+                SelectionMode="SelectionMode.MultiSelection"
+                @bind-SelectedValues="@SelectedChipModels"
+                @bind-SelectedValues:after="@(() => SelectedChipModelsChanged?.Invoke(SelectedChipModels))"
+                SelectedColor="@Color.Secondary"
+                Variant="@Variant.Filled"
+                Class="overflow-y-auto">
+        @foreach (ChipModel<TagFilterDTO> model in ChipModels) {
+            <MudChip T="@(ChipModel<TagFilterDTO>)"
+                     Value="@model"
+                     OnClick="@((arg) => HandleChipClick(model))"
+                     @key="model"
+                     id="@model.Id">
+                @(model.Value.Name)
+            </MudChip>
+        }
+    </MudChipSet>
+</div>

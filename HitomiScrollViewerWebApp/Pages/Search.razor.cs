@@ -4,13 +4,13 @@ using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Models;
 using MudBlazor;
+using System.ComponentModel;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class Search {
         private static readonly TagCategory[] TAG_CATEGORIES = Enum.GetValues<TagCategory>();
         private const string BORDER_SOLID_PRIMARY = "1px solid var(--mud-palette-primary)";
-        private static readonly Action<SnackbarOptions> SNACKBAR_OPTIONS = (options =>
-        {
+        private static readonly Action<SnackbarOptions> SNACKBAR_OPTIONS = (options => {
             options.ShowCloseIcon = true;
             options.CloseAfterNavigation = true;
             options.ShowTransitionDuration = 0;
@@ -20,22 +20,43 @@ namespace HitomiScrollViewerWebApp.Pages {
         });
 
         // TODO bind with TagFilterEditor and TagFilterSelector
-        private List<TagFilterDTO> TagFilters = [];
+        private List<TagFilterDTO> _tagFilters = [];
+        public List<TagFilterDTO> TagFilters {
+            get => _tagFilters;
+            set {
+                _tagFilters = value;
+                _includeTagFilterChipModels = [.. value.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
+                _excludeTagFilterChipModels = [.. value.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
+            }
+        }
+
+        private List<ChipModel<TagFilterDTO>> _includeTagFilterChipModels = [];
+        private List<ChipModel<TagFilterDTO>> _excludeTagFilterChipModels = [];
 
         private TagFilterEditor _tagFilterEditor = null!;
-        private TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
+        private readonly TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
         private bool _isAutoSaveEnabled = true;
 
         public Search() {
-            _tagSearchChipSetModels = [.. TAG_CATEGORIES.Select(tagCategory => new TagSearchChipSetModel() {
-            TagCategory = tagCategory,
-            Label = tagCategory.ToString(),
-            ToStringFunc = (tag => tag.Value),
-            SearchFunc = async (string text, CancellationToken ct) => {
-                List<Tag>? tags = await TagService.GetTagsAsync(tagCategory, 8, text, ct);
-                return tags == null ? [] : tags.Select(tag => tag.ToTagDTO());
-            }
-        })];
+            _tagSearchChipSetModels =
+            [..
+                TAG_CATEGORIES.Select(tagCategory => new TagSearchChipSetModel() {
+                        TagCategory = tagCategory,
+                        Label = tagCategory.ToString(),
+                        ToStringFunc = (tag => tag.Value),
+                        SearchFunc = async (string text, CancellationToken ct) => {
+                            List<Tag>? tags = await TagService.GetTagsAsync(tagCategory, 8, text, ct);
+                            return tags == null ? [] : tags.Select(tag => tag.ToTagDTO());
+                        }
+                    }
+                )
+            ];
+        }
+
+        protected override async Task OnInitializedAsync() {
+            IEnumerable<TagFilterDTO>? result = await TagFilterService.GetTagFiltersAsync();
+            TagFilters = result == null ? [] : [.. result];
+            await base.OnInitializedAsync();
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {
@@ -61,8 +82,8 @@ namespace HitomiScrollViewerWebApp.Pages {
                 if (tags != null) {
                     foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
                         model.ChipModels = [..
-                tags.Where(t => t.Category == model.TagCategory)
-                    .Select(t => new ChipModel<TagDTO>() { Value = t })
+                            tags.Where(t => t.Category == model.TagCategory)
+                                .Select(t => new ChipModel<TagDTO>() { Value = t })
                         ];
                     }
                 }
@@ -71,11 +92,22 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task CreateTagFilter() {
-            var parameters = new DialogParameters<TextInputDialog> {
+            DialogTextField dialogContent = null!;
+            var parameters = new DialogParameters<TagFilterEditDialog> {
                 { d => d.ActionText, "Create" },
-                { d => d.Validators, [IsDuplicate] }
+                { d => d.DialogContent,
+                    builder => {
+                        builder.OpenComponent<DialogTextField>(0);
+                        builder.AddComponentReferenceCapture(1, (component) => {
+                            dialogContent = (DialogTextField)component;
+                            dialogContent.Validators = [IsDuplicate];
+                        });
+                        builder.CloseComponent();
+                    }
+                },
             };
-            IDialogReference dialog = await DialogService.ShowAsync<TextInputDialog>("Create Tag Filter", parameters);
+            IDialogReference dialog = await DialogService.ShowAsync<TagFilterEditDialog>("Create Tag Filter", parameters);
+            ((TagFilterEditDialog)dialog.Dialog!).DialogContentRef = dialogContent;
             DialogResult result = (await dialog.Result)!;
             if (!result.Canceled) {
                 string name = result.Data!.ToString()!;
@@ -94,14 +126,26 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task RenameTagFilter() {
-            var parameters = new DialogParameters<TextInputDialog> {
+            string oldName = _tagFilterEditor.CurrentTagFilter!.Name;
+            DialogTextField dialogContent = null!;
+            var parameters = new DialogParameters<TagFilterEditDialog> {
                 { d => d.ActionText, "Rename" },
-                { d => d.Validators, [IsDuplicate] }
+                { d => d.DialogContent,
+                    builder => {
+                        builder.OpenComponent<DialogTextField>(0);
+                        builder.AddComponentReferenceCapture(1, (component) => {
+                            dialogContent = (DialogTextField)component;
+                            dialogContent.Validators = [IsDuplicate];
+                            dialogContent.Text = oldName;
+                        });
+                        builder.CloseComponent();
+                    }
+                },
             };
-            IDialogReference dialog = await DialogService.ShowAsync<TextInputDialog>("Rename Tag Filter", parameters);
+            IDialogReference dialog = await DialogService.ShowAsync<TagFilterEditDialog>("Rename Tag Filter", parameters);
+            ((TagFilterEditDialog)dialog.Dialog!).DialogContentRef = dialogContent;
             DialogResult result = (await dialog.Result)!;
             if (!result.Canceled) {
-                string oldName = _tagFilterEditor.CurrentTagFilter!.Name;
                 string name = result.Data!.ToString()!;
                 bool success = await TagFilterService.UpdateTagFilterAsync(_tagFilterEditor.CurrentTagFilter!.Id, name);
                 if (success) {
@@ -136,6 +180,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                     Snackbar.Add($"Failed to save \"{tagFilter.Name}\"", Severity.Error, SNACKBAR_OPTIONS);
                 }
             }
+        }
+
+        private void DeleteTagFilters() {
+            // TODO
         }
     }
 }

@@ -7,11 +7,12 @@
 
 <PageTitle>Search</PageTitle>
 
-<div style="display: grid; grid-template-columns: 75% 25%; height: 100%; padding: 32px;">
-    <div style="grid-column: 1;">
-        <MudPaper Class="d-flex flex-column pa-8 gap-4">
+<div style="display: grid; grid-template-columns: 75% 25%; padding: 32px;">
+    <div class="gap-4" style="grid-column: 1; display: grid; grid-template-rows: auto 1fr;">
+        <MudPaper Class="d-flex flex-column pa-8 gap-4" Style="grid-row: 1;">
             <div>
                 <TagFilterEditor @ref="_tagFilterEditor"
+                                 TagFilters="@TagFilters"
                                  SelectedTagFilterChanged="@SelectedTagFilterChanged"
                                  OnCreateButtonClicked="@CreateTagFilter"
                                  OnRenameButtonClicked="@RenameTagFilter"
@@ -37,7 +38,7 @@
                 </div>
             </div>
             <div style="display: grid; grid-template-columns: repeat(@TAG_CATEGORIES.Length, 1fr);
-                        border: @BORDER_SOLID_PRIMARY; border-radius: inherit; height: 40dvh">
+                        border: @BORDER_SOLID_PRIMARY; border-radius: inherit; min-height: 30dvh">
                 @for (int i = 0; i < _tagSearchChipSetModels.Length; i++) {
                     <div style="grid-column: @(i + 1); border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none");
                                 max-height: 100%; overflow: hidden">
@@ -46,8 +47,10 @@
                 }
             </div>
         </MudPaper>
-        <MudPaper>
-            <TagFilterSelector ChipModels="@_tagFilterEditor"/>
+        <MudPaper Class="d-flex gap-4" Style="grid-row: 2; min-height: 30dvh">
+            <TagFilterSelector ChipModels="@_includeTagFilterChipModels" HeaderText="Include" HeaderTextColor="Color.Success" />
+            <MudDivider Vertical="true" Class="my-6" FlexItem="true" />
+            <TagFilterSelector ChipModels="@_excludeTagFilterChipModels" HeaderText="Exclude" HeaderTextColor="Color.Error" />
         </MudPaper>
     </div>
     <div style="display: grid; grid-column: 2; grid-template-rows: auto 1fr 1fr;">
