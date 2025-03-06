@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace HitomiScrollViewerData.Entities {
     [Index(nameof(Name))]
     public class TagFilter {
-        public const int TAG_FILTER_NAME_MAX_LEN = 100;
+        public const int TAG_FILTER_NAME_MAX_LEN = 200;
         public int Id { get; set; }
         [MaxLength(TAG_FILTER_NAME_MAX_LEN), Required] public required string Name { get; set; }
 

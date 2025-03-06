@@ -4,6 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+	<NoWarn>$(NoWarn);IDE0079</NoWarn>
   </PropertyGroup>
   <ItemGroup>
 	<ProjectReference Include="..\HitomiScrollViewerData\HitomiScrollViewerData.csproj" />

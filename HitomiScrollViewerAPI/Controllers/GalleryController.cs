@@ -1,4 +1,5 @@
 using HitomiScrollViewerData.DbContexts;
+using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,18 @@ namespace HitomiScrollViewerAPI.Controllers {
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<int> GetGalleryCount() {
             return Ok(context.Galleries.AsNoTracking().Count());
+        }
+
+        [HttpGet("languages")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<GalleryLanguageDTO>> GetGalleryLanguages() {
+            return Ok(context.GalleryLanguages.AsNoTracking().Select(l => l.ToDTO()));
+        }
+
+        [HttpGet("types")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<GalleryTypeDTO>> GetGalleryTypes() {
+            return Ok(context.GalleryTypes.AsNoTracking().Select(t => t.ToDTO()));
         }
     }
 }

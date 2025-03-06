@@ -1,29 +1,31 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HitomiScrollViewerData.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerData.Entities {
     [Index(nameof(IsAll))]
     [Index(nameof(EnglishName))]
     public class GalleryLanguage {
-        public int Id { get; private set; }
+        public int Id { get; set; }
         public required bool IsAll { get; set; }
-
-        private string _englishName = null!;
-        public required string EnglishName {
-            get => _englishName;
-            init => _englishName = value;
-        }
-
+        public required string EnglishName { get; set; }
         private string _localName = null!;
         public required string LocalName {
             get {
-                if (IsAll) {
-                    throw new InvalidOperationException($"{nameof(LocalName)} must not be accessed when {nameof(IsAll)} is true");
-                }
+                //if (IsAll) {
+                //    throw new InvalidOperationException($"{nameof(LocalName)} must not be accessed when {nameof(IsAll)} is true");
+                //}
                 return _localName;
             }
-            init => _localName = value;
+            set => _localName = value;
         }
 
         public ICollection<Gallery> Galleries { get; } = [];
+        public GalleryLanguageDTO ToDTO() => new() {
+            Id = Id,
+            IsAll = IsAll,
+            EnglishName = EnglishName,
+            LocalName = LocalName
+        };
     }
+
 }

@@ -9,7 +9,7 @@
                 SelectionMode="SelectionMode.MultiSelection"
                 @bind-SelectedValues="@SelectedChipModels"
                 @bind-SelectedValues:after="@(() => SelectedChipModelsChanged?.Invoke(SelectedChipModels))"
-                SelectedColor="@Color.Secondary"
+                SelectedColor="@Color.Primary"
                 Variant="@Variant.Filled"
                 Class="overflow-y-auto">
         @foreach (ChipModel<TagFilterDTO> model in ChipModels) {

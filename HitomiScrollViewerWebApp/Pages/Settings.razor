@@ -1,13 +1,38 @@
 ﻿@page "/settings"
 
-<h3>Settings</h3>
 
-<div>Language</div>
-<MudSelect T="string" Label="Language" Variant="Variant.Filled" Style="width: 200px;">
-    <MudSelectItem T="string">English</MudSelectItem>
-    <MudSelectItem T="string">Korean</MudSelectItem>
-</MudSelect>
+<div class="pa-8">
+    <MudText Typo="Typo.h4" Class="mb-8">Settings</MudText>
+    @* TODO create SettingsCard.razor by referencing Windows Community Toolkit Gallery's SettingsCard *@
+    <MudPaper Class="pa-4">
+        <MudSelect T="string" Label="Language" Variant="Variant.Filled" Style="width: 200px;">
+            <MudSelectItem T="string">English</MudSelectItem>
+            <MudSelectItem T="string">Korean</MudSelectItem>
+        </MudSelect>
 
-@code {
-
-}
+        <div class="d-flex gap-2">
+            <div class="flex-grow-1">
+                @*
+                        <script src="https://accounts.google.com/gsi/client" async></script>
+                        <div id="g_id_onload"
+                        data-client_id="TODO_client_id"
+                        data-context="signin"
+                        data-ux_mode="popup"
+                        data-login_uri="TODO_login_uri.com"
+                        data-auto_select="true"
+                        data-itp_support="true">
+                        </div>
+                        <div class="g_id_signin"
+                        data-type="standard"
+                        data-shape="rectangular"
+                        data-theme="outline"
+                        data-text="signin_with"
+                        data-size="large"
+                        data-logo_alignment="left">
+                        </div>
+                        *@
+            </div>
+            <MudButton EndIcon="@Icons.Material.Outlined.Refresh" Color="Color.Primary" Variant="Variant.Outlined">Sync</MudButton>
+        </div>
+    </MudPaper>
+</div>

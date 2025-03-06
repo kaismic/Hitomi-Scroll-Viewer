@@ -2,34 +2,37 @@
 @using HitomiScrollViewerData
 @inject TagService TagService
 @inject TagFilterService TagFilterService
+@inject GalleryService GalleryService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
 <PageTitle>Search</PageTitle>
 
-<div style="display: grid; grid-template-columns: 75% 25%; padding: 32px;">
-    <div class="gap-4" style="grid-column: 1; display: grid; grid-template-rows: auto 1fr;">
+@* TODO fix height overflowing parent 3fr 2fr *@
+
+<div style="height: 100%; display: grid; grid-template-columns: 75% 25%;" class="pa-8 gap-4">
+    <div class="gap-4" style="grid-column: 1; display: grid; grid-template-rows: 3fr 2fr;">
         <MudPaper Class="d-flex flex-column pa-8 gap-4" Style="grid-row: 1;">
             <div>
                 <TagFilterEditor @ref="_tagFilterEditor"
-                                 SelectedTagFilterChanged="@SelectedTagFilterChanged"
-                                 OnCreateButtonClicked="@CreateTagFilter"
-                                 OnRenameButtonClicked="@RenameTagFilter"
-                                 OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
-                                 OnDeleteButtonClicked="@DeleteTagFilters" />
+                SelectedTagFilterChanged="@SelectedTagFilterChanged"
+                OnCreateButtonClicked="@CreateTagFilter"
+                OnRenameButtonClicked="@RenameTagFilter"
+                OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
+                OnDeleteButtonClicked="@DeleteTagFilters" />
             </div>
             <div class="d-flex justify-space-between">
                 <div class="d-flex gap-4">
                     <MudButton Color="Color.Primary"
-                               EndIcon="@Icons.Material.Filled.Clear"
-                               OnClick="ClearAllTags"
-                               Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
+                    EndIcon="@Icons.Material.Filled.Clear"
+                    OnClick="ClearAllTags"
+                    Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
                         Clear All Tags
                     </MudButton>
                     <MudButton Color="Color.Primary"
-                               EndIcon="@Icons.Material.Filled.Refresh"
-                               OnClick="LoadTags"
-                               Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
+                    EndIcon="@Icons.Material.Filled.Refresh"
+                    OnClick="LoadTags"
+                    Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
                         Reload Tags
                     </MudButton>
                 </div>
@@ -37,22 +40,35 @@
                     <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="_isAutoSaveEnabled" />
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(@TAG_CATEGORIES.Length, 1fr);
-                        border: @BORDER_SOLID_PRIMARY; border-radius: inherit; min-height: 30dvh">
+            <div style="border: @BORDER_SOLID_PRIMARY; border-radius: inherit;" class="d-flex flex-grow-1">
                 @for (int i = 0; i < _tagSearchChipSetModels.Length; i++) {
-                    <div style="grid-column: @(i + 1); border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none");
-                                max-height: 100%; overflow: hidden">
+                    <div style="flex-grow: 1; border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none"); overflow: hidden">
                         <TagSearchChipSet Model="_tagSearchChipSetModels[i]" />
                     </div>
                 }
             </div>
         </MudPaper>
-        <MudPaper Class="d-flex gap-4 pa-4" Style="grid-row: 2; min-height: 30dvh">
+        <MudPaper Class="d-flex gap-4 pa-4" Style="grid-row: 2;">
             <TagFilterSelector ChipModels="@_includeTagFilterChipModels" HeaderText="Include" HeaderTextColor="Color.Success" />
             <MudDivider Vertical="true" Class="my-6" FlexItem="true" />
             <TagFilterSelector ChipModels="@_excludeTagFilterChipModels" HeaderText="Exclude" HeaderTextColor="Color.Error" />
         </MudPaper>
     </div>
-    <div style="display: grid; grid-column: 2; grid-template-rows: auto 1fr 1fr;">
-    </div>
+    <MudPaper style="grid-column: 2; display: grid; grid-template-rows: auto auto auto auto 1fr" Class="pa-4">
+        <MudSelect Style="grid-row: 1" Label="Language" T="GalleryLanguageDTO" ToStringFunc="@(l => l.LocalName)" FullWidth="true" Variant="Variant.Outlined">
+            @foreach (GalleryLanguageDTO l in _galleryLanguages) {
+                <MudSelectItem Value="@l"></MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect Style="grid-row: 2" Label="Type" T="GalleryTypeDTO" ToStringFunc="@(t => t.Value)" FullWidth="true" Variant="Variant.Outlined">
+            @foreach (GalleryTypeDTO t in _galleryTypes) {
+                <MudSelectItem Value="@t"></MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField Style="grid-row: 3" T="string" Label="Additional keywords" Variant="Variant.Outlined" />
+        <MudButton Style="grid-row: 4" Class="flex-grow-0 my-2" FullWidth="true" Color="Color.Primary" Variant="Variant.Filled">Create and copy search link</MudButton>
+        <MudPaper Style="grid-row: 5" Class="overflow-y-auto flex-grow-1" Outlined="true">
+
+        </MudPaper>
+    </MudPaper>
 </div>

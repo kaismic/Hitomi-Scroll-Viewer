@@ -19,6 +19,7 @@ public class Program
         builder.Services.AddSingleton(new ApiUrlService(apiUrl));
         builder.Services.AddHttpClient<TagFilterService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<TagService>(client => client.BaseAddress = new Uri(apiUrl));
+        builder.Services.AddHttpClient<GalleryService>(client => client.BaseAddress = new Uri(apiUrl));
 
         var app = builder.Build();
         await app.RunAsync();

@@ -6,6 +6,7 @@ using HitomiScrollViewerWebApp.Models;
 using MudBlazor;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Security.AccessControl;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class Search {
@@ -59,6 +60,9 @@ namespace HitomiScrollViewerWebApp.Pages {
         private readonly TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
         private bool _isAutoSaveEnabled = true;
 
+        private List<GalleryLanguageDTO> _galleryLanguages = [];
+        private List<GalleryTypeDTO> _galleryTypes = [];
+
         public Search() {
             _tagSearchChipSetModels =
             [..
@@ -76,9 +80,9 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         protected override async Task OnInitializedAsync() {
-            IEnumerable<TagFilterDTO>? result = await TagFilterService.GetTagFiltersAsync();
-            TagFilters = result == null ? [] : [.. result];
-            await base.OnInitializedAsync();
+            TagFilters = [.. await TagFilterService.GetTagFiltersAsync()];
+            _galleryLanguages = await GalleryService.GetGalleryLanguages();
+            _galleryTypes = await GalleryService.GetGalleryTypes();
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {

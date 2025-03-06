@@ -97,7 +97,7 @@ namespace HitomiScrollViewerAPI {
             context.GalleryLanguages.Add(new GalleryLanguage() {
                 IsAll = true,
                 EnglishName = "All",
-                LocalName = null
+                LocalName = "All" // TODO localize?
             });
             context.GalleryLanguages.AddRange(languages.Select(
                 pair => {
@@ -112,7 +112,7 @@ namespace HitomiScrollViewerAPI {
             string[] types = [.. File.ReadAllLines(TYPES_FILE_PATH)];
             context.GalleryTypes.Add(new GalleryType() {
                 IsAll = true,
-                Value = null
+                Value = "All" // TODO localize?
             });
             context.GalleryTypes.AddRange(types.Select(t => new GalleryType() { IsAll = false, Value = t }));
             context.SaveChanges();
@@ -165,28 +165,28 @@ namespace HitomiScrollViewerAPI {
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_1,
                     Tags = [
-                        Utils.GetTag(tags, "full color", TagCategory.Tag),
-                        Utils.GetTag(tags, "very long hair", TagCategory.Female),
+                        Utils.GetTag(tags, "full color", TagCategory.Tag)!,
+                        Utils.GetTag(tags, "very long hair", TagCategory.Female)!,
                     ]
                 },
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_2,
                     Tags = [
-                        Utils.GetTag(tags, "glasses", TagCategory.Female),
-                        Utils.GetTag(tags, "sole male", TagCategory.Male),
+                        Utils.GetTag(tags, "glasses", TagCategory.Female)!,
+                        Utils.GetTag(tags, "sole male", TagCategory.Male)!,
                     ]
                 },
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_3,
                     Tags = [
-                        Utils.GetTag(tags, "naruto", TagCategory.Series),
-                        Utils.GetTag(tags, "big breasts", TagCategory.Female),
+                        Utils.GetTag(tags, "naruto", TagCategory.Series)!,
+                        Utils.GetTag(tags, "big breasts", TagCategory.Female)!,
                     ]
                 },
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_4,
                     Tags = [
-                        Utils.GetTag(tags, "non-h imageset", TagCategory.Tag)
+                        Utils.GetTag(tags, "non-h imageset", TagCategory.Tag)!
                     ]
                 }
             );

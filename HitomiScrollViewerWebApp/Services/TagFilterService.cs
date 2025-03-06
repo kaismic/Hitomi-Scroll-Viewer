@@ -5,8 +5,8 @@ namespace HitomiScrollViewerWebApp.Services {
     public class TagFilterService(HttpClient httpClient) {
         private readonly HttpClient _httpClient = httpClient;
 
-        public async Task<IEnumerable<TagFilterDTO>?> GetTagFiltersAsync() {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<TagFilterDTO>>("api/tagfilter/all");
+        public async Task<IEnumerable<TagFilterDTO>> GetTagFiltersAsync() {
+            return (await _httpClient.GetFromJsonAsync<IEnumerable<TagFilterDTO>>("api/tagfilter/all"))!;
         }
 
         public async Task<TagFilterDTO?> GetTagFilterAsync(int id) {
