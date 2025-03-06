@@ -4,7 +4,8 @@ using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Models;
 using MudBlazor;
-using System.ComponentModel;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class Search {
@@ -19,14 +20,35 @@ namespace HitomiScrollViewerWebApp.Pages {
             options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
         });
 
-        // TODO bind with TagFilterEditor and TagFilterSelector
-        private List<TagFilterDTO> _tagFilters = [];
-        public List<TagFilterDTO> TagFilters {
+        private ObservableCollection<TagFilterDTO> _tagFilters = [];
+        public ObservableCollection<TagFilterDTO> TagFilters {
             get => _tagFilters;
             set {
                 _tagFilters = value;
+                _tagFilterEditor.TagFilters = [.. value];
                 _includeTagFilterChipModels = [.. value.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
                 _excludeTagFilterChipModels = [.. value.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
+                value.CollectionChanged += TagFiltersChanged;
+            }
+        }
+
+        private void TagFiltersChanged(object? sender, NotifyCollectionChangedEventArgs e) {
+            switch (e.Action) {
+                case NotifyCollectionChangedAction.Add:
+                    List<TagFilterDTO> newTfs = [.. e.NewItems!.Cast<TagFilterDTO>()];
+                    List<ChipModel<TagFilterDTO>> newModels = [..  newTfs.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
+                    _tagFilterEditor.TagFilters.InsertRange(e.NewStartingIndex, newTfs);
+                    _includeTagFilterChipModels.InsertRange(e.NewStartingIndex, newModels);
+                    _excludeTagFilterChipModels.InsertRange(e.NewStartingIndex, newModels);
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    _tagFilterEditor.TagFilters.RemoveRange(e.OldStartingIndex, e.OldItems!.Count);
+                    // assumes ChipModels has the same order in regards to TagFilterDTO.Id
+                    _includeTagFilterChipModels.RemoveRange(e.OldStartingIndex, e.OldItems!.Count);
+                    _excludeTagFilterChipModels.RemoveRange(e.OldStartingIndex, e.OldItems!.Count);
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -100,7 +122,9 @@ namespace HitomiScrollViewerWebApp.Pages {
                         builder.OpenComponent<DialogTextField>(0);
                         builder.AddComponentReferenceCapture(1, (component) => {
                             dialogContent = (DialogTextField)component;
+#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
                             dialogContent.Validators = [IsDuplicate];
+#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
                         });
                         builder.CloseComponent();
                     }
@@ -116,7 +140,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                     _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value)
                 );
                 if (tagFilter != null) {
-                    _tagFilterEditor.TagFilters.Add(tagFilter);
+                    TagFilters.Add(tagFilter);
                     _tagFilterEditor.CurrentTagFilter = tagFilter;
                     Snackbar.Add($"Created \"{name}\".", Severity.Success, SNACKBAR_OPTIONS);
                 } else {
@@ -135,8 +159,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                         builder.OpenComponent<DialogTextField>(0);
                         builder.AddComponentReferenceCapture(1, (component) => {
                             dialogContent = (DialogTextField)component;
+#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
                             dialogContent.Validators = [IsDuplicate];
                             dialogContent.Text = oldName;
+#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
                         });
                         builder.CloseComponent();
                     }
@@ -169,7 +195,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task SaveTagFilter(TagFilterDTO? tagFilter) {
-            if (tagFilter != null) {
+            if (tagFilter != null && TagFilters.Contains(tagFilter) /* tag filter could have been deleted */) {
                 bool success = await TagFilterService.UpdateTagFilterAsync(
                     tagFilter.Id,
                     _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value)
@@ -182,8 +208,40 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        private void DeleteTagFilters() {
-            // TODO
+        private async Task DeleteTagFilters() {
+            DialogTagFilterSelector dialogContent = null!;
+            var parameters = new DialogParameters<TagFilterEditDialog> {
+                { d => d.ActionText, "Delete" },
+                { d => d.DialogContent,
+                    builder => {
+                        builder.OpenComponent<DialogTagFilterSelector>(0);
+                        builder.AddComponentReferenceCapture(1, (component) => {
+                            dialogContent = (DialogTagFilterSelector)component;
+#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
+                            dialogContent.ChipModels = [.. TagFilters.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
+#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
+                        });
+                        builder.CloseComponent();
+                    }
+                },
+            };
+            IDialogReference dialog = await DialogService.ShowAsync<TagFilterEditDialog>("Select tag filters to delete", parameters);
+            ((TagFilterEditDialog)dialog.Dialog!).DialogContentRef = dialogContent;
+            DialogResult result = (await dialog.Result)!;
+            if (!result.Canceled) {
+                IReadOnlyCollection<ChipModel<TagFilterDTO>> selected = (IReadOnlyCollection<ChipModel<TagFilterDTO>>)result.Data!;
+                IEnumerable<int> ids = selected.Select(m => m.Value.Id);
+                bool success = await TagFilterService.DeleteTagFiltersAsync(ids);
+                if (success) {
+                    TagFilters = [.. TagFilters.ExceptBy(ids, tf => tf.Id)];
+                    if (_tagFilterEditor.CurrentTagFilter != null && selected.Any(m => m.Value.Id == _tagFilterEditor.CurrentTagFilter.Id)) {
+                        _tagFilterEditor.CurrentTagFilter = null;
+                    }
+                    Snackbar.Add($"Deleted {selected.Count} tag filters.", Severity.Success, SNACKBAR_OPTIONS);
+                } else {
+                    Snackbar.Add($"Failed to delete tag filters.", Severity.Error, SNACKBAR_OPTIONS);
+                }
+            } 
         }
     }
 }

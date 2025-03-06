@@ -1,7 +1,10 @@
 ﻿@inherits ChipSetBase<TagFilterDTO>
 
-<div class="d-flex flex-column pa-8 gap-4">
-    <MudText Color="@HeaderTextColor" Typo="Typo.h6" Align="Align.Center">@HeaderText</MudText>
+<div class="d-flex flex-column gap-4">
+    @if (HeaderText != null)
+    {
+        <MudText Color="@HeaderTextColor" Typo="Typo.h6" Align="Align.Center">@HeaderText</MudText>
+    }
     <MudChipSet T="@(ChipModel<TagFilterDTO>)"
                 SelectionMode="SelectionMode.MultiSelection"
                 @bind-SelectedValues="@SelectedChipModels"

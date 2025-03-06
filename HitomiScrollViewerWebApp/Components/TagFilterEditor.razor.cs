@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class TagFilterEditor : ComponentBase {
-        [Parameter, EditorRequired] public List<TagFilterDTO> TagFilters { get; set; } = [];
+        public List<TagFilterDTO> TagFilters { get; set; } = [];
         [Parameter, EditorRequired] public EventCallback<ValueChangedEventArgs<TagFilterDTO>> SelectedTagFilterChanged { get; set; }
         [Parameter, EditorRequired] public EventCallback OnCreateButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnRenameButtonClicked { get; set; }

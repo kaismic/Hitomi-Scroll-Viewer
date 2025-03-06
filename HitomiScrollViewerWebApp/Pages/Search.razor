@@ -12,11 +12,11 @@
         <MudPaper Class="d-flex flex-column pa-8 gap-4" Style="grid-row: 1;">
             <div>
                 <TagFilterEditor @ref="_tagFilterEditor"
-                                 TagFilters="@TagFilters"
                                  SelectedTagFilterChanged="@SelectedTagFilterChanged"
                                  OnCreateButtonClicked="@CreateTagFilter"
                                  OnRenameButtonClicked="@RenameTagFilter"
-                                 OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))" />
+                                 OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
+                                 OnDeleteButtonClicked="@DeleteTagFilters" />
             </div>
             <div class="d-flex justify-space-between">
                 <div class="d-flex gap-4">
@@ -47,7 +47,7 @@
                 }
             </div>
         </MudPaper>
-        <MudPaper Class="d-flex gap-4" Style="grid-row: 2; min-height: 30dvh">
+        <MudPaper Class="d-flex gap-4 pa-4" Style="grid-row: 2; min-height: 30dvh">
             <TagFilterSelector ChipModels="@_includeTagFilterChipModels" HeaderText="Include" HeaderTextColor="Color.Success" />
             <MudDivider Vertical="true" Class="my-6" FlexItem="true" />
             <TagFilterSelector ChipModels="@_excludeTagFilterChipModels" HeaderText="Exclude" HeaderTextColor="Color.Error" />

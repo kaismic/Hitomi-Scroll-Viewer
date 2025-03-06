@@ -2,8 +2,8 @@
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class DialogTextField : ComponentBase, IDialogContent {
-        public IEnumerable<Func<string, Task<string?>>> Validators { get; set; } = null!;
-        public string Text { get; set; } = "";
+        [Parameter, EditorRequired] public IEnumerable<Func<string, Task<string?>>> Validators { get; set; } = null!;
+        [Parameter] public string Text { get; set; } = "";
 
         protected override void OnAfterRender(bool firstRender) {
             if (firstRender) {
