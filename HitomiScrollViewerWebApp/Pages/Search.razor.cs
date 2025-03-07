@@ -53,6 +53,8 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
+        private PairedTagFilterSelector _includePairedTagFilterSelector = null!;
+        private PairedTagFilterSelector _excludePairedTagFilterSelector = null!;
         private List<ChipModel<TagFilterDTO>> _includeTagFilterChipModels = [];
         private List<ChipModel<TagFilterDTO>> _excludeTagFilterChipModels = [];
 
@@ -83,6 +85,13 @@ namespace HitomiScrollViewerWebApp.Pages {
             TagFilters = [.. await TagFilterService.GetTagFiltersAsync()];
             _galleryLanguages = await GalleryService.GetGalleryLanguages();
             _galleryTypes = await GalleryService.GetGalleryTypes();
+        }
+
+        protected override void OnAfterRender(bool firstRender) {
+            if (firstRender) {
+                _includePairedTagFilterSelector.Other = _excludePairedTagFilterSelector;
+                _excludePairedTagFilterSelector.Other = _includePairedTagFilterSelector;
+            }
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {

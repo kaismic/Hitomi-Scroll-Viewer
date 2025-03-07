@@ -47,9 +47,15 @@
             </div>
         </MudPaper>
         <MudPaper Class="d-flex gap-4 pa-4 overflow-y-auto" Style="flex: 2">
-            <TagFilterSelector ChipModels="@_includeTagFilterChipModels" HeaderText="Include" HeaderTextColor="Color.Success" />
+            <PairedTagFilterSelector @ref="_includePairedTagFilterSelector"
+                                     ChipModels="@_includeTagFilterChipModels"
+                                     HeaderText="Include"
+                                     HeaderTextColor="Color.Success" />
             <MudDivider Vertical="true" Class="my-6" FlexItem="true" />
-            <TagFilterSelector ChipModels="@_excludeTagFilterChipModels" HeaderText="Exclude" HeaderTextColor="Color.Error" />
+            <PairedTagFilterSelector @ref="_excludePairedTagFilterSelector"
+                                     ChipModels="@_excludeTagFilterChipModels"
+                                     HeaderText="Exclude"
+                                     HeaderTextColor="Color.Error" />
         </MudPaper>
     </div>
     <MudPaper style="grid-column: 2; display: grid; grid-template-rows: auto auto auto auto 1fr" Class="pa-4">

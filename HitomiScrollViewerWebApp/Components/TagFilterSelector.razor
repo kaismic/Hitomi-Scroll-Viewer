@@ -16,6 +16,7 @@
             <MudChip T="@(ChipModel<TagFilterDTO>)"
                      Value="@model"
                      OnClick="@((arg) => HandleChipClick(model))"
+                     Disabled="@model.Disabled"
                      @key="model"
                      id="@model.Id">
                 @(model.Value.Name)
