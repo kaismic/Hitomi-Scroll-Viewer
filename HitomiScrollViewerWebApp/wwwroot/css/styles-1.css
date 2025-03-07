@@ -1,10 +1,14 @@
 ﻿/* override
-    mud-chip.mud-chip-size-medium height: 32px => auto
-    mud-chip: white-space => nowrap
+    mud-chip.mud-chip-size-medium: height
+    mud-chip: white-space
 */
 .mud-chip {
     overflow-wrap: anywhere;
     min-height: 32px;
     height: auto !important;
     white-space: normal !important;
+}
+
+#search-filter-control-panel > :not(.mud-paper) {
+    flex: 0 1 auto !important;
 }

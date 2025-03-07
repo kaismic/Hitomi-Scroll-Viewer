@@ -5,32 +5,58 @@
 @inject GalleryService GalleryService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Search</PageTitle>
 
-<div style="height: 100%; display: grid; grid-template-columns: 75% 25%;" class="pa-8 gap-4">
-    <div class="d-flex flex-column gap-4" style="grid-column: 1;">
-        <MudPaper Class="d-flex flex-column pa-8 gap-4" Style="flex: 3">
+<div style="height: 100%;" class="d-flex pa-8 gap-4">
+    <div id="left-container" style="flex: 3;" class="d-flex flex-column gap-2">
+        <script>
+            function setChipSetContainerHeight() {
+                // set tag-search-chip-set-container's height to fill the remaining space of its parent
+                const leftContainer = document.getElementById("left-container");
+                const resizeObserver = new ResizeObserver(
+                    (entries) => {
+                        const tagFilterEditorControlPanel = document.getElementById("tag-filter-editor-control-panel");
+                        var computedStyle = getComputedStyle(tagFilterEditorControlPanel);
+                        let controlPanelHeight = tagFilterEditorControlPanel.clientHeight;
+                        controlPanelHeight -= parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom); // remove padding
+                        controlPanelHeight -= parseInt(computedStyle.gap) * (tagFilterEditorControlPanel.children.length - 1) // remove grid gap
+                        for (const child of tagFilterEditorControlPanel.children) {
+                            if (child.id !== "tag-search-chip-set-container") {
+                                controlPanelHeight -= child.offsetHeight;
+                                controlPanelHeight -= child.marginTop ? child.marginTop : 0;
+                                controlPanelHeight -= child.marginBottom ? child.marginBottom : 0;
+                            }
+                        }
+                        const chipSetContainer = document.getElementById("tag-search-chip-set-container");
+                        chipSetContainer.style.height = controlPanelHeight + "px";
+                    }
+                );
+                resizeObserver.observe(leftContainer);
+            }
+        </script>
+        <MudPaper id="tag-filter-editor-control-panel" Class="pa-8 gap-2" Style="height: 60%; display: grid; grid-template-rows: repeat(3, min-content)">
             <div>
                 <TagFilterEditor @ref="_tagFilterEditor"
-                SelectedTagFilterChanged="@SelectedTagFilterChanged"
-                OnCreateButtonClicked="@CreateTagFilter"
-                OnRenameButtonClicked="@RenameTagFilter"
-                OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
-                OnDeleteButtonClicked="@DeleteTagFilters" />
+                                 SelectedTagFilterChanged="@SelectedTagFilterChanged"
+                                 OnCreateButtonClicked="@CreateTagFilter"
+                                 OnRenameButtonClicked="@RenameTagFilter"
+                                 OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
+                                 OnDeleteButtonClicked="@DeleteTagFilters" />
             </div>
             <div class="d-flex justify-space-between">
                 <div class="d-flex gap-4">
                     <MudButton Color="Color.Primary"
-                    EndIcon="@Icons.Material.Filled.Clear"
-                    OnClick="ClearAllTags"
-                    Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
+                               EndIcon="@Icons.Material.Filled.Clear"
+                               OnClick="ClearAllTags"
+                               Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
                         Clear All Tags
                     </MudButton>
                     <MudButton Color="Color.Primary"
-                    EndIcon="@Icons.Material.Filled.Refresh"
-                    OnClick="LoadTags"
-                    Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
+                               EndIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="LoadTags"
+                               Disabled="@(_tagFilterEditor?.CurrentTagFilter == null)">
                         Reload Tags
                     </MudButton>
                 </div>
@@ -38,15 +64,17 @@
                     <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="_isAutoSaveEnabled" />
                 </div>
             </div>
-            <div style="border: @BORDER_SOLID_PRIMARY; border-radius: inherit;" class="d-flex flex-grow-1">
+            <div id="tag-search-chip-set-container"
+                 style="border: @BORDER_SOLID_PRIMARY; border-radius: inherit;
+                        display: grid; grid-template-columns: repeat(@TAG_CATEGORIES.Length, 1fr); grid-template-rows: 100%">
                 @for (int i = 0; i < _tagSearchChipSetModels.Length; i++) {
-                    <div style="flex-grow: 1; border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none"); overflow: hidden">
+                    <div style="grid-column: @(i + 1); border-right: @(i < TAG_CATEGORIES.Length - 1 ? BORDER_SOLID_PRIMARY : "none");">
                         <TagSearchChipSet Model="_tagSearchChipSetModels[i]" />
                     </div>
                 }
             </div>
         </MudPaper>
-        <MudPaper Class="d-flex gap-4 pa-4 overflow-y-auto" Style="flex: 2">
+        <MudPaper Class="d-flex gap-4 pa-4 overflow-y-auto" Style="height: 40%;">
             <PairedTagFilterSelector @ref="_includePairedTagFilterSelector"
                                      ChipModels="@_includeTagFilterChipModels"
                                      HeaderText="Include"
@@ -58,20 +86,20 @@
                                      HeaderTextColor="Color.Error" />
         </MudPaper>
     </div>
-    <MudPaper style="grid-column: 2; display: grid; grid-template-rows: auto auto auto auto 1fr" Class="pa-4">
-        <MudSelect Style="grid-row: 1" Label="Language" T="GalleryLanguageDTO" ToStringFunc="@(l => l.LocalName)" FullWidth="true" Variant="Variant.Outlined">
+    <MudPaper id="search-filter-control-panel" Style="flex: 1;" Class="d-flex flex-column pa-4">
+        <MudSelect Label="Language" T="GalleryLanguageDTO" ToStringFunc="@(l => l.LocalName)" FullWidth="true" Variant="Variant.Outlined">
             @foreach (GalleryLanguageDTO l in _galleryLanguages) {
                 <MudSelectItem Value="@l"></MudSelectItem>
             }
         </MudSelect>
-        <MudSelect Style="grid-row: 2" Label="Type" T="GalleryTypeDTO" ToStringFunc="@(t => t.Value)" FullWidth="true" Variant="Variant.Outlined">
+        <MudSelect Label="Type" T="GalleryTypeDTO" ToStringFunc="@(t => t.Value)" FullWidth="true" Variant="Variant.Outlined">
             @foreach (GalleryTypeDTO t in _galleryTypes) {
                 <MudSelectItem Value="@t"></MudSelectItem>
             }
         </MudSelect>
-        <MudTextField Style="grid-row: 3" T="string" Label="Additional keywords" Variant="Variant.Outlined" />
-        <MudButton Style="grid-row: 4" Class="flex-grow-0 my-2" FullWidth="true" Color="Color.Primary" Variant="Variant.Filled">Create and copy search link</MudButton>
-        <MudPaper Style="grid-row: 5" Class="overflow-y-auto flex-grow-1" Outlined="true">
+        <MudTextField T="string" Label="Additional keywords" Variant="Variant.Outlined" />
+        <MudButton Class="my-2 py-2" FullWidth="true" Color="Color.Primary" Variant="Variant.Filled">Create and copy search link</MudButton>
+        <MudPaper Class="flex-1 overflow-y-auto" Outlined="true">
 
         </MudPaper>
     </MudPaper>

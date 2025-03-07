@@ -1,17 +1,15 @@
 ﻿using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerWebApp.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Components {
-    public class TagSearchChipSet : SearchChipSet<TagDTO> {
-        private TagSearchChipSetModel _model = null!;
-        public override SearchChipSetModel<TagDTO> Model {
-            get => _model;
-            init => _model = (TagSearchChipSetModel)value;
-        }
+    public partial class TagSearchChipSet : ChipSetBase<TagDTO> {
+        [Parameter, EditorRequired] public virtual TagSearchChipSetModel Model { get; init; } = null!;
 
         private TagDTO? _searchValue;
-        protected override TagDTO? SearchValue {
+        public TagDTO? SearchValue {
             get => _searchValue;
             set {
                 _searchValue = value;
@@ -29,6 +27,10 @@ namespace HitomiScrollViewerWebApp.Components {
                     }
                 }
             }
+        }
+
+        private void HandleClosed(MudChip<ChipModel<TagDTO>> mudChip) {
+            Model.ChipModels.Remove(mudChip.Value!);
         }
     }
 }

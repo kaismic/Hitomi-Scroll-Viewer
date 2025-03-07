@@ -3,6 +3,7 @@ using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Models;
+using Microsoft.JSInterop;
 using MudBlazor;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -91,6 +92,9 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (firstRender) {
                 _includePairedTagFilterSelector.Other = _excludePairedTagFilterSelector;
                 _excludePairedTagFilterSelector.Other = _includePairedTagFilterSelector;
+#pragma warning disable CA2012 // Use ValueTasks correctly
+                _ = JSRuntime.InvokeVoidAsync("setChipSetContainerHeight");
+#pragma warning restore CA2012 // Use ValueTasks correctly
             }
         }
 

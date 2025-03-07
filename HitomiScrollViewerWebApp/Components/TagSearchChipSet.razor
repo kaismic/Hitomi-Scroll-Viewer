@@ -1,8 +1,7 @@
-﻿@inherits ChipSetBase<TValue>
-@typeparam TValue
+﻿@inherits ChipSetBase<TagDTO>
 
-<div style="height: 100%; display: grid; grid-template-rows: auto 1fr;">
-    <MudAutocomplete T="TValue"
+<div style="display: grid; grid-template-rows: auto 1fr; max-height: 100%">
+    <MudAutocomplete T="TagDTO"
                      Label="@Model.Label"
                      DebounceInterval="500"
                      SearchFunc="@Model.SearchFunc"
@@ -12,15 +11,15 @@
                      ShowProgressIndicator="true"
                      @bind-Value="@SearchValue"
                      Color="@Color.Primary"
-                     Style="grid-row: 1; width: 90%; margin: auto;">
+                     Style="width: 90%; margin: auto; grid-row: 1;">
     </MudAutocomplete>
-    <MudChipSet T="@(ChipModel<TValue>)"
+    <MudChipSet T="@(ChipModel<TagDTO>)"
                 SelectionMode="SelectionMode.MultiSelection"
                 SelectedColor="@Color.Primary"
                 Variant="@Variant.Filled"
-                Style="grid-row: 2; overflow-y: auto;">
-        @foreach (ChipModel<TValue> model in Model.ChipModels) {
-            <MudChip T="@(ChipModel<TValue>)"
+                Style="overflow-y: auto; grid-row: 2;">
+        @foreach (ChipModel<TagDTO> model in Model.ChipModels) {
+            <MudChip T="@(ChipModel<TagDTO>)"
                      Value="@model"
                      OnClose="@HandleClosed"
                      OnClick="@((arg) => HandleChipClick(model))"
@@ -30,4 +29,5 @@
             </MudChip>
         }
     </MudChipSet>
+
 </div>
