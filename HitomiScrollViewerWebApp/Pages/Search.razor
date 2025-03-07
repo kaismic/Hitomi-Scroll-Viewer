@@ -8,11 +8,9 @@
 
 <PageTitle>Search</PageTitle>
 
-@* TODO fix height overflowing parent 3fr 2fr *@
-
 <div style="height: 100%; display: grid; grid-template-columns: 75% 25%;" class="pa-8 gap-4">
-    <div class="gap-4" style="grid-column: 1; display: grid; grid-template-rows: 3fr 2fr;">
-        <MudPaper Class="d-flex flex-column pa-8 gap-4" Style="grid-row: 1;">
+    <div class="d-flex flex-column gap-4" style="grid-column: 1;">
+        <MudPaper Class="d-flex flex-column pa-8 gap-4" Style="flex: 3">
             <div>
                 <TagFilterEditor @ref="_tagFilterEditor"
                 SelectedTagFilterChanged="@SelectedTagFilterChanged"
@@ -48,7 +46,7 @@
                 }
             </div>
         </MudPaper>
-        <MudPaper Class="d-flex gap-4 pa-4" Style="grid-row: 2;">
+        <MudPaper Class="d-flex gap-4 pa-4 overflow-y-auto" Style="flex: 2">
             <TagFilterSelector ChipModels="@_includeTagFilterChipModels" HeaderText="Include" HeaderTextColor="Color.Success" />
             <MudDivider Vertical="true" Class="my-6" FlexItem="true" />
             <TagFilterSelector ChipModels="@_excludeTagFilterChipModels" HeaderText="Exclude" HeaderTextColor="Color.Error" />
