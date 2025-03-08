@@ -29,12 +29,7 @@ namespace HitomiScrollViewerWebApp.Services {
         }
 
         public async Task<bool> DeleteTagFiltersAsync(IEnumerable<int> ids) {
-            HttpRequestMessage request = new() {
-                Method = HttpMethod.Delete,
-                RequestUri = new Uri("api/tagfilter", UriKind.Relative),
-                Content = JsonContent.Create(ids)
-            };
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            HttpResponseMessage response = await _httpClient.PostAsync("api/tagfilter/delete", JsonContent.Create(ids));
             return response.IsSuccessStatusCode;
         }
     }

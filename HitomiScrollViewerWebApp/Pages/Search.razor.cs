@@ -7,7 +7,6 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Security.AccessControl;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class Search {
@@ -63,8 +62,12 @@ namespace HitomiScrollViewerWebApp.Pages {
         private readonly TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
         private bool _isAutoSaveEnabled = true;
 
-        private List<GalleryLanguageDTO> _galleryLanguages = [];
-        private List<GalleryTypeDTO> _galleryTypes = [];
+        private List<GalleryLanguageDTO> _languages = [];
+        private GalleryLanguageDTO _selectedLanguage = null!;
+        private List<GalleryTypeDTO> _types = [];
+        private GalleryTypeDTO _selectedType = null!;
+
+        private readonly List<SearchFilterModel> _searchFilterModels = [];
 
         public Search() {
             _tagSearchChipSetModels =
@@ -84,9 +87,13 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         protected override async Task OnInitializedAsync() {
             TagFilters = [.. await TagFilterService.GetTagFiltersAsync()];
-            _galleryLanguages = await GalleryService.GetGalleryLanguages();
-            _galleryTypes = await GalleryService.GetGalleryTypes();
+            _languages = await GalleryService.GetGalleryLanguages();
+            _types = await GalleryService.GetGalleryTypes();
+            _selectedLanguage = _languages.First(l => l.IsAll);
+            _selectedType = _types.First(t => t.IsAll);
         }
+
+        private string _searchKeywordsText = "";
 
         protected override void OnAfterRender(bool firstRender) {
             if (firstRender) {
@@ -117,7 +124,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task LoadTags() {
             if (_tagFilterEditor.CurrentTagFilter != null) {
-                List<TagDTO>? tags = await TagService.GetTagsFromTagFilter(_tagFilterEditor.CurrentTagFilter.Id);
+                List<TagDTO>? tags = await TagService.GetTags(_tagFilterEditor.CurrentTagFilter.Id);
                 if (tags != null) {
                     foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
                         model.ChipModels = [..
@@ -259,6 +266,30 @@ namespace HitomiScrollViewerWebApp.Pages {
                     Snackbar.Add($"Failed to delete tag filters.", Severity.Error, SNACKBAR_OPTIONS);
                 }
             } 
+        }
+
+        private async Task CreateSearchFilter() {
+            IEnumerable<int> includeIds = _includePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id);
+            IEnumerable<int> excludeIds = _excludePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id);
+            Task<IEnumerable<TagDTO>?>? includeTagsTask = null;
+            Task<IEnumerable<TagDTO>?>? excludeTagsTask = null;
+            if (includeIds.Any()) {
+                includeTagsTask = TagService.GetTags(includeIds);
+            }
+            if (excludeIds.Any()) {
+                excludeTagsTask = TagService.GetTags(excludeIds);
+            }
+            await Task.WhenAll(includeTagsTask ?? Task.CompletedTask, excludeTagsTask ?? Task.CompletedTask);
+            SearchFilterModel model = new() {
+                Language = _selectedLanguage,
+                Type = _selectedType,
+                IncludeTags = includeTagsTask?.Result ?? [],
+                ExcludeTags = excludeTagsTask?.Result ?? [],
+                SearchKeywords = _searchKeywordsText
+            };
+            model.BuildSearchLink();
+            model.LabelTags();
+            _searchFilterModels.Add(model);
         }
     }
 }

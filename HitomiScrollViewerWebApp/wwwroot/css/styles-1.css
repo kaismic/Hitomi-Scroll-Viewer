@@ -12,3 +12,9 @@
 #search-filter-control-panel > :not(.mud-paper) {
     flex: 0 1 auto !important;
 }
+
+.search-filter td {
+    border-color: var(--mud-palette-divider);
+    border-width: 1px;
+    padding: 4px;
+}

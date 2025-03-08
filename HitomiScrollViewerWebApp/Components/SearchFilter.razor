@@ -1,8 +1,37 @@
-﻿<a style="text-decoration: inherit; color: inherit;">
-    <div style="display: grid; grid-template-columns: auto 1fr;">
-        <div style="grid-column: 1;">Header 1</div>
-        <div style="grid-column: 2;">Content winweio woeiwoi wuenuwn</div>
-        <div style="grid-column: 1;">Header 2</div>
-        <div style="grid-column: 2;">Header 2</div>
-    </div>
+﻿<a class="search-filter" style="text-decoration: inherit; color: inherit;" href="@Model.SearchLink">
+    <table style="border-collapse: collapse; width: 100%;" class="rounded">
+        <tbody>
+            <tr>
+                <td>Language</td>
+                <td>@Model.Language.EnglishName</td>
+            </tr>
+            <tr>
+                <td>Type</td>
+                <td>@Model.Type.Value</td>
+            </tr>
+            @foreach (LabeledTagCollection collection in Model.LabeledTagCollections)
+            {
+                <tr>
+                    <td>@collection.Category.ToString()</td>
+                    <td class="d-flex flex-wrap gap-1">
+                        @foreach (TagDTO tag in collection.IncludeTags)
+                        {
+                            <span style="background-color: var(--mud-palette-success);" class="rounded px-1">@tag.Value</span>
+                        }
+                        @foreach (TagDTO tag in collection.ExcludeTags)
+                        {
+                            <span style="background-color: var(--mud-palette-error)" class="rounded px-1">@tag.Value</span>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (Model.SearchKeywords.Length > 0)
+            {
+                <tr>
+                    <td>Keywords</td>
+                    <td>@Model.SearchKeywords</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </a>

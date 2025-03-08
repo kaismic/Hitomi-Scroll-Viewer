@@ -53,20 +53,6 @@ namespace HitomiScrollViewerLib.ViewModels {
                 searchParamStrs.Add(string.Join(' ', IncludeTags.Select(tag => CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
                 searchParamStrs.Add(string.Join(' ', ExcludeTags.Select(tag => '-' + CATEGORY_SEARCH_PARAM_DICT[tag.Category] + ':' + tag.SearchParamValue)));
 
-                // add display texts for each tag category
-                foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                    HashSet<string> includeValues = IncludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value).ToHashSet();
-                    HashSet<string> excludeValues = ExcludeTags.Where(tag => tag.Category == category).Select(tag => tag.Value).ToHashSet();
-                    if (includeValues.Count == 0 && excludeValues.Count == 0) {
-                        continue;
-                    }
-                    string[] withoutEmptyStrs = new string[] {
-                        string.Join(", ", includeValues),
-                        string.Join(", ", excludeValues)
-                    }.Where(s => !string.IsNullOrEmpty(s))
-                    .ToArray();
-                }
-
                 if (SearchTitleText.Length > 0) {
                     searchParamStrs.Add(SearchTitleText);
                 }

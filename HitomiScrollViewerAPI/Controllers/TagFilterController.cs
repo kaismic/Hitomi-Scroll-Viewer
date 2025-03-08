@@ -27,7 +27,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok(tagFilter.ToTagFilterDTO());
         }
 
-        [HttpDelete]
+        [HttpPost("delete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<TagFilterDTO> DeleteTagFilters([FromBody] IEnumerable<int> ids) {
             IEnumerable<TagFilter> tagFilters = ids.Select(id => context.TagFilters.Find(id)).Where(tf => tf != null).Cast<TagFilter>(); 
