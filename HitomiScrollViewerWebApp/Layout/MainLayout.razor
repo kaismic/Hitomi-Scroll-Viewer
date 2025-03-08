@@ -5,7 +5,7 @@
 @inject NavigationManager NavigationManager
 @inject ApiUrlService ApiUrlService
 
-<MudThemeProvider />
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
 <MudSnackbarProvider />
 <MudDialogProvider MaxWidth="MaxWidth.Small" FullWidth="true" />
@@ -13,10 +13,13 @@
 <MudLayout>
     @if (_isInitialized) {
         <MudAppBar Elevation="0">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle" />
             <MudText Typo="Typo.h5" Class="ml-3">Hitomi Scroll Viewer</MudText>
             <MudSpacer />
-            <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+            <MudToggleIconButton @bind-Toggled="_isDarkMode"
+                                 Color="Color.Inherit"
+                                 Icon="@Icons.Material.Filled.LightMode"
+                                 ToggledIcon="@Icons.Material.Filled.DarkMode" />
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
             <MudNavMenu>
@@ -45,15 +48,17 @@
 </MudLayout>
 
 @code {
+    private MudThemeProvider _mudThemeProvider = null!;
+    private MudTheme _theme = new();
+    private bool _isDarkMode;
+    private bool _drawerOpen = true;
+
     private HubConnection? _hubConnection;
     private bool _isInitialized = false;
     private bool _connectionError = false;
     private string _status = "";
-    private bool _drawerOpen = true;
 
-    private void DrawerToggle() {
-        _drawerOpen = !_drawerOpen;
-    }
+    private void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
     protected override async Task OnInitializedAsync() {
         try {
@@ -66,6 +71,14 @@
         } catch (HttpRequestException) {
             _connectionError = true;
             _status = "Connection error. Please reload after starting the local server.";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
         }
     }
 
