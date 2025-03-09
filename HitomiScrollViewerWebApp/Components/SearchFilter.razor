@@ -1,26 +1,26 @@
-﻿<a class="search-filter" style="text-decoration: inherit; color: inherit;" href="@Model.SearchLink">
-    <table style="border-collapse: collapse; width: 100%;" class="rounded">
+﻿<a class="search-filter" href="@Model.SearchLink" target="_blank">
+    <table style="border-collapse: collapse;">
         <tbody>
             <tr>
-                <td>Language</td>
-                <td>@Model.Language.EnglishName</td>
+                <td><MudText Typo="Typo.button">Language</MudText></td>
+                <td>@Model.Language.LocalName</td>
             </tr>
             <tr>
-                <td>Type</td>
+                <td><MudText Typo="Typo.button">Type</MudText></td>
                 <td>@Model.Type.Value</td>
             </tr>
             @foreach (LabeledTagCollection collection in Model.LabeledTagCollections)
             {
                 <tr>
-                    <td>@collection.Category.ToString()</td>
+                    <td><MudText Typo="Typo.button">@collection.Category.ToString()</MudText></td>
                     <td class="d-flex flex-wrap gap-1">
                         @foreach (TagDTO tag in collection.IncludeTags)
                         {
-                            <span style="background-color: var(--mud-palette-success);" class="rounded px-1">@tag.Value</span>
+                            <span style="background-color: var(--mud-palette-success); color: var(--mud-palette-error-text);" class="rounded px-1">@tag.Value</span>
                         }
                         @foreach (TagDTO tag in collection.ExcludeTags)
                         {
-                            <span style="background-color: var(--mud-palette-error)" class="rounded px-1">@tag.Value</span>
+                            <span style="background-color: var(--mud-palette-error); color: var(--mud-palette-success-text);" class="rounded px-1">@tag.Value</span>
                         }
                     </td>
                 </tr>
@@ -28,7 +28,7 @@
             @if (Model.SearchKeywords.Length > 0)
             {
                 <tr>
-                    <td>Keywords</td>
+                    <td><MudText Typo="Typo.button">Keywords</MudText></td>
                     <td>@Model.SearchKeywords</td>
                 </tr>
             }

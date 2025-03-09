@@ -9,12 +9,30 @@
     white-space: normal !important;
 }
 
-#search-filter-control-panel > :not(.mud-paper) {
-    flex: 0 1 auto !important;
+#search-filter-control-panel > :not(:last-child) {
+    flex: 0 1 auto;
+}
+
+.search-filter {
+    border: 1px solid var(--mud-palette-text-primary);
+    border-radius: var(--mud-default-borderradius);
+}
+
+.search-filter:hover {
+    background-color: var(--mud-palette-action-default-hover)
+}
+
+.search-filter tr:not(:last-child) {
+    border-bottom-color: var(--mud-palette-divider);
+    border-bottom-width: 1px;
 }
 
 .search-filter td {
-    border-color: var(--mud-palette-divider);
-    border-width: 1px;
     padding: 4px;
+}
+
+.search-filter td:first-child {
+    border-right-color: var(--mud-palette-divider);
+    border-right-width: 1px;
+    vertical-align: top;
 }
