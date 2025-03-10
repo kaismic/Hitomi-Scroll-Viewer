@@ -11,8 +11,10 @@ namespace HitomiScrollViewerData.DbContexts {
         public DbSet<Tag> Tags { get; set; }
         public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
         public DbSet<GalleryType> GalleryTypes { get; set; }
-        public DbSet<QueryConfiguration> QueryConfigurations { get; set; }
         public DbSet<GallerySort> GallerySorts { get; set; }
+        public DbSet<SearchQueryConfiguration> SearchQueryConfigurations { get; set; }
+        public DbSet<BrowseQueryConfiguration> BrowseQueryConfigurations { get; set; }
+        public DbSet<SearchFilter> SearchFilters { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder

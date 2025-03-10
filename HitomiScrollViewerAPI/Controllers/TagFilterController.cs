@@ -19,7 +19,7 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<TagFilterDTO> CreateTagFilter(string name, [FromBody] IEnumerable<TagDTO> tagDtos) {
-            List<Tag> tags = [.. tagDtos.Select(t => t.ToTag())];
+            List<Tag> tags = [.. tagDtos.Select(t => t.ToEntity())];
             TagFilter tagFilter = new() { Name = name, Tags = tags };
             context.Tags.AttachRange(tags);
             context.TagFilters.Add(tagFilter);

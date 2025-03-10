@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
+using System.Text;
 
 namespace HitomiScrollViewerWebApp.Models {
     public class SearchFilterModel {
@@ -7,31 +8,33 @@ namespace HitomiScrollViewerWebApp.Models {
         private const string SEARCH_PATH = "search.html?";
         public required GalleryLanguageDTO Language { get; init; }
         public required GalleryTypeDTO Type { get; init; }
-        public required IEnumerable<TagDTO> IncludeTags { get; init; }
-        public required IEnumerable<TagDTO> ExcludeTags { get; init; }
-        public required string SearchKeywords { get; init; }
+        public required string SearchKeywordText { get; init; }
 
-        private readonly List<LabeledTagCollection> _labeledTagCollections = [];
+        private List<LabeledTagCollection>? _labeledTagCollections;
         public List<LabeledTagCollection> LabeledTagCollections {
             get {
                 if (_labeledTagCollections == null) {
-                    throw new InvalidOperationException($"{nameof(LabelTags)} must be called after creating {nameof(SearchFilterModel)} to set {nameof(LabeledTagCollections)}.");
+                    throw new InvalidOperationException($"{nameof(Init)} must be called after creating {nameof(SearchFilterModel)} to set {nameof(LabeledTagCollections)}.");
                 }
                 return _labeledTagCollections;
             }
+            set => _labeledTagCollections = value;
         }
-        public void LabelTags() {
-            foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                IEnumerable<TagDTO> includeTags = IncludeTags.Where(t => t.Category == category).OrderBy(t => t.Value);
-                IEnumerable<TagDTO> excludeTags = ExcludeTags.Where(t => t.Category == category).OrderBy(t => t.Value);
-                if (includeTags.Any() || excludeTags.Any()) {
-                    LabeledTagCollections.Add(
-                        new() {
-                            Category = category,
-                            IncludeTags = includeTags,
-                            ExcludeTags = excludeTags
-                        }
-                    );
+        public void Init(IEnumerable<TagDTO> includeTags, IEnumerable<TagDTO> excludeTags) {
+            LabeledTagCollections = [];
+            if (includeTags.Any() || excludeTags.Any()) {
+                foreach (TagCategory category in Tag.TAG_CATEGORIES) {
+                    IEnumerable<TagDTO> inc = includeTags.Where(t => t.Category == category).OrderBy(t => t.Value);
+                    IEnumerable<TagDTO> exc = excludeTags.Where(t => t.Category == category).OrderBy(t => t.Value);
+                    if (inc.Any() || exc.Any()) {
+                        LabeledTagCollections.Add(
+                            new() {
+                                Category = category,
+                                IncludeTags = inc,
+                                ExcludeTags = exc
+                            }
+                        );
+                    }
                 }
             }
         }
@@ -47,23 +50,23 @@ namespace HitomiScrollViewerWebApp.Models {
             private set => _searchLink = value;
         }
         public void BuildSearchLink() {
-            List<string> searchParamStrs = new(5); // 5 = include + exclude + language, type and title search
+            StringBuilder sb = new();
             if (!Language.IsAll) {
-                searchParamStrs.Add("language:" + Language.EnglishName);
+                sb.Append("language:").Append(Language.EnglishName);
             }
             if (!Type.IsAll) {
-                searchParamStrs.Add("type:" + Type.Value);
+                sb.Append("type:").Append(Type.Value);
             }
-            // add joined include exclude search param strs
-            searchParamStrs.Add(string.Join(' ', IncludeTags.Select(tag => tag.Category.ToString().ToLower() + ':' + tag.SearchParamValue)));
-            searchParamStrs.Add(string.Join(' ', ExcludeTags.Select(tag => '-' + tag.Category.ToString().ToLower() + ':' + tag.SearchParamValue)));
-            if (SearchKeywords.Length > 0) {
-                searchParamStrs.Add(SearchKeywords);
+            foreach (LabeledTagCollection ltc in LabeledTagCollections) {
+                sb.AppendJoin(' ', ltc.IncludeTags.Select(tag => tag.Category.ToString().ToLower() + ':' + tag.SearchParamValue));
+                sb.AppendJoin(' ', ltc.ExcludeTags.Select(tag => tag.Category.ToString().ToLower() + ':' + tag.SearchParamValue));
             }
-            string finalParamStr = string.Join(' ', searchParamStrs.Where(s => !string.IsNullOrEmpty(s)));
+            if (SearchKeywordText.Length > 0) {
+                sb.Append(SearchKeywordText);
+            }
             SearchLink = BASE_URL;
-            if (finalParamStr.Length > 0) {
-                SearchLink += SEARCH_PATH + finalParamStr;
+            if (sb.Length > 0) {
+                SearchLink += SEARCH_PATH + sb.ToString();
             }
         }
     }

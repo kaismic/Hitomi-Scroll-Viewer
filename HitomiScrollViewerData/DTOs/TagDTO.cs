@@ -8,7 +8,7 @@ namespace HitomiScrollViewerData.DTOs {
         public required string SearchParamValue { get; set; }
         public required int GalleryCount { get; set; }
 
-        public Tag ToTag() => new() {
+        public Tag ToEntity() => new() {
             Id = Id,
             Category = Category,
             Value = Value,

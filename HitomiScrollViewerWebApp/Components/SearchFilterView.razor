@@ -25,11 +25,11 @@
                     </td>
                 </tr>
             }
-            @if (Model.SearchKeywords.Length > 0)
+            @if (Model.SearchKeywordText.Length > 0)
             {
                 <tr>
                     <td><MudText Typo="Typo.button">Keywords</MudText></td>
-                    <td>@Model.SearchKeywords</td>
+                    <td>@Model.SearchKeywordText</td>
                 </tr>
             }
         </tbody>

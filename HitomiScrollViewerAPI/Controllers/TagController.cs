@@ -27,7 +27,7 @@ namespace HitomiScrollViewerAPI.Controllers {
                 return NotFound();
             }
             context.Entry(tagFilter).Collection(tf => tf.Tags!).Load();
-            return Ok(tagFilter.Tags!.Select(tag => tag.ToTagDTO()).ToList());
+            return Ok(tagFilter.Tags!.Select(tag => tag.ToDTO()).ToList());
         }
 
         // return union of tags for each tag filters
@@ -41,9 +41,9 @@ namespace HitomiScrollViewerAPI.Controllers {
                 if (tagFilter != null) {
                     context.Entry(tagFilter).Collection(tf => tf.Tags!).Load();
                     if (tags == null) {
-                        tags = tagFilter.Tags!.Select(t => t.ToTagDTO());
+                        tags = tagFilter.Tags!.Select(t => t.ToDTO());
                     } else {
-                        tags = tags.UnionBy(tagFilter.Tags!.Select(t => t.ToTagDTO()), t => t.Id);
+                        tags = tags.UnionBy(tagFilter.Tags!.Select(t => t.ToDTO()), t => t.Id);
                     }
                 }
             }

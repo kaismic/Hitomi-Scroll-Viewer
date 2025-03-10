@@ -6,7 +6,7 @@ namespace HitomiScrollViewerData.DTOs {
         public required bool IsAll { get; set; }
         public required string EnglishName { get; set; }
         public required string LocalName { get; set; }
-        public GalleryLanguage ToGalleryLanguage() => new() {
+        public GalleryLanguage ToEntity() => new() {
             Id = Id,
             IsAll = IsAll,
             EnglishName = EnglishName,

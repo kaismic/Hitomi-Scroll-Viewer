@@ -1,0 +1,27 @@
+﻿#search-filter-control-panel > :not(:last-child) {
+    flex: 0 1 auto;
+}
+
+.search-filter {
+    border: 1px solid var(--mud-palette-text-primary);
+    border-radius: var(--mud-default-borderradius);
+    
+    &:hover {
+        background-color: var(--mud-palette-action-default-hover);
+    }
+
+    & tr:not(:last-child) {
+        border-bottom-color: var(--mud-palette-divider);
+        border-bottom-width: 1px;
+    }
+
+    & td {
+        padding: 4px;
+        
+        &:first-child {
+            border-right-color: var(--mud-palette-divider);
+            border-right-width: 1px;
+            vertical-align: top;
+        }
+    }
+}

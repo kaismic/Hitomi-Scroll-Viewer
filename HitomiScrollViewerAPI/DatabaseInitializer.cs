@@ -122,18 +122,14 @@ namespace HitomiScrollViewerAPI {
             // add query configurations
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding query configurations... ");
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 2);
-            context.QueryConfigurations.AddRange(
-                new QueryConfiguration() {
-                    PageKind = PageKind.SearchPage,
-                    GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                    GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
-                },
-                new QueryConfiguration() {
-                    PageKind = PageKind.SearchPage,
-                    GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                    GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
-                }
-            );
+            context.SearchQueryConfigurations.Add(new() {
+                GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
+                GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
+            });
+            context.BrowseQueryConfigurations.Add(new() {
+                GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
+                GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
+            });
             context.SaveChanges();
             Console.WriteLine("  Complete");
 

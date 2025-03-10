@@ -11,31 +11,6 @@
 
 <div style="height: 100%;" class="d-flex pa-8 gap-4">
     <div id="left-container" style="flex: 3;" class="d-flex flex-column gap-2">
-        <script>
-            function setChipSetContainerHeight() {
-            // set tag-search-chip-set-container's height to fill the remaining space of its parent
-            const leftContainer = document.getElementById("left-container");
-            const resizeObserver = new ResizeObserver(
-            (entries) => {
-            const tagFilterEditorControlPanel = document.getElementById("tag-filter-editor-control-panel");
-            var computedStyle = getComputedStyle(tagFilterEditorControlPanel);
-            let controlPanelHeight = tagFilterEditorControlPanel.clientHeight;
-            controlPanelHeight -= parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom); // remove padding
-            controlPanelHeight -= parseInt(computedStyle.gap) * (tagFilterEditorControlPanel.children.length - 1) // remove grid gap
-            for (const child of tagFilterEditorControlPanel.children) {
-            if (child.id !== "tag-search-chip-set-container") {
-            controlPanelHeight -= child.offsetHeight;
-            controlPanelHeight -= child.marginTop ? child.marginTop : 0;
-            controlPanelHeight -= child.marginBottom ? child.marginBottom : 0;
-            }
-            }
-            const chipSetContainer = document.getElementById("tag-search-chip-set-container");
-            chipSetContainer.style.height = controlPanelHeight + "px";
-            }
-            );
-            resizeObserver.observe(leftContainer);
-            }
-        </script>
         <MudPaper id="tag-filter-editor-control-panel" Class="pa-8 gap-2" Style="height: 60%; display: grid; grid-template-rows: repeat(3, min-content)">
             <div>
                 <TagFilterEditor @ref="_tagFilterEditor"
@@ -97,7 +72,7 @@
                 <MudSelectItem Value="@t" />
             }
         </MudSelect>
-        <MudTextField T="string" Label="Additional keywords" Variant="Variant.Outlined" @bind-Text="_searchKeywordsText" Clearable Immediate />
+        <MudTextField T="string" Label="Additional keywords" Variant="Variant.Outlined" @bind-Text="_searchKeywordText" Clearable Immediate />
         <MudStack Row Spacing="2" StretchItems="StretchItems.Start" Class="my-2">
             <MudButton Class="py-2"
                        FullWidth

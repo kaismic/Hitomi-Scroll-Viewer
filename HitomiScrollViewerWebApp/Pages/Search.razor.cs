@@ -68,7 +68,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private GalleryTypeDTO _selectedType = null!;
 
         private readonly List<SearchFilterModel> _searchFilterModels = [];
-
+        // TODO data persistence last selection/input
         public Search() {
             _tagSearchChipSetModels =
             [..
@@ -78,7 +78,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                         ToStringFunc = (tag => tag.Value),
                         SearchFunc = async (string text, CancellationToken ct) => {
                             List<Tag>? tags = await TagService.GetTagsAsync(tagCategory, 8, text, ct);
-                            return tags == null ? [] : tags.Select(tag => tag.ToTagDTO());
+                            return tags == null ? [] : tags.Select(tag => tag.ToDTO());
                         }
                     }
                 )
@@ -93,7 +93,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             _selectedType = _types.First(t => t.IsAll);
         }
 
-        private string _searchKeywordsText = "";
+        private string _searchKeywordText = "";
 
         protected override void OnAfterRender(bool firstRender) {
             if (firstRender) {
@@ -269,26 +269,36 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task CreateSearchFilter() {
-            IEnumerable<int> includeIds = _includePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id);
-            IEnumerable<int> excludeIds = _excludePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id);
+            HashSet<int> includeIds = [.. _includePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id)];
+            HashSet<int> excludeIds = [.. _excludePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id)];
+            bool currentTagFilterInclude = false;
+            bool currentTagFilterExclude = false;
+            if (_tagFilterEditor.CurrentTagFilter != null) {
+                if (includeIds.Contains(_tagFilterEditor.CurrentTagFilter.Id)) {
+                    currentTagFilterInclude = true;
+                    includeIds.Remove(_tagFilterEditor.CurrentTagFilter.Id);
+                } else if (excludeIds.Contains(_tagFilterEditor.CurrentTagFilter.Id)) {
+                    currentTagFilterExclude = true;
+                    excludeIds.Remove(_tagFilterEditor.CurrentTagFilter.Id);
+                }
+            }
             Task<IEnumerable<TagDTO>?>? includeTagsTask = null;
             Task<IEnumerable<TagDTO>?>? excludeTagsTask = null;
-            if (includeIds.Any()) {
+            if (includeIds.Count > 0) {
                 includeTagsTask = TagService.GetTags(includeIds);
             }
-            if (excludeIds.Any()) {
+            if (excludeIds.Count > 0) {
                 excludeTagsTask = TagService.GetTags(excludeIds);
             }
             await Task.WhenAll(includeTagsTask ?? Task.CompletedTask, excludeTagsTask ?? Task.CompletedTask);
-            SearchFilterModel model = new() {
+            SearchFilter searchFilter = new() {
                 Language = _selectedLanguage,
                 Type = _selectedType,
-                IncludeTags = includeTagsTask?.Result ?? [],
-                ExcludeTags = excludeTagsTask?.Result ?? [],
-                SearchKeywords = _searchKeywordsText
+                SearchKeywordText = _searchKeywordText
             };
+            IEnumerable<TagDTO> includeTagDTOs = includeTagsTask?.Result ?? [];
+            model.Init(includeTagsTask?.Result ?? [], excludeTagsTask?.Result ?? []);
             model.BuildSearchLink();
-            model.LabelTags();
             _searchFilterModels.Add(model);
         }
     }

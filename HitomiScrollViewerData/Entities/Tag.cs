@@ -34,7 +34,7 @@ namespace HitomiScrollViewerData.Entities {
         public ICollection<TagFilter> TagFilters { get; } = [];
         public ICollection<Gallery> Galleries { get; } = [];
 
-        public TagDTO ToTagDTO() => new() {
+        public TagDTO ToDTO() => new() {
             Id = Id,
             Category = Category,
             Value = Value,
