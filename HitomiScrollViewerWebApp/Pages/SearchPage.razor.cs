@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerData;
+using HitomiScrollViewerData.Builders;
 using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Components;
@@ -7,11 +8,12 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
-    public partial class Search {
-        private static readonly TagCategory[] TAG_CATEGORIES = Enum.GetValues<TagCategory>();
-        private const string BORDER_SOLID_PRIMARY = "1px solid var(--mud-palette-primary)";
+    public partial class SearchPage {
+        private const string JAVASCRIPT_FILE = $"./Pages/{nameof(SearchPage)}.razor.js";
+
         private static readonly Action<SnackbarOptions> SNACKBAR_OPTIONS = (options => {
             options.ShowCloseIcon = true;
             options.CloseAfterNavigation = true;
@@ -21,6 +23,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
         });
 
+        private IJSObjectReference? _jsModule;
         private ObservableCollection<TagFilterDTO> _tagFilters = [];
         public ObservableCollection<TagFilterDTO> TagFilters {
             get => _tagFilters;
@@ -67,9 +70,9 @@ namespace HitomiScrollViewerWebApp.Pages {
         private List<GalleryTypeDTO> _types = [];
         private GalleryTypeDTO _selectedType = null!;
 
-        private readonly List<SearchFilterModel> _searchFilterModels = [];
-        // TODO data persistence last selection/input
-        public Search() {
+        private readonly List<SearchFilterDTO> _searchFilters = [];
+
+        public SearchPage() {
             _tagSearchChipSetModels =
             [..
                 TAG_CATEGORIES.Select(tagCategory => new TagSearchChipSetModel() {
@@ -87,20 +90,40 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         protected override async Task OnInitializedAsync() {
             TagFilters = [.. await TagFilterService.GetTagFiltersAsync()];
-            _languages = await GalleryService.GetGalleryLanguages();
-            _types = await GalleryService.GetGalleryTypes();
+            _languages = await GalleryService.GetGalleryLanguagesAsync();
+            _types = await GalleryService.GetGalleryTypesAsync();
             _selectedLanguage = _languages.First(l => l.IsAll);
             _selectedType = _types.First(t => t.IsAll);
         }
 
         private string _searchKeywordText = "";
 
-        protected override void OnAfterRender(bool firstRender) {
+        protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
                 _includePairedTagFilterSelector.Other = _excludePairedTagFilterSelector;
                 _excludePairedTagFilterSelector.Other = _includePairedTagFilterSelector;
+                SearchQueryConfigurationDTO? config = await QueryConfigurationService.GetSearchQueryConfigurationAsync();
+                _tagFilterEditor.SearchQueryConfigId = config.Id;
+                _tagFilterEditor.CurrentTagFilter = config.SelectedTagFilter;
+                foreach (ChipModel<TagFilterDTO> chipModel in _includeTagFilterChipModels) {
+                    if (config.SelectedIncludeTagFilterIds.Contains(chipModel.Value.Id)) {
+                        chipModel.Selected = true;
+                    }
+                }
+                foreach (ChipModel<TagFilterDTO> chipModel in _excludeTagFilterChipModels) {
+                    if (config.SelectedExcludeTagFilterIds.Contains(chipModel.Value.Id)) {
+                        chipModel.Selected = true;
+                    }
+                }
+                _selectedLanguage = config.SelectedLanguage;
+                _selectedType = config.SelectedType;
+                IEnumerable<SearchFilterDTO> searchFilterDTOs = await SearchFilterService.GetSearchFiltersAsync();
+                foreach (SearchFilterDTO dto in searchFilterDTOs) {
+                    _searchFilters.Add(dto);
+                }
 #pragma warning disable CA2012 // Use ValueTasks correctly
-                _ = JSRuntime.InvokeVoidAsync("setChipSetContainerHeight");
+                _jsModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+                _ = _jsModule.InvokeVoidAsync("setChipSetContainerHeight");
 #pragma warning restore CA2012 // Use ValueTasks correctly
             }
         }
@@ -124,7 +147,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task LoadTags() {
             if (_tagFilterEditor.CurrentTagFilter != null) {
-                List<TagDTO>? tags = await TagService.GetTags(_tagFilterEditor.CurrentTagFilter.Id);
+                List<TagDTO>? tags = await TagService.GetTagsAsync(_tagFilterEditor.CurrentTagFilter.Id);
                 if (tags != null) {
                     foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
                         model.ChipModels = [..
@@ -258,10 +281,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                 bool success = await TagFilterService.DeleteTagFiltersAsync(ids);
                 if (success) {
                     TagFilters = [.. TagFilters.ExceptBy(ids, tf => tf.Id)];
+                    Snackbar.Add($"Deleted {selected.Count} tag filters.", Severity.Success, SNACKBAR_OPTIONS);
                     if (_tagFilterEditor.CurrentTagFilter != null && selected.Any(m => m.Value.Id == _tagFilterEditor.CurrentTagFilter.Id)) {
                         _tagFilterEditor.CurrentTagFilter = null;
                     }
-                    Snackbar.Add($"Deleted {selected.Count} tag filters.", Severity.Success, SNACKBAR_OPTIONS);
                 } else {
                     Snackbar.Add($"Failed to delete tag filters.", Severity.Error, SNACKBAR_OPTIONS);
                 }
@@ -285,21 +308,43 @@ namespace HitomiScrollViewerWebApp.Pages {
             Task<IEnumerable<TagDTO>?>? includeTagsTask = null;
             Task<IEnumerable<TagDTO>?>? excludeTagsTask = null;
             if (includeIds.Count > 0) {
-                includeTagsTask = TagService.GetTags(includeIds);
+                includeTagsTask = TagService.GetTagsAsync(includeIds);
             }
             if (excludeIds.Count > 0) {
-                excludeTagsTask = TagService.GetTags(excludeIds);
+                excludeTagsTask = TagService.GetTagsAsync(excludeIds);
             }
             await Task.WhenAll(includeTagsTask ?? Task.CompletedTask, excludeTagsTask ?? Task.CompletedTask);
-            SearchFilter searchFilter = new() {
+            IEnumerable<TagDTO> includeTagDTOs = includeTagsTask?.Result ?? [];
+            IEnumerable<TagDTO> excludeTagDTOs = excludeTagsTask?.Result ?? [];
+            IEnumerable<TagDTO> currentTagDTOs = _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value);
+            if (currentTagFilterInclude) {
+                includeTagDTOs = includeTagDTOs.Union(currentTagDTOs);
+            } else if (currentTagFilterExclude) {
+                excludeTagDTOs = excludeTagDTOs.Union(currentTagDTOs);
+            }
+            SearchFilterDTOBuilder builder = new() {
                 Language = _selectedLanguage,
                 Type = _selectedType,
-                SearchKeywordText = _searchKeywordText
+                SearchKeywordText = _searchKeywordText,
+                IncludeTags = includeTagDTOs,
+                ExcludeTags = excludeTagDTOs
             };
-            IEnumerable<TagDTO> includeTagDTOs = includeTagsTask?.Result ?? [];
-            model.Init(includeTagsTask?.Result ?? [], excludeTagsTask?.Result ?? []);
-            model.BuildSearchLink();
-            _searchFilterModels.Add(model);
+            SearchFilterDTO dto = builder.Build();
+            bool success = await SearchFilterService.CreateSearchFilterAsync(dto);
+            if (success) {
+                _searchFilters.Add(dto);
+            } else {
+                Snackbar.Add("Failed to create search filter.", Severity.Error, SNACKBAR_OPTIONS);
+            }
+        }
+
+        private async Task DeleteSearchFilter(SearchFilterDTO dto) {
+            bool success = await SearchFilterService.DeleteSearchFilterAsync(dto.Id);
+            if (success) {
+                _searchFilters.Remove(dto);
+            } else {
+                Snackbar.Add("Failed to delete search filter.", Severity.Error, SNACKBAR_OPTIONS);
+            }
         }
     }
 }

@@ -6,8 +6,8 @@ public class SearchQueryConfiguration {
     public TagFilter? SelectedTagFilter { get; set; }
     public IEnumerable<int> SelectedIncludeTagFilterIds { get; set; } = [];
     public IEnumerable<int> SelectedExcludeTagFilterIds { get; set; } = [];
-    public required GalleryLanguage GalleryLanguage { get; set; }
-    public required GalleryType GalleryType { get; set; }
+    public required GalleryLanguage SelectedLanguage { get; set; }
+    public required GalleryType SelectedType { get; set; }
     public string SearchKeywordText { get; set; } = "";
 
     public SearchQueryConfigurationDTO ToDTO() => new() {
@@ -15,8 +15,8 @@ public class SearchQueryConfiguration {
         SelectedTagFilter = SelectedTagFilter?.ToTagFilterDTO(),
         SelectedIncludeTagFilterIds = SelectedIncludeTagFilterIds,
         SelectedExcludeTagFilterIds = SelectedExcludeTagFilterIds,
-        GalleryLanguage = GalleryLanguage.ToDTO(),
-        GalleryType = GalleryType.ToDTO(),
+        SelectedLanguage = SelectedLanguage.ToDTO(),
+        SelectedType = SelectedType.ToDTO(),
         SearchKeywordText = SearchKeywordText
     };
 }

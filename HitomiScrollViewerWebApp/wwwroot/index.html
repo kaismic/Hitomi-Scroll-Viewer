@@ -8,6 +8,7 @@
     <base href="/" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/styles-1.css" />
+    <link rel="stylesheet" href="HitomiScrollViewerWebApp.styles.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
@@ -33,47 +34,6 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
-    <script>
-        function setChipClass(model) {
-            // gotta wait for a bit to let MudChip's click handler to modify class
-            setTimeout(
-                () => {
-                    const mudChip = document.getElementById(model.id)
-                    if (mudChip.className.endsWith("mud-chip-selected")) {
-                        mudChip.className = mudChip.className.replace("mud-chip-text", "mud-chip-filled");
-                    }
-                },
-                20
-            )
-        }
-        function scrollToElement(id) {
-            const element = document.getElementById(id);
-            element.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        function setChipSetContainerHeight() {
-            // set tag-search-chip-set-container's height to fill the remaining space of its parent
-            const leftContainer = document.getElementById("left-container");
-            const resizeObserver = new ResizeObserver(
-                (entries) => {
-                    const tagFilterEditorControlPanel = document.getElementById("tag-filter-editor-control-panel");
-                    var computedStyle = getComputedStyle(tagFilterEditorControlPanel);
-                    let controlPanelHeight = tagFilterEditorControlPanel.clientHeight;
-                    controlPanelHeight -= parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom); // remove padding
-                    controlPanelHeight -= parseInt(computedStyle.gap) * (tagFilterEditorControlPanel.children.length - 1) // remove grid gap
-                    for (const child of tagFilterEditorControlPanel.children) {
-                        if (child.id !== "tag-search-chip-set-container") {
-                            controlPanelHeight -= child.offsetHeight;
-                            controlPanelHeight -= child.marginTop ? child.marginTop : 0;
-                            controlPanelHeight -= child.marginBottom ? child.marginBottom : 0;
-                        }
-                    }
-                    const chipSetContainer = document.getElementById("tag-search-chip-set-container");
-                    chipSetContainer.style.height = controlPanelHeight + "px";
-                }
-            );
-            resizeObserver.observe(leftContainer);
-        }
-    </script>
 </body>
 
 </html>

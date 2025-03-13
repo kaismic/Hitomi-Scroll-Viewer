@@ -9,7 +9,7 @@
                 <td><MudText Typo="Typo.button">Type</MudText></td>
                 <td>@Model.Type.Value</td>
             </tr>
-            @foreach (LabeledTagCollection collection in Model.LabeledTagCollections)
+            @foreach (LabeledTagCollectionDTO collection in Model.LabeledTagCollections)
             {
                 <tr>
                     <td><MudText Typo="Typo.button">@collection.Category.ToString()</MudText></td>

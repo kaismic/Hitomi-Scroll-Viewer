@@ -6,7 +6,10 @@ using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class TagSearchChipSet : ChipSetBase<TagDTO> {
+        private const string JAVASCRIPT_FILE = $"./Components/{nameof(TagSearchChipSet)}.razor.js";
         [Parameter, EditorRequired] public virtual TagSearchChipSetModel Model { get; init; } = null!;
+
+        private IJSObjectReference? _jsModule;
 
         private TagDTO? _searchValue;
         public TagDTO? SearchValue {
@@ -22,7 +25,15 @@ namespace HitomiScrollViewerWebApp.Components {
                     } else {
                         // already exists in ChipModels
 #pragma warning disable CA2012 // Use ValueTasks correctly
-                        _ = JSRuntime.InvokeVoidAsync("scrollToElement", chipModel.Id);
+                        if (_jsModule == null) {
+                            JsRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE).AsTask()
+                                .ContinueWith((task) => {
+                                    _jsModule = task.Result;
+                                    _ = _jsModule.InvokeVoidAsync("scrollToElement", chipModel.Id);
+                                });
+                        } else {
+                            _ = _jsModule.InvokeVoidAsync("scrollToElement", chipModel.Id);
+                        }
 #pragma warning restore CA2012 // Use ValueTasks correctly
                     }
                 }

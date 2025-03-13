@@ -123,12 +123,12 @@ namespace HitomiScrollViewerAPI {
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding query configurations... ");
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 2);
             context.SearchQueryConfigurations.Add(new() {
-                GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
+                SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
+                SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
             });
             context.BrowseQueryConfigurations.Add(new() {
-                GalleryLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                GalleryType = context.GalleryTypes.First(gt => gt.IsAll)
+                SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
+                SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
             });
             context.SaveChanges();
             Console.WriteLine("  Complete");

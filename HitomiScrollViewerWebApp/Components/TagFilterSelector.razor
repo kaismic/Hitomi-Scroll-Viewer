@@ -17,6 +17,7 @@
                      Value="@model"
                      OnClick="@((arg) => HandleChipClick(model))"
                      Disabled="@model.Disabled"
+                     Selected="@model.Selected"
                      @key="model"
                      id="@model.Id">
                 @(model.Value.Name)

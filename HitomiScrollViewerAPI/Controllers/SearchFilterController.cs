@@ -2,7 +2,6 @@
 using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
@@ -11,13 +10,30 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpGet("all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<SearchFilterDTO>> GetAllSearchFilters() {
-            return Ok(context.SearchFilters.AsNoTracking().Select(sf => sf.ToDTO()));
+            IEnumerable<SearchFilter> searchFilters = context.SearchFilters;
+            foreach (SearchFilter searchFilter in searchFilters) {
+                context.Entry(searchFilter).Reference(sf => sf.Language).Load();
+                context.Entry(searchFilter).Reference(sf => sf.Type).Load();
+                context.Entry(searchFilter).Collection(sf => sf.LabeledTagCollections).Load();
+            }
+            return Ok(searchFilters.Select(sf => sf.ToDTO()));
         }
 
         [HttpPost("create")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult CreateSearchFilter([FromBody] SearchFilterDTO dto) {
-            context.SearchFilters.Add(dto.ToEntity());
+            SearchFilter entity = dto.ToEntity();
+            GalleryLanguage? l = context.GalleryLanguages.Find(dto.Language.Id);
+            if (l == null) {
+                return NotFound("Language id is not valid.");
+            }
+            GalleryType? t = context.GalleryTypes.Find(dto.Type.Id);
+            if (t == null) {
+                return NotFound("Type id is not valid.");
+            }
+            entity.Language = l;
+            entity.Type = t;
+            context.SearchFilters.Add(entity);
             context.SaveChanges();
             return Ok();
         }

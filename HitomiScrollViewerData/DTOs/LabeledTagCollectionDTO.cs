@@ -4,11 +4,11 @@ namespace HitomiScrollViewerData.DTOs
 {
     public class LabeledTagCollectionDTO
     {
-        public required long Id { get; set; }
+        public long Id { get; set; }
         public required TagCategory Category { get; set; }
         public required ICollection<TagDTO> IncludeTags { get; set; }
         public required ICollection<TagDTO> ExcludeTags { get; set; }
-        public required int SearchFilterId { get; set; }
+        public int SearchFilterId { get; set; }
 
         public LabeledTagCollection ToEntity() => new() {
             Id = Id,

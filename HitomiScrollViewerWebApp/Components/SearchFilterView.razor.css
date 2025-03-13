@@ -1,8 +1,4 @@
-﻿#search-filter-control-panel > :not(:last-child) {
-    flex: 0 1 auto;
-}
-
-.search-filter {
+﻿.search-filter {
     border: 1px solid var(--mud-palette-text-primary);
     border-radius: var(--mud-default-borderradius);
     
