@@ -1,4 +1,7 @@
 # 히토미 스크롤 뷰어
+
+### 주의 (14/03/2025): 현재 이 앱은 웹 앱으로서의 완전한 재설계와 리팩터링이 진행 중인 과정에 있으므로 현재 배포된 버전 (v2.1.1)을 다운로드 하는것을 권장하지 않습니다.
+
 [![GitHub latest release](https://img.shields.io/github/release/kaismic/Hitomi-Scroll-Viewer.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
 [![GitHub downloads count latest release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fkaismic%2FHitomi-Scroll-Viewer%2Freleases%2Flatest&query=%24.assets%5B%3F(%2Fmsixbundle%2F.test(%40.name))%5D.download_count&label=downloads%40latest&color=9BC913
 )](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
