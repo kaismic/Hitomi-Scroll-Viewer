@@ -17,6 +17,19 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok(config.ToDTO());
         }
 
+        [HttpPatch("search/enable-autosave")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult UpdateAutoSave(int id, bool enable) {
+            SearchQueryConfiguration? config = context.SearchQueryConfigurations.Find(id);
+            if (config == null) {
+                return NotFound();
+            }
+            config.IsAutoSaveEnabled = enable;
+            context.SaveChanges();
+            return Ok();
+        }
+
         [HttpPatch("search/include-tagfilters")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

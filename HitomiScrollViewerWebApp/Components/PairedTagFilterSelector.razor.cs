@@ -4,11 +4,11 @@ using HitomiScrollViewerWebApp.Models;
 namespace HitomiScrollViewerWebApp.Components {
     public class PairedTagFilterSelector : TagFilterSelector {
         public required PairedTagFilterSelector Other { private get; set; }
-        protected override async Task HandleChipClick(ChipModel<TagFilterDTO> model) {
-            await base.HandleChipClick(model);
+        public override async Task OnSelectedChanged(ChipModel<TagFilterDTO> model) {
+            await base.OnSelectedChanged(model);
             ChipModel<TagFilterDTO>? otherChipModel = Other.ChipModels.Find(m => m.Value.Id == model.Value.Id);
             if (otherChipModel != null) {
-                otherChipModel.Disabled = !otherChipModel.Disabled;
+                otherChipModel.Disabled = model.Selected;
                 Other.StateHasChanged();
             }
         }

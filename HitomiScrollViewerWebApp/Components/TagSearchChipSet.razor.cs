@@ -7,7 +7,20 @@ using MudBlazor;
 namespace HitomiScrollViewerWebApp.Components {
     public partial class TagSearchChipSet : ChipSetBase<TagDTO> {
         private const string JAVASCRIPT_FILE = $"./Components/{nameof(TagSearchChipSet)}.razor.js";
-        [Parameter, EditorRequired] public virtual TagSearchChipSetModel Model { get; init; } = null!;
+        private TagSearchChipSetModel _model = default!;
+#pragma warning disable BL0007 // Component parameters should be auto properties
+        [Parameter, EditorRequired] public TagSearchChipSetModel Model {
+            get => _model;
+            init {
+                if (_model != value) {
+                    _model = value;
+                    foreach (var model in _model.ChipModels) {
+                        model.SelectedChanged += OnSelectedChanged;
+                    }
+                }
+            }
+        }
+#pragma warning restore BL0007 // Component parameters should be auto properties
 
         private IJSObjectReference? _jsModule;
 

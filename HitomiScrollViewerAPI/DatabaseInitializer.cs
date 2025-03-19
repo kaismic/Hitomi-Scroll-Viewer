@@ -123,6 +123,7 @@ namespace HitomiScrollViewerAPI {
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding query configurations... ");
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 2);
             context.SearchQueryConfigurations.Add(new() {
+                IsAutoSaveEnabled = true,
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
                 SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
             });

@@ -37,7 +37,7 @@
                     </MudButton>
                 </div>
                 <div>
-                    <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="_isAutoSaveEnabled" />
+                    <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="IsAutoSaveEnabled" />
                 </div>
             </div>
             <div id="tag-search-chip-set-container"
@@ -63,12 +63,12 @@
         </MudPaper>
     </div>
     <div id="search-filter-control-panel" style="flex: 1;" class="gap-2">
-        <MudSelect Label="Language" T="GalleryLanguageDTO" ToStringFunc="@(l => l.LocalName)" FullWidth Variant="Variant.Outlined" @bind-Value="_selectedLanguage">
+        <MudSelect Label="Language" T="GalleryLanguageDTO" ToStringFunc="@(l => l.LocalName)" FullWidth Variant="Variant.Outlined" @bind-Value="SelectedLanguage">
             @foreach (GalleryLanguageDTO l in _languages) {
                 <MudSelectItem Value="@l" />
             }
         </MudSelect>
-        <MudSelect Label="Type" T="GalleryTypeDTO" ToStringFunc="@(t => t.Value)" FullWidth Variant="Variant.Outlined" @bind-Value="_selectedType">
+        <MudSelect Label="Type" T="GalleryTypeDTO" ToStringFunc="@(t => t.Value)" FullWidth Variant="Variant.Outlined" @bind-Value="SelectedType">
             @foreach (GalleryTypeDTO t in _types) {
                 <MudSelectItem Value="@t" />
             }

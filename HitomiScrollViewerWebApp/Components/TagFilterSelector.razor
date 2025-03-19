@@ -15,9 +15,8 @@
         @foreach (ChipModel<TagFilterDTO> model in ChipModels) {
             <MudChip T="@(ChipModel<TagFilterDTO>)"
                      Value="@model"
-                     OnClick="@((arg) => HandleChipClick(model))"
                      Disabled="@model.Disabled"
-                     Selected="@model.Selected"
+                     @bind-Selected="@model.Selected"
                      @key="model"
                      id="@model.Id">
                 @(model.Value.Name)

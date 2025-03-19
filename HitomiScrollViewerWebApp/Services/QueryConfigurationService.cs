@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 
 namespace HitomiScrollViewerWebApp.Services {
     public class QueryConfigurationService(HttpClient httpClient) {
-
         public async Task<SearchQueryConfigurationDTO> GetSearchQueryConfigurationAsync() {
             return (await httpClient.GetFromJsonAsync<SearchQueryConfigurationDTO>("api/queryconfiguration/search"))!;
         }
@@ -13,6 +12,11 @@ namespace HitomiScrollViewerWebApp.Services {
         }
 
         // Search Query Configuration methods
+        public async Task<bool> UpdateAutoSaveAsync(int id, bool enable) {
+            HttpResponseMessage response = await httpClient.PatchAsync($"api/queryconfiguration/search/enable-autosave?id={id}&enable={enable}", null);
+            return response.IsSuccessStatusCode;
+        }
+
         public async Task<bool> UpdateSearchIncludeTagFiltersAsync(int id, IEnumerable<int> tagFilterIds) {
             HttpResponseMessage response = await httpClient.PatchAsync($"api/queryconfiguration/search/include-tagfilters?id={id}", JsonContent.Create(tagFilterIds));
             return response.IsSuccessStatusCode;

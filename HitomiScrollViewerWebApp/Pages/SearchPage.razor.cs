@@ -63,14 +63,36 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private TagFilterEditor _tagFilterEditor = null!;
         private readonly TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
-        private bool _isAutoSaveEnabled = true;
+        private bool _isAutoSaveEnabled;
+        public bool IsAutoSaveEnabled {
+            get => _isAutoSaveEnabled;
+            set {
+                _isAutoSaveEnabled = value;
+                _ = QueryConfigurationService.UpdateAutoSaveAsync(_tagFilterEditor.SearchQueryConfigId, value);
+            }
+        }
 
         private List<GalleryLanguageDTO> _languages = [];
         private GalleryLanguageDTO _selectedLanguage = null!;
+        public GalleryLanguageDTO SelectedLanguage {
+            get => _selectedLanguage;
+            set {
+                _selectedLanguage = value;
+                _ = QueryConfigurationService.UpdateSearchLanguageAsync(_tagFilterEditor.SearchQueryConfigId, value.Id);
+            }
+        }
         private List<GalleryTypeDTO> _types = [];
         private GalleryTypeDTO _selectedType = null!;
+        public GalleryTypeDTO SelectedType {
+            get => _selectedType;
+            set {
+                _selectedType = value;
+                _ = QueryConfigurationService.UpdateSearchTypeAsync(_tagFilterEditor.SearchQueryConfigId, value.Id);
+            }
+        }
 
         private readonly List<SearchFilterDTO> _searchFilters = [];
+        private string _searchKeywordText = "";
 
         public SearchPage() {
             _tagSearchChipSetModels =
@@ -88,22 +110,17 @@ namespace HitomiScrollViewerWebApp.Pages {
             ];
         }
 
-        protected override async Task OnInitializedAsync() {
-            TagFilters = [.. await TagFilterService.GetTagFiltersAsync()];
-            _languages = await GalleryService.GetGalleryLanguagesAsync();
-            _types = await GalleryService.GetGalleryTypesAsync();
-            _selectedLanguage = _languages.First(l => l.IsAll);
-            _selectedType = _types.First(t => t.IsAll);
-        }
-
-        private string _searchKeywordText = "";
-
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
+                TagFilters = [.. await TagFilterService.GetTagFiltersAsync()];
+                _languages = await GalleryService.GetGalleryLanguagesAsync();
+                _types = await GalleryService.GetGalleryTypesAsync();
+
                 _includePairedTagFilterSelector.Other = _excludePairedTagFilterSelector;
                 _excludePairedTagFilterSelector.Other = _includePairedTagFilterSelector;
                 SearchQueryConfigurationDTO? config = await QueryConfigurationService.GetSearchQueryConfigurationAsync();
                 _tagFilterEditor.SearchQueryConfigId = config.Id;
+                _isAutoSaveEnabled = config.IsAutoSaveEnabled;
                 _tagFilterEditor.CurrentTagFilter = config.SelectedTagFilter;
                 foreach (ChipModel<TagFilterDTO> chipModel in _includeTagFilterChipModels) {
                     if (config.SelectedIncludeTagFilterIds.Contains(chipModel.Value.Id)) {
@@ -113,8 +130,19 @@ namespace HitomiScrollViewerWebApp.Pages {
                 foreach (ChipModel<TagFilterDTO> chipModel in _excludeTagFilterChipModels) {
                     if (config.SelectedExcludeTagFilterIds.Contains(chipModel.Value.Id)) {
                         chipModel.Selected = true;
+                        
                     }
                 }
+                _includePairedTagFilterSelector.SelectedChipModelsChanged += (models) => {
+                    if (models != null) {
+                        _ = QueryConfigurationService.UpdateSearchIncludeTagFiltersAsync(_tagFilterEditor.SearchQueryConfigId, models.Select(m => m.Value.Id));
+                    }
+                };
+                _excludePairedTagFilterSelector.SelectedChipModelsChanged += (models) => {
+                    if (models != null) {
+                        _ = QueryConfigurationService.UpdateSearchExcludeTagFiltersAsync(_tagFilterEditor.SearchQueryConfigId, models.Select(m => m.Value.Id));
+                    }
+                };
                 _selectedLanguage = config.SelectedLanguage;
                 _selectedType = config.SelectedType;
                 IEnumerable<SearchFilterDTO> searchFilterDTOs = await SearchFilterService.GetSearchFiltersAsync();
@@ -125,11 +153,12 @@ namespace HitomiScrollViewerWebApp.Pages {
                 _jsModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
                 _ = _jsModule.InvokeVoidAsync("setChipSetContainerHeight");
 #pragma warning restore CA2012 // Use ValueTasks correctly
+                StateHasChanged();
             }
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {
-            if (_isAutoSaveEnabled) {
+            if (IsAutoSaveEnabled) {
                 await SaveTagFilter(args.OldValue);
             }
             if (args.NewValue == null) {

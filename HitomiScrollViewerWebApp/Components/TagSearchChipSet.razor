@@ -22,7 +22,6 @@
             <MudChip T="@(ChipModel<TagDTO>)"
                      Value="@model"
                      OnClose="@HandleClosed"
-                     OnClick="@((arg) => HandleChipClick(model))"
                      @key="model"
                      id="@model.Id">
                 @Model.ToStringFunc(model.Value)
