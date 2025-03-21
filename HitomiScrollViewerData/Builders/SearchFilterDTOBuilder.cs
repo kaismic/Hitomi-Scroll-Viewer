@@ -1,6 +1,6 @@
 ﻿using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
-using System.Text;
+using System.Web;
 
 namespace HitomiScrollViewerData.Builders
 {
@@ -25,31 +25,35 @@ namespace HitomiScrollViewerData.Builders
                         labeledTagCollections.Add(
                             new() {
                                 Category = category,
-                                IncludeTags = inc,
-                                ExcludeTags = exc
+                                IncludeTagValues = inc.Select(t => t.Value),
+                                ExcludeTagValues = exc.Select(t => t.Value)
                             }
                         );
                     }
                 }
             }
 
-            StringBuilder sb = new();
+            List<string> searchParams = [];
             if (!Language.IsAll) {
-                sb.Append("language:" + Language.EnglishName);
+                searchParams.Add("language:" + Language.EnglishName);
             }
             if (!Type.IsAll) {
-                sb.Append("type:" + Type.Value);
+                searchParams.Add("type:" + Type.Value);
             }
             foreach (LabeledTagCollectionDTO ltc in labeledTagCollections) {
-                sb.AppendJoin(' ', ltc.IncludeTags.Select(tag => tag.Category.ToString().ToLower() + ':' + tag.SearchParamValue));
-                sb.AppendJoin(' ', ltc.ExcludeTags.Select(tag => tag.Category.ToString().ToLower() + ':' + tag.SearchParamValue));
+                if (ltc.IncludeTagValues.Any()) {
+                    searchParams.Add(string.Join(' ', ltc.IncludeTagValues.Select(v => ltc.Category.ToString().ToLower() + ':' + v.Replace(' ', '_'))));
+                }
+                if (ltc.ExcludeTagValues.Any()) {
+                    searchParams.Add(string.Join(' ', ltc.ExcludeTagValues.Select(v => '-' + ltc.Category.ToString().ToLower() + ':' + v.Replace(' ', '_'))));
+                }
             }
             if (SearchKeywordText.Length > 0) {
-                sb.Append(SearchKeywordText);
+                searchParams.Add(SearchKeywordText);
             }
             string searchLink;
-            if (sb.Length > 0) {
-                searchLink = BASE_URL + SEARCH_PATH + sb.ToString();
+            if (searchParams.Count > 0) {
+                searchLink = BASE_URL + SEARCH_PATH + string.Join(' ', searchParams);
             } else {
                 searchLink = BASE_URL;
             }
@@ -59,7 +63,7 @@ namespace HitomiScrollViewerData.Builders
                 Language = Language,
                 Type = Type,
                 SearchKeywordText = SearchKeywordText,
-                SearchLink = searchLink
+                SearchLink = HttpUtility.UrlPathEncode(searchLink)
             };
         }
     }

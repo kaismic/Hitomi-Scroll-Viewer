@@ -7,15 +7,15 @@ namespace HitomiScrollViewerData.Entities
     {
         public long Id { get; set; }
         public required TagCategory Category { get; set; }
-        public required ICollection<Tag> IncludeTags { get; set; }
-        public required ICollection<Tag> ExcludeTags { get; set; }
+        public required IEnumerable<string> IncludeTagValues { get; set; }
+        public required IEnumerable<string> ExcludeTagValues { get; set; }
         [Required] public SearchFilter SearchFilter { get; set; } = null!;
 
         public LabeledTagCollectionDTO ToDTO() => new() {
             Id = Id,
             Category = Category,
-            IncludeTags = [.. IncludeTags.Select(t => t.ToDTO())],
-            ExcludeTags = [.. ExcludeTags.Select(t => t.ToDTO())],
+            IncludeTagValues = IncludeTagValues,
+            ExcludeTagValues = ExcludeTagValues,
             SearchFilterId = SearchFilter.Id
         };
     }

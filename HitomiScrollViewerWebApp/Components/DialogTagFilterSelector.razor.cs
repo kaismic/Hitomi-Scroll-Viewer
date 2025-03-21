@@ -7,6 +7,6 @@
         }
         public event Action<bool>? DisableActionButtonChanged;
         public object GetResult() => SelectedChipModels;
-        public Task<bool> Validate() => Task.FromResult(true);
+        public bool Validate() => true;
     }
 }

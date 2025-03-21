@@ -4,16 +4,18 @@ using Microsoft.EntityFrameworkCore;
 namespace HitomiScrollViewerData.DbContexts {
     public class HitomiContext : DbContext {
         public static readonly string MAIN_DATABASE_PATH = "main.db";
-        public HitomiContext() { }
+        public HitomiContext() {}
 
-        public DbSet<TagFilter> TagFilters { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<GalleryLanguage> GalleryLanguages { get; set; }
         public DbSet<GalleryType> GalleryTypes { get; set; }
         public DbSet<GallerySort> GallerySorts { get; set; }
-        public DbSet<SearchQueryConfiguration> SearchQueryConfigurations { get; set; }
-        public DbSet<BrowseQueryConfiguration> BrowseQueryConfigurations { get; set; }
+        public DbSet<SearchConfiguration> SearchConfigurations { get; set; }
+        public DbSet<BrowseConfiguration> BrowseConfigurations { get; set; }
+        public DbSet<TagFilter> TagFilters { get; set; }
+        public DbSet<SearchFilter> SearchFilters { get; set; }
+        public DbSet<LabeledTagCollection> LabeledTagCollections { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder

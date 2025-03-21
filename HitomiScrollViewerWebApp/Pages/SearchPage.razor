@@ -1,9 +1,10 @@
 ﻿@page "/search"
 @inject TagService TagService
 @inject TagFilterService TagFilterService
-@inject GalleryService GalleryService
-@inject QueryConfigurationService QueryConfigurationService
 @inject SearchFilterService SearchFilterService
+@inject GalleryService GalleryService
+@inject SearchService SearchService
+@inject PageConfigurationService PageConfigurationService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IJSRuntime JsRuntime
@@ -15,6 +16,7 @@
         <MudPaper id="tag-filter-editor-control-panel" Class="pa-8 gap-2" Style="height: 60%; display: grid; grid-template-rows: repeat(3, min-content)">
             <div>
                 <TagFilterEditor @ref="_tagFilterEditor"
+                                 TagFilters="@TagFilters"
                                  SelectedTagFilterChanged="@SelectedTagFilterChanged"
                                  OnCreateButtonClicked="@CreateTagFilter"
                                  OnRenameButtonClicked="@RenameTagFilter"
@@ -37,7 +39,7 @@
                     </MudButton>
                 </div>
                 <div>
-                    <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="IsAutoSaveEnabled" />
+                    <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="PageConfigurationService.SearchConfiguration.IsAutoSaveEnabled" />
                 </div>
             </div>
             <div id="tag-search-chip-set-container"
@@ -54,26 +56,44 @@
             <PairedTagFilterSelector @ref="_includePairedTagFilterSelector"
                                      ChipModels="@_includeTagFilterChipModels"
                                      HeaderText="Include"
-                                     HeaderTextColor="Color.Success" />
+                                     HeaderTextColor="Color.Success"
+                                     Other="_excludePairedTagFilterSelector"
+                                     Style="flex: 1;" />
             <MudDivider Vertical Class="my-4" FlexItem />
             <PairedTagFilterSelector @ref="_excludePairedTagFilterSelector"
                                      ChipModels="@_excludeTagFilterChipModels"
                                      HeaderText="Exclude"
-                                     HeaderTextColor="Color.Error" />
+                                     HeaderTextColor="Color.Error"
+                                     Other="_includePairedTagFilterSelector"
+                                     Style="flex: 1;" />
         </MudPaper>
     </div>
-    <div id="search-filter-control-panel" style="flex: 1;" class="gap-2">
-        <MudSelect Label="Language" T="GalleryLanguageDTO" ToStringFunc="@(l => l.LocalName)" FullWidth Variant="Variant.Outlined" @bind-Value="SelectedLanguage">
-            @foreach (GalleryLanguageDTO l in _languages) {
+    <div id="search-filter-control-panel" style="flex: 1;" class="d-flex flex-column gap-2">
+        <MudSelect Label="Language"
+                   T="GalleryLanguageDTO"
+                   ToStringFunc="@(l => l.LocalName)"
+                   FullWidth
+                   Variant="Variant.Outlined"
+                   @bind-Value="SelectedLanguage">
+            @foreach (GalleryLanguageDTO l in PageConfigurationService.Languages) {
                 <MudSelectItem Value="@l" />
             }
         </MudSelect>
-        <MudSelect Label="Type" T="GalleryTypeDTO" ToStringFunc="@(t => t.Value)" FullWidth Variant="Variant.Outlined" @bind-Value="SelectedType">
-            @foreach (GalleryTypeDTO t in _types) {
+        <MudSelect Label="Type"
+                   T="GalleryTypeDTO"
+                   ToStringFunc="@(t => t.Value)"
+                   FullWidth
+                   Variant="Variant.Outlined"
+                   @bind-Value="SelectedType">
+            @foreach (GalleryTypeDTO t in PageConfigurationService.Types) {
                 <MudSelectItem Value="@t" />
             }
         </MudSelect>
-        <MudTextField T="string" Label="Additional keywords" Variant="Variant.Outlined" @bind-Text="_searchKeywordText" Clearable Immediate />
+        <MudTextField T="string"
+                      Label="Additional keywords"
+                      Variant="Variant.Outlined"
+                      @bind-Text="SearchKeywordText"
+                      Clearable />
         <MudStack Row Spacing="2" StretchItems="StretchItems.Start" Class="my-2">
             <MudButton Class="py-2"
                        FullWidth
@@ -84,16 +104,17 @@
             </MudButton>
             <MudButton Class="py-2"
                        Color="Color.Primary"
-                       OnClick="@_searchFilters.Clear"
-                       Disabled="@(_searchFilters.Count == 0)">
+                       OnClick="@SearchFilters.Clear"
+                       Disabled="@(SearchFilters.Count == 0)">
                 Clear
             </MudButton>
         </MudStack>
-        <MudStack class="overflow-y-scroll" Spacing="2" Style="flex: 1;">
-            @foreach (SearchFilterDTO model in _searchFilters) {
+        <MudStack class="overflow-y-auto" Spacing="2" Style="flex: 1;">
+            @foreach (SearchFilterDTO model in SearchFilters) {
                 <div style="display: grid; grid-template-columns: 1fr min-content; gap: 4px;">
                     <SearchFilterView Model="@model"></SearchFilterView>
                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Disabled="@(model.Id == 0)"
                                    OnClick="@(() => DeleteSearchFilter(model))"
                                    Style="height: min-content; margin: auto;" />
                 </div>

@@ -14,13 +14,13 @@
                 <tr>
                     <td><MudText Typo="Typo.button">@collection.Category.ToString()</MudText></td>
                     <td class="d-flex flex-wrap gap-1">
-                        @foreach (TagDTO tag in collection.IncludeTags)
+                        @foreach (string value in collection.IncludeTagValues)
                         {
-                            <span style="background-color: var(--mud-palette-success); color: var(--mud-palette-error-text);" class="rounded px-1">@tag.Value</span>
+                            <span style="background-color: var(--mud-palette-success); color: var(--mud-palette-error-text);" class="rounded px-1">@value</span>
                         }
-                        @foreach (TagDTO tag in collection.ExcludeTags)
+                        @foreach (string value in collection.ExcludeTagValues)
                         {
-                            <span style="background-color: var(--mud-palette-error); color: var(--mud-palette-success-text);" class="rounded px-1">@tag.Value</span>
+                            <span style="background-color: var(--mud-palette-error); color: var(--mud-palette-success-text);" class="rounded px-1">@value</span>
                         }
                     </td>
                 </tr>

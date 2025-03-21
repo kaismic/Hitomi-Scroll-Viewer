@@ -1,9 +1,11 @@
 ﻿using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerWebApp.Models;
+using Microsoft.AspNetCore.Components;
 
 namespace HitomiScrollViewerWebApp.Components {
     public class PairedTagFilterSelector : TagFilterSelector {
-        public required PairedTagFilterSelector Other { private get; set; }
+        [Parameter, EditorRequired] public PairedTagFilterSelector Other { get; set; } = default!;
+
         public override async Task OnSelectedChanged(ChipModel<TagFilterDTO> model) {
             await base.OnSelectedChanged(model);
             ChipModel<TagFilterDTO>? otherChipModel = Other.ChipModels.Find(m => m.Value.Id == model.Value.Id);

@@ -31,8 +31,8 @@ namespace HitomiScrollViewerData.Entities {
         }
         public string SearchParamValue { get; set; } = null!;
         public required int GalleryCount { get; set; }
-        public ICollection<TagFilter> TagFilters { get; } = [];
         public ICollection<Gallery> Galleries { get; } = [];
+        public ICollection<TagFilter> TagFilters { get; } = [];
 
         public TagDTO ToDTO() => new() {
             Id = Id,

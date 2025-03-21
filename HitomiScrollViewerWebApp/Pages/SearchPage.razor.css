@@ -1,4 +1,4 @@
-﻿#search-filter-control-panel > :not(:last-child) {
+﻿::deep #search-filter-control-panel > :not(:last-child) {
     flex: 0 1 auto;
 }
 

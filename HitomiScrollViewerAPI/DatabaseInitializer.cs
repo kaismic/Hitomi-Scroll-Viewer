@@ -120,14 +120,14 @@ namespace HitomiScrollViewerAPI {
 
 
             // add query configurations
-            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding query configurations... ");
+            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding configurations... ");
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 2);
-            context.SearchQueryConfigurations.Add(new() {
+            context.SearchConfigurations.Add(new() {
                 IsAutoSaveEnabled = true,
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
                 SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
             });
-            context.BrowseQueryConfigurations.Add(new() {
+            context.BrowseConfigurations.Add(new() {
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
                 SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
             });
@@ -157,8 +157,10 @@ namespace HitomiScrollViewerAPI {
         private void AddExampleTagFilters(HitomiContext context) {
             _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 4);
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding example tag filters... ");
+            SearchConfiguration searchConfig = context.SearchConfigurations.First();
+            context.Entry(searchConfig).Collection(c => c.TagFilters).Load();
             IQueryable<Tag> tags = context.Tags;
-            context.TagFilters.AddRange(
+            searchConfig.TagFilters.AddRange(
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_1,
                     Tags = [

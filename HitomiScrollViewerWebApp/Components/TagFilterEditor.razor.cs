@@ -1,11 +1,11 @@
 ﻿using HitomiScrollViewerData;
 using HitomiScrollViewerData.DTOs;
+using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class TagFilterEditor : ComponentBase {
-        public List<TagFilterDTO> TagFilters { get; set; } = [];
-        public int SearchQueryConfigId { get; set; }
+        [Parameter, EditorRequired] public IEnumerable<TagFilterDTO> TagFilters { get; set; } = null!;
         [Parameter, EditorRequired] public EventCallback OnCreateButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnRenameButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnSaveButtonClicked { get; set; }
@@ -15,12 +15,16 @@ namespace HitomiScrollViewerWebApp.Components {
         public TagFilterDTO? CurrentTagFilter {
             get => _currentTagFilter;
             set {
-                if (value == _currentTagFilter) {
+                if (_currentTagFilter == value) {
                     return;
                 }
                 TagFilterDTO? oldValue = _currentTagFilter;
                 _currentTagFilter = value;
-                _ = QueryConfigurationService.UpdateSearchSelectedTagFilterAsync(SearchQueryConfigId, value?.Id ?? 0);
+                PageConfigurationService.SearchConfiguration.SelectedTagFilterId = value?.Id ?? 0;
+                _ = SearchService.UpdateSelectedTagFilterAsync(
+                    PageConfigurationService.SearchConfiguration.Id,
+                    PageConfigurationService.SearchConfiguration.SelectedTagFilterId
+                );
                 SelectedTagFilterChanged.InvokeAsync(new(oldValue, value));
             }
         }

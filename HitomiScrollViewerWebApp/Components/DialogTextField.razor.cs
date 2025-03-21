@@ -2,7 +2,7 @@
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class DialogTextField : ComponentBase, IDialogContent {
-        [Parameter, EditorRequired] public IEnumerable<Func<string, Task<string?>>> Validators { get; set; } = null!;
+        [Parameter, EditorRequired] public IEnumerable<Func<string, string?>> Validators { get; set; } = null!;
         [Parameter] public string Text { get; set; } = "";
 
         protected override void OnAfterRender(bool firstRender) {
@@ -20,9 +20,9 @@ namespace HitomiScrollViewerWebApp.Components {
         private string _errorMessage = "";
         private bool _showErrorMessage = false;
         public event Action<bool>? DisableActionButtonChanged;
-        public async Task<bool> Validate() {
-            foreach (Func<string, Task<string?>> validator in Validators) {
-                string? error = await validator(Text);
+        public bool Validate() {
+            foreach (Func<string, string?> validator in Validators) {
+                string? error = validator(Text);
                 if (error != null) {
                     _errorMessage = error;
                     _showErrorMessage = true;

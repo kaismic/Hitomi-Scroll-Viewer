@@ -1,6 +1,6 @@
 ﻿@inherits ChipSetBase<TagFilterDTO>
 
-<div class="d-flex flex-column gap-4">
+<div class="d-flex flex-column gap-4 @Class" style="@Style">
     @if (HeaderText != null)
     {
         <MudText Color="@HeaderTextColor" Typo="Typo.h6" Align="Align.Center">@HeaderText</MudText>
@@ -8,7 +8,7 @@
     <MudChipSet T="@(ChipModel<TagFilterDTO>)"
                 SelectionMode="SelectionMode.MultiSelection"
                 @bind-SelectedValues="@SelectedChipModels"
-                @bind-SelectedValues:after="@(() => SelectedChipModelsChanged?.Invoke(SelectedChipModels))"
+                @bind-SelectedValues:after="(() => SelectedChipModelsChanged?.Invoke(SelectedChipModels))"
                 SelectedColor="@Color.Primary"
                 Variant="@Variant.Filled"
                 Class="overflow-y-auto">
@@ -17,7 +17,7 @@
                      Value="@model"
                      Disabled="@model.Disabled"
                      @bind-Selected="@model.Selected"
-                     @key="model"
+                     @key="model.Value.Id"
                      id="@model.Id">
                 @(model.Value.Name)
             </MudChip>

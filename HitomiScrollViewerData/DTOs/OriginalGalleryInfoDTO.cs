@@ -78,7 +78,7 @@ namespace HitomiScrollViewerData.DTOs {
             if (originalDictArr != null) {
                 foreach (var dict in originalDictArr) {
                     string tagValue = dict[CATEGORY_PROP_KEY_DICT[category]];
-                    Tag tag = Utils.GetTag(context.Tags, tagValue, category);
+                    Tag? tag = Utils.GetTag(context.Tags, tagValue, category);
                     if (tag == null) {
                         //await Utils.FetchAndUpdateTagsAsync(context, category, tagValue);
                         tag = Utils.GetTag(context.Tags, tagValue, category);
@@ -108,7 +108,7 @@ namespace HitomiScrollViewerData.DTOs {
                     compositeTag.Male == 1 ? TagCategory.Male :
                     compositeTag.Female == 1 ? TagCategory.Female :
                                                TagCategory.Tag
-                ));
+                )!);
             }
 
             // appends leading zeros

@@ -5,6 +5,9 @@ using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class TagFilterSelector : ChipSetBase<TagFilterDTO> {
+        [Parameter] public string? Class { get; set; }
+        [Parameter] public string? Style { get; set; }
+
         private List<ChipModel<TagFilterDTO>> _chipModels = default!;
 #pragma warning disable BL0007 // Component parameters should be auto properties
         [Parameter, EditorRequired] public List<ChipModel<TagFilterDTO>> ChipModels {
@@ -20,9 +23,9 @@ namespace HitomiScrollViewerWebApp.Components {
             }
         }
 #pragma warning restore BL0007 // Component parameters should be auto properties
-        [Parameter, EditorRequired] public string? HeaderText { get; set; }
+        [Parameter] public string? HeaderText { get; set; }
         [Parameter] public Color HeaderTextColor { get; set; } = Color.Default;
-        public IReadOnlyCollection<ChipModel<TagFilterDTO>> SelectedChipModels { get; set; } = [];
-        public event Action<IReadOnlyCollection<ChipModel<TagFilterDTO>>?>? SelectedChipModelsChanged;
+        public event Action<IReadOnlyCollection<ChipModel<TagFilterDTO>>>? SelectedChipModelsChanged;
+        public IReadOnlyCollection<ChipModel<TagFilterDTO>> SelectedChipModels { get; set; } = null!;
     }
 }

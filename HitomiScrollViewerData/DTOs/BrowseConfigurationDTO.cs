@@ -2,7 +2,7 @@
 
 namespace HitomiScrollViewerData.DTOs
 {
-    public class BrowseQueryConfigurationDTO
+    public class BrowseConfigurationDTO
     {
         public required int Id { get; set; }
         public required ICollection<TagDTO> Tags { get; set; }
@@ -10,7 +10,7 @@ namespace HitomiScrollViewerData.DTOs
         public required GalleryTypeDTO SelectedType { get; set; }
         public required string SearchKeywordText { get; set; }
 
-        public BrowseQueryConfiguration ToEntity() => new() {
+        public BrowseConfiguration ToEntity() => new() {
             Id = Id,
             Tags = [.. Tags.Select(t => t.ToEntity())],
             SelectedLanguage = SelectedLanguage.ToEntity(),
