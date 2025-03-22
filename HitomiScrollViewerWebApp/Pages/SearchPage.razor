@@ -45,9 +45,9 @@
             <div id="tag-search-chip-set-container"
                  style="border: 1px solid var(--mud-palette-primary); border-radius: inherit;
                         display: grid; grid-template-columns: repeat(@Tag.TAG_CATEGORIES.Length, 1fr); grid-template-rows: 100%">
-                @for (int i = 0; i < _tagSearchChipSetModels.Length; i++) {
+                @for (int i = 0; i < _tagSearchPanelModels.Length; i++) {
                     <div style="grid-column: @(i + 1);">
-                        <TagSearchChipSet Model="_tagSearchChipSetModels[i]" />
+                        <TagSearchPanel Model="_tagSearchPanelModels[i]" />
                     </div>
                 }
             </div>
@@ -56,14 +56,14 @@
             <PairedTagFilterSelector @ref="_includePairedTagFilterSelector"
                                      ChipModels="@_includeTagFilterChipModels"
                                      HeaderText="Include"
-                                     HeaderTextColor="Color.Success"
+                                     HeaderColor="Color.Success"
                                      Other="_excludePairedTagFilterSelector"
                                      Style="flex: 1;" />
             <MudDivider Vertical Class="my-4" FlexItem />
             <PairedTagFilterSelector @ref="_excludePairedTagFilterSelector"
                                      ChipModels="@_excludeTagFilterChipModels"
                                      HeaderText="Exclude"
-                                     HeaderTextColor="Color.Error"
+                                     HeaderColor="Color.Error"
                                      Other="_includePairedTagFilterSelector"
                                      Style="flex: 1;" />
         </MudPaper>

@@ -66,7 +66,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private List<ChipModel<TagFilterDTO>> _excludeTagFilterChipModels = [];
 
         private TagFilterEditor _tagFilterEditor = null!;
-        private readonly TagSearchChipSetModel[] _tagSearchChipSetModels = new TagSearchChipSetModel[TAG_CATEGORIES.Length];
+        private readonly TagSearchPanelModel[] _tagSearchPanelModels = new TagSearchPanelModel[TAG_CATEGORIES.Length];
         public bool IsAutoSaveEnabled {
             get => PageConfigurationService.SearchConfiguration.IsAutoSaveEnabled;
             set {
@@ -132,9 +132,9 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         public SearchPage() {
-            _tagSearchChipSetModels =
+            _tagSearchPanelModels =
             [..
-                TAG_CATEGORIES.Select(tagCategory => new TagSearchChipSetModel() {
+                TAG_CATEGORIES.Select(tagCategory => new TagSearchPanelModel() {
                         TagCategory = tagCategory,
                         Label = tagCategory.ToString(),
                         ToStringFunc = tag => tag.Value,
@@ -224,7 +224,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private void ClearAllTags() {
-            foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
+            foreach (TagSearchPanelModel model in _tagSearchPanelModels) {
                 model.ChipModels = [];
             }
         }
@@ -233,9 +233,10 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (_tagFilterEditor.CurrentTagFilter != null) {
                 IEnumerable<TagDTO> tags = await TagFilterService.GetTagsAsync(PageConfigurationService.SearchConfiguration.Id, _tagFilterEditor.CurrentTagFilter.Id);
                 if (tags != null) {
-                    foreach (TagSearchChipSetModel model in _tagSearchChipSetModels) {
+                    foreach (TagSearchPanelModel model in _tagSearchPanelModels) {
                         model.ChipModels = [..
                             tags.Where(t => t.Category == model.TagCategory)
+                                .OrderBy(t => t.Value.Length)
                                 .Select(t => new ChipModel<TagDTO>() { Value = t })
                         ];
                     }
@@ -269,7 +270,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 TagFilterBuildDTO buildDto = new() {
                     SearchConfigurationId = PageConfigurationService.SearchConfiguration.Id,
                     Name = name,
-                    Tags = _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value)
+                    Tags = _tagSearchPanelModels.SelectMany(m => m.ChipModels).Select(m => m.Value)
                 };
                 TagFilterDTO tagFilter = buildDto.ToDTO();
                 TagFilters.Add(tagFilter);
@@ -337,7 +338,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 bool success = await TagFilterService.UpdateTagsAsync(
                     PageConfigurationService.SearchConfiguration.Id,
                     tagFilter.Id,
-                    _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value.Id)
+                    _tagSearchPanelModels.SelectMany(m => m.ChipModels).Select(m => m.Value.Id)
                 );
                 if (success) {
                     Snackbar.Add($"Saved \"{tagFilter.Name}\"", Severity.Success, SNACKBAR_OPTIONS);
@@ -408,12 +409,29 @@ namespace HitomiScrollViewerWebApp.Pages {
             await Task.WhenAll(includeTagsTask ?? Task.CompletedTask, excludeTagsTask ?? Task.CompletedTask);
             IEnumerable<TagDTO> includeTagDTOs = includeTagsTask?.Result ?? [];
             IEnumerable<TagDTO> excludeTagDTOs = excludeTagsTask?.Result ?? [];
-            IEnumerable<TagDTO> currentTagDTOs = _tagSearchChipSetModels.SelectMany(m => m.ChipModels).Select(m => m.Value);
+            IEnumerable<TagDTO> currentTagDTOs = _tagSearchPanelModels.SelectMany(m => m.ChipModels).Select(m => m.Value);
             if (currentTagFilterInclude) {
                 includeTagDTOs = includeTagDTOs.Union(currentTagDTOs);
             } else if (currentTagFilterExclude) {
                 excludeTagDTOs = excludeTagDTOs.Union(currentTagDTOs);
             }
+            Dictionary<int, TagDTO> includeDict = includeTagDTOs.ToDictionary(dto => dto.Id);
+            HashSet<int> duplicateIds = [.. includeDict.Keys];
+            duplicateIds.IntersectWith(excludeTagDTOs.Select(t => t.Id));
+            if (duplicateIds.Count > 0) {
+                string contentText = string.Join(
+                    ", ",
+                    duplicateIds.Select(id => includeDict[id])
+                                .Select(tag => tag.Category.ToString() + ':' + tag.Value)
+                );
+                DialogParameters<NotificationDialog> parameters = new() {
+                    { d => d.HeaderText, "The following tags are conflicting:" },
+                    { d => d.ContentText, contentText },
+                };
+                await DialogService.ShowAsync<NotificationDialog>("Duplicate Tags", parameters);
+                return;
+            }
+
             SearchFilterDTOBuilder builder = new() {
                 Language = SelectedLanguage,
                 Type = SelectedType,

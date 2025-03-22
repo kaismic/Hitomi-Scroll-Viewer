@@ -11,6 +11,6 @@
                 SelectedChanged?.Invoke(this);
             }
         }
-        public event Func<ChipModel<TValue>, Task>? SelectedChanged;
+        public event Action<ChipModel<TValue>>? SelectedChanged;
     }
 }

@@ -2,7 +2,7 @@
 using HitomiScrollViewerData.Entities;
 
 namespace HitomiScrollViewerWebApp.Models {
-    public class TagSearchChipSetModel {
+    public class TagSearchPanelModel {
         public required TagCategory TagCategory { get; init; }
         public string Label { get; set; } = "";
         public required Func<TagDTO, string> ToStringFunc { get; set; }

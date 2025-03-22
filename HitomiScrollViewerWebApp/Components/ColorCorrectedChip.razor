@@ -1,0 +1,13 @@
+﻿@inherits ComponentBase
+@typeparam T
+@inject IJSRuntime JsRuntime
+
+<MudChip T="@(ChipModel<T>)"
+         Value="@Model"
+         Disabled="@Model.Disabled"
+         OnClose="@OnClose"
+         @bind-Selected="@Model.Selected"
+         @key="Model"
+         id="@Model.Id">
+    @ToStringFunc(Model)
+</MudChip>

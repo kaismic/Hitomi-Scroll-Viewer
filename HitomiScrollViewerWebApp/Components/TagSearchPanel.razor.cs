@@ -5,24 +5,13 @@ using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Components {
-    public partial class TagSearchChipSet : ChipSetBase<TagDTO> {
-        private const string JAVASCRIPT_FILE = $"./Components/{nameof(TagSearchChipSet)}.razor.js";
-        private TagSearchChipSetModel _model = default!;
-#pragma warning disable BL0007 // Component parameters should be auto properties
-        [Parameter, EditorRequired] public TagSearchChipSetModel Model {
-            get => _model;
-            init {
-                if (_model != value) {
-                    _model = value;
-                    foreach (var model in _model.ChipModels) {
-                        model.SelectedChanged += OnSelectedChanged;
-                    }
-                }
-            }
-        }
-#pragma warning restore BL0007 // Component parameters should be auto properties
-
+    public partial class TagSearchPanel : ComponentBase {
+        private const string JAVASCRIPT_FILE = $"./Components/{nameof(TagSearchPanel)}.razor.js";
         private IJSObjectReference? _jsModule;
+        [Parameter] public string? Class { get; set; }
+        [Parameter] public string? Style { get; set; }
+
+        [Parameter, EditorRequired] public TagSearchPanelModel Model { get; set; } = default!;
 
         private TagDTO? _searchValue;
         public TagDTO? SearchValue {
@@ -39,7 +28,7 @@ namespace HitomiScrollViewerWebApp.Components {
                         // already exists in ChipModels
 #pragma warning disable CA2012 // Use ValueTasks correctly
                         if (_jsModule == null) {
-                            JsRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE).AsTask()
+                            JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE).AsTask()
                                 .ContinueWith((task) => {
                                     _jsModule = task.Result;
                                     _ = _jsModule.InvokeVoidAsync("scrollToElement", chipModel.Id);

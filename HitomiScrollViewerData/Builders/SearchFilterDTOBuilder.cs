@@ -40,6 +40,7 @@ namespace HitomiScrollViewerData.Builders
             if (!Type.IsAll) {
                 searchParams.Add("type:" + Type.Value);
             }
+            // TODO check if there are conflicting (duplicate) tags and notify user if there are any
             foreach (LabeledTagCollectionDTO ltc in labeledTagCollections) {
                 if (ltc.IncludeTagValues.Any()) {
                     searchParams.Add(string.Join(' ', ltc.IncludeTagValues.Select(v => ltc.Category.ToString().ToLower() + ':' + v.Replace(' ', '_'))));
