@@ -5,7 +5,8 @@
     {
         <MudText Color="@HeaderColor" Typo="Typo.h6" Align="Align.Center">@HeaderText</MudText>
     }
-    <MudChipSet SelectionMode="SelectionMode.MultiSelection"
+    <MudChipSet T="@(ChipModel<TagFilterDTO>)"
+                SelectionMode="SelectionMode.MultiSelection"
                 @bind-SelectedValues="@SelectedChipModels"
                 @bind-SelectedValues:after="(() => SelectedChipModelsChanged?.Invoke(SelectedChipModels))"
                 SelectedColor="@Color.Primary"

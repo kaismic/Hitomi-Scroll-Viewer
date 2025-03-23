@@ -10,8 +10,8 @@ namespace HitomiScrollViewerWebApp.Components {
         [Parameter, EditorRequired] public List<ChipModel<TagFilterDTO>> ChipModels { get; set; } = default!;
         [Parameter] public string? HeaderText { get; set; }
         [Parameter] public Color HeaderColor { get; set; } = Color.Default;
+        public IReadOnlyCollection<ChipModel<TagFilterDTO>> SelectedChipModels { get; set; } = [];
         public event Action<IReadOnlyCollection<ChipModel<TagFilterDTO>>>? SelectedChipModelsChanged;
-        public IReadOnlyCollection<ChipModel<TagFilterDTO>> SelectedChipModels { get; set; } = null!;
         protected virtual void OnSelectedChanged(ChipModel<TagFilterDTO> model) {}
     }
 }
