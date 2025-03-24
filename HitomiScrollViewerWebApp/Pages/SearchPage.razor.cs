@@ -173,10 +173,8 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-#pragma warning disable CA2012 // Use ValueTasks correctly
                 _jsModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
-                _ = _jsModule.InvokeVoidAsync("setChipSetContainerHeight");
-#pragma warning restore CA2012 // Use ValueTasks correctly
+                await _jsModule.InvokeVoidAsync("setChipSetContainerHeight");
                 _isRendered = true;
                 Rendered?.Invoke();
             }
@@ -246,6 +244,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task CreateTagFilter() {
+            // to prevent enter key acting on the last clicked button
+            await JsRuntime.InvokeVoidAsync("document.body.focus");
             DialogTextField dialogContent = null!;
             var parameters = new DialogParameters<TagFilterEditDialog> {
                 { d => d.ActionText, "Create" },
@@ -254,17 +254,17 @@ namespace HitomiScrollViewerWebApp.Pages {
                         builder.OpenComponent<DialogTextField>(0);
                         builder.AddComponentReferenceCapture(1, (component) => {
                             dialogContent = (DialogTextField)component;
-#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
-                            dialogContent.Validators = [IsDuplicate];
-#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
+                            dialogContent.AddValidators(IsDuplicate);
                         });
                         builder.CloseComponent();
                     }
                 },
             };
-            IDialogReference dialog = await DialogService.ShowAsync<TagFilterEditDialog>("Create Tag Filter", parameters);
-            ((TagFilterEditDialog)dialog.Dialog!).DialogContentRef = dialogContent;
-            DialogResult result = (await dialog.Result)!;
+            IDialogReference dialogRef = await DialogService.ShowAsync<TagFilterEditDialog>("Create Tag Filter", parameters);
+            TagFilterEditDialog dialog = (TagFilterEditDialog)dialogRef.Dialog!;
+            dialogContent.OnSubmit = dialog.Submit;
+            dialog.DialogContentRef = dialogContent;
+            DialogResult result = (await dialogRef.Result)!;
             if (!result.Canceled) {
                 string name = result.Data!.ToString()!;
                 TagFilterBuildDTO buildDto = new() {
@@ -285,6 +285,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task RenameTagFilter() {
+            // to prevent enter key acting on the last clicked button
+            await JsRuntime.InvokeVoidAsync("document.body.focus");
             string oldName = _tagFilterEditor.CurrentTagFilter!.Name;
             DialogTextField dialogContent = null!;
             var parameters = new DialogParameters<TagFilterEditDialog> {
@@ -295,7 +297,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                         builder.AddComponentReferenceCapture(1, (component) => {
                             dialogContent = (DialogTextField)component;
 #pragma warning disable BL0005 // Component parameter should not be set outside of its component.
-                            dialogContent.Validators = [IsDuplicate];
+                            dialogContent.AddValidators(IsDuplicate);
                             dialogContent.Text = oldName;
 #pragma warning restore BL0005 // Component parameter should not be set outside of its component.
                         });
@@ -303,9 +305,11 @@ namespace HitomiScrollViewerWebApp.Pages {
                     }
                 },
             };
-            IDialogReference dialog = await DialogService.ShowAsync<TagFilterEditDialog>("Rename Tag Filter", parameters);
-            ((TagFilterEditDialog)dialog.Dialog!).DialogContentRef = dialogContent;
-            DialogResult result = (await dialog.Result)!;
+            IDialogReference dialogRef = await DialogService.ShowAsync<TagFilterEditDialog>("Rename Tag Filter", parameters);
+            TagFilterEditDialog dialog = (TagFilterEditDialog)dialogRef.Dialog!;
+            dialogContent.OnSubmit = dialog.Submit;
+            dialog.DialogContentRef = dialogContent;
+            DialogResult result = (await dialogRef.Result)!;
             if (!result.Canceled) {
                 string name = result.Data!.ToString()!;
                 bool success = await TagFilterService.UpdateNameAsync(
@@ -323,10 +327,6 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private string? IsDuplicate(string name) {
-            //IEnumerable<TagFilterDTO>? tagFilters = await TagFilterService.GetTagFiltersAsync();
-            //if (tagFilters == null) {
-            //    return "An error has occurred while while fetching tag filters.";
-            //}
             if (TagFilters.Any(tf => tf.Name == name)) {
                 return $"\"{name}\" already exists.";
             }

@@ -1,9 +1,24 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class DialogTextField : ComponentBase, IDialogContent {
-        [Parameter, EditorRequired] public IEnumerable<Func<string, string?>> Validators { get; set; } = null!;
-        [Parameter] public string Text { get; set; } = "";
+        private readonly List<Func<string, string?>> _validators = [IsEmpty];
+        public string Text { get; set; } = "";
+        public Action OnSubmit { get; set; } = () => { };
+
+        private static string? IsEmpty(string value) {
+            if (value.Length == 0) {
+                return "Value cannot be empty.";
+            }
+            return null;
+        }
+
+        public void AddValidators(params IEnumerable<Func<string, string?>> funcs) {
+            foreach (Func<string, string?> func in funcs) {
+                _validators.Add(func);
+            }
+        }
 
         protected override void OnAfterRender(bool firstRender) {
             if (firstRender) {
@@ -21,8 +36,8 @@ namespace HitomiScrollViewerWebApp.Components {
         private bool _showErrorMessage = false;
         public event Action<bool>? DisableActionButtonChanged;
         public bool Validate() {
-            foreach (Func<string, string?> validator in Validators) {
-                string? error = validator(Text);
+            foreach (Func<string, string?> validate in _validators) {
+                string? error = validate(Text);
                 if (error != null) {
                     _errorMessage = error;
                     _showErrorMessage = true;
@@ -33,5 +48,11 @@ namespace HitomiScrollViewerWebApp.Components {
             return true;
         }
         public object GetResult() => Text;
+
+        private void OnKeyDown(KeyboardEventArgs args) {
+            if (args.Key == "Enter") {
+                OnSubmit();
+            }
+        }
     }
 }

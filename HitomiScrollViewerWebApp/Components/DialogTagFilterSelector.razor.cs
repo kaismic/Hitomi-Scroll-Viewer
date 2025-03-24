@@ -6,6 +6,8 @@ namespace HitomiScrollViewerWebApp.Components {
     public partial class DialogTagFilterSelector : ComponentBase, IDialogContent {
         private TagFilterSelector _tagFilterSelector = default!;
         [Parameter, EditorRequired] public List<ChipModel<TagFilterDTO>> ChipModels { get; set; } = default!;
+        public Action OnSubmit { get; set; } = () => { };
+
         public event Action<bool>? DisableActionButtonChanged;
         public object GetResult() => _tagFilterSelector.SelectedChipModels;
         public bool Validate() => true;

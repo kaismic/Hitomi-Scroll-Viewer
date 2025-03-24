@@ -14,15 +14,13 @@
 <div style="height: 100%;" class="d-flex pa-8 gap-4">
     <div id="left-container" style="flex: 3;" class="d-flex flex-column gap-2">
         <MudPaper id="tag-filter-editor-control-panel" Class="pa-8 gap-2" Style="height: 60%; display: grid; grid-template-rows: repeat(3, min-content)">
-            <div>
-                <TagFilterEditor @ref="_tagFilterEditor"
-                                 TagFilters="@TagFilters"
-                                 SelectedTagFilterChanged="@SelectedTagFilterChanged"
-                                 OnCreateButtonClicked="@CreateTagFilter"
-                                 OnRenameButtonClicked="@RenameTagFilter"
-                                 OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
-                                 OnDeleteButtonClicked="@DeleteTagFilters" />
-            </div>
+            <TagFilterEditor @ref="_tagFilterEditor"
+                             TagFilters="@TagFilters"
+                             SelectedTagFilterChanged="@SelectedTagFilterChanged"
+                             OnCreateButtonClicked="@CreateTagFilter"
+                             OnRenameButtonClicked="@RenameTagFilter"
+                             OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
+                             OnDeleteButtonClicked="@DeleteTagFilters" />
             <div class="d-flex justify-space-between">
                 <div class="d-flex gap-4">
                     <MudButton Color="Color.Primary"
@@ -39,7 +37,7 @@
                     </MudButton>
                 </div>
                 <div>
-                    <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="PageConfigurationService.SearchConfiguration.IsAutoSaveEnabled" />
+                    <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="IsAutoSaveEnabled" />
                 </div>
             </div>
             <div id="tag-search-chip-set-container"

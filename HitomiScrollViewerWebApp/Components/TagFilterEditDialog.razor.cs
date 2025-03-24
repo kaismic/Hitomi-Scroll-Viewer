@@ -20,7 +20,7 @@ namespace HitomiScrollViewerWebApp.Components {
         }
 
         private void Cancel() => MudDialog.Cancel();
-        private void Submit() {
+        public void Submit() {
             _disableActionButton = true;
             if (_dialogContentRef.Validate()) {
                 MudDialog.Close(DialogResult.Ok(_dialogContentRef.GetResult()));
