@@ -5,7 +5,7 @@ namespace HitomiScrollViewerWebApp.Components {
     public partial class DialogTextField : ComponentBase, IDialogContent {
         private readonly List<Func<string, string?>> _validators = [IsEmpty];
         public string Text { get; set; } = "";
-        public Action OnSubmit { get; set; } = () => { };
+        public Action OnSubmit { get; set; } = null!;
 
         private static string? IsEmpty(string value) {
             if (value.Length == 0) {

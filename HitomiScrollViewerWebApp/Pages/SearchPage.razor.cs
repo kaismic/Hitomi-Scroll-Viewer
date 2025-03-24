@@ -296,10 +296,8 @@ namespace HitomiScrollViewerWebApp.Pages {
                         builder.OpenComponent<DialogTextField>(0);
                         builder.AddComponentReferenceCapture(1, (component) => {
                             dialogContent = (DialogTextField)component;
-#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
                             dialogContent.AddValidators(IsDuplicate);
                             dialogContent.Text = oldName;
-#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
                         });
                         builder.CloseComponent();
                     }
@@ -357,9 +355,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                         builder.OpenComponent<DialogTagFilterSelector>(0);
                         builder.AddComponentReferenceCapture(1, (component) => {
                             dialogContent = (DialogTagFilterSelector)component;
-#pragma warning disable BL0005 // Component parameter should not be set outside of its component.
                             dialogContent.ChipModels = [.. TagFilters.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
-#pragma warning restore BL0005 // Component parameter should not be set outside of its component.
                         });
                         builder.CloseComponent();
                     }
