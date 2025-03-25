@@ -1,7 +1,3 @@
-﻿::deep #search-filter-control-panel > :not(:last-child) {
-    flex: 0 1 auto;
-}
-
-#tag-search-chip-set-container > div:not(:last-child) {
+﻿#tag-search-chip-set-container > div:not(:last-child) {
     border-right: 1px solid var(--mud-palette-primary);
 }

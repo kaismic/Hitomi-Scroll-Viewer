@@ -100,6 +100,14 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
+        public string SearchKeywordText {
+            get => PageConfigurationService.SearchConfiguration.SearchKeywordText;
+            set {
+                PageConfigurationService.SearchConfiguration.SearchKeywordText = value;
+                _ = SearchService.UpdateSearchKeywordTextAsync(PageConfigurationService.SearchConfiguration.Id, value);
+            }
+        }
+
         private ObservableCollection<SearchFilterDTO> _searchFilters = [];
         public ObservableCollection<SearchFilterDTO> SearchFilters {
             get => _searchFilters;
@@ -121,14 +129,6 @@ namespace HitomiScrollViewerWebApp.Pages {
                 // Add and Remove are handled in CreateSearchFilter and DeleteSearchFilter
                 default:
                     break;
-            }
-        }
-
-        public string SearchKeywordText {
-            get => PageConfigurationService.SearchConfiguration.SearchKeywordText;
-            set {
-                PageConfigurationService.SearchConfiguration.SearchKeywordText = value;
-                _ = SearchService.UpdateSearchKeywordTextAsync(PageConfigurationService.SearchConfiguration.Id, value);
             }
         }
 

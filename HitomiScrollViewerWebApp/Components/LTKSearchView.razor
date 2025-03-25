@@ -1,0 +1,29 @@
+﻿@inject PageConfigurationService PageConfigurationService
+
+<div class="ltk-search-view d-flex flex-column gap-2">
+    <MudSelect Label="Language"
+               T="GalleryLanguageDTO"
+               ToStringFunc="@(l => l.LocalName)"
+               FullWidth
+               Variant="Variant.Outlined"
+               @bind-Value="SelectedLanguage">
+        @foreach (GalleryLanguageDTO l in PageConfigurationService.Languages) {
+            <MudSelectItem Value="@l" />
+        }
+    </MudSelect>
+    <MudSelect Label="Type"
+               T="GalleryTypeDTO"
+               ToStringFunc="@(t => t.Value)"
+               FullWidth
+               Variant="Variant.Outlined"
+               @bind-Value="SelectedType">
+        @foreach (GalleryTypeDTO t in PageConfigurationService.Types) {
+            <MudSelectItem Value="@t" />
+        }
+    </MudSelect>
+    <MudTextField T="string"
+                  Label="Additional keywords"
+                  Variant="Variant.Outlined"
+                  @bind-Text="SearchKeywordText"
+                  Clearable />
+</div>
