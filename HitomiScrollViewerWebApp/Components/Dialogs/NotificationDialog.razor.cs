@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-namespace HitomiScrollViewerWebApp.Components {
-    public partial class NotificationDialog {
+namespace HitomiScrollViewerWebApp.Components.Dialogs {
+    public partial class NotificationDialog : ComponentBase {
         [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
         [Parameter, EditorRequired] public string HeaderText { get; set; } = null!;
         [Parameter, EditorRequired] public string ContentText { get; set; } = null!;

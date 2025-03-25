@@ -3,6 +3,7 @@ using HitomiScrollViewerData.Builders;
 using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Components;
+using HitomiScrollViewerWebApp.Components.Dialogs;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.JSInterop;
@@ -246,24 +247,11 @@ namespace HitomiScrollViewerWebApp.Pages {
         private async Task CreateTagFilter() {
             // to prevent enter key acting on the last clicked button
             await JsRuntime.InvokeVoidAsync("document.body.focus");
-            DialogTextField dialogContent = null!;
-            var parameters = new DialogParameters<TagFilterEditDialog> {
-                { d => d.ActionText, "Create" },
-                { d => d.DialogContent,
-                    builder => {
-                        builder.OpenComponent<DialogTextField>(0);
-                        builder.AddComponentReferenceCapture(1, (component) => {
-                            dialogContent = (DialogTextField)component;
-                            dialogContent.AddValidators(IsDuplicate);
-                        });
-                        builder.CloseComponent();
-                    }
-                },
+            DialogParameters<TextFieldDialog> parameters = new() {
+                { d => d.ActionText, "Create" }
             };
-            IDialogReference dialogRef = await DialogService.ShowAsync<TagFilterEditDialog>("Create Tag Filter", parameters);
-            TagFilterEditDialog dialog = (TagFilterEditDialog)dialogRef.Dialog!;
-            dialogContent.OnSubmit = dialog.Submit;
-            dialog.DialogContentRef = dialogContent;
+            IDialogReference dialogRef = await DialogService.ShowAsync<TextFieldDialog>("Create Tag Filter", parameters);
+            ((TextFieldDialog)dialogRef.Dialog!).AddValidators(IsDuplicate);
             DialogResult result = (await dialogRef.Result)!;
             if (!result.Canceled) {
                 string name = result.Data!.ToString()!;
@@ -288,25 +276,12 @@ namespace HitomiScrollViewerWebApp.Pages {
             // to prevent enter key acting on the last clicked button
             await JsRuntime.InvokeVoidAsync("document.body.focus");
             string oldName = _tagFilterEditor.CurrentTagFilter!.Name;
-            DialogTextField dialogContent = null!;
-            var parameters = new DialogParameters<TagFilterEditDialog> {
+            DialogParameters<TextFieldDialog> parameters = new() {
                 { d => d.ActionText, "Rename" },
-                { d => d.DialogContent,
-                    builder => {
-                        builder.OpenComponent<DialogTextField>(0);
-                        builder.AddComponentReferenceCapture(1, (component) => {
-                            dialogContent = (DialogTextField)component;
-                            dialogContent.AddValidators(IsDuplicate);
-                            dialogContent.Text = oldName;
-                        });
-                        builder.CloseComponent();
-                    }
-                },
+                { d => d.Text, oldName }
             };
-            IDialogReference dialogRef = await DialogService.ShowAsync<TagFilterEditDialog>("Rename Tag Filter", parameters);
-            TagFilterEditDialog dialog = (TagFilterEditDialog)dialogRef.Dialog!;
-            dialogContent.OnSubmit = dialog.Submit;
-            dialog.DialogContentRef = dialogContent;
+            IDialogReference dialogRef = await DialogService.ShowAsync<TextFieldDialog>("Rename Tag Filter", parameters);
+            ((TextFieldDialog)dialogRef.Dialog!).AddValidators(IsDuplicate);
             DialogResult result = (await dialogRef.Result)!;
             if (!result.Canceled) {
                 string name = result.Data!.ToString()!;
@@ -347,23 +322,12 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task DeleteTagFilters() {
-            DialogTagFilterSelector dialogContent = null!;
-            var parameters = new DialogParameters<TagFilterEditDialog> {
+            DialogParameters<TagFilterSelectorDialog> parameters = new() {
                 { d => d.ActionText, "Delete" },
-                { d => d.DialogContent,
-                    builder => {
-                        builder.OpenComponent<DialogTagFilterSelector>(0);
-                        builder.AddComponentReferenceCapture(1, (component) => {
-                            dialogContent = (DialogTagFilterSelector)component;
-                            dialogContent.ChipModels = [.. TagFilters.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
-                        });
-                        builder.CloseComponent();
-                    }
-                },
+                { d => d.ChipModels, [.. TagFilters.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })] }
             };
-            IDialogReference dialog = await DialogService.ShowAsync<TagFilterEditDialog>("Select tag filters to delete", parameters);
-            ((TagFilterEditDialog)dialog.Dialog!).DialogContentRef = dialogContent;
-            DialogResult result = (await dialog.Result)!;
+            IDialogReference dialogRef = await DialogService.ShowAsync<TagFilterSelectorDialog>("Select tag filters to delete", parameters);
+            DialogResult result = (await dialogRef.Result)!;
             if (!result.Canceled) {
                 IReadOnlyCollection<ChipModel<TagFilterDTO>> selected = (IReadOnlyCollection<ChipModel<TagFilterDTO>>)result.Data!;
                 IEnumerable<int> ids = selected.Select(m => m.Value.Id);
