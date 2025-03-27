@@ -20,8 +20,8 @@ namespace HitomiScrollViewerAPI.Controllers {
 
         [HttpPatch("tags")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult UpdateBrowseTags(int id, [FromBody] IEnumerable<int> tagIds) {
-            BrowseConfiguration? config = context.BrowseConfigurations.Find(id);
+        public ActionResult UpdateTags(int configId, [FromBody] IEnumerable<int> tagIds) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
             }
@@ -40,8 +40,8 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpPatch("language")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateBrowseLanguage(int id, int languageId) {
-            BrowseConfiguration? config = context.BrowseConfigurations.Find(id);
+        public ActionResult UpdateLanguage(int configId, int languageId) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
             }
@@ -57,8 +57,8 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpPatch("type")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateBrowseType(int id, int typeId) {
-            BrowseConfiguration? config = context.BrowseConfigurations.Find(id);
+        public ActionResult UpdateType(int configId, int typeId) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
             }
@@ -71,11 +71,11 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok();
         }
 
-        [HttpPatch("SearchKeywordText")]
+        [HttpPatch("search-keyword-text")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateBrowseSearchKeywordText(int id, string searchKeywordText) {
-            BrowseConfiguration? config = context.BrowseConfigurations.Find(id);
+        public ActionResult UpdateSearchKeywordText(int configId, [FromBody] string searchKeywordText) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
             }
@@ -83,6 +83,5 @@ namespace HitomiScrollViewerAPI.Controllers {
             context.SaveChanges();
             return Ok();
         }
-
     }
 }

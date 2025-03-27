@@ -1,6 +1,6 @@
 ﻿@inject PageConfigurationService PageConfigurationService
 
-<div class="ltk-search-view d-flex flex-column gap-2">
+<div class="ltk-search-view d-flex flex-column gap-2 @Class" style="@Style">
     <MudSelect Label="Language"
                T="GalleryLanguageDTO"
                ToStringFunc="@(l => l.LocalName)"

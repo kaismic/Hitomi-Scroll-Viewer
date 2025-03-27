@@ -1,10 +1,11 @@
 ﻿using HitomiScrollViewerData.DTOs;
+using System.Net.Http;
 
 namespace HitomiScrollViewerWebApp.Services {
     public class PageConfigurationService {
+        public List<GalleryTypeDTO> Types { get; set; } = [];
+        public List<GalleryLanguageDTO> Languages { get; set; } = [];
         public bool IsSearchConfigurationLoaded { get; set; } = false;
-        public List<GalleryTypeDTO> Types = [];
-        public List<GalleryLanguageDTO> Languages = [];
         public SearchConfigurationDTO SearchConfiguration { get; set; } = new() {
             SearchFilters = [],
             SearchKeywordText = "",
@@ -15,6 +16,12 @@ namespace HitomiScrollViewerWebApp.Services {
             SelectedType = new() { Id = 0, IsAll = true, Value = "" },
             TagFilters = []
         };
-        //public BrowseConfigurationDTO BrowseConfiguration { get; set; }
+        public bool IsBrowseConfigurationLoaded { get; set; } = false;
+        public BrowseConfigurationDTO BrowseConfiguration { get; set; } = new() {
+            SelectedLanguage = new() { EnglishName = "", Id = 0, IsAll = true, LocalName = "" },
+            SelectedType = new() { Id = 0, IsAll = true, Value = "" },
+            SearchKeywordText = "",
+            Tags = []
+        };
     }
 }

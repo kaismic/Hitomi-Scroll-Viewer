@@ -17,12 +17,14 @@ public class Program
 
         string apiUrl = builder.Configuration["apiUrl"]!;
         builder.Services.AddSingleton(new ApiUrlService(apiUrl));
+        builder.Services.AddSingleton<PageConfigurationService>();
+        builder.Services.AddHttpClient<LanguageTypeService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<TagFilterService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<SearchFilterService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<TagService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<GalleryService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<SearchService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddSingleton<PageConfigurationService>();
+        builder.Services.AddHttpClient<BrowseService>(client => client.BaseAddress = new Uri(apiUrl));
 
         var app = builder.Build();
         await app.RunAsync();

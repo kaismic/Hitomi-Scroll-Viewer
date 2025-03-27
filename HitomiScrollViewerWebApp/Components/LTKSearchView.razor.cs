@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class LTKSearchView : ComponentBase {
+        [Parameter] public string? Style { get; set; }
+        [Parameter] public string? Class { get; set; }
+
         private GalleryLanguageDTO _selectedLanguage = default!;
         [Parameter, EditorRequired] public GalleryLanguageDTO SelectedLanguage { get; set; } = default!;
         [Parameter] public EventCallback<GalleryLanguageDTO> SelectedLanguageChanged { get; set; }

@@ -36,3 +36,22 @@ function setFillHeightResizeObserver(targetValue, targetValueType, observeeValue
     );
     resizeObserver.observe(observeeValueType == "id" ? document.getElementById(observeeValue) : document.getElementsByClassName(observeeValue)[0]);
 }
+
+/**
+ * 
+ * @param {string} targetValue
+ * @param {('id'|'class')} targetValueType
+ * @param {string} sourceValue
+ * @param {('id'|'class')} sourceValueType
+ */
+function setHeightToSourceHeight(targetValue, targetValueType, sourceValue, sourceValueType) {
+    const target = targetValueType == "id" ? document.getElementById(targetValue) : document.getElementsByClassName(targetValue)[0]
+    if (!target) {
+        return;
+    }
+    const source = sourceValueType == "id" ? document.getElementById(sourceValue) : document.getElementsByClassName(sourceValue)[0]
+    if (!source) {
+        return;
+    }
+    target.style.height = source.clientHeight + "px";
+}

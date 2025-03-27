@@ -1,3 +1,15 @@
 ﻿@page "/browse"
+@inject BrowseService BrowseService
+@inject PageConfigurationService PageConfigurationService
+@inject IJSRuntime JsRuntime
 
 <PageTitle>Browse</PageTitle>
+
+<div class="d-flex pa-8 gap-4">
+    <TagSearchPanelCollection Style="flex: 3;"
+                              TagSearchPanelChipModels="@_tagSearchPanelChipModels" />
+    <LTKSearchView Style="flex: 1;"
+                   @bind-SelectedLanguage="@SelectedLanguage"
+                   @bind-SelectedType="@SelectedType"
+                   @bind-SearchKeywordText="@SearchKeywordText" />
+</div>

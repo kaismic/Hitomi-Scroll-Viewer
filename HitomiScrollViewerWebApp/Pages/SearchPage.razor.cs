@@ -5,12 +5,10 @@ using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Components.Dialogs;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Text.Json;
 using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
@@ -147,11 +145,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             _isRendered = false;
             if (!PageConfigurationService.IsSearchConfigurationLoaded) {
                 PageConfigurationService.IsSearchConfigurationLoaded = true;
-                await Task.WhenAll([
-                    GalleryService.GetGalleryLanguagesAsync().ContinueWith(task => PageConfigurationService.Languages = [.. task.Result]),
-                    GalleryService.GetGalleryTypesAsync().ContinueWith(task => PageConfigurationService.Types = [.. task.Result]),
-                    SearchService.GetConfigurationAsync().ContinueWith(task => PageConfigurationService.SearchConfiguration = task.Result)
-                ]);
+                PageConfigurationService.SearchConfiguration = await SearchService.GetConfigurationAsync();
             }
             TagFilters = [.. PageConfigurationService.SearchConfiguration.TagFilters];
             SearchFilters = [.. PageConfigurationService.SearchConfiguration.SearchFilters];
