@@ -10,7 +10,8 @@
                      Clearable="true"
                      AdornmentIcon="@Icons.Material.Filled.Search"
                      ShowProgressIndicator="true"
-                     @bind-Value="@SearchValue"
+                     Value="@SearchValue"
+                     ValueChanged="@OnSearchValueChanged"
                      Style="width: 90%; margin: auto; grid-row: 1;">
     </MudAutocomplete>
     <MudChipSet T="@(ChipModel<TagDTO>)"

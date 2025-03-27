@@ -24,32 +24,18 @@ namespace HitomiScrollViewerWebApp.Components {
             }
         }
 
-
-        private TagDTO? _searchValue;
-        public TagDTO? SearchValue {
-            get => _searchValue;
-            set {
-                _searchValue = value;
-                if (value != null) {
-                    ChipModel<TagDTO>? chipModel = ChipModels.Find(m => m.Value.Id == value.Id);
-                    if (chipModel == null) {
-                        // create new ChipModel
-                        ChipModels.Add(new ChipModel<TagDTO> { Value = value });
-                        _searchValue = null;
-                    } else {
-                        // already exists in ChipModels
-#pragma warning disable CA2012 // Use ValueTasks correctly
-                        if (_jsModule == null) {
-                            JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE).AsTask()
-                                .ContinueWith((task) => {
-                                    _jsModule = task.Result;
-                                    _ = _jsModule.InvokeVoidAsync("scrollToElement", chipModel.Id);
-                                });
-                        } else {
-                            _ = _jsModule.InvokeVoidAsync("scrollToElement", chipModel.Id);
-                        }
-#pragma warning restore CA2012 // Use ValueTasks correctly
-                    }
+        public TagDTO? SearchValue { get; set; }
+        private async Task OnSearchValueChanged(TagDTO? value) {
+            if (value != null) {
+                ChipModel<TagDTO>? chipModel = ChipModels.Find(m => m.Value.Id == value.Id);
+                if (chipModel == null) {
+                    // create new ChipModel
+                    ChipModels.Add(new ChipModel<TagDTO> { Value = value });
+                    SearchValue = null;
+                } else {
+                    // already exists in ChipModels
+                    _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+                    await _jsModule.InvokeVoidAsync("scrollToElement", chipModel.Id);
                 }
             }
         }
