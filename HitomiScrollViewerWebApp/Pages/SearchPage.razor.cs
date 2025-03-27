@@ -1,21 +1,20 @@
 ﻿using HitomiScrollViewerData;
 using HitomiScrollViewerData.Builders;
 using HitomiScrollViewerData.DTOs;
-using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Components.Dialogs;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Text.Json;
 using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class SearchPage {
-        private const string JAVASCRIPT_FILE = $"./Pages/{nameof(SearchPage)}.razor.js";
-
         private static readonly Action<SnackbarOptions> SNACKBAR_OPTIONS = options => {
             options.ShowCloseIcon = true;
             options.CloseAfterNavigation = true;
@@ -24,8 +23,6 @@ namespace HitomiScrollViewerWebApp.Pages {
             options.VisibleStateDuration = 3000;
             options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
         };
-
-        private IJSObjectReference? _jsModule;
 
         private ObservableCollection<TagFilterDTO> _tagFilters = [];
         public ObservableCollection<TagFilterDTO> TagFilters {
@@ -67,7 +64,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private List<ChipModel<TagFilterDTO>> _excludeTagFilterChipModels = [];
 
         private TagFilterEditor _tagFilterEditor = null!;
-        private readonly TagSearchPanelModel[] _tagSearchPanelModels = new TagSearchPanelModel[TAG_CATEGORIES.Length];
+        private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
         public bool IsAutoSaveEnabled {
             get => PageConfigurationService.SearchConfiguration.IsAutoSaveEnabled;
             set {
@@ -103,6 +100,9 @@ namespace HitomiScrollViewerWebApp.Pages {
         public string SearchKeywordText {
             get => PageConfigurationService.SearchConfiguration.SearchKeywordText;
             set {
+                if (PageConfigurationService.SearchConfiguration.SearchKeywordText == value) {
+                    return;
+                }
                 PageConfigurationService.SearchConfiguration.SearchKeywordText = value;
                 _ = SearchService.UpdateSearchKeywordTextAsync(PageConfigurationService.SearchConfiguration.Id, value);
             }
@@ -133,19 +133,6 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         public SearchPage() {
-            _tagSearchPanelModels =
-            [..
-                TAG_CATEGORIES.Select(tagCategory => new TagSearchPanelModel() {
-                        TagCategory = tagCategory,
-                        Label = tagCategory.ToString(),
-                        ToStringFunc = tag => tag.Value,
-                        SearchFunc = async (string text, CancellationToken ct) => {
-                            IEnumerable<Tag> tags = await TagService.GetTagsAsync(tagCategory, 8, text, ct);
-                            return tags.Select(tag => tag.ToDTO());
-                        }
-                    }
-                )
-            ];
             Initialized += OnInitRenderComplete;
             Rendered += OnInitRenderComplete;
         }
@@ -174,8 +161,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                _jsModule ??= await JsRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
-                await _jsModule.InvokeVoidAsync("setChipSetContainerHeight");
+                await JsRuntime.InvokeVoidAsync("setFillHeightResizeObserver", "tag-search-panel-collection", "class", "search-page-left-container", "id");
                 _isRendered = true;
                 Rendered?.Invoke();
             }
@@ -223,8 +209,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private void ClearAllTags() {
-            foreach (TagSearchPanelModel model in _tagSearchPanelModels) {
-                model.ChipModels = [];
+            for (int i = 0; i < _tagSearchPanelChipModels.Length; i++) {
+                _tagSearchPanelChipModels[i].Clear();
             }
         }
 
@@ -232,9 +218,9 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (_tagFilterEditor.CurrentTagFilter != null) {
                 IEnumerable<TagDTO> tags = await TagFilterService.GetTagsAsync(PageConfigurationService.SearchConfiguration.Id, _tagFilterEditor.CurrentTagFilter.Id);
                 if (tags != null) {
-                    foreach (TagSearchPanelModel model in _tagSearchPanelModels) {
-                        model.ChipModels = [..
-                            tags.Where(t => t.Category == model.TagCategory)
+                    for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
+                        _tagSearchPanelChipModels[i] = [..
+                            tags.Where(t => t.Category == TAG_CATEGORIES[i])
                                 .OrderBy(t => t.Value.Length)
                                 .Select(t => new ChipModel<TagDTO>() { Value = t })
                         ];
@@ -258,7 +244,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 TagFilterBuildDTO buildDto = new() {
                     SearchConfigurationId = PageConfigurationService.SearchConfiguration.Id,
                     Name = name,
-                    Tags = _tagSearchPanelModels.SelectMany(m => m.ChipModels).Select(m => m.Value)
+                    Tags = _tagSearchPanelChipModels.SelectMany(l => l).Select(m => m.Value)
                 };
                 TagFilterDTO tagFilter = buildDto.ToDTO();
                 TagFilters.Add(tagFilter);
@@ -311,7 +297,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 bool success = await TagFilterService.UpdateTagsAsync(
                     PageConfigurationService.SearchConfiguration.Id,
                     tagFilter.Id,
-                    _tagSearchPanelModels.SelectMany(m => m.ChipModels).Select(m => m.Value.Id)
+                    _tagSearchPanelChipModels.SelectMany(l => l).Select(m => m.Value.Id)
                 );
                 if (success) {
                     Snackbar.Add($"Saved \"{tagFilter.Name}\"", Severity.Success, SNACKBAR_OPTIONS);
@@ -369,7 +355,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             await Task.WhenAll(includeTagsTask ?? Task.CompletedTask, excludeTagsTask ?? Task.CompletedTask);
             IEnumerable<TagDTO> includeTagDTOs = includeTagsTask?.Result ?? [];
             IEnumerable<TagDTO> excludeTagDTOs = excludeTagsTask?.Result ?? [];
-            IEnumerable<TagDTO> currentTagDTOs = _tagSearchPanelModels.SelectMany(m => m.ChipModels).Select(m => m.Value);
+            IEnumerable<TagDTO> currentTagDTOs = _tagSearchPanelChipModels.SelectMany(l => l).Select(m => m.Value);
             if (currentTagFilterInclude) {
                 includeTagDTOs = includeTagDTOs.Union(currentTagDTOs);
             } else if (currentTagFilterExclude) {

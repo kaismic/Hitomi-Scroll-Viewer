@@ -1,3 +1,0 @@
-﻿#tag-search-chip-set-container > div:not(:last-child) {
-    border-right: 1px solid var(--mud-palette-primary);
-}

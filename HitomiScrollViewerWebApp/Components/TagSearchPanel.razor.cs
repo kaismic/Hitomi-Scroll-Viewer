@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerData.DTOs;
+using HitomiScrollViewerData.Entities;
 using HitomiScrollViewerWebApp.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -8,10 +9,21 @@ namespace HitomiScrollViewerWebApp.Components {
     public partial class TagSearchPanel : ComponentBase {
         private const string JAVASCRIPT_FILE = $"./Components/{nameof(TagSearchPanel)}.razor.js";
         private IJSObjectReference? _jsModule;
-        [Parameter] public string? Class { get; set; }
-        [Parameter] public string? Style { get; set; }
 
-        [Parameter, EditorRequired] public TagSearchPanelModel Model { get; set; } = default!;
+        [Parameter, EditorRequired] public int GridColumn { get; set; }
+        [Parameter, EditorRequired] public TagCategory Category { get; set; }
+
+        private List<ChipModel<TagDTO>> _chipModels = default!;
+        [Parameter, EditorRequired] public List<ChipModel<TagDTO>> ChipModels { get; set; } = default!;
+        [Parameter] public EventCallback<List<ChipModel<TagDTO>>> ChipModelsChanged { get; set; }
+
+        protected override async Task OnParametersSetAsync() {
+            if (_chipModels != ChipModels) {
+                _chipModels = ChipModels;
+                await ChipModelsChanged.InvokeAsync(ChipModels);
+            }
+        }
+
 
         private TagDTO? _searchValue;
         public TagDTO? SearchValue {
@@ -19,10 +31,10 @@ namespace HitomiScrollViewerWebApp.Components {
             set {
                 _searchValue = value;
                 if (value != null) {
-                    ChipModel<TagDTO>? chipModel = Model.ChipModels.Find(m => m.Value.Id == value.Id);
+                    ChipModel<TagDTO>? chipModel = ChipModels.Find(m => m.Value.Id == value.Id);
                     if (chipModel == null) {
                         // create new ChipModel
-                        Model.ChipModels.Add(new ChipModel<TagDTO> { Value = value });
+                        ChipModels.Add(new ChipModel<TagDTO> { Value = value });
                         _searchValue = null;
                     } else {
                         // already exists in ChipModels
@@ -43,7 +55,12 @@ namespace HitomiScrollViewerWebApp.Components {
         }
 
         private void HandleClosed(MudChip<ChipModel<TagDTO>> mudChip) {
-            Model.ChipModels.Remove(mudChip.Value!);
+            ChipModels.Remove(mudChip.Value!);
+        }
+
+        private async Task<IEnumerable<TagDTO>> Search(string text, CancellationToken ct) {
+            IEnumerable<Tag> tags = await TagService.GetTagsAsync(Category, 8, text, ct);
+            return tags.Select(tag => tag.ToDTO());
         }
     }
 }

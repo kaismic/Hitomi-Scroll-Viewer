@@ -6,7 +6,8 @@
                ToStringFunc="@(l => l.LocalName)"
                FullWidth
                Variant="Variant.Outlined"
-               @bind-Value="SelectedLanguage">
+               Value="@SelectedLanguage"
+               ValueChanged="@SelectedLanguageChanged">
         @foreach (GalleryLanguageDTO l in PageConfigurationService.Languages) {
             <MudSelectItem Value="@l" />
         }
@@ -16,7 +17,8 @@
                ToStringFunc="@(t => t.Value)"
                FullWidth
                Variant="Variant.Outlined"
-               @bind-Value="SelectedType">
+               Value="SelectedType"
+               ValueChanged="@SelectedTypeChanged">
         @foreach (GalleryTypeDTO t in PageConfigurationService.Types) {
             <MudSelectItem Value="@t" />
         }
@@ -24,6 +26,7 @@
     <MudTextField T="string"
                   Label="Additional keywords"
                   Variant="Variant.Outlined"
-                  @bind-Text="SearchKeywordText"
+                  Text="@SearchKeywordText"
+                  ValueChanged="@SearchKeywordTextChanged"
                   Clearable />
 </div>

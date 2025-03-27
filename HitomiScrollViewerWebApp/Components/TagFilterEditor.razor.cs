@@ -11,6 +11,7 @@ namespace HitomiScrollViewerWebApp.Components {
         [Parameter, EditorRequired] public EventCallback OnSaveButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnDeleteButtonClicked { get; set; }
         [Parameter] public EventCallback<ValueChangedEventArgs<TagFilterDTO>> SelectedTagFilterChanged { get; set; }
+        private bool _isFirstCurrentTagFilterSet = true;
         private TagFilterDTO? _currentTagFilter;
         public TagFilterDTO? CurrentTagFilter {
             get => _currentTagFilter;
@@ -21,10 +22,14 @@ namespace HitomiScrollViewerWebApp.Components {
                 TagFilterDTO? oldValue = _currentTagFilter;
                 _currentTagFilter = value;
                 PageConfigurationService.SearchConfiguration.SelectedTagFilterId = value?.Id ?? 0;
-                _ = SearchService.UpdateSelectedTagFilterAsync(
-                    PageConfigurationService.SearchConfiguration.Id,
-                    PageConfigurationService.SearchConfiguration.SelectedTagFilterId
-                );
+                if (_isFirstCurrentTagFilterSet) {
+                    _isFirstCurrentTagFilterSet = false;
+                } else {
+                    _ = SearchService.UpdateSelectedTagFilterAsync(
+                        PageConfigurationService.SearchConfiguration.Id,
+                        PageConfigurationService.SearchConfiguration.SelectedTagFilterId
+                    );
+                }
                 SelectedTagFilterChanged.InvokeAsync(new(oldValue, value));
             }
         }

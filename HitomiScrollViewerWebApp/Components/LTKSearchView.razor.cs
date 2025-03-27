@@ -1,50 +1,37 @@
 ﻿using HitomiScrollViewerData.DTOs;
 using Microsoft.AspNetCore.Components;
 
-#pragma warning disable BL0007 // Component parameters should be auto properties
 namespace HitomiScrollViewerWebApp.Components {
     public partial class LTKSearchView : ComponentBase {
         private GalleryLanguageDTO _selectedLanguage = default!;
-        [Parameter, EditorRequired]
-        public GalleryLanguageDTO SelectedLanguage {
-            get => _selectedLanguage;
-            set {
-                if (_selectedLanguage == value) {
-                    return;
-                }
-                _selectedLanguage = value;
-                SelectedLanguageChanged.InvokeAsync(value);
-            }
-        }
+        [Parameter, EditorRequired] public GalleryLanguageDTO SelectedLanguage { get; set; } = default!;
         [Parameter] public EventCallback<GalleryLanguageDTO> SelectedLanguageChanged { get; set; }
-        
         private GalleryTypeDTO _selectedType = default!;
-        [Parameter, EditorRequired]
-        public GalleryTypeDTO SelectedType {
-            get => _selectedType;
-            set {
-                if (_selectedType == value) {
-                    return;
-                }
-                _selectedType = value;
-                SelectedTypeChanged.InvokeAsync(value);
-            }
-        }
+        [Parameter, EditorRequired] public GalleryTypeDTO SelectedType { get; set; } = default!;
         [Parameter] public EventCallback<GalleryTypeDTO> SelectedTypeChanged { get; set; }
+        private string? _searchKeywordText;
+        [Parameter, EditorRequired] public string SearchKeywordText { get; set; } = "";
+        [Parameter] public EventCallback<string> SearchKeywordTextChanged { get; set; }
 
-        private string _searchKeywordText = "";
-        [Parameter, EditorRequired]
-        public string SearchKeywordText {
-            get => _searchKeywordText;
-            set {
-                if (_searchKeywordText == value) {
-                    return;
+        protected override async Task OnParametersSetAsync() {
+            if (_selectedLanguage != SelectedLanguage) {
+                if (_selectedLanguage != null) {
+                    await SelectedLanguageChanged.InvokeAsync(SelectedLanguage);
                 }
-                _searchKeywordText = value;
-                SearchKeywordTextChanged.InvokeAsync(value);
+                _selectedLanguage = SelectedLanguage;
+            }
+            if (_selectedType != SelectedType) {
+                if (_selectedType != null) {
+                    await SelectedTypeChanged.InvokeAsync(SelectedType);
+                }
+                _selectedType = SelectedType;
+            }
+            if (_searchKeywordText != SearchKeywordText) {
+                if (_searchKeywordText != null) {
+                    await SearchKeywordTextChanged.InvokeAsync(SearchKeywordText);
+                }
+                _searchKeywordText = SearchKeywordText;
             }
         }
-        [Parameter] public EventCallback<string> SearchKeywordTextChanged { get; set; }
     }
 }
-#pragma warning restore BL0007 // Component parameters should be auto properties

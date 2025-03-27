@@ -1,11 +1,12 @@
 ﻿@inject IJSRuntime JSRuntime
+@inject TagService TagService
 
-<div style="display: grid; grid-template-rows: auto 1fr; max-height: 100%; @Style" class="@Class">
+<div style="grid-column: @GridColumn; display: grid; grid-template-rows: auto 1fr; max-height: 100%;" class="tag-search-panel">
     <MudAutocomplete T="TagDTO"
-                     Label="@Model.Label"
+                     Label="@Category.ToString()"
                      DebounceInterval="500"
-                     SearchFunc="@Model.SearchFunc"
-                     ToStringFunc="@Model.ToStringFunc"
+                     SearchFunc="@Search"
+                     ToStringFunc="@(tag => tag.Value)"
                      Clearable="true"
                      AdornmentIcon="@Icons.Material.Filled.Search"
                      ShowProgressIndicator="true"
@@ -17,7 +18,7 @@
                 SelectedColor="Color.Primary"
                 Variant="@Variant.Filled"
                 Style="overflow-y: auto; grid-row: 2;">
-        @foreach (ChipModel<TagDTO> model in Model.ChipModels) {
+        @foreach (ChipModel<TagDTO> model in ChipModels) {
             <ColorCorrectedChip T="TagDTO"
                                 Model="@model"
                                 ToStringFunc="@(m => m.Value.Value)"
