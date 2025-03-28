@@ -15,15 +15,14 @@
                      Style="width: 90%; margin: auto; grid-row: 1;">
     </MudAutocomplete>
     <MudChipSet T="@(ChipModel<TagDTO>)"
-                SelectionMode="SelectionMode.MultiSelection"
-                SelectedColor="Color.Primary"
-                Variant="@Variant.Filled"
-                Style="overflow-y: auto; grid-row: 2;">
+                Style="overflow-y: auto; grid-row: 2;"
+                SelectionMode="@SelectionMode.ToggleSelection"
+                SelectedColor="@Color.Primary">
         @foreach (ChipModel<TagDTO> model in ChipModels) {
-            <ColorCorrectedChip T="TagDTO"
-                                Model="@model"
-                                ToStringFunc="@(m => m.Value.Value)"
-                                OnClose="@HandleClosed" />
+            <CustomMudChip T="TagDTO"
+                           Model="@model"
+                           ToStringFunc="@(m => m.Value.Value)"
+                           OnClose="@HandleClosed" />
         }
     </MudChipSet>
 

@@ -11,6 +11,10 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpGet("debug")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult DebugAPI() {
+            //Console.WriteLine(context.SearchFilters.Count());
+            //context.SearchFilters.Load();
+            //context.SearchFilters.RemoveRange(context.SearchFilters);
+            //context.SaveChanges();
             Console.WriteLine(context.SearchFilters.Count());
             Console.WriteLine(context.LabeledTagCollections.Count());
             return Ok();

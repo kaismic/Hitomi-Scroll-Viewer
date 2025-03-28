@@ -1,4 +1,6 @@
-﻿namespace HitomiScrollViewerWebApp.Models {
+﻿using Microsoft.AspNetCore.Components;
+
+namespace HitomiScrollViewerWebApp.Models {
     public class ChipModel<TValue> {
         public string Id { get; } = "chip-" + Guid.NewGuid().ToString();
         public required TValue Value { get; init; }
@@ -8,9 +10,9 @@
             get => _selected;
             set {
                 _selected = value;
-                SelectedChanged?.Invoke(this);
+                SelectedChanged.InvokeAsync(this);
             }
         }
-        public event Action<ChipModel<TValue>>? SelectedChanged;
+        public EventCallback<ChipModel<TValue>> SelectedChanged;
     }
 }

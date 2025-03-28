@@ -1,0 +1,13 @@
+﻿@typeparam T
+@inherits ComponentBase
+
+<MudChip T="@(ChipModel<T>)"
+               Value="@Model"
+               Disabled="@Model.Disabled"
+               OnClose="@OnClose"
+               Variant="@(Model.Selected ? Variant.Text : Variant.Filled)"
+               @bind-Selected="@Model.Selected"
+               @key="Model"
+               id="@Model.Id">
+    @ToStringFunc(Model)
+</MudChip>

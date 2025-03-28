@@ -8,13 +8,12 @@
                 @bind-SelectedValues="@SelectedChipModels"
                 @bind-SelectedValues:after="(() => SelectedChipModelsChanged?.Invoke(SelectedChipModels))"
                 SelectedColor="@Color.Primary"
-                Variant="@Variant.Filled"
                 Class="overflow-y-auto">
         @foreach (ChipModel<TagFilterDTO> model in ChipModels) {
-            <ColorCorrectedChip T="TagFilterDTO"
-                                Model="@model"
-                                ToStringFunc="@(model => model.Value.Name)"
-                                OnSelectedChanged="@OnSelectedChanged" />
+            <CustomMudChip T="TagFilterDTO"
+                           Model="@model"
+                           ToStringFunc="@(model => model.Value.Name)"
+                           OnSelectedChanged="@OnSelectedChanged" />
         }
     </MudChipSet>
 </div>

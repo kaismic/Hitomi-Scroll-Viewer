@@ -12,22 +12,12 @@ namespace HitomiScrollViewerWebApp.Components {
 
         [Parameter, EditorRequired] public int GridColumn { get; set; }
         [Parameter, EditorRequired] public TagCategory Category { get; set; }
-
-        private List<ChipModel<TagDTO>> _chipModels = default!;
-        [Parameter, EditorRequired] public List<ChipModel<TagDTO>> ChipModels { get; set; } = default!;
-        [Parameter] public EventCallback<List<ChipModel<TagDTO>>> ChipModelsChanged { get; set; }
-
-        protected override async Task OnParametersSetAsync() {
-            if (_chipModels != ChipModels) {
-                _chipModels = ChipModels;
-                await ChipModelsChanged.InvokeAsync(ChipModels);
-            }
-        }
+        [Parameter, EditorRequired] public ICollection<ChipModel<TagDTO>> ChipModels { get; set; } = default!;
 
         public TagDTO? SearchValue { get; set; }
         private async Task OnSearchValueChanged(TagDTO? value) {
             if (value != null) {
-                ChipModel<TagDTO>? chipModel = ChipModels.Find(m => m.Value.Id == value.Id);
+                ChipModel<TagDTO>? chipModel = ChipModels.FirstOrDefault(m => m.Value.Id == value.Id);
                 if (chipModel == null) {
                     // create new ChipModel
                     ChipModels.Add(new ChipModel<TagDTO> { Value = value });

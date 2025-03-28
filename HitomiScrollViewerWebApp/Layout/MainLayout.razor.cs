@@ -49,21 +49,20 @@ namespace HitomiScrollViewerWebApp.Layout {
                         4 => "Adding example tag filters...",
                         _ => "Unknown status"
                     };
-                    await InvokeAsync(StateHasChanged);
+                    StateHasChanged();
                     break;
                 case InitStatus.Complete:
                     _status = "Fetching data from database...";
-                    await InvokeAsync(StateHasChanged);
+                    StateHasChanged();
                     PageConfigurationService.Languages = [.. await LanguageTypeService.GetLanguagesAsync()];
                     PageConfigurationService.Types = [.. await LanguageTypeService.GetTypesAsync()];
                     _status = "Initialization complete";
-                    await InvokeAsync(StateHasChanged);
+                    StateHasChanged();
                     _isInitialized = true;
                     if (_hubConnection is not null) {
                         await _hubConnection.DisposeAsync();
                     }
-                    await InvokeAsync(StateHasChanged);
-                    //NavigationManager.NavigateTo("/");
+                    StateHasChanged();
                     break;
             }
         }

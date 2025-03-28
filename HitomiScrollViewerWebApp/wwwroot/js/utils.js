@@ -1,5 +1,5 @@
 ﻿/**
- * 
+ * Assumes target's parent is a flex container with flex-direction: column; OR a grid container with grid-template-rows
  * @param {string} targetValue
  * @param {('id'|'class')} targetValueType
  * @param {string} observeeValue

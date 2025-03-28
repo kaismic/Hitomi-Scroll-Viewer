@@ -18,19 +18,34 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok(config.ToDTO());
         }
 
-        [HttpPatch("tags")]
+        [HttpPatch("add-tags")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult UpdateTags(int configId, [FromBody] IEnumerable<int> tagIds) {
+        public ActionResult AddTags(int configId, [FromBody] IEnumerable<int> tagIds) {
             BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
             }
-            context.Entry(config).Collection(c => c.Tags).Load();
-            config.Tags.Clear();
             foreach (int tagId in tagIds) {
                 Tag? tag = context.Tags.Find(tagId);
                 if (tag != null) {
                     config.Tags.Add(tag);
+                }
+            }
+            context.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPatch("remove-tags")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult RemoveTags(int configId, [FromBody] IEnumerable<int> tagIds) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
+            if (config == null) {
+                return NotFound();
+            }
+            foreach (int tagId in tagIds) {
+                Tag? tag = context.Tags.Find(tagId);
+                if (tag != null) {
+                    config.Tags.Remove(tag);
                 }
             }
             context.SaveChanges();

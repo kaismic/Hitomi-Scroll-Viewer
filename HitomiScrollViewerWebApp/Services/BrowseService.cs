@@ -7,8 +7,13 @@ namespace HitomiScrollViewerWebApp.Services {
             return (await httpClient.GetFromJsonAsync<BrowseConfigurationDTO>("api/browse"))!;
         }
 
-        public async Task<bool> UpdateTagsAsync(int configId, IEnumerable<int> tagIds) {
-            var response = await httpClient.PatchAsync($"api/browse/tags?configId={configId}", JsonContent.Create(tagIds));
+        public async Task<bool> AddTagsAsync(int configId, IEnumerable<int> tagIds) {
+            var response = await httpClient.PatchAsync($"api/browse/add-tags?configId={configId}", JsonContent.Create(tagIds));
+            return response.IsSuccessStatusCode;
+        }
+        
+        public async Task<bool> RemoveTagsAsync(int configId, IEnumerable<int> tagIds) {
+            var response = await httpClient.PatchAsync($"api/browse/remove-tags?configId={configId}", JsonContent.Create(tagIds));
             return response.IsSuccessStatusCode;
         }
 
