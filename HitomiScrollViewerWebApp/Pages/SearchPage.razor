@@ -45,6 +45,7 @@
         <MudPaper Class="d-flex gap-4 pa-4 overflow-y-auto" Style="height: 40%;">
             <PairedTagFilterSelector @ref="_includePairedTagFilterSelector"
                                      ChipModels="@_includeTagFilterChipModels"
+                                     SelectedChipModelsChanged="@(collection => OnSelectedTagFilterCollectionChanged(collection, true))"
                                      HeaderText="Include"
                                      HeaderColor="Color.Success"
                                      Other="_excludePairedTagFilterSelector"
@@ -52,6 +53,7 @@
             <MudDivider Vertical Class="my-4" FlexItem />
             <PairedTagFilterSelector @ref="_excludePairedTagFilterSelector"
                                      ChipModels="@_excludeTagFilterChipModels"
+                                     SelectedChipModelsChanged="@(collection => OnSelectedTagFilterCollectionChanged(collection, false))"
                                      HeaderText="Exclude"
                                      HeaderColor="Color.Error"
                                      Other="_includePairedTagFilterSelector"

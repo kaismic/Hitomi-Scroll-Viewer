@@ -12,13 +12,8 @@ namespace HitomiScrollViewerWebApp.Services {
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> UpdateIncludeTagFiltersAsync(int configId, IEnumerable<int> tagFilterIds) {
-            var response = await httpClient.PatchAsync($"api/search/include-tag-filters?configId={configId}", JsonContent.Create(tagFilterIds));
-            return response.IsSuccessStatusCode;
-        }
-
-        public async Task<bool> UpdateExcludeTagFiltersAsync(int configId, IEnumerable<int> tagFilterIds) {
-            var response = await httpClient.PatchAsync($"api/search/exclude-tag-filters?configId={configId}", JsonContent.Create(tagFilterIds));
+        public async Task<bool> UpdateTagFilterCollectionAsync(int configId, bool isInclude, IEnumerable<int> tagFilterIds) {
+            var response = await httpClient.PatchAsync($"api/search/tag-filter-collection?configId={configId}&isInclude={isInclude}", JsonContent.Create(tagFilterIds));
             return response.IsSuccessStatusCode;
         }
 

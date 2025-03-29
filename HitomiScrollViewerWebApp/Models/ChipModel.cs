@@ -2,7 +2,7 @@
 
 namespace HitomiScrollViewerWebApp.Models {
     public class ChipModel<TValue> {
-        public string Id { get; } = "chip-" + Guid.NewGuid().ToString();
+        public string Id { get; } = $"chip-{Guid.NewGuid()}";
         public required TValue Value { get; init; }
         public bool Disabled { get; set; } = false;
         private bool _selected = false;

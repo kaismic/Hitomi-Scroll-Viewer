@@ -6,6 +6,7 @@
     @for (int i = 0; i < Tag.TAG_CATEGORIES.Length; i++) {
         <TagSearchPanel GridColumn="@(i + 1)"
                         Category="@Tag.TAG_CATEGORIES[i]"
-                        ChipModels="@TagSearchPanelChipModels[i]" />
+                        ChipModels="@TagSearchPanelChipModels[i]"
+                        ChipModelsChanged="@ChipModelsChanged" />
     }
 </div>

@@ -1,11 +1,11 @@
 ﻿<MudDialog>
     <DialogContent>
-        <TagFilterSelector @ref="_tagFilterSelector"
-                           ChipModels="@ChipModels" />
+        <TagFilterSelector ChipModels="@ChipModels"
+                           @bind-SelectedChipModels="@SelectedChipModels" />
     </DialogContent>
     <DialogActions>
         <SimpleDialogActions ActionText="@ActionText"
-                             DisableActionButton="@_disableActionButton"
+                             DisableActionButton="@(SelectedChipModels.Count == 0)"
                              OnAction="@ExecuteAction"
                              OnCancel="@MudDialog.Cancel" />
     </DialogActions>

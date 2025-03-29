@@ -174,21 +174,17 @@ namespace HitomiScrollViewerWebApp.Pages {
                         chipModel.Selected = true;
                     }
                 }
-                _includePairedTagFilterSelector.SelectedChipModelsChanged += (collection) => {
-                    PageConfigurationService.SearchConfiguration.SelectedIncludeTagFilterIds = collection.Select(m => m.Value.Id);
-                    _ = SearchService.UpdateIncludeTagFiltersAsync(
-                        PageConfigurationService.SearchConfiguration.Id,
-                        PageConfigurationService.SearchConfiguration.SelectedIncludeTagFilterIds
-                    );
-                };
-                _excludePairedTagFilterSelector.SelectedChipModelsChanged += (collection) => {
-                    PageConfigurationService.SearchConfiguration.SelectedExcludeTagFilterIds = collection.Select(m => m.Value.Id);
-                    _ = SearchService.UpdateExcludeTagFiltersAsync(
-                        PageConfigurationService.SearchConfiguration.Id,
-                        PageConfigurationService.SearchConfiguration.SelectedExcludeTagFilterIds
-                    );
-                };
             }
+        }
+
+        private void OnSelectedTagFilterCollectionChanged(IReadOnlyCollection<ChipModel<TagFilterDTO>> collection, bool isInclude) {
+            IEnumerable<int> ids = collection.Select(m => m.Value.Id);
+            if (isInclude) {
+                PageConfigurationService.SearchConfiguration.SelectedIncludeTagFilterIds = ids;
+            } else {
+                PageConfigurationService.SearchConfiguration.SelectedExcludeTagFilterIds = ids;
+            }
+            _ = SearchService.UpdateTagFilterCollectionAsync(PageConfigurationService.SearchConfiguration.Id, isInclude, ids);
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {
@@ -325,8 +321,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task CreateSearchFilter() {
-            HashSet<int> includeIds = [.. _includePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id)];
-            HashSet<int> excludeIds = [.. _excludePairedTagFilterSelector.SelectedChipModels.Select(m => m.Value.Id)];
+            HashSet<int> includeIds = [.. PageConfigurationService.SearchConfiguration.SelectedIncludeTagFilterIds];
+            HashSet<int> excludeIds = [.. PageConfigurationService.SearchConfiguration.SelectedExcludeTagFilterIds];
             bool currentTagFilterInclude = false;
             bool currentTagFilterExclude = false;
             if (_tagFilterEditor.CurrentTagFilter != null) {

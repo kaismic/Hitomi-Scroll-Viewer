@@ -51,28 +51,19 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok();
         }
 
-        [HttpPatch("include-tag-filters")]
+        [HttpPatch("tag-filter-collection")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateIncludeTagFilters(int configId, [FromBody] IEnumerable<int> tagFilterIds) {
+        public ActionResult UpdateIncludeTagFilters(int configId, bool isInclude, [FromBody] IEnumerable<int> tagFilterIds) {
             SearchConfiguration? config = context.SearchConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
             }
-            config.SelectedIncludeTagFilterIds = tagFilterIds;
-            context.SaveChanges();
-            return Ok();
-        }
-
-        [HttpPatch("exclude-tag-filters")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateExcludeTagFilters(int configId, [FromBody] IEnumerable<int> tagFilterIds) {
-            SearchConfiguration? config = context.SearchConfigurations.Find(configId);
-            if (config == null) {
-                return NotFound();
+            if (isInclude) {
+                config.SelectedIncludeTagFilterIds = tagFilterIds;
+            } else {
+                config.SelectedExcludeTagFilterIds = tagFilterIds;
             }
-            config.SelectedExcludeTagFilterIds = tagFilterIds;
             context.SaveChanges();
             return Ok();
         }

@@ -8,21 +8,10 @@ namespace HitomiScrollViewerWebApp.Components.Dialogs {
         [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
         [Parameter, EditorRequired] public string ActionText { get; set; } = null!;
         [Parameter, EditorRequired] public List<ChipModel<TagFilterDTO>> ChipModels { get; set; } = default!;
-
-        private TagFilterSelector _tagFilterSelector = default!;
-        private bool _disableActionButton = true;
-
-        protected override void OnAfterRender(bool firstRender) {
-            if (firstRender) {
-                _tagFilterSelector.SelectedChipModelsChanged += (collection) => {
-                    _disableActionButton = _tagFilterSelector.SelectedChipModels.Count == 0;
-                    StateHasChanged();
-                };
-            }
-        }
+        private IReadOnlyCollection<ChipModel<TagFilterDTO>> SelectedChipModels { get; set; } = [];
 
         public void ExecuteAction() {
-            MudDialog.Close(DialogResult.Ok(_tagFilterSelector.SelectedChipModels));
+            MudDialog.Close(DialogResult.Ok(SelectedChipModels));
         }
     }
 }

@@ -5,8 +5,8 @@
     }
     <MudChipSet T="@(ChipModel<TagFilterDTO>)"
                 SelectionMode="SelectionMode.MultiSelection"
-                @bind-SelectedValues="@SelectedChipModels"
-                @bind-SelectedValues:after="(() => SelectedChipModelsChanged?.Invoke(SelectedChipModels))"
+                SelectedValues="@SelectedChipModels"
+                SelectedValuesChanged="@SelectedChipModelsChanged"
                 SelectedColor="@Color.Primary"
                 Class="overflow-y-auto">
         @foreach (ChipModel<TagFilterDTO> model in ChipModels) {

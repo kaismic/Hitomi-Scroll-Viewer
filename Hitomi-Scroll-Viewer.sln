@@ -16,6 +16,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTestApp", "ConsoleTestApp\ConsoleTestApp.csproj", "{71783D1D-C4C7-4149-A72A-DC52B851F112}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerWebApp", "HitomiScrollViewerWebApp\HitomiScrollViewerWebApp.csproj", "{EF2E959C-4C5E-423C-80C4-630D216543E2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D} = {10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudBlazor", "..\MudBlazor\src\MudBlazor\MudBlazor.csproj", "{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +186,26 @@ Global
 		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|x64.Build.0 = Release|Any CPU
 		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|x86.ActiveCfg = Release|Any CPU
 		{EF2E959C-4C5E-423C-80C4-630D216543E2}.Release|x86.Build.0 = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|ARM32.ActiveCfg = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|ARM32.Build.0 = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|arm64.Build.0 = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|x64.Build.0 = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Debug|x86.Build.0 = Debug|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|ARM32.ActiveCfg = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|ARM32.Build.0 = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|arm64.ActiveCfg = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|arm64.Build.0 = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|x64.ActiveCfg = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|x64.Build.0 = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|x86.ActiveCfg = Release|Any CPU
+		{10E8C6C5-1D6C-5B59-2A55-B284ACE8296D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
