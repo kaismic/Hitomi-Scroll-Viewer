@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace HitomiScrollViewerAPI {
     public class Program {
+        private const int MIN_CONSOLE_WIDTH = 80;
         public static void Main(string[] args) {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -61,10 +62,17 @@ namespace HitomiScrollViewerAPI {
             //}
 
             Task appTask = app.RunAsync();
-            Task.Run(() => {
+            _ = Task.Run(() => {
                 if (OperatingSystem.IsWindows()) {
-                    Console.BufferWidth = 80;
-                    Console.WindowWidth = 80;
+                    // only set console width when the console is Command Prompt because setting it in powershell throws IOException
+                    if (Console.Title.Contains("Command Prompt", StringComparison.InvariantCultureIgnoreCase)) {
+                        if (Console.BufferWidth < MIN_CONSOLE_WIDTH) {
+                            Console.BufferWidth = 80;
+                        }
+                        if (Console.WindowWidth < MIN_CONSOLE_WIDTH) {
+                            Console.WindowWidth = 80;
+                        }
+                    }
                 }
                 DatabaseInitializer dbInitializer = new(app.Services.GetRequiredService<IHubContext<DbStatusHub, IStatusClient>>());
                 dbInitializer.Start();
