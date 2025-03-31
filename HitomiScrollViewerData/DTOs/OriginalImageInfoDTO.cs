@@ -11,14 +11,14 @@ namespace HitomiScrollViewerData.DTOs {
         public required int Hasjxl { get; set; }
         public required int Haswebp { get; set; }
 
-        public ImageInfo ToImageInfo() {
-            return new() {
-                IsPlayable = Name.EndsWith(".gif"),
-                Height = Height,
-                Width = Width,
-                Hash = Hash,
-                FileExtension = Haswebp == 1 ? "webp" : Hasavif == 1 ? "avif" : "jxl",
-            };
-        }
+        //public GalleryImage ToImageInfo() {
+        //    return new() {
+        //        IsPlayable = Name.EndsWith(".gif"),
+        //        Height = Height,
+        //        Width = Width,
+        //        Hash = Hash,
+        //        FileExtension = Haswebp == 1 ? "webp" : Hasavif == 1 ? "avif" : "jxl", 
+        //    };
+        //}
     }
 }

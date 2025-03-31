@@ -18,7 +18,7 @@ namespace HitomiScrollViewerData {
                 );
         }
 
-        public static string GetImageAddress(ImageInfo info, HashSet<string> subdomainPickerSet, (string notContains, string contains) subdomainCandidates, string serverTime) {
+        public static string GetImageAddress(GalleryImage info, HashSet<string> subdomainPickerSet, (string notContains, string contains) subdomainCandidates, string serverTime) {
             string hashFragment = Convert.ToInt32(info.Hash[^1..] + info.Hash[^3..^1], 16).ToString();
             string subdomain = subdomainPickerSet.Contains(hashFragment) ? subdomainCandidates.contains : subdomainCandidates.notContains;
             return $"https://{subdomain}.{BASE_DOMAIN}/{info.FileExtension}/{serverTime}/{hashFragment}/{info.Hash}.{info.FileExtension}";

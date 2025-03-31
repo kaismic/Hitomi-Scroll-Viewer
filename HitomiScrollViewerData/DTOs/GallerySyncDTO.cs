@@ -14,18 +14,18 @@ namespace HitomiScrollViewerData.DTOs {
         public required IEnumerable<ImageInfoSyncDTO> Files { get; set; }
         public required IEnumerable<int> TagIds { get; set; }
 
-        public Gallery ToGallery(HitomiContext context) => new() {
-            Id = Id,
-            Title = Title,
-            JapaneseTitle = JapaneseTitle,
-            Date = Date,
-            SceneIndexes = SceneIndexes,
-            Related = Related,
-            GalleryLanguage = context.GalleryLanguages.Find(GalleryLanguageId)!,
-            GalleryType = context.GalleryTypes.Find(GalleryTypeId)!,
-            LastDownloadTime = DateTime.UtcNow,
-            Files = [.. Files.Select(f => f.ToImageInfo())],
-            Tags = [.. TagIds.Select(id => context.Tags.Find(id)!)]
-        };
+        //public Gallery ToGallery(HitomiContext context) => new() {
+        //    Id = Id,
+        //    Title = Title,
+        //    JapaneseTitle = JapaneseTitle,
+        //    Date = Date,
+        //    SceneIndexes = SceneIndexes,
+        //    Related = Related,
+        //    GalleryLanguage = context.GalleryLanguages.Find(GalleryLanguageId)!,
+        //    GalleryType = context.GalleryTypes.Find(GalleryTypeId)!,
+        //    LastDownloadTime = DateTime.UtcNow,
+        //    Files = [.. Files.Select(f => f.ToImageInfo())],
+        //    Tags = [.. TagIds.Select(id => context.Tags.Find(id)!)]
+        //};
     }
 }

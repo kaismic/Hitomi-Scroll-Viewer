@@ -9,14 +9,14 @@ namespace HitomiScrollViewerData.DTOs {
         public required int Height { get; set; }
         public required int Width { get; set; }
         public required string FileExtension { get; set; }
-        public ImageInfo ToImageInfo() => new() {
-            Index = Index,
-            FileName = FileName,
-            Hash = Hash,
-            Height = Height,
-            Width = Width,
-            FileExtension = FileExtension,
-            IsPlayable = IsPlayable
-        };
+        //public GalleryImage ToImageInfo() => new() {
+        //    Index = Index,
+        //    FileName = FileName,
+        //    Hash = Hash,
+        //    Height = Height,
+        //    Width = Width,
+        //    FileExtension = FileExtension,
+        //    IsPlayable = IsPlayable
+        //};
     }
 }
