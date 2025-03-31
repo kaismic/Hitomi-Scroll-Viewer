@@ -83,7 +83,7 @@
         <MudStack class="overflow-y-auto" Spacing="2" Style="flex: 1;">
             @foreach (SearchFilterDTO model in SearchFilters) {
                 <div style="display: grid; grid-template-columns: 1fr min-content; gap: 4px;">
-                    <SearchFilterView Model="@model"></SearchFilterView>
+                    <SearchFilterItem Model="@model" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                    Disabled="@(model.Id == 0)"
                                    OnClick="@(() => DeleteSearchFilter(model))"
