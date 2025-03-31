@@ -21,7 +21,7 @@
                              OnRenameButtonClicked="@RenameTagFilter"
                              OnSaveButtonClicked="@(() => SaveTagFilter(_tagFilterEditor.CurrentTagFilter))"
                              OnDeleteButtonClicked="@DeleteTagFilters" />
-            <div class="d-flex justify-space-between">
+            <div class="d-flex">
                 <div class="d-flex gap-4">
                     <MudButton Color="Color.Primary"
                                EndIcon="@Icons.Material.Filled.Refresh"
@@ -36,9 +36,8 @@
                         Clear
                     </MudButton>
                 </div>
-                <div>
-                    <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="IsAutoSaveEnabled" />
-                </div>
+                <MudSpacer />
+                <MudSwitch T="bool" Label="Auto save" Color="Color.Primary" @bind-Value="IsAutoSaveEnabled" />
             </div>
             <TagSearchPanelCollection TagSearchPanelChipModels="@_tagSearchPanelChipModels" />
         </MudPaper>

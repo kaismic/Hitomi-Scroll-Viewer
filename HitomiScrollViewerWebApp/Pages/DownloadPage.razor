@@ -1,3 +1,19 @@
 ﻿@page "/download"
 
 <PageTitle>Download</PageTitle>
+
+<div style="height: 100%;" class="pa-8">
+    <div class="d-flex gap-8 mb-8">
+        <MudButton Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Pause">
+            Pause all downloads
+        </MudButton>
+        <MudSpacer />
+        <MudSwitch T="bool" Color="Color.Primary" Label="Notify on download complete"></MudSwitch>
+    </div>
+    <div class="d-flex flex-column gap-4">
+        <DownloadItem />
+        <DownloadItem />
+        <DownloadItem />
+    </div>
+</div>
