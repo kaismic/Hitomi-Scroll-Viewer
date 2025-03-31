@@ -1,0 +1,23 @@
+﻿<div>
+    <MudText Typo="Typo.h2">@Gallery.Title</MudText>
+    <div class="d-flex">
+        @foreach (string url in _imageUrls)
+        {
+            <img src="@url" loading="lazy" />
+        }
+    </div>
+    <table style="border-collapse: collapse;">
+        <tbody>
+            @foreach (var pair in _tagCollections) {
+                <tr>
+                    <td><MudText>@pair.Key</MudText></td>
+                    <td class="d-flex flex-wrap gap-1">
+                        @foreach (TagDTO tag in pair.Value) {
+                            <span style="" class="rounded px-1">@tag.Value</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
