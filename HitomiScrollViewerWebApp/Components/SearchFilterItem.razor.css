@@ -1,5 +1,5 @@
 ﻿.search-filter {
-    border: 1px solid var(--mud-palette-text-primary);
+    border: 1px solid var(--mud-palette-secondary);
     border-radius: var(--mud-default-borderradius);
     
     &:hover {
