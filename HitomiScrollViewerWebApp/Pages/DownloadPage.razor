@@ -2,18 +2,45 @@
 
 <PageTitle>Download</PageTitle>
 
-<div style="height: 100%;" class="pa-8">
-    <div class="d-flex gap-8 mb-8">
-        <MudButton Color="Color.Primary"
-                   EndIcon="@Icons.Material.Filled.Pause">
-            Pause all downloads
+<div style="height: 100%;" class="d-flex gap-8 pa-8">
+    <div Style="width: 360px;">
+        <MudTextField FullWidth AutoGrow Immediate
+                      Variant="Variant.Outlined"
+                      T="string"
+                      Lines="8"
+                      @bind-Value="@_inputText"
+                      Placeholder="Enter Gallery ID(s) or URL(s) here. e.g. 2058075, https://hitomi.la/..."/>
+        <MudButton FullWidth
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   EndIcon="@Icons.Material.Filled.Download"
+                   Disabled="@(_inputText.Length == 0)"
+                   Class="mt-4">
+            Download
         </MudButton>
-        <MudSpacer />
-        <MudSwitch T="bool" Color="Color.Primary" Label="Notify on download complete"></MudSwitch>
     </div>
-    <div class="d-flex flex-column gap-4">
-        <DownloadItem />
-        <DownloadItem />
-        <DownloadItem />
+    <div style="flex: 1;" class="d-flex flex-column gap-4">
+        <div class="d-flex gap-4">
+            <MudSelect T="string" FitContent
+                       Variant="Variant.Outlined"
+                       Label="Download Mode">
+                <MudSelectItem T="string" Value="@("Sequential")"></MudSelectItem>
+                <MudSelectItem T="string" Value="@("Parallel")"></MudSelectItem>
+            </MudSelect>
+            <MudNumericField T="int"
+                             Label="Download Threads"
+                             Variant="Variant.Outlined"
+                             Min="1" Max="8" />
+            <MudSpacer />
+            <MudButton Color="Color.Primary"
+                       EndIcon="@Icons.Material.Filled.Pause">
+                Pause all downloads
+            </MudButton>
+        </div>
+        <div class="d-flex flex-column gap-4 overflow-y-auto">
+            <DownloadItem />
+            <DownloadItem />
+            <DownloadItem />
+        </div>
     </div>
 </div>
