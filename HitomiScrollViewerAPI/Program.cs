@@ -1,6 +1,5 @@
 using HitomiScrollViewerAPI.Hubs;
 using HitomiScrollViewerData.DbContexts;
-using Microsoft.AspNetCore.SignalR;
 
 namespace HitomiScrollViewerAPI {
     public class Program {
@@ -25,6 +24,8 @@ namespace HitomiScrollViewerAPI {
             //builder.Services.AddAuthorization();
             //builder.Services.AddIdentityApiEndpoints<IdentityUser>()
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            builder.Services.AddHostedService<DatabaseInitializer>();
 
             var app = builder.Build();
 
@@ -60,24 +61,18 @@ namespace HitomiScrollViewerAPI {
             //    app.MapGet("/debug/routes", (IEnumerable<EndpointDataSource> endpointSources) =>
             //        string.Join("\n", endpointSources.SelectMany(source => source.Endpoints)));
             //}
-
-            Task appTask = app.RunAsync();
-            _ = Task.Run(() => {
-                if (OperatingSystem.IsWindows()) {
-                    // only set console width when the console is Command Prompt because setting it in powershell throws IOException
-                    if (Console.Title.Contains("Command Prompt", StringComparison.InvariantCultureIgnoreCase)) {
-                        if (Console.BufferWidth < MIN_CONSOLE_WIDTH) {
-                            Console.BufferWidth = 80;
-                        }
-                        if (Console.WindowWidth < MIN_CONSOLE_WIDTH) {
-                            Console.WindowWidth = 80;
-                        }
+            if (OperatingSystem.IsWindows()) {
+                // only set console width when the console is Command Prompt because setting it in powershell throws IOException
+                if (Console.Title.Contains("Command Prompt", StringComparison.InvariantCultureIgnoreCase)) {
+                    if (Console.BufferWidth < MIN_CONSOLE_WIDTH) {
+                        Console.BufferWidth = 80;
+                    }
+                    if (Console.WindowWidth < MIN_CONSOLE_WIDTH) {
+                        Console.WindowWidth = 80;
                     }
                 }
-                DatabaseInitializer dbInitializer = new(app.Services.GetRequiredService<IHubContext<DbStatusHub, IStatusClient>>());
-                dbInitializer.Start();
-            });
-            appTask.Wait();
+            }
+            app.Run();
         }
     }
 }

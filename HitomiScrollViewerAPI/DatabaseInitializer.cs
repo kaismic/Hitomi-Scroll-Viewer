@@ -6,7 +6,7 @@ using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.SignalR;
 
 namespace HitomiScrollViewerAPI {
-    public class DatabaseInitializer(IHubContext<DbStatusHub, IStatusClient> hubContext) {
+    public class DatabaseInitializer(IHubContext<DbStatusHub, IStatusClient> hubContext) : BackgroundService {
         private const string DB_INIT_FLAG_PATH = "db-init-flag.txt";
         private static readonly string[] ALPHABETS_WITH_123 =
             ["123", .. Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())];
@@ -35,9 +35,8 @@ namespace HitomiScrollViewerAPI {
         };
 
         public static bool IsInitialized { get; private set; } = false;
-        private readonly IHubContext<DbStatusHub, IStatusClient> _hubContext = hubContext;
 
-        public void Start() {
+        protected override Task ExecuteAsync(CancellationToken stoppingToken) {
             bool flagExists = File.Exists(DB_INIT_FLAG_PATH);
             if (!flagExists) {
                 using HitomiContext context = new();
@@ -48,15 +47,15 @@ namespace HitomiScrollViewerAPI {
                 AddExampleTagFilters(context);
                 Console.WriteLine("\n--- Database initialization complete ---\n");
             }
-            CompleteInitialization(flagExists);
+            return CompleteInitialization(flagExists);
         }
 
-        private void CompleteInitialization(bool fileExists) {
+        private async Task CompleteInitialization(bool fileExists) {
             if (!fileExists) {
-                File.WriteAllText(DB_INIT_FLAG_PATH, "Delete this file to re-initialize database.");
+                await File.WriteAllTextAsync(DB_INIT_FLAG_PATH, "Delete this file to re-initialize database.");
             }
             IsInitialized = true;
-            _hubContext.Clients.All.ReceiveStatus(InitStatus.Complete, -1);
+            await hubContext.Clients.All.ReceiveStatus(DbInitStatus.Complete, -1);
         }
 
         private const int MAX_DESC_TEXT_LENGTH = 40;
@@ -64,7 +63,7 @@ namespace HitomiScrollViewerAPI {
         private static readonly int _totalLeftAlignment = MAX_DESC_TEXT_LENGTH + _progressBar.TotalLength;
 
         private void AddDefaultDataAsync(HitomiContext context) {
-            _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 0);
+            hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, 0);
             string delimiter = File.ReadAllText(DELIMITER_FILE_PATH);
             foreach (TagCategory category in Tag.TAG_CATEGORIES) {
                 Console.Write("{0,-" + MAX_DESC_TEXT_LENGTH + "}", $"Adding {category} tags... ");
@@ -91,7 +90,7 @@ namespace HitomiScrollViewerAPI {
             }
 
             // add gallery languages and its local names
-            _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 1);
+            hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, 1);
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding gallery languages and types... ");
             string[][] languages = [.. File.ReadAllLines(LANGUAGES_FILE_PATH).Select(pair => pair.Split(delimiter))];
             context.GalleryLanguages.Add(new GalleryLanguage() {
@@ -121,7 +120,7 @@ namespace HitomiScrollViewerAPI {
 
             // add query configurations
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding configurations... ");
-            _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 2);
+            hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, 2);
             context.SearchConfigurations.Add(new() {
                 IsAutoSaveEnabled = true,
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
@@ -136,7 +135,7 @@ namespace HitomiScrollViewerAPI {
 
             // add gallery sorts
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding gallery sorts... ");
-            _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 3);
+            hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, 3);
             GallerySort[] sorts =
                 [.. Enumerable.Range(0, Enum.GetNames<GalleryProperty>().Length)
                     .Select(i => new GallerySort() {
@@ -155,7 +154,7 @@ namespace HitomiScrollViewerAPI {
         }
 
         private void AddExampleTagFilters(HitomiContext context) {
-            _hubContext.Clients.All.ReceiveStatus(InitStatus.InProgress, 4);
+            hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, 4);
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding example tag filters... ");
             SearchConfiguration searchConfig = context.SearchConfigurations.First();
             context.Entry(searchConfig).Collection(c => c.TagFilters).Load();
