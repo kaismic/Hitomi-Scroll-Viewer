@@ -22,9 +22,9 @@ namespace HitomiScrollViewerWebApp.Layout {
             try {
                 _status = "Connecting to local server...";
                 _hubConnection = new HubConnectionBuilder()
-                    .WithUrl(ApiUrlService.BaseUrl + "api/initialize")
+                    .WithUrl(ApiUrlService.DbInitializeUrl)
                     .Build();
-                _hubConnection.On<InitStatus, int>("ReceiveStatus", UpdateStatus);
+                _hubConnection.On<DbInitStatus, int>("ReceiveStatus", UpdateStatus);
                 await _hubConnection.StartAsync();
             } catch (HttpRequestException) {
                 _connectionError = true;
@@ -38,9 +38,9 @@ namespace HitomiScrollViewerWebApp.Layout {
             }
         }
 
-        private async Task UpdateStatus(InitStatus status, int progress) {
+        private async Task UpdateStatus(DbInitStatus status, int progress) {
             switch (status) {
-                case InitStatus.InProgress:
+                case DbInitStatus.InProgress:
                     _status = progress switch {
                         0 => "Adding tags...",
                         1 => "Adding gallery language and types...",
@@ -51,7 +51,7 @@ namespace HitomiScrollViewerWebApp.Layout {
                     };
                     StateHasChanged();
                     break;
-                case InitStatus.Complete:
+                case DbInitStatus.Complete:
                     _status = "Fetching data from database...";
                     StateHasChanged();
                     PageConfigurationService.Languages = [.. await LanguageTypeService.GetLanguagesAsync()];

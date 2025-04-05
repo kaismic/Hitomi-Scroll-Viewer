@@ -5,8 +5,8 @@ using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.SignalR;
 
-namespace HitomiScrollViewerAPI {
-    public class DatabaseInitializer(IHubContext<DbStatusHub, IStatusClient> hubContext) : BackgroundService {
+namespace HitomiScrollViewerAPI.Services {
+    public class DbInitializeService(IHubContext<DbStatusHub, IStatusClient> hubContext) : BackgroundService {
         private const string DB_INIT_FLAG_PATH = "db-init-flag.txt";
         private static readonly string[] ALPHABETS_WITH_123 =
             ["123", .. Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())];

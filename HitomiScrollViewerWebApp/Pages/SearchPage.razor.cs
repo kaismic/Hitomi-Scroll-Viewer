@@ -130,15 +130,8 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        public SearchPage() {
-            Initialized += OnInitRenderComplete;
-            Rendered += OnInitRenderComplete;
-        }
-
         private bool _isInitialized = false;
         private bool _isRendered = false;
-        private event Action? Initialized;
-        private event Action? Rendered;
 
         protected override async Task OnInitializedAsync() {
             _isInitialized = false;
@@ -150,14 +143,14 @@ namespace HitomiScrollViewerWebApp.Pages {
             TagFilters = [.. PageConfigurationService.SearchConfiguration.TagFilters];
             SearchFilters = [.. PageConfigurationService.SearchConfiguration.SearchFilters];
             _isInitialized = true;
-            Initialized?.Invoke();
+            OnInitRenderComplete();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
                 await JsRuntime.InvokeVoidAsync("setFillHeightResizeObserver", "tag-search-panel-collection", "class", "search-page-left-container", "id");
                 _isRendered = true;
-                Rendered?.Invoke();
+                OnInitRenderComplete();
             }
         }
 

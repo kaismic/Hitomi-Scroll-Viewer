@@ -15,7 +15,7 @@ public class Program
 
         builder.Services.AddMudServices();
 
-        string apiUrl = builder.Configuration["apiUrl"]!;
+        string apiUrl = builder.Configuration["ApiUrl"]!;
         builder.Services.AddSingleton(new ApiUrlService(apiUrl));
         builder.Services.AddSingleton<PageConfigurationService>();
         builder.Services.AddHttpClient<LanguageTypeService>(client => client.BaseAddress = new Uri(apiUrl));

@@ -1,6 +1,15 @@
 ﻿namespace HitomiScrollViewerData {
-    public enum InitStatus {
+    public enum DbInitStatus {
         InProgress,
         Complete
+    }
+
+    public enum DownloadStatus {
+        Pending,
+        Downloading,
+        Completed,
+        Paused,
+        Removed,
+        Failed
     }
 }

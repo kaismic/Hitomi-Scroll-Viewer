@@ -44,15 +44,8 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        public BrowsePage() {
-            Initialized += OnInitRenderComplete;
-            Rendered += OnInitRenderComplete;
-        }
-
         private bool _isInitialized = false;
         private bool _isRendered = false;
-        private event Action? Initialized;
-        private event Action? Rendered;
 
         protected override async Task OnInitializedAsync() {
             if (!PageConfigurationService.IsBrowseConfigurationLoaded) {
@@ -60,14 +53,14 @@ namespace HitomiScrollViewerWebApp.Pages {
                 PageConfigurationService.BrowseConfiguration = await BrowseService.GetConfigurationAsync();
             }
             _isInitialized = true;
-            Initialized?.Invoke();
+            OnInitRenderComplete();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
                 await JsRuntime.InvokeVoidAsync("setHeightToSourceHeight", "tag-search-panel-collection", "class", "ltk-search-view", "class");
                 _isRendered = true;
-                Rendered?.Invoke();
+                OnInitRenderComplete();
             }
         }
 

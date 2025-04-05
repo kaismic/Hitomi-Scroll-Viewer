@@ -1,4 +1,6 @@
+using HitomiScrollViewerAPI.Download;
 using HitomiScrollViewerAPI.Hubs;
+using HitomiScrollViewerAPI.Services;
 using HitomiScrollViewerData.DbContexts;
 
 namespace HitomiScrollViewerAPI {
@@ -7,11 +9,15 @@ namespace HitomiScrollViewerAPI {
         public static void Main(string[] args) {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddSingleton(new HitomiUrlService() {
+                HitomiMainDomain = builder.Configuration["HitomiMainDomain"]!,
+                HitomiServerInfoDomain = builder.Configuration["HitomiServerInfoDomain"]!
+            });
             builder.Services.AddControllers();
             builder.Services.AddDbContext<HitomiContext>();
             //builder.Services.AddDbContext<ApplicationDbContext>();
             builder.Services.AddSignalR();
-            string webAppUrl = builder.Configuration["webAppUrl"]!;
+            string webAppUrl = builder.Configuration["WebAppUrl"]!;
             builder.Services.AddCors(options => {
                 options.AddPolicy("AllowLocalhostOrigins", builder =>
                     builder.WithOrigins(webAppUrl)
@@ -25,7 +31,10 @@ namespace HitomiScrollViewerAPI {
             //builder.Services.AddIdentityApiEndpoints<IdentityUser>()
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            builder.Services.AddHostedService<DatabaseInitializer>();
+            builder.Services.AddHttpClient();
+            builder.Services.AddHostedService<DbInitializeService>();
+            builder.Services.AddHostedService<DownloadService>();
+            builder.Services.AddSingleton<IEventBus<DownloadEventArgs>, DownloadEventBus>();
 
             var app = builder.Build();
 
@@ -53,6 +62,7 @@ namespace HitomiScrollViewerAPI {
             // app.UseResponseCompression(
 
             app.MapHub<DbStatusHub>("/api/initialize");
+            app.MapHub<DownloadHub>("/api/download");
             app.MapControllers();
 
             //app.MapIdentityApi<IdentityUser>();
