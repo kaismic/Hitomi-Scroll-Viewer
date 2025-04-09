@@ -1,6 +1,4 @@
-﻿using HitomiScrollViewerData.DbContexts;
-using HitomiScrollViewerData.Entities;
-using System.Diagnostics;
+﻿using HitomiScrollViewerData.Entities;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,7 +7,7 @@ namespace HitomiScrollViewerData.DTOs {
         public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
-        private static readonly Dictionary<TagCategory, string> CATEGORY_PROP_KEY_DICT = new() {
+        public static readonly Dictionary<TagCategory, string> CATEGORY_PROP_KEY_DICT = new() {
             { TagCategory.Tag, "tag" },
             { TagCategory.Male, "male" },
             { TagCategory.Female, "female" },
@@ -68,75 +66,5 @@ namespace HitomiScrollViewerData.DTOs {
                 writer.WriteStringValue(value.ToString("yyyy-MM-dd HH:mmzzz"));
             }
         }
-
-        private static void SetGalleryPropertyAsync(
-            HitomiContext context,
-            Dictionary<string, string>[]? originalDictArr,
-            List<Tag> tags,
-            TagCategory category
-        ) {
-            if (originalDictArr != null) {
-                foreach (var dict in originalDictArr) {
-                    string tagValue = dict[CATEGORY_PROP_KEY_DICT[category]];
-                    Tag? tag = Utils.GetTag(context.Tags, tagValue, category);
-                    if (tag == null) {
-                        //await Utils.FetchAndUpdateTagsAsync(context, category, tagValue);
-                        tag = Utils.GetTag(context.Tags, tagValue, category);
-                        if (tag == null) {
-                            Debug.WriteLine($"Could not fetch Tag: Value = {tagValue}, Category: {category}");
-                        } else {
-                            tags.Add(tag);
-                        }
-                    } else {
-                        tags.Add(tag);
-                    }
-                }
-            }
-        }
-
-        //public Gallery ToGallery(HitomiContext context) {
-        //    List<Tag> tags = [];
-        //    SetGalleryPropertyAsync(context, Artists, tags, TagCategory.Artist);
-        //    SetGalleryPropertyAsync(context, Groups, tags, TagCategory.Group);
-        //    SetGalleryPropertyAsync(context, Characters, tags, TagCategory.Character);
-        //    SetGalleryPropertyAsync(context, Parodys, tags, TagCategory.Series);
-
-        //    foreach (var compositeTag in Tags) {
-        //        tags.Add(Utils.GetTag(
-        //            context.Tags,
-        //            compositeTag.Tag,
-        //            compositeTag.Male == 1 ? TagCategory.Male :
-        //            compositeTag.Female == 1 ? TagCategory.Female :
-        //                                       TagCategory.Tag
-        //        )!);
-        //    }
-
-        //    // appends leading zeros
-        //    string indexFormat = "D" + Math.Floor(Math.Log10(Files.Count) + 1);
-        //    Gallery gallery = new() {
-        //        Id = Id,
-        //        Title = Title,
-        //        JapaneseTitle = JapaneseTitle,
-        //        Language = context.GalleryLanguages.First(l => l.EnglishName == Language),
-        //        Type = context.GalleryTypes.First(t => t.Value == Type),
-        //        Date = Date,
-        //        SceneIndexes = SceneIndexes,
-        //        Related = Related,
-        //        LastDownloadTime = DateTime.UtcNow,
-        //        Files = [..
-        //            Files.Select(
-        //                (f, i) => {
-        //                    GalleryImage imageInfo = f.ToImageInfo();
-        //                    imageInfo.Index = i + 1;
-        //                    imageInfo.FileName = imageInfo.Index.ToString(indexFormat);
-        //                    return imageInfo;
-        //                }
-        //            )
-        //        ],
-        //        Tags = tags
-        //    };
-
-        //    return gallery;
-        //}
     }
 }

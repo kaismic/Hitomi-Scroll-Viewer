@@ -23,12 +23,17 @@ namespace HitomiScrollViewerWebApp.Services {
         }
 
         public async Task<bool> UpdateLanguageAsync(int configId, int languageId) {
-            var response = await httpClient.PatchAsync($"api/browse/language?configId={configId}&languageId={languageId}", null);
+            var response = await httpClient.PatchAsync($"api/browse/language?configId={configId}", JsonContent.Create(languageId));
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> UpdateTypeAsync(int configId, int typeId) {
-            var response = await httpClient.PatchAsync($"api/browse/type?configId={configId}&typeId={typeId}", null);
+            var response = await httpClient.PatchAsync($"api/browse/type?configId={configId}", JsonContent.Create(typeId));
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> UpdateItemsPerPageAsync(int configId, int value) {
+            var response = await httpClient.PatchAsync($"api/browse/items-per-page?configId={configId}", JsonContent.Create(value));
             return response.IsSuccessStatusCode;
         }
     }

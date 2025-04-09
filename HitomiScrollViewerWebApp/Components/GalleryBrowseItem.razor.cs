@@ -6,7 +6,13 @@ using Microsoft.AspNetCore.Components;
 namespace HitomiScrollViewerWebApp.Components {
     public partial class GalleryBrowseItem : ComponentBase {
         [Inject] ApiUrlService ApiUrlService { get; set; } = default!;
-        [Parameter, EditorRequired] public GalleryDTO Gallery { get; set; } = default!;
+        [Parameter, EditorRequired] public GalleryFullDTO Gallery { get; set; } = default!;
+        [Parameter] public string? Style { get; set; }
+        [Parameter] public string? Class { get; set; }
+        [Parameter] public string? Width { get; set; }
+        [Parameter] public string? Height { get; set; }
+
+
         private const int MAX_THUMBNAIL_IMAGES = 3;
         private readonly List<string> _imageUrls = [];
         private readonly List<KeyValuePair<TagCategory, List<TagDTO>>> _tagCollections = [];
@@ -22,7 +28,7 @@ namespace HitomiScrollViewerWebApp.Components {
             for (int i = 1; i <= MAX_THUMBNAIL_IMAGES; i++) {
                 _imageUrls.Add(ApiUrlService.GetImageUrl(Gallery.Id, i));
             }
-            //StateHasChanged();
+            StateHasChanged();
         }
     }
 }

@@ -55,7 +55,7 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpPatch("language")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateLanguage(int configId, int languageId) {
+        public ActionResult UpdateLanguage(int configId, [FromBody] int languageId) {
             BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
@@ -72,7 +72,7 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpPatch("type")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateType(int configId, int typeId) {
+        public ActionResult UpdateType(int configId, [FromBody] int typeId) {
             BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
@@ -95,6 +95,19 @@ namespace HitomiScrollViewerAPI.Controllers {
                 return NotFound();
             }
             config.SearchKeywordText = searchKeywordText;
+            context.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPatch("items-per-page")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult UpdateSearchKeywordText(int configId, [FromBody] int value) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
+            if (config == null) {
+                return NotFound();
+            }
+            config.ItemsPerPage = value;
             context.SaveChanges();
             return Ok();
         }

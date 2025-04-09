@@ -13,6 +13,7 @@ namespace HitomiScrollViewerData.DbContexts {
         public DbSet<GallerySort> GallerySorts { get; set; }
         public DbSet<SearchConfiguration> SearchConfigurations { get; set; }
         public DbSet<BrowseConfiguration> BrowseConfigurations { get; set; }
+        public DbSet<DownloadConfiguration> DownloadConfigurations { get; set; }
         public DbSet<TagFilter> TagFilters { get; set; }
         public DbSet<SearchFilter> SearchFilters { get; set; }
         public DbSet<LabeledTagCollection> LabeledTagCollections { get; set; }

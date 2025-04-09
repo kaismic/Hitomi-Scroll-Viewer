@@ -33,11 +33,10 @@ namespace HitomiScrollViewerAPI {
 
             builder.Services.AddHttpClient();
             builder.Services.AddHostedService<DbInitializeService>();
-            builder.Services.AddHostedService<DownloadService>();
+            builder.Services.AddHostedService<DownloadManagerService>();
             builder.Services.AddSingleton<IEventBus<DownloadEventArgs>, DownloadEventBus>();
 
             var app = builder.Build();
-
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment()) {

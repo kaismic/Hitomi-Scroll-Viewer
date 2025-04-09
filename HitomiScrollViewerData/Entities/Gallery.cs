@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HitomiScrollViewerData.DTOs;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace HitomiScrollViewerData.Entities {
@@ -17,5 +18,25 @@ namespace HitomiScrollViewerData.Entities {
         [Required] public required GalleryType Type { get; set; }
         public required ICollection<GalleryImage> GalleryImages { get; set; }
         public required ICollection<Tag> Tags { get; set; }
+
+        public GalleryDownloadDTO ToDownloadDTO() => new() {
+            Id = Id,
+            Title = Title,
+            GalleryImagesCount = GalleryImages.Count,
+        };
+
+        public GalleryFullDTO ToFullDTO() => new() {
+            Id = Id,
+            Title = Title,
+            JapaneseTitle = JapaneseTitle,
+            Date = Date,
+            SceneIndexes = SceneIndexes,
+            Related = Related,
+            LastDownloadTime = LastDownloadTime,
+            Language = Language.ToDTO(),
+            Type = Type.ToDTO(),
+            GalleryImages = [.. GalleryImages.Select(g => g.ToDTO())],
+            Tags = [.. Tags.Select(t => t.ToDTO())]
+        };
     }
 }

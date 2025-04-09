@@ -25,6 +25,7 @@ public class Program
         builder.Services.AddHttpClient<GalleryService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<SearchService>(client => client.BaseAddress = new Uri(apiUrl));
         builder.Services.AddHttpClient<BrowseService>(client => client.BaseAddress = new Uri(apiUrl));
+        builder.Services.AddHttpClient<DownloadService>(client => client.BaseAddress = new Uri(apiUrl));
 
         var app = builder.Build();
         await app.RunAsync();

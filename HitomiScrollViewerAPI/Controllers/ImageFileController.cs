@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerData.DbContexts;
+﻿using HitomiScrollViewerAPI.Services;
+using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,8 +7,6 @@ namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/image")]
     public class ImageFileController(HitomiContext context) : ControllerBase {
-        private const string IMAGES_PATH = "images";
-
         [HttpGet("debug")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult DebugAPI() {
@@ -16,23 +15,18 @@ namespace HitomiScrollViewerAPI.Controllers {
         
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult GetImage(int galleryId, int index) {
-            //Gallery? gallery = context.Galleries.Find(galleryId);
-            //if (gallery == null) {
-            //    return NotFound($"Gallery with the id {galleryId} was not found.");
-            //}
-            //context.Entry(gallery).Collection(g => g.GalleryImages);
-            //GalleryImage? image = gallery.GalleryImages.FirstOrDefault(gi => gi.Index == index);
-            //if (image == null) {
-            //    return NotFound($"Image with the index {index} was not found.");
-            //}
-            //FileStream stream = System.IO.File.OpenRead(Path.Combine(IMAGES_PATH, galleryId.ToString(), image.FullFileName));
-            //return File(stream, $"image/{image.FileExtension}");
-
-
-            string indexFormat = "D" + Math.Floor(Math.Log10(99) + 1);
-            FileStream stream = System.IO.File.OpenRead(Path.Combine(IMAGES_PATH, galleryId.ToString(), index.ToString(indexFormat) + ".webp"));
-            return File(stream, $"image/webp");
+            Gallery? gallery = context.Galleries.Find(galleryId);
+            if (gallery == null) {
+                return NotFound($"Gallery with id {galleryId} was not found.");
+            }
+            GalleryImage? image = gallery.GalleryImages.FirstOrDefault(gi => gi.Gallery.Id == galleryId && gi.Index == index);
+            if (image == null) {
+                return NotFound($"Image with the index {index} was not found.");
+            }
+            FileStream stream = System.IO.File.OpenRead(GalleryFileService.GetImagePath(gallery, image));
+            return File(stream, $"image/{image.FileExt}");
         }
     }
 }

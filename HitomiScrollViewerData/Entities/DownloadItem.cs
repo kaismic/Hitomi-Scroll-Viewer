@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerData.DTOs;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace HitomiScrollViewerData.Entities
 {
@@ -8,16 +9,12 @@ namespace HitomiScrollViewerData.Entities
     {
         public int Id { get; set; }
         public int GalleryId { get; set; }
-        public string Title { get; set; } = "";
-        public int Progress { get; set; }
-        public int TotalCount { get; set; }
+        [Required] public DownloadConfiguration DownloadConfiguration { get; set; } = default!;
 
         public DownloadItemDTO ToDTO() => new() {
             Id = Id,
             GalleryId = GalleryId,
-            Title = Title,
-            Progress = Progress,
-            TotalCount = TotalCount
+            DownloadConfigurationId = DownloadConfiguration.Id
         };
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerData.DTOs;
+using HitomiScrollViewerWebApp.ViewModels;
 namespace HitomiScrollViewerWebApp.Services {
     public class PageConfigurationService {
         public List<GalleryTypeDTO> Types { get; set; } = [];
@@ -21,7 +22,8 @@ namespace HitomiScrollViewerWebApp.Services {
             SearchKeywordText = "",
             Tags = []
         };
-        public bool IsDownloadsLoaded { get; set; } = false;
-        public List<DownloadItemDTO> Downloads { get; set; } = [];
+        public bool IsDownloadConfigurationLoaded { get; set; } = false;
+        public DownloadConfigurationDTO DownloadConfiguration { get; set; } = new();
+        public List<DownloadViewModel> DownloadViewModels { get; set; } = [];
     }
 }

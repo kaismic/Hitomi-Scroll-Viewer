@@ -1,6 +1,6 @@
 ﻿namespace HitomiScrollViewerData.DTOs
 {
-    public class GalleryDTO {
+    public class GalleryFullDTO {
         public int Id { get; set; }
         public required string Title { get; set; }
         public string? JapaneseTitle { get; set; }
@@ -12,6 +12,5 @@
         public required GalleryTypeDTO Type { get; set; }
         public required ICollection<GalleryImageDTO> GalleryImages { get; set; }
         public required ICollection<TagDTO> Tags { get; set; }
-
     }
 }

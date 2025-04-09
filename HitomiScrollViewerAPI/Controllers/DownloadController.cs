@@ -1,30 +1,43 @@
 ﻿using HitomiScrollViewerAPI.Download;
 using HitomiScrollViewerData.DbContexts;
-using HitomiScrollViewerData.DTOs;
+using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    public class DownloadController(HitomiContext context, DownloadService downloadService) : ControllerBase {
-        [HttpGet("all")]
+    public class DownloadController(HitomiContext context, DownloadManagerService downloadService) : ControllerBase {
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<DownloadItemDTO>> GetAllDownloadItems() {
-            return Ok(context.DownloadItems.AsNoTracking().Select(d => d.ToDTO()));
+        public ActionResult<DownloadConfiguration> GetConfiguration() {
+            DownloadConfiguration config = context.DownloadConfigurations.First();
+            context.Entry(config).Collection(c => c.DownloadItems).Load();
+            return Ok(config.ToDTO());
         }
 
-        [HttpGet("pause")]
+        [HttpPatch("enable-parallel-download")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<DownloadItemDTO>> PauseDownload(string hubConnectionId) {
-            downloadService.PauseDownload(hubConnectionId);
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult UpdateParallelDownload(int configId, bool enable) {
+            DownloadConfiguration? config = context.DownloadConfigurations.Find(configId);
+            if (config == null) {
+                return NotFound();
+            }
+            config.UseParallelDownload = enable;
+            context.SaveChanges();
             return Ok();
         }
 
-        [HttpGet("remove")]
+        [HttpPatch("update-thread-num")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<IEnumerable<DownloadItemDTO>> RemoveDownload(string hubConnectionId) {
-            downloadService.RemoveDownload(hubConnectionId);
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult UpdateThreadNum(int configId, int threadNum) {
+            DownloadConfiguration? config = context.DownloadConfigurations.Find(configId);
+            if (config == null) {
+                return NotFound();
+            }
+            config.ThreadNum = threadNum;
+            context.SaveChanges();
             return Ok();
         }
     }

@@ -9,9 +9,18 @@ using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class BrowsePage : ComponentBase {
+        private const int MIN_ITEM_HEIGHT = 200; // px
+        // if the screen height is more then MIN_ITEM_HEIGHT, screen
+
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
 
-        // TODO create gallery browse result component
+        /// <summary>
+        /// 1-based page number
+        /// </summary>
+        private int _page = 1;
+        private int _pageCount = 1;
+        private GalleryFullDTO[] _galleries = [];
+
         public GalleryLanguageDTO SelectedLanguage {
             get => PageConfigurationService.BrowseConfiguration.SelectedLanguage;
             set {
@@ -44,6 +53,17 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
+        private int ItemsPerPage {
+            get => PageConfigurationService.BrowseConfiguration.ItemsPerPage;
+            set {
+                if (PageConfigurationService.BrowseConfiguration.ItemsPerPage == value) {
+                    return;
+                }
+                PageConfigurationService.BrowseConfiguration.ItemsPerPage = value;
+                _ = BrowseService.UpdateItemsPerPageAsync(PageConfigurationService.BrowseConfiguration.Id, value);
+            }
+        }
+
         private bool _isInitialized = false;
         private bool _isRendered = false;
 
@@ -53,19 +73,20 @@ namespace HitomiScrollViewerWebApp.Pages {
                 PageConfigurationService.BrowseConfiguration = await BrowseService.GetConfigurationAsync();
             }
             _isInitialized = true;
-            OnInitRenderComplete();
+            _ = OnInitRenderComplete();
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
                 await JsRuntime.InvokeVoidAsync("setHeightToSourceHeight", "tag-search-panel-collection", "class", "ltk-search-view", "class");
                 _isRendered = true;
-                OnInitRenderComplete();
+                _ = OnInitRenderComplete();
             }
         }
 
-        private void OnInitRenderComplete() {
+        private async Task OnInitRenderComplete() {
             if (_isInitialized && _isRendered) {
+                _pageCount = await GalleryService.GetCount();
                 for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
                     TagCategory category = TAG_CATEGORIES[i];
                     IEnumerable<TagDTO> tags = PageConfigurationService.BrowseConfiguration.Tags.Where(t => t.Category == category);
@@ -93,6 +114,12 @@ namespace HitomiScrollViewerWebApp.Pages {
                 default:
                     throw new NotImplementedException($"Only {nameof(AdvancedCollectionChangedAction.AddSingle)} and {nameof(AdvancedCollectionChangedAction.RemoveMultiple)} is implemented.");
             }
+        }
+
+        private async Task OnPageNumChanged(int value) {
+            _page = value;
+            _pageCount = await GalleryService.GetCount();
+            _galleries = [.. await GalleryService.GetGalleryFullDTOs(_page - 1, ItemsPerPage)];
         }
     }
 }

@@ -130,6 +130,7 @@ namespace HitomiScrollViewerAPI.Services {
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
                 SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
             });
+            context.DownloadConfigurations.Add(new() { ThreadNum = 1 });
             context.SaveChanges();
             Console.WriteLine("  Complete");
 

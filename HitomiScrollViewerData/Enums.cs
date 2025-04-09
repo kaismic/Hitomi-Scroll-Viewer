@@ -12,4 +12,11 @@
         Removed,
         Failed
     }
+
+    public enum DownloadRequest {
+        Start,
+        Pause,
+        Resume,
+        Remove
+    }
 }
