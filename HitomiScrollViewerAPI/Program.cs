@@ -9,10 +9,6 @@ namespace HitomiScrollViewerAPI {
         public static void Main(string[] args) {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddSingleton(new HitomiUrlService() {
-                HitomiMainDomain = builder.Configuration["HitomiMainDomain"]!,
-                HitomiServerInfoDomain = builder.Configuration["HitomiServerInfoDomain"]!
-            });
             builder.Services.AddControllers();
             builder.Services.AddDbContext<HitomiContext>();
             //builder.Services.AddDbContext<ApplicationDbContext>();
@@ -60,7 +56,7 @@ namespace HitomiScrollViewerAPI {
             // app.UseSession();
             // app.UseResponseCompression(
 
-            app.MapHub<DbStatusHub>("/api/initialize");
+            app.MapHub<DbInitializeHub>("/api/db-initialize");
             app.MapHub<DownloadHub>("/api/download");
             app.MapControllers();
 

@@ -6,6 +6,8 @@ using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Layout {
     public partial class MainLayout : LayoutComponentBase, IAsyncDisposable {
+        [Inject] private IConfiguration AppConfiguration { get; set; } = default!;
+
         private MudThemeProvider _mudThemeProvider = null!;
         private readonly MudTheme _theme = new();
         private bool _isDarkMode;
@@ -22,7 +24,7 @@ namespace HitomiScrollViewerWebApp.Layout {
             try {
                 _status = "Connecting to local server...";
                 _hubConnection = new HubConnectionBuilder()
-                    .WithUrl(ApiUrlService.DbInitializeUrl)
+                    .WithUrl(AppConfiguration["ApiUrl"] + AppConfiguration["DbInitializeHubPath"])
                     .Build();
                 _hubConnection.On<DbInitStatus, int>("ReceiveStatus", UpdateStatus);
                 await _hubConnection.StartAsync();
@@ -68,7 +70,8 @@ namespace HitomiScrollViewerWebApp.Layout {
         }
 
         public async ValueTask DisposeAsync() {
-            if (_hubConnection is not null) {
+            GC.SuppressFinalize(this);
+            if (_hubConnection != null) {
                 await _hubConnection.DisposeAsync();
             }
         }

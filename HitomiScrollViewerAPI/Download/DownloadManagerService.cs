@@ -1,5 +1,5 @@
 ﻿using HitomiScrollViewerAPI.Hubs;
-using HitomiScrollViewerAPI.Services;
+using HitomiScrollViewerData;
 using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.SignalR;
@@ -12,10 +12,11 @@ namespace HitomiScrollViewerAPI.Download {
         (
             IEventBus<DownloadEventArgs> eventBus,
             IHubContext<DownloadHub, IDownloadClient> hubContext,
-            HttpClient httpClient,
-            HitomiUrlService hitomiUrlService
+            IConfiguration appConfiguration,
+            HttpClient httpClient
         ) : BackgroundService {
         private const int SERVER_TIME_EXCLUDE_LENGTH = 16; // length of the string "0123456789/'\r\n};"
+        private readonly string _hitomiGgjsAddress = $"https://{appConfiguration["HitomiServerInfoDomain"]}/gg.js";
 
         private int _downloadConfigurationId;
 
@@ -42,19 +43,17 @@ namespace HitomiScrollViewerAPI.Download {
             try {
                 await foreach (DownloadEventArgs eventData in reader.ReadAllAsync(stoppingToken)) {
                     switch (eventData.DownloadRequest) {
-                        case HitomiScrollViewerData.DownloadRequest.Start: {
+                        case DownloadHubRequest.Start: {
                             using HitomiContext dbContext = new();
                             if (eventData.DownloadItem == null) {
                                 throw new Exception($"{nameof(eventData.DownloadItem)} is null");
                             }
                             DownloadConfiguration config = dbContext.DownloadConfigurations.Find(_downloadConfigurationId)!;
-                            Downloader downloader = new() {
-                                DownloadItem = eventData.DownloadItem,
+                            Downloader downloader = new(appConfiguration, eventData.DownloadItem) {
                                 ConnectionId = eventData.ConnectionId,
                                 DownloadHubContext = hubContext,
                                 LiveServerInfo = LiveServerInfo,
                                 HttpClient = httpClient,
-                                HitomiUrlService = hitomiUrlService,
                                 DownloadCompleted = HandleDownloadCompleted,
                                 RequestGgjsFetch = WaitGgjsFetch
                             };
@@ -66,7 +65,7 @@ namespace HitomiScrollViewerAPI.Download {
                                 // check if any downloader's "Status" in _liveDownloders is "Downloading"
                                 foreach (Downloader d in _liveDownloaders) {
                                     // if any downloader is downloading, add the current downloader to the pending queue
-                                    if (d.Status == HitomiScrollViewerData.DownloadStatus.Downloading) {
+                                    if (d.Status == DownloadStatus.Downloading) {
                                         _pendingQueue.Enqueue(downloader);
                                         return;
                                     }
@@ -76,7 +75,7 @@ namespace HitomiScrollViewerAPI.Download {
                             StartDownload(downloader);
                             break;
                         }
-                        case HitomiScrollViewerData.DownloadRequest.Pause: {
+                        case DownloadHubRequest.Pause: {
                             foreach (Downloader d in _liveDownloaders) {
                                 if (d.ConnectionId == eventData.ConnectionId) {
                                     d.Pause();
@@ -85,7 +84,7 @@ namespace HitomiScrollViewerAPI.Download {
                             }
                             break;
                         }
-                        case HitomiScrollViewerData.DownloadRequest.Resume: {
+                        case DownloadHubRequest.Resume: {
                             foreach (Downloader d in _liveDownloaders) {
                                 if (d.ConnectionId == eventData.ConnectionId) {
                                     StartDownload(d);
@@ -94,11 +93,11 @@ namespace HitomiScrollViewerAPI.Download {
                             }
                             break;
                         }
-                        case HitomiScrollViewerData.DownloadRequest.Remove: {
+                        case DownloadHubRequest.Disconnect: {
                             foreach (Downloader d in _liveDownloaders) {
                                 if (d.ConnectionId == eventData.ConnectionId) {
                                     _liveDownloaders.Remove(d);
-                                    d.Remove();
+                                    _ggjsFetchWaiters.Remove(d);
                                     d.Dispose();
                                     break;
                                 }
@@ -116,6 +115,7 @@ namespace HitomiScrollViewerAPI.Download {
         private void HandleDownloadCompleted(Downloader downloader) {
             _liveDownloaders.Remove(downloader);
             downloader.Dispose();
+            hubContext.Clients.Client(downloader.ConnectionId).ReceiveStatus(DownloadStatus.Completed, "");
             using HitomiContext dbContext = new();
             DownloadConfiguration config = dbContext.DownloadConfigurations.Find(_downloadConfigurationId)!;
             if (!config.UseParallelDownload) {
@@ -156,7 +156,7 @@ namespace HitomiScrollViewerAPI.Download {
         }
 
         private async Task<LiveServerInfo> GetLiveServerInfo() {
-            HttpResponseMessage response = await httpClient.GetAsync(hitomiUrlService.HitomiGgjsAddress);
+            HttpResponseMessage response = await httpClient.GetAsync(_hitomiGgjsAddress);
             response.EnsureSuccessStatusCode();
 
             string content = await response.Content.ReadAsStringAsync();

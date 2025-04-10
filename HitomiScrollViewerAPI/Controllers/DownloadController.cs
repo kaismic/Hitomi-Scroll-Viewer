@@ -1,12 +1,11 @@
-﻿using HitomiScrollViewerAPI.Download;
-using HitomiScrollViewerData.DbContexts;
+﻿using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/[controller]")]
-    public class DownloadController(HitomiContext context, DownloadManagerService downloadService) : ControllerBase {
+    public class DownloadController(HitomiContext context) : ControllerBase {
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<DownloadConfiguration> GetConfiguration() {

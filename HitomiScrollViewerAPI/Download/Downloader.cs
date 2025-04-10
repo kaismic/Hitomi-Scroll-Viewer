@@ -10,11 +10,9 @@ using System.Net;
 using System.Text.Json;
 
 namespace HitomiScrollViewerAPI.Download {
-    public class Downloader : IDisposable {
+    public class Downloader(IConfiguration appConfiguration, DownloadItemDTO downloadItem) : IDisposable {
         private const int GALLERY_JS_EXCLUDE_LENGTH = 18; // length of the string "var galleryinfo = "
-        public required DownloadItemDTO DownloadItem { get; init; }
         public required IHubContext<DownloadHub, IDownloadClient> DownloadHubContext { get; init; }
-        public required HitomiUrlService HitomiUrlService { get; init; }
         public required string ConnectionId { get; init; }
         public required HttpClient HttpClient { get; init; }
         public required Action<Downloader> DownloadCompleted { get; init; }
@@ -33,12 +31,17 @@ namespace HitomiScrollViewerAPI.Download {
 
         private CancellationTokenSource? _cts;
         private Gallery? _gallery;
+
+        private void ChangeStatus(DownloadStatus status, string message) {
+            Status = status;
+            DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(status, message);
+        }
         
         public async Task Start() {
             if (Status == DownloadStatus.Downloading) {
                 return;
             }
-            Status = DownloadStatus.Downloading;
+            ChangeStatus(DownloadStatus.Downloading, "");
             if (LiveServerInfo == null) {
                 await RequestGgjsFetch(this);
             }
@@ -49,67 +52,59 @@ namespace HitomiScrollViewerAPI.Download {
             _cts = new();
 
             using HitomiContext dbContext = new();
-            _gallery ??= dbContext.Galleries.Find(DownloadItem.GalleryId);
+            _gallery ??= dbContext.Galleries.Find(downloadItem.GalleryId);
             if (_gallery == null) {
                 string galleryInfoResponse;
                 try {
                     galleryInfoResponse = await GetGalleryInfo(_cts.Token);
                     OriginalGalleryInfoDTO? ogi = JsonSerializer.Deserialize<OriginalGalleryInfoDTO>(galleryInfoResponse, OriginalGalleryInfoDTO.SERIALIZER_OPTIONS);
                     if (ogi == null) {
-                        Status = DownloadStatus.Failed;
-                        DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Failed, "Failed to parse gallery info.");
+                        ChangeStatus(DownloadStatus.Failed, "Failed to parse gallery info.");
                         return;
                     }
                     _gallery = CreateGallery(ogi, dbContext);
                     if (_gallery == null) {
-                        Status = DownloadStatus.Failed;
                         return;
                     }
                 } catch (HttpRequestException) {
-                    Status = DownloadStatus.Failed;
-                    DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Failed, "Failed to get gallery info.");
+                    ChangeStatus(DownloadStatus.Failed, "Failed to get gallery info.");
                     return;
                 } catch (TaskCanceledException) {
-                    Status = DownloadStatus.Paused;
+                    ChangeStatus(DownloadStatus.Paused, "");
                     return;
                 }
             } else {
                 dbContext.Entry(_gallery).Collection(g => g.GalleryImages).Load();
             }
             int threadNum = dbContext.DownloadConfigurations.First().ThreadNum;
-            GalleryImage[] missingGalleryImages = [.. GalleryFileService.GetMissingFiles(_gallery.Id, _gallery.GalleryImages)];
+            GalleryImage[] missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingFiles(_gallery.Id, _gallery.GalleryImages)];
             DownloadHubContext.Clients.Client(ConnectionId).ReceiveProgress(_gallery.GalleryImages.Count - missingGalleryImages.Length);
             await DownloadImages(threadNum, missingGalleryImages, _cts.Token);
-            Status = DownloadStatus.Completed;
-            DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Completed, "Download completed");
+            ChangeStatus(DownloadStatus.Completed, "");
             DownloadCompleted(this);
         }
 
+        private readonly string _galleryInfoAddress = $"https://{appConfiguration["HitomiServerInfoDomain"]}/galleries/{downloadItem.GalleryId}.js";
         /**
          * <exception cref="HttpRequestException"></exception>
          * <exception cref="TaskCanceledException"></exception>
         */
         private async Task<string> GetGalleryInfo(CancellationToken ct) {
-            HttpResponseMessage response = await HttpClient.GetAsync(HitomiUrlService.GetHitomiGalleryInfoAddress(DownloadItem.GalleryId), ct);
+            HttpResponseMessage response = await HttpClient.GetAsync(_galleryInfoAddress, ct);
             response.EnsureSuccessStatusCode();
             string responseString = await response.Content.ReadAsStringAsync(ct);
             return responseString[GALLERY_JS_EXCLUDE_LENGTH..];
         }
 
         public Gallery? CreateGallery(OriginalGalleryInfoDTO original, HitomiContext dbContext) {
-            Gallery? gallery = dbContext.Galleries.Find(original.Id);
-            if (gallery != null) {
-                DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Failed, $"Gallery with id {original.Id} already exists");
-                return null;
-            }
             GalleryLanguage? language = dbContext.GalleryLanguages.FirstOrDefault(l => l.EnglishName == original.Language);
             if (language == null) {
-                DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Failed, $"Language {original.Language} not found");
+                ChangeStatus(DownloadStatus.Failed, $"Language {original.Language} not found");
                 return null;
             }
             GalleryType? type = dbContext.GalleryTypes.FirstOrDefault(t => t.Value == original.Type);
             if (type == null) {
-                DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Failed, $"Type {original.Type} not found");
+                ChangeStatus(DownloadStatus.Failed, $"Type {original.Type} not found");
                 return null;
             }
 
@@ -135,7 +130,7 @@ namespace HitomiScrollViewerAPI.Download {
                 return dbContext.Tags.FirstOrDefault(t => t.Category == category && t.Value == compositeTag.Tag);
             }).Where(t => t != null).Cast<Tag>());
 
-            gallery = new() {
+            Gallery gallery = new() {
                 Id = original.Id,
                 Title = original.Title,
                 JapaneseTitle = original.JapaneseTitle,
@@ -208,7 +203,7 @@ namespace HitomiScrollViewerAPI.Download {
                     HttpResponseMessage response = await HttpClient.GetAsync(GetImageAddress(LiveServerInfo!, galleryImage), ct);
                     response.EnsureSuccessStatusCode();
                     byte[] data = await response.Content.ReadAsByteArrayAsync(ct);
-                    await GalleryFileService.WriteImageAsync(_gallery!, galleryImage, data);
+                    await Utils.GalleryFileUtil.WriteImageAsync(_gallery!, galleryImage, data);
                     return;
                 } catch (HttpRequestException e) {
                     if (e.StatusCode == HttpStatusCode.NotFound) {
@@ -216,7 +211,6 @@ namespace HitomiScrollViewerAPI.Download {
                             localLastUpdateTime = LastLiveServerInfoUpdateTime;
                         } else {
                             _cts?.Cancel();
-                            Status = DownloadStatus.Pending;
                             _ = RequestGgjsFetch(this);
                         }
                     } else {
@@ -236,17 +230,12 @@ namespace HitomiScrollViewerAPI.Download {
             string hashFragment = Convert.ToInt32(galleryImage.Hash[^1..] + galleryImage.Hash[^3..^1], 16).ToString();
             string subdomain = liveServerInfo.IsAAContains ^ liveServerInfo.SubdomainSelectionSet.Contains(hashFragment) ? "ba" : "aa";
             string fileExt = galleryImage.FileExt;
-            return $"https://{subdomain}.{HitomiUrlService.HitomiMainDomain}/{fileExt}/{liveServerInfo.ServerTime}/{hashFragment}/{galleryImage.Hash}.{fileExt}";
+            return $"https://{subdomain}.{appConfiguration["HitomiMainDomain"]}/{fileExt}/{liveServerInfo.ServerTime}/{hashFragment}/{galleryImage.Hash}.{fileExt}";
         }
 
         public void Pause() {
             _cts?.Cancel();
             DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Paused, "Download paused");
-        }
-
-        public void Remove() {
-            _cts?.Cancel();
-            DownloadHubContext.Clients.Client(ConnectionId).ReceiveStatus(DownloadStatus.Removed, "Download removed");
         }
 
         public void Dispose() {

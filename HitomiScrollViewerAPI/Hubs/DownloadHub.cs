@@ -28,13 +28,14 @@ namespace HitomiScrollViewerAPI.Hubs {
                 config.DownloadItems.Add(downloadItem);
                 context.SaveChanges();
                 eventBus.Publish(new DownloadEventArgs {
-                    DownloadRequest = DownloadRequest.Start,
+                    DownloadRequest = DownloadHubRequest.Start,
                     ConnectionId = Context.ConnectionId,
                     DownloadItem = downloadItem.ToDTO()
                 });
             }
             return base.OnConnectedAsync();
         }
+
         public override Task OnDisconnectedAsync(Exception? exception) {
             return base.OnDisconnectedAsync(exception);
         }
@@ -42,23 +43,24 @@ namespace HitomiScrollViewerAPI.Hubs {
         // These methods are called by HubConnections from the client
         public void Resume() {
             eventBus.Publish(new DownloadEventArgs {
-                DownloadRequest = DownloadRequest.Resume,
+                DownloadRequest = DownloadHubRequest.Resume,
                 ConnectionId = Context.ConnectionId
             });
         }
 
         public void Pause() {
             eventBus.Publish(new DownloadEventArgs {
-                DownloadRequest = DownloadRequest.Pause,
+                DownloadRequest = DownloadHubRequest.Pause,
                 ConnectionId = Context.ConnectionId
             });
         }
 
-        public void Remove() {
+        public void Disconnect() {
             eventBus.Publish(new DownloadEventArgs {
-                DownloadRequest = DownloadRequest.Remove,
+                DownloadRequest = DownloadHubRequest.Disconnect,
                 ConnectionId = Context.ConnectionId
             });
+            Context.Abort();
         }
     }
 }

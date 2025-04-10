@@ -9,28 +9,27 @@
                       T="string"
                       Lines="8"
                       @bind-Value="@_inputText"
-                      Placeholder="Enter Gallery ID(s) or URL(s) here. e.g. 2058075, https://hitomi.la/..."/>
+                      Placeholder="Enter Gallery ID(s) or URL(s) here. e.g. 2058075, https://hitomi.la/..." />
         <MudButton FullWidth
                    Variant="Variant.Filled"
                    Color="Color.Primary"
                    EndIcon="@Icons.Material.Filled.Download"
                    Disabled="@(_inputText.Length == 0)"
+                   OnClick="@OnDownloadButtonClick"
                    Class="mt-4">
             Download
         </MudButton>
     </div>
     <div style="flex: 1;" class="d-flex flex-column gap-4">
         <div class="d-flex gap-4">
-            <MudSelect T="string" FitContent
-                       Variant="Variant.Outlined"
-                       Label="Download Mode">
-                <MudSelectItem T="string" Value="@("Sequential")"></MudSelectItem>
-                <MudSelectItem T="string" Value="@("Parallel")"></MudSelectItem>
-            </MudSelect>
+            <MudSwitch T="bool"
+                       Label="Parallel Download"
+                       @bind-Value="@UseParallelDownload" />
             <MudNumericField T="int"
                              Label="Download Threads"
                              Variant="Variant.Outlined"
-                             Min="1" Max="8" />
+                             Min="1" Max="8"
+                             @bind-Value="@ThreadNum" />
             <MudSpacer />
             <MudButton Color="Color.Primary"
                        EndIcon="@Icons.Material.Filled.Pause">
@@ -38,9 +37,9 @@
             </MudButton>
         </div>
         <div class="d-flex flex-column gap-4 overflow-y-auto">
-            <DownloadItemView />
-            <DownloadItemView />
-            <DownloadItemView />
+            @foreach (DownloadViewModel downloadVM in DownloadService.Downloads.Values) {
+                <DownloadItemView ViewModel="@downloadVM" />
+            }
         </div>
     </div>
 </div>

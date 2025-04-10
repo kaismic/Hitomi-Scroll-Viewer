@@ -9,7 +9,7 @@ using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class BrowsePage : ComponentBase {
-        private const int MIN_ITEM_HEIGHT = 200; // px
+        private const string MIN_ITEM_HEIGHT = "200px";
         // if the screen height is more then MIN_ITEM_HEIGHT, screen
 
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];

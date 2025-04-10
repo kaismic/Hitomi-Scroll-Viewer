@@ -6,7 +6,7 @@ using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.SignalR;
 
 namespace HitomiScrollViewerAPI.Services {
-    public class DbInitializeService(IHubContext<DbStatusHub, IStatusClient> hubContext) : BackgroundService {
+    public class DbInitializeService(IHubContext<DbInitializeHub, IStatusClient> hubContext) : BackgroundService {
         private const string DB_INIT_FLAG_PATH = "db-init-flag.txt";
         private static readonly string[] ALPHABETS_WITH_123 =
             ["123", .. Enumerable.Range('a', 26).Select(intValue => Convert.ToChar(intValue).ToString())];
@@ -128,7 +128,8 @@ namespace HitomiScrollViewerAPI.Services {
             });
             context.BrowseConfigurations.Add(new() {
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
-                SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
+                SelectedType = context.GalleryTypes.First(gt => gt.IsAll),
+                ItemsPerPage = 8
             });
             context.DownloadConfigurations.Add(new() { ThreadNum = 1 });
             context.SaveChanges();
@@ -164,28 +165,28 @@ namespace HitomiScrollViewerAPI.Services {
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_1,
                     Tags = [
-                        Utils.GetTag(tags, "full color", TagCategory.Tag)!,
-                        Utils.GetTag(tags, "very long hair", TagCategory.Female)!,
+                        TagUtils.GetTag(tags, "full color", TagCategory.Tag)!,
+                        TagUtils.GetTag(tags, "very long hair", TagCategory.Female)!,
                     ]
                 },
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_2,
                     Tags = [
-                        Utils.GetTag(tags, "glasses", TagCategory.Female)!,
-                        Utils.GetTag(tags, "sole male", TagCategory.Male)!,
+                        TagUtils.GetTag(tags, "glasses", TagCategory.Female)!,
+                        TagUtils.GetTag(tags, "sole male", TagCategory.Male)!,
                     ]
                 },
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_3,
                     Tags = [
-                        Utils.GetTag(tags, "naruto", TagCategory.Series)!,
-                        Utils.GetTag(tags, "big breasts", TagCategory.Female)!,
+                        TagUtils.GetTag(tags, "naruto", TagCategory.Series)!,
+                        TagUtils.GetTag(tags, "big breasts", TagCategory.Female)!,
                     ]
                 },
                 new() {
                     Name = Resources.ExampleTagFilterNames.ExampleTagFilterName_4,
                     Tags = [
-                        Utils.GetTag(tags, "non-h imageset", TagCategory.Tag)!
+                        TagUtils.GetTag(tags, "non-h imageset", TagCategory.Tag)!
                     ]
                 }
             );

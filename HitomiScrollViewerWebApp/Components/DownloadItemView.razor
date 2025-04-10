@@ -1,6 +1,6 @@
 ﻿<MudPaper style="display: grid; grid-template-columns: 240px auto 120px" class="pa-4 gap-4" Outlined >
     <div>
-        <MudText>@ViewModel.DownloadItem.GalleryId</MudText>
+        <MudText>@ViewModel.GalleryId</MudText>
         <MudText>@ViewModel.Gallery?.Title</MudText>
     </div>
     <div class="align-self-end">
@@ -17,6 +17,7 @@
     <div class="d-flex gap-4">
         <MudIconButton Icon="@ControlButtonIcon"
                        Disabled="@(ViewModel.Status is DownloadStatus.Pending or DownloadStatus.Completed)"/>
-        <MudIconButton Icon="@Icons.Material.Filled.Delete" />
+        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                       OnClick="@(() => DownloadService.RemoveDownload(ViewModel.GalleryId))" />
     </div>
 </MudPaper>

@@ -1,8 +1,8 @@
 ﻿using HitomiScrollViewerData.Entities;
 using System.Text.RegularExpressions;
 
-namespace HitomiScrollViewerAPI.Services {
-    public static partial class GalleryFileService {
+namespace HitomiScrollViewerAPI.Utils {
+    public static partial class GalleryFileUtil {
         private const string ROOT_PATH = "Galleries";
         [GeneratedRegex(@"\d+")] private static partial Regex AllDigitRegex();
 

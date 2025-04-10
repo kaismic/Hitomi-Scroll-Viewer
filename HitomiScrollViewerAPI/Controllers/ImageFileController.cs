@@ -25,7 +25,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             if (image == null) {
                 return NotFound($"Image with the index {index} was not found.");
             }
-            FileStream stream = System.IO.File.OpenRead(GalleryFileService.GetImagePath(gallery, image));
+            FileStream stream = System.IO.File.OpenRead(Utils.GalleryFileUtil.GetImagePath(gallery, image));
             return File(stream, $"image/{image.FileExt}");
         }
     }

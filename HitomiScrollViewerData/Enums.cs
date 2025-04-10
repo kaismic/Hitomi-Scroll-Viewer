@@ -9,14 +9,13 @@
         Downloading,
         Completed,
         Paused,
-        Removed,
         Failed
     }
 
-    public enum DownloadRequest {
+    public enum DownloadHubRequest {
         Start,
         Pause,
         Resume,
-        Remove
+        Disconnect
     }
 }

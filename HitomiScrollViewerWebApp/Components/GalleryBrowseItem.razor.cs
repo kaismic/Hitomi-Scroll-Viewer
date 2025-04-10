@@ -1,11 +1,11 @@
-﻿using HitomiScrollViewerData.DTOs;
+﻿using Flurl;
+using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
-using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class GalleryBrowseItem : ComponentBase {
-        [Inject] ApiUrlService ApiUrlService { get; set; } = default!;
+        [Inject] IConfiguration AppConfiguration { get; set; } = default!;
         [Parameter, EditorRequired] public GalleryFullDTO Gallery { get; set; } = default!;
         [Parameter] public string? Style { get; set; }
         [Parameter] public string? Class { get; set; }
@@ -26,7 +26,13 @@ namespace HitomiScrollViewerWebApp.Components {
             }
             // TODO variable image thumbnail number based on current item width?
             for (int i = 1; i <= MAX_THUMBNAIL_IMAGES; i++) {
-                _imageUrls.Add(ApiUrlService.GetImageUrl(Gallery.Id, i));
+                _imageUrls.Add(
+                    new Url(AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"])
+                    .SetQueryParams(new {
+                        galleryId = Gallery.Id,
+                        index = i
+                    }).ToString()
+                );
             }
             StateHasChanged();
         }
