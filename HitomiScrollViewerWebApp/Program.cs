@@ -16,15 +16,64 @@ public class Program
         builder.Services.AddMudServices();
 
         string apiUrl = builder.Configuration["ApiUrl"]!;
-        builder.Services.AddSingleton<PageConfigurationService>();
-        builder.Services.AddHttpClient<LanguageTypeService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddHttpClient<TagFilterService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddHttpClient<SearchFilterService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddHttpClient<TagService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddHttpClient<GalleryService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddHttpClient<SearchService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddHttpClient<BrowseService>(client => client.BaseAddress = new Uri(apiUrl));
-        builder.Services.AddHttpClient<DownloadService>(client => client.BaseAddress = new Uri(apiUrl));
+        builder.Services.AddHttpClient();
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["SearchConfigPath"]);
+                return new SearchConfigurationService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["BrowseConfigPath"]);
+                return new BrowseConfigurationService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["DownloadConfigPath"]);
+                return new DownloadConfigurationService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["LanguageTypePath"]);
+                return new LanguageTypeService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["TagFilterPath"]);
+                return new TagFilterService(httpClient, sp.GetRequiredService<SearchConfigurationService>());
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["SearchFilterPath"]);
+                return new SearchFilterService(httpClient, sp.GetRequiredService<SearchConfigurationService>());
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["TagPath"]);
+                return new TagService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["GalleryPath"]);
+                return new GalleryService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton<DownloadManagerService>();
 
         var app = builder.Build();
         await app.RunAsync();

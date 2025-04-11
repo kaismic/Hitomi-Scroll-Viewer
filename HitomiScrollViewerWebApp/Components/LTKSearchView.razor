@@ -1,6 +1,4 @@
-﻿@inject PageConfigurationService PageConfigurationService
-
-<div class="ltk-search-view d-flex flex-column gap-2 @Class" style="@Style">
+﻿<div class="ltk-search-view d-flex flex-column gap-2 @Class" style="@Style">
     <MudSelect Label="Language"
                T="GalleryLanguageDTO"
                ToStringFunc="@(l => l.LocalName)"
@@ -8,7 +6,7 @@
                Variant="Variant.Outlined"
                Value="@SelectedLanguage"
                ValueChanged="@SelectedLanguageChanged">
-        @foreach (GalleryLanguageDTO l in PageConfigurationService.Languages) {
+        @foreach (GalleryLanguageDTO l in LanguageTypeService.Languages) {
             <MudSelectItem Value="@l" />
         }
     </MudSelect>
@@ -19,7 +17,7 @@
                Variant="Variant.Outlined"
                Value="SelectedType"
                ValueChanged="@SelectedTypeChanged">
-        @foreach (GalleryTypeDTO t in PageConfigurationService.Types) {
+        @foreach (GalleryTypeDTO t in LanguageTypeService.Types) {
             <MudSelectItem Value="@t" />
         }
     </MudSelect>

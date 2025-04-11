@@ -5,6 +5,7 @@ using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Components.Dialogs;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using System.Collections.ObjectModel;
@@ -13,6 +14,13 @@ using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class SearchPage {
+        [Inject] TagFilterService TagFilterService { get; set; } = default!;
+        [Inject] SearchFilterService SearchFilterService { get; set; } = default!;
+        [Inject] SearchConfigurationService SearchConfigurationService { get; set; } = default!;
+        [Inject] ISnackbar Snackbar { get; set; } = default!;
+        [Inject] IDialogService DialogService { get; set; } = default!;
+        [Inject] IJSRuntime JsRuntime { get; set; } = default!;
+
         private static readonly Action<SnackbarOptions> SNACKBAR_OPTIONS = options => {
             options.ShowCloseIcon = true;
             options.CloseAfterNavigation = true;
@@ -30,7 +38,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 _tagFilters = value;
-                PageConfigurationService.SearchConfiguration.TagFilters = value;
+                SearchConfigurationService.Config.TagFilters = value;
                 _includeTagFilterChipModels = [.. value.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
                 _excludeTagFilterChipModels = [.. value.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
                 value.CollectionChanged += TagFiltersChanged;
@@ -42,7 +50,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Add:
                     List<TagFilterDTO> newTfs = [.. e.NewItems!.Cast<TagFilterDTO>()];
-                    List<ChipModel<TagFilterDTO>> newModels = [..  newTfs.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
+                    List<ChipModel<TagFilterDTO>> newModels = [.. newTfs.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
                     _includeTagFilterChipModels.InsertRange(e.NewStartingIndex, newModels);
                     _excludeTagFilterChipModels.InsertRange(e.NewStartingIndex, newModels);
                     break;
@@ -64,45 +72,45 @@ namespace HitomiScrollViewerWebApp.Pages {
         private TagFilterEditor _tagFilterEditor = null!;
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
         public bool IsAutoSaveEnabled {
-            get => PageConfigurationService.SearchConfiguration.IsAutoSaveEnabled;
+            get => SearchConfigurationService.Config.IsAutoSaveEnabled;
             set {
-                if (PageConfigurationService.SearchConfiguration.IsAutoSaveEnabled = value) {
+                if (SearchConfigurationService.Config.IsAutoSaveEnabled = value) {
                     return;
                 }
-                PageConfigurationService.SearchConfiguration.IsAutoSaveEnabled = value;
-                _ = SearchService.UpdateAutoSaveAsync(PageConfigurationService.SearchConfiguration.Id, value);
+                SearchConfigurationService.Config.IsAutoSaveEnabled = value;
+                _ = SearchConfigurationService.UpdateAutoSaveAsync(value);
             }
         }
 
         public GalleryLanguageDTO SelectedLanguage {
-            get => PageConfigurationService.SearchConfiguration.SelectedLanguage;
+            get => SearchConfigurationService.Config.SelectedLanguage;
             set {
-                if (PageConfigurationService.SearchConfiguration.SelectedLanguage == value) {
+                if (SearchConfigurationService.Config.SelectedLanguage == value) {
                     return;
                 }
-                PageConfigurationService.SearchConfiguration.SelectedLanguage = value;
-                _ = SearchService.UpdateLanguageAsync(PageConfigurationService.SearchConfiguration.Id, value.Id);
+                SearchConfigurationService.Config.SelectedLanguage = value;
+                _ = SearchConfigurationService.UpdateLanguageAsync(value.Id);
             }
         }
         public GalleryTypeDTO SelectedType {
-            get => PageConfigurationService.SearchConfiguration.SelectedType;
+            get => SearchConfigurationService.Config.SelectedType;
             set {
-                if (PageConfigurationService.SearchConfiguration.SelectedType == value) {
+                if (SearchConfigurationService.Config.SelectedType == value) {
                     return;
                 }
-                PageConfigurationService.SearchConfiguration.SelectedType = value;
-                _ = SearchService.UpdateTypeAsync(PageConfigurationService.SearchConfiguration.Id, value.Id);
+                SearchConfigurationService.Config.SelectedType = value;
+                _ = SearchConfigurationService.UpdateTypeAsync(value.Id);
             }
         }
 
         public string SearchKeywordText {
-            get => PageConfigurationService.SearchConfiguration.SearchKeywordText;
+            get => SearchConfigurationService.Config.SearchKeywordText;
             set {
-                if (PageConfigurationService.SearchConfiguration.SearchKeywordText == value) {
+                if (SearchConfigurationService.Config.SearchKeywordText == value) {
                     return;
                 }
-                PageConfigurationService.SearchConfiguration.SearchKeywordText = value;
-                _ = SearchService.UpdateSearchKeywordTextAsync(PageConfigurationService.SearchConfiguration.Id, value);
+                SearchConfigurationService.Config.SearchKeywordText = value;
+                _ = SearchConfigurationService.UpdateSearchKeywordTextAsync(value);
             }
         }
 
@@ -114,7 +122,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 _searchFilters = value;
-                PageConfigurationService.SearchConfiguration.SearchFilters = value;
+                SearchConfigurationService.Config.SearchFilters = value;
                 value.CollectionChanged += SearchFiltersChanged;
             }
         }
@@ -122,7 +130,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private void SearchFiltersChanged(object? sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Reset:
-                    _ = SearchFilterService.ClearAsync(PageConfigurationService.SearchConfiguration.Id);
+                    _ = SearchFilterService.ClearAsync();
                     break;
                 // Add and Remove are handled in CreateSearchFilter and DeleteSearchFilter
                 default:
@@ -136,12 +144,11 @@ namespace HitomiScrollViewerWebApp.Pages {
         protected override async Task OnInitializedAsync() {
             _isInitialized = false;
             _isRendered = false;
-            if (!PageConfigurationService.IsSearchConfigurationLoaded) {
-                PageConfigurationService.IsSearchConfigurationLoaded = true;
-                PageConfigurationService.SearchConfiguration = await SearchService.GetConfigurationAsync();
+            if (!SearchConfigurationService.IsLoaded) {
+                await SearchConfigurationService.Load();
             }
-            TagFilters = [.. PageConfigurationService.SearchConfiguration.TagFilters];
-            SearchFilters = [.. PageConfigurationService.SearchConfiguration.SearchFilters];
+            TagFilters = [.. SearchConfigurationService.Config.TagFilters];
+            SearchFilters = [.. SearchConfigurationService.Config.SearchFilters];
             _isInitialized = true;
             OnInitRenderComplete();
         }
@@ -156,14 +163,14 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private void OnInitRenderComplete() {
             if (_isInitialized && _isRendered) {
-                _tagFilterEditor.CurrentTagFilter = TagFilters.FirstOrDefault(tf => tf.Id == PageConfigurationService.SearchConfiguration.SelectedTagFilterId);
+                _tagFilterEditor.CurrentTagFilter = TagFilters.FirstOrDefault(tf => tf.Id == SearchConfigurationService.Config.SelectedTagFilterId);
                 foreach (ChipModel<TagFilterDTO> chipModel in _includeTagFilterChipModels) {
-                    if (PageConfigurationService.SearchConfiguration.SelectedIncludeTagFilterIds.Contains(chipModel.Value.Id)) {
+                    if (SearchConfigurationService.Config.SelectedIncludeTagFilterIds.Contains(chipModel.Value.Id)) {
                         chipModel.Selected = true;
                     }
                 }
                 foreach (ChipModel<TagFilterDTO> chipModel in _excludeTagFilterChipModels) {
-                    if (PageConfigurationService.SearchConfiguration.SelectedExcludeTagFilterIds.Contains(chipModel.Value.Id)) {
+                    if (SearchConfigurationService.Config.SelectedExcludeTagFilterIds.Contains(chipModel.Value.Id)) {
                         chipModel.Selected = true;
                     }
                 }
@@ -173,11 +180,11 @@ namespace HitomiScrollViewerWebApp.Pages {
         private void OnSelectedTagFilterCollectionChanged(IReadOnlyCollection<ChipModel<TagFilterDTO>> collection, bool isInclude) {
             IEnumerable<int> ids = collection.Select(m => m.Value.Id);
             if (isInclude) {
-                PageConfigurationService.SearchConfiguration.SelectedIncludeTagFilterIds = ids;
+                SearchConfigurationService.Config.SelectedIncludeTagFilterIds = ids;
             } else {
-                PageConfigurationService.SearchConfiguration.SelectedExcludeTagFilterIds = ids;
+                SearchConfigurationService.Config.SelectedExcludeTagFilterIds = ids;
             }
-            _ = SearchService.UpdateTagFilterCollectionAsync(PageConfigurationService.SearchConfiguration.Id, isInclude, ids);
+            _ = SearchConfigurationService.UpdateTagFilterCollectionAsync(isInclude, ids);
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {
@@ -199,7 +206,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task LoadTags() {
             if (_tagFilterEditor.CurrentTagFilter != null) {
-                IEnumerable<TagDTO> tags = await TagFilterService.GetTagsAsync(PageConfigurationService.SearchConfiguration.Id, _tagFilterEditor.CurrentTagFilter.Id);
+                IEnumerable<TagDTO> tags = await TagFilterService.GetTagsAsync(_tagFilterEditor.CurrentTagFilter.Id);
                 if (tags != null) {
                     for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
                         _tagSearchPanelChipModels[i] = [..
@@ -225,7 +232,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (!result.Canceled) {
                 string name = result.Data!.ToString()!;
                 TagFilterBuildDTO buildDto = new() {
-                    SearchConfigurationId = PageConfigurationService.SearchConfiguration.Id,
+                    SearchConfigurationId = SearchConfigurationService.Config.Id,
                     Name = name,
                     Tags = _tagSearchPanelChipModels.SelectMany(l => l).Select(m => m.Value)
                 };
@@ -254,11 +261,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             DialogResult result = (await dialogRef.Result)!;
             if (!result.Canceled) {
                 string name = result.Data!.ToString()!;
-                bool success = await TagFilterService.UpdateNameAsync(
-                    PageConfigurationService.SearchConfiguration.Id,
-                    _tagFilterEditor.CurrentTagFilter!.Id,
-                    name
-                );
+                bool success = await TagFilterService.UpdateNameAsync(_tagFilterEditor.CurrentTagFilter!.Id, name);
                 if (success) {
                     _tagFilterEditor.CurrentTagFilter.Name = name;
                     Snackbar.Add($"Renamed \"{oldName} to \"{name}\".", Severity.Success, SNACKBAR_OPTIONS);
@@ -278,7 +281,6 @@ namespace HitomiScrollViewerWebApp.Pages {
         private async Task SaveTagFilter(TagFilterDTO? tagFilter) {
             if (tagFilter != null && TagFilters.Contains(tagFilter) /* tag filter could have been deleted */) {
                 bool success = await TagFilterService.UpdateTagsAsync(
-                    PageConfigurationService.SearchConfiguration.Id,
                     tagFilter.Id,
                     _tagSearchPanelChipModels.SelectMany(l => l).Select(m => m.Value.Id)
                 );
@@ -300,7 +302,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (!result.Canceled) {
                 IReadOnlyCollection<ChipModel<TagFilterDTO>> selected = (IReadOnlyCollection<ChipModel<TagFilterDTO>>)result.Data!;
                 IEnumerable<int> ids = selected.Select(m => m.Value.Id);
-                bool success = await TagFilterService.DeleteAsync(PageConfigurationService.SearchConfiguration.Id, ids);
+                bool success = await TagFilterService.DeleteAsync(ids);
                 if (success) {
                     TagFilters = [.. TagFilters.ExceptBy(ids, tf => tf.Id)];
                     Snackbar.Add($"Deleted {selected.Count} tag filters.", Severity.Success, SNACKBAR_OPTIONS);
@@ -310,12 +312,12 @@ namespace HitomiScrollViewerWebApp.Pages {
                 } else {
                     Snackbar.Add($"Failed to delete tag filters.", Severity.Error, SNACKBAR_OPTIONS);
                 }
-            } 
+            }
         }
 
         private async Task CreateSearchFilter() {
-            HashSet<int> includeIds = [.. PageConfigurationService.SearchConfiguration.SelectedIncludeTagFilterIds];
-            HashSet<int> excludeIds = [.. PageConfigurationService.SearchConfiguration.SelectedExcludeTagFilterIds];
+            HashSet<int> includeIds = [.. SearchConfigurationService.Config.SelectedIncludeTagFilterIds];
+            HashSet<int> excludeIds = [.. SearchConfigurationService.Config.SelectedExcludeTagFilterIds];
             bool currentTagFilterInclude = false;
             bool currentTagFilterExclude = false;
             if (_tagFilterEditor.CurrentTagFilter != null) {
@@ -330,10 +332,10 @@ namespace HitomiScrollViewerWebApp.Pages {
             Task<IEnumerable<TagDTO>>? includeTagsTask = null;
             Task<IEnumerable<TagDTO>>? excludeTagsTask = null;
             if (includeIds.Count > 0) {
-                includeTagsTask = TagFilterService.GetTagsUnionAsync(PageConfigurationService.SearchConfiguration.Id, includeIds);
+                includeTagsTask = TagFilterService.GetTagsUnionAsync(includeIds);
             }
             if (excludeIds.Count > 0) {
-                excludeTagsTask = TagFilterService.GetTagsUnionAsync(PageConfigurationService.SearchConfiguration.Id, excludeIds);
+                excludeTagsTask = TagFilterService.GetTagsUnionAsync(excludeIds);
             }
             await Task.WhenAll(includeTagsTask ?? Task.CompletedTask, excludeTagsTask ?? Task.CompletedTask);
             IEnumerable<TagDTO> includeTagDTOs = includeTagsTask?.Result ?? [];
@@ -371,7 +373,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             SearchFilterDTO dto = builder.Build();
             SearchFilters.Add(dto);
             await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", dto.SearchLink);
-            int id = await SearchFilterService.CreateAsync(PageConfigurationService.SearchConfiguration.Id, dto);
+            int id = await SearchFilterService.CreateAsync(dto);
             //if (success) {
             dto.Id = id;
             //} else {
@@ -380,7 +382,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task DeleteSearchFilter(SearchFilterDTO dto) {
-            bool success = await SearchFilterService.DeleteAsync(PageConfigurationService.SearchConfiguration.Id, dto.Id);
+            bool success = await SearchFilterService.DeleteAsync(dto.Id);
             if (success) {
                 SearchFilters.Remove(dto);
             } else {

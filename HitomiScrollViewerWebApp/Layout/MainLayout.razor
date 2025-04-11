@@ -1,9 +1,6 @@
 ﻿@using HitomiScrollViewerData
 @using Microsoft.AspNetCore.SignalR.Client
 @inherits LayoutComponentBase
-@inject NavigationManager NavigationManager
-@inject PageConfigurationService PageConfigurationService
-@inject LanguageTypeService LanguageTypeService
 
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />

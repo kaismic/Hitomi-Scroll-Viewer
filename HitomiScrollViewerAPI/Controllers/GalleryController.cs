@@ -6,14 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/gallery")]
     public class GalleryController(HitomiContext context) : ControllerBase {
         [HttpGet("get-download-dto")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<GalleryDownloadDTO> GetGalleryDownloadDTO(int id) {
             Gallery? gallery = context.Galleries.Find(id);
-            return gallery == null ? NotFound() : Ok(gallery.ToDownloadDTO());
+            if (gallery == null) {
+                return NotFound();
+            }
+            return Ok(gallery.ToDownloadDTO(context.Entry(gallery).Collection(g => g.GalleryImages).Query().Count()));
         }
 
         [HttpGet("count")]

@@ -3,7 +3,7 @@ using HitomiScrollViewerData;
 using Microsoft.AspNetCore.SignalR;
 
 namespace HitomiScrollViewerAPI.Hubs {
-    public class DbInitializeHub : Hub<IStatusClient> {
+    public class DbInitializeHub : Hub<IDbStatusClient> {
         public override async Task OnConnectedAsync() {
             await base.OnConnectedAsync();
             if (DbInitializeService.IsInitialized) {

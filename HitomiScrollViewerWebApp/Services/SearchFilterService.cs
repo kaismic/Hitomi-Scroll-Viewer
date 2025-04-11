@@ -2,19 +2,19 @@
 using System.Net.Http.Json;
 
 namespace HitomiScrollViewerWebApp.Services {
-    public class SearchFilterService(HttpClient httpClient) {
-        public async Task<int> CreateAsync(int configId, SearchFilterDTO searchFilter) {
-            var response = await httpClient.PostAsJsonAsync($"api/search/search-filter?configId={configId}", searchFilter);
+    public class SearchFilterService(HttpClient httpClient, SearchConfigurationService searchConfigurationService) {
+        public async Task<int> CreateAsync(SearchFilterDTO searchFilter) {
+            var response = await httpClient.PostAsJsonAsync($"?configId={searchConfigurationService.Config.Id}", searchFilter);
             return await response.Content.ReadFromJsonAsync<int>();
         }
 
-        public async Task<bool> DeleteAsync(int configId, int searchFilterId) {
-            var response = await httpClient.DeleteAsync($"api/search/search-filter?configId={configId}&searchFilterId={searchFilterId}");
+        public async Task<bool> DeleteAsync(int searchFilterId) {
+            var response = await httpClient.DeleteAsync($"?configId={searchConfigurationService.Config.Id}&searchFilterId={searchFilterId}");
             return response.IsSuccessStatusCode;
         }
         
-        public async Task<bool> ClearAsync(int configId) {
-            var response = await httpClient.DeleteAsync($"api/search/search-filter/clear?configId={configId}");
+        public async Task<bool> ClearAsync() {
+            var response = await httpClient.DeleteAsync($"clear?configId={searchConfigurationService.Config.Id}");
             return response.IsSuccessStatusCode;
         }
     }

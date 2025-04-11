@@ -6,37 +6,37 @@ using System.Text.RegularExpressions;
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class DownloadPage {
         [Inject] private ISnackbar Snackbar { get; set; } = default!;
-        [Inject] private PageConfigurationService PageConfigurationService { get; set; } = default!;
-        [Inject] private DownloadService DownloadService { get; set; } = default!;
+        [Inject] private DownloadConfigurationService DownloadConfigurationService { get; set; } = default!;
+        [Inject] private DownloadManagerService DownloadManagerService { get; set; } = default!;
 
         private string _inputText = "";
 
         private bool UseParallelDownload {
-            get => PageConfigurationService.DownloadConfiguration.UseParallelDownload;
+            get => DownloadConfigurationService.Config.UseParallelDownload;
             set {
-                if (PageConfigurationService.DownloadConfiguration.UseParallelDownload == value) {
+                if (DownloadConfigurationService.Config.UseParallelDownload == value) {
                     return;
                 }
-                PageConfigurationService.DownloadConfiguration.UseParallelDownload = value;
-                _ = DownloadService.UpdateParallelDownload(PageConfigurationService.DownloadConfiguration.Id, value);
+                DownloadConfigurationService.Config.UseParallelDownload = value;
+                _ = DownloadConfigurationService.UpdateParallelDownload(value);
             }
         }
 
         private int ThreadNum {
-            get => PageConfigurationService.DownloadConfiguration.ThreadNum;
+            get => DownloadConfigurationService.Config.ThreadNum;
             set {
-                if (PageConfigurationService.DownloadConfiguration.ThreadNum == value) {
+                if (DownloadConfigurationService.Config.ThreadNum == value) {
                     return;
                 }
-                PageConfigurationService.DownloadConfiguration.ThreadNum = value;
-                _ = DownloadService.UpdateThreadNum(PageConfigurationService.DownloadConfiguration.Id, value);
+                DownloadConfigurationService.Config.ThreadNum = value;
+                _ = DownloadConfigurationService.UpdateThreadNum(value);
             }
         }
 
         protected override async Task OnInitializedAsync() {
-            if (!PageConfigurationService.IsDownloadConfigurationLoaded) {
-                PageConfigurationService.IsDownloadConfigurationLoaded = true;
-                PageConfigurationService.DownloadConfiguration = await DownloadService.GetConfigurationAsync();
+            if (!DownloadConfigurationService.IsLoaded) {
+                await DownloadConfigurationService.Load();
+                await DownloadManagerService.Load();
             }
         }
 
@@ -47,7 +47,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 Snackbar.Add("No valid IDs or URLs found in the input text.", Severity.Error);
                 return;
             }
-            DownloadService.CreateDownloads(matches.Select(m => int.Parse(m.Value)));
+            DownloadManagerService.CreateDownloads(matches.Select(m => int.Parse(m.Value)));
             _inputText = "";
         }
     }

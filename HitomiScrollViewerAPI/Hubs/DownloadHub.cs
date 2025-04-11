@@ -1,38 +1,42 @@
 ﻿using HitomiScrollViewerAPI.Download;
 using HitomiScrollViewerData;
 using HitomiScrollViewerData.DbContexts;
-using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Primitives;
 
 namespace HitomiScrollViewerAPI.Hubs {
-    public class DownloadHub(HitomiContext context, IEventBus<DownloadEventArgs> eventBus) : Hub<IDownloadClient> {
+    public class DownloadHub
+        (
+            HitomiContext dbContext,
+            IEventBus<DownloadEventArgs> eventBus,
+            ILogger<DownloadHub> logger,
+            DownloadManagerService downloadManagerService
+        ) : Hub<IDownloadClient> {
         public override Task OnConnectedAsync() {
-            int configId = (int)Context.Items["ConfigId"]!;
-            DownloadConfiguration? config = context.DownloadConfigurations.Find(configId);
-            if (config == null) {
-                Clients.Caller.ReceiveStatus(DownloadStatus.Failed, $"Configuration with id {configId} does not exist");
+            StringValues query = Context.GetHttpContext()!.Request.Query["galleryId"];
+            if (query.Count == 0) {
+                Clients.Caller.ReceiveStatus(DownloadStatus.Failed, "Missing query parameter \"galleryId\"");
                 Context.Abort();
                 return base.OnConnectedAsync();
             }
-            int galleryId = (int)Context.Items["GalleryId"]!;
-            Gallery? gallery = context.Galleries.Find(galleryId);
-            DownloadItem? downloadItem = context.DownloadItems.FirstOrDefault(d => d.GalleryId == galleryId);
-            if (gallery != null || downloadItem != null) {
-                string message = downloadItem != null ?
-                    $"Gallery with id {galleryId} is already downloading" :
-                    $"Gallery with id {galleryId} already exists";
-                Clients.Caller.ReceiveStatus(DownloadStatus.Failed, message);
+            int galleryId = int.Parse(query.First()!);
+            if (downloadManagerService.IsDownloading(galleryId)) {
+                Clients.Caller.ReceiveStatus(DownloadStatus.Failed, $"Gallery with id {galleryId} is already downloading");
                 Context.Abort();
+                return base.OnConnectedAsync();
             } else {
-                downloadItem = new() { GalleryId = galleryId };
-                config.DownloadItems.Add(downloadItem);
-                context.SaveChanges();
-                eventBus.Publish(new DownloadEventArgs {
-                    DownloadRequest = DownloadHubRequest.Start,
-                    ConnectionId = Context.ConnectionId,
-                    DownloadItem = downloadItem.ToDTO()
-                });
+                ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
+                if (!downloads.Contains(galleryId)) {
+                    downloads.Add(galleryId);
+                    dbContext.SaveChanges();
+                }
             }
+            logger.LogInformation("Connection created with gallery id {GalleryId}", galleryId);
+            eventBus.Publish(new() {
+                DownloadRequest = DownloadHubRequest.Start,
+                ConnectionId = Context.ConnectionId,
+                GalleryId = galleryId
+            });
             return base.OnConnectedAsync();
         }
 
@@ -42,22 +46,22 @@ namespace HitomiScrollViewerAPI.Hubs {
 
         // These methods are called by HubConnections from the client
         public void Resume() {
-            eventBus.Publish(new DownloadEventArgs {
+            eventBus.Publish(new() {
                 DownloadRequest = DownloadHubRequest.Resume,
                 ConnectionId = Context.ConnectionId
             });
         }
 
         public void Pause() {
-            eventBus.Publish(new DownloadEventArgs {
+            eventBus.Publish(new() {
                 DownloadRequest = DownloadHubRequest.Pause,
                 ConnectionId = Context.ConnectionId
             });
         }
 
-        public void Disconnect() {
-            eventBus.Publish(new DownloadEventArgs {
-                DownloadRequest = DownloadHubRequest.Disconnect,
+        public void Remove() {
+            eventBus.Publish(new() {
+                DownloadRequest = DownloadHubRequest.Remove,
                 ConnectionId = Context.ConnectionId
             });
             Context.Abort();

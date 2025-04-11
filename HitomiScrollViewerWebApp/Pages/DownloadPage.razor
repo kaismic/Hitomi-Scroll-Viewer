@@ -20,8 +20,9 @@
             Download
         </MudButton>
     </div>
+    <MudDivider Vertical />
     <div style="flex: 1;" class="d-flex flex-column gap-4">
-        <div class="d-flex gap-4">
+        <div class="d-flex gap-4 align-center">
             <MudSwitch T="bool"
                        Label="Parallel Download"
                        @bind-Value="@UseParallelDownload" />
@@ -36,10 +37,11 @@
                 Pause all downloads
             </MudButton>
         </div>
-        <div class="d-flex flex-column gap-4 overflow-y-auto">
-            @foreach (DownloadViewModel downloadVM in DownloadService.Downloads.Values) {
+        <MudPaper Class="d-flex flex-column gap-4 overflow-y-auto pa-4"
+                  Style="flex: 1" Outlined>
+            @foreach (DownloadViewModel downloadVM in DownloadManagerService.Downloads.Values) {
                 <DownloadItemView ViewModel="@downloadVM" />
             }
-        </div>
+        </MudPaper>
     </div>
 </div>

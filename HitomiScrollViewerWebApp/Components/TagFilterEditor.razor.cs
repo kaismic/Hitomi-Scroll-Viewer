@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class TagFilterEditor : ComponentBase {
+        [Inject] private SearchConfigurationService SearchConfigurationService { get; set; } = default!;
         [Parameter, EditorRequired] public IEnumerable<TagFilterDTO> TagFilters { get; set; } = null!;
         [Parameter, EditorRequired] public EventCallback OnCreateButtonClicked { get; set; }
         [Parameter, EditorRequired] public EventCallback OnRenameButtonClicked { get; set; }
@@ -21,14 +22,11 @@ namespace HitomiScrollViewerWebApp.Components {
                 }
                 TagFilterDTO? oldValue = _currentTagFilter;
                 _currentTagFilter = value;
-                PageConfigurationService.SearchConfiguration.SelectedTagFilterId = value?.Id ?? 0;
+                SearchConfigurationService.Config.SelectedTagFilterId = value?.Id ?? 0;
                 if (_isFirstCurrentTagFilterSet) {
                     _isFirstCurrentTagFilterSet = false;
                 } else {
-                    _ = SearchService.UpdateSelectedTagFilterAsync(
-                        PageConfigurationService.SearchConfiguration.Id,
-                        PageConfigurationService.SearchConfiguration.SelectedTagFilterId
-                    );
+                    _ = SearchConfigurationService.UpdateSelectedTagFilterAsync(SearchConfigurationService.Config.SelectedTagFilterId);
                 }
                 SelectedTagFilterChanged.InvokeAsync(new(oldValue, value));
             }

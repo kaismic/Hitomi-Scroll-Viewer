@@ -1,7 +1,7 @@
 ﻿using HitomiScrollViewerData;
 
 namespace HitomiScrollViewerAPI.Hubs {
-    public interface IStatusClient {
+    public interface IDbStatusClient {
         Task ReceiveStatus(DbInitStatus status, int progress);
     }
 }

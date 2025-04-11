@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
-    [Route("api/[controller]")]
-    public class BrowseController(HitomiContext context) : ControllerBase {
+    [Route("api/browse-config")]
+    public class BrowseConfigurationController(HitomiContext context) : ControllerBase {
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]

@@ -16,6 +16,6 @@
         Start,
         Pause,
         Resume,
-        Disconnect
+        Remove
     }
 }

@@ -29,7 +29,9 @@ namespace HitomiScrollViewerAPI {
 
             builder.Services.AddHttpClient();
             builder.Services.AddHostedService<DbInitializeService>();
-            builder.Services.AddHostedService<DownloadManagerService>();
+            //builder.Services.AddHostedService<DownloadManagerService>();
+            builder.Services.AddSingleton<DownloadManagerService>();
+            builder.Services.AddHostedService(sp => sp.GetRequiredService<DownloadManagerService>());
             builder.Services.AddSingleton<IEventBus<DownloadEventArgs>, DownloadEventBus>();
 
             var app = builder.Build();
@@ -56,8 +58,8 @@ namespace HitomiScrollViewerAPI {
             // app.UseSession();
             // app.UseResponseCompression(
 
-            app.MapHub<DbInitializeHub>("/api/db-initialize");
-            app.MapHub<DownloadHub>("/api/download");
+            app.MapHub<DbInitializeHub>("api/db-initialize-hub");
+            app.MapHub<DownloadHub>("api/download-hub");
             app.MapControllers();
 
             //app.MapIdentityApi<IdentityUser>();
@@ -67,14 +69,12 @@ namespace HitomiScrollViewerAPI {
             //        string.Join("\n", endpointSources.SelectMany(source => source.Endpoints)));
             //}
             if (OperatingSystem.IsWindows()) {
-                // only set console width when the console is Command Prompt because setting it in powershell throws IOException
-                if (Console.Title.Contains("Command Prompt", StringComparison.InvariantCultureIgnoreCase)) {
-                    if (Console.BufferWidth < MIN_CONSOLE_WIDTH) {
-                        Console.BufferWidth = 80;
-                    }
+                try {
                     if (Console.WindowWidth < MIN_CONSOLE_WIDTH) {
-                        Console.WindowWidth = 80;
+                        Console.WindowWidth = MIN_CONSOLE_WIDTH;
                     }
+                } catch (IOException) {
+                    // setting console width in powershell throws IOException
                 }
             }
             app.Run();

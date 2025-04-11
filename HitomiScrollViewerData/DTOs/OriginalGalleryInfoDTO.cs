@@ -5,7 +5,8 @@ using System.Text.Json.Serialization;
 namespace HitomiScrollViewerData.DTOs {
     public class OriginalGalleryInfoDTO {
         public static readonly JsonSerializerOptions SERIALIZER_OPTIONS = new(JsonSerializerDefaults.Web) {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            
         };
         public static readonly Dictionary<TagCategory, string> CATEGORY_PROP_KEY_DICT = new() {
             { TagCategory.Tag, "tag" },
@@ -24,10 +25,8 @@ namespace HitomiScrollViewerData.DTOs {
         public required string Type { get; set; }
         [JsonConverter(typeof(GalleryDateTimeOffsetConverter))]
         public DateTimeOffset Date { get; set; }
-        public required string LanguageUrl { get; set; }
-        public required string LanguageLocalname { get; set; }
-        public required int[] SceneIndexes { get; set; }
-        public required int[] Related { get; set; }
+        public int[] SceneIndexes { get; set; } = [];
+        public int[] Related { get; set; } = [];
         public required ICollection<OriginalImageInfoDTO> Files { get; set; }
         public Dictionary<string, string>[]? Artists { get; set; }
         public Dictionary<string, string>[]? Groups { get; set; }

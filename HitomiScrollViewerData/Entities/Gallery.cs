@@ -19,10 +19,10 @@ namespace HitomiScrollViewerData.Entities {
         public required ICollection<GalleryImage> GalleryImages { get; set; }
         public required ICollection<Tag> Tags { get; set; }
 
-        public GalleryDownloadDTO ToDownloadDTO() => new() {
+        public GalleryDownloadDTO ToDownloadDTO(int count) => new() {
             Id = Id,
             Title = Title,
-            GalleryImagesCount = GalleryImages.Count,
+            GalleryImagesCount = count,
         };
 
         public GalleryFullDTO ToFullDTO() => new() {

@@ -1,8 +1,10 @@
 ﻿using HitomiScrollViewerData.DTOs;
+using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class LTKSearchView : ComponentBase {
+        [Inject] private LanguageTypeService LanguageTypeService { get; set; } = default!;
         [Parameter] public string? Style { get; set; }
         [Parameter] public string? Class { get; set; }
 

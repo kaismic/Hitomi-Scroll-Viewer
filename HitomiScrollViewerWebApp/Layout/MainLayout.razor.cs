@@ -6,6 +6,8 @@ using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Layout {
     public partial class MainLayout : LayoutComponentBase, IAsyncDisposable {
+        [Inject] public NavigationManager NavigationManager { get; set; } = default!;
+        [Inject] public LanguageTypeService LanguageTypeService { get; set; } = default!;
         [Inject] private IConfiguration AppConfiguration { get; set; } = default!;
 
         private MudThemeProvider _mudThemeProvider = null!;
@@ -56,8 +58,9 @@ namespace HitomiScrollViewerWebApp.Layout {
                 case DbInitStatus.Complete:
                     _status = "Fetching data from database...";
                     StateHasChanged();
-                    PageConfigurationService.Languages = [.. await LanguageTypeService.GetLanguagesAsync()];
-                    PageConfigurationService.Types = [.. await LanguageTypeService.GetTypesAsync()];
+                    if (!LanguageTypeService.IsLoaded) {
+                        await LanguageTypeService.Load();
+                    }
                     _status = "Initialization complete";
                     StateHasChanged();
                     _isInitialized = true;

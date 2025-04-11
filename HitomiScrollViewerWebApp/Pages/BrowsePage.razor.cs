@@ -9,6 +9,10 @@ using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class BrowsePage : ComponentBase {
+        [Inject] private BrowseConfigurationService BrowseConfigurationService { get; set; } = default!;
+        [Inject] private GalleryService GalleryService {get;set;} = default!;
+        [Inject] private IJSRuntime JsRuntime {get;set;} = default!;
+
         private const string MIN_ITEM_HEIGHT = "200px";
         // if the screen height is more then MIN_ITEM_HEIGHT, screen
 
@@ -22,45 +26,45 @@ namespace HitomiScrollViewerWebApp.Pages {
         private GalleryFullDTO[] _galleries = [];
 
         public GalleryLanguageDTO SelectedLanguage {
-            get => PageConfigurationService.BrowseConfiguration.SelectedLanguage;
+            get => BrowseConfigurationService.Config.SelectedLanguage;
             set {
-                if (PageConfigurationService.BrowseConfiguration.SelectedLanguage == value) {
+                if (BrowseConfigurationService.Config.SelectedLanguage == value) {
                     return;
                 }
-                PageConfigurationService.BrowseConfiguration.SelectedLanguage = value;
-                _ = BrowseService.UpdateLanguageAsync(PageConfigurationService.BrowseConfiguration.Id, value.Id);
+                BrowseConfigurationService.Config.SelectedLanguage = value;
+                _ = BrowseConfigurationService.UpdateLanguageAsync(value.Id);
             }
         }
         public GalleryTypeDTO SelectedType {
-            get => PageConfigurationService.BrowseConfiguration.SelectedType;
+            get => BrowseConfigurationService.Config.SelectedType;
             set {
-                if (PageConfigurationService.BrowseConfiguration.SelectedType == value) {
+                if (BrowseConfigurationService.Config.SelectedType == value) {
                     return;
                 }
-                PageConfigurationService.BrowseConfiguration.SelectedType = value;
-                _ = BrowseService.UpdateTypeAsync(PageConfigurationService.BrowseConfiguration.Id, value.Id);
+                BrowseConfigurationService.Config.SelectedType = value;
+                _ = BrowseConfigurationService.UpdateTypeAsync(value.Id);
             }
         }
 
         public string SearchKeywordText {
-            get => PageConfigurationService.BrowseConfiguration.SearchKeywordText;
+            get => BrowseConfigurationService.Config.SearchKeywordText;
             set {
-                if (PageConfigurationService.BrowseConfiguration.SearchKeywordText == value) {
+                if (BrowseConfigurationService.Config.SearchKeywordText == value) {
                     return;
                 }
-                PageConfigurationService.BrowseConfiguration.SearchKeywordText = value;
-                _ = BrowseService.UpdateSearchKeywordTextAsync(PageConfigurationService.BrowseConfiguration.Id, value);
+                BrowseConfigurationService.Config.SearchKeywordText = value;
+                _ = BrowseConfigurationService.UpdateSearchKeywordTextAsync(value);
             }
         }
 
         private int ItemsPerPage {
-            get => PageConfigurationService.BrowseConfiguration.ItemsPerPage;
+            get => BrowseConfigurationService.Config.ItemsPerPage;
             set {
-                if (PageConfigurationService.BrowseConfiguration.ItemsPerPage == value) {
+                if (BrowseConfigurationService.Config.ItemsPerPage == value) {
                     return;
                 }
-                PageConfigurationService.BrowseConfiguration.ItemsPerPage = value;
-                _ = BrowseService.UpdateItemsPerPageAsync(PageConfigurationService.BrowseConfiguration.Id, value);
+                BrowseConfigurationService.Config.ItemsPerPage = value;
+                _ = BrowseConfigurationService.UpdateItemsPerPageAsync(value);
             }
         }
 
@@ -68,9 +72,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _isRendered = false;
 
         protected override async Task OnInitializedAsync() {
-            if (!PageConfigurationService.IsBrowseConfigurationLoaded) {
-                PageConfigurationService.IsBrowseConfigurationLoaded = true;
-                PageConfigurationService.BrowseConfiguration = await BrowseService.GetConfigurationAsync();
+            if (!BrowseConfigurationService.IsLoaded) {
+                await BrowseConfigurationService.Load();
             }
             _isInitialized = true;
             _ = OnInitRenderComplete();
@@ -89,7 +92,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 _pageCount = await GalleryService.GetCount();
                 for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
                     TagCategory category = TAG_CATEGORIES[i];
-                    IEnumerable<TagDTO> tags = PageConfigurationService.BrowseConfiguration.Tags.Where(t => t.Category == category);
+                    IEnumerable<TagDTO> tags = BrowseConfigurationService.Config.Tags.Where(t => t.Category == category);
                     foreach (TagDTO tag in tags) {
                         _tagSearchPanelChipModels[i].Add(new ChipModel<TagDTO> { Value = tag });
                     }
@@ -101,14 +104,14 @@ namespace HitomiScrollViewerWebApp.Pages {
         private void OnChipModelsChanged(AdvancedCollectionChangedEventArgs<ChipModel<TagDTO>> e) {
             switch (e.Action) {
                 case AdvancedCollectionChangedAction.AddSingle: {
-                    PageConfigurationService.BrowseConfiguration.Tags.Add(e.NewItem!.Value);
-                    _ = BrowseService.AddTagsAsync(PageConfigurationService.BrowseConfiguration.Id, [e.NewItem!.Value.Id]);
+                    BrowseConfigurationService.Config.Tags.Add(e.NewItem!.Value);
+                    _ = BrowseConfigurationService.AddTagsAsync([e.NewItem!.Value.Id]);
                     break;
                 }
                 case AdvancedCollectionChangedAction.RemoveMultiple: {
                     HashSet<int> removingIds = [.. e.OldItems!.Select(m => m.Value.Id)];
-                    PageConfigurationService.BrowseConfiguration.Tags.RemoveAll(t => removingIds.Contains(t.Id));
-                    _ = BrowseService.RemoveTagsAsync(PageConfigurationService.BrowseConfiguration.Id, removingIds);
+                    BrowseConfigurationService.Config.Tags.RemoveAll(t => removingIds.Contains(t.Id));
+                    _ = BrowseConfigurationService.RemoveTagsAsync(removingIds);
                     break;
                 }
                 default:
