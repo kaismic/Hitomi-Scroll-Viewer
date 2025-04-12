@@ -20,14 +20,5 @@ namespace HitomiScrollViewerWebApp.Services {
             var response = await httpClient.PatchAsync($"update-thread-num?configId={Config.Id}", JsonContent.Create(threadNum));
             return response.IsSuccessStatusCode;
         }
-
-        public async Task<IEnumerable<int>> GetDownloads() {
-            return (await httpClient.GetFromJsonAsync<IEnumerable<int>>($"downloads?configId={Config.Id}"))!;
-        }
-        
-        public async Task AddDownloads(IEnumerable<int> ids) {
-            await httpClient.PatchAsync($"add-downloads?configId={Config.Id}", JsonContent.Create(ids));
-        }
-
     }
 }

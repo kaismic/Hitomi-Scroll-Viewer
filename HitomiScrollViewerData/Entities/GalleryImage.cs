@@ -8,7 +8,6 @@ namespace HitomiScrollViewerData.Entities {
         public long Id { get; set; }
         public int Index { get; set; } // 1 based index
         public required string FileName { get; set; } // named by Index with the format string: "D" + Math.Floor(Math.Log10(Files.Count) + 1);
-        public string FileExt => Hasavif == 1 ? "avif" : Haswebp == 0 ? "webp" : "jxl";
         public required string Hash { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }

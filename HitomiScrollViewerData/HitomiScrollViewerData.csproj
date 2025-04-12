@@ -18,10 +18,4 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.2" />
   </ItemGroup>
-
-
-	<ItemGroup>
-	  <ProjectReference Include="..\ConsoleUtilities\ConsoleUtilities.csproj" />
-	</ItemGroup>
-
 </Project>

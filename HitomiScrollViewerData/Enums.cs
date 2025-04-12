@@ -5,17 +5,15 @@
     }
 
     public enum DownloadStatus {
-        Pending,
         Downloading,
         Completed,
         Paused,
         Failed
     }
 
-    public enum DownloadHubRequest {
+    public enum DownloadAction {
         Start,
         Pause,
-        Resume,
-        Remove
+        Delete
     }
 }

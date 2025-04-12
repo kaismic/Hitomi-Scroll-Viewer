@@ -2,8 +2,7 @@
 
 namespace HitomiScrollViewerAPI.Download {
     public class DownloadEventArgs : EventArgs {
-        public required DownloadHubRequest DownloadRequest { get; init; }
-        public required string ConnectionId { get; init; }
-        public int GalleryId { get; init; }
+        public required DownloadAction Action { get; init; }
+        public required int GalleryId { get; init; }
     }
 }

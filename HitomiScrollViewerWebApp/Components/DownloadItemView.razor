@@ -14,11 +14,12 @@
             <MudText Style="white-space: nowrap;">@(ViewModel.Progress.ToString() + '/' + (ViewModel.Gallery == null ? 0 : ViewModel.Gallery.GalleryImagesCount).ToString())</MudText>
         </div>
     </div>
-    <div class="d-flex gap-4">
+    <div class="d-flex gap-4 align-center">
         <MudIconButton Icon="@ControlButtonIcon"
-                       Disabled="@(ViewModel.Status is DownloadStatus.Pending or DownloadStatus.Completed)"
+                       Disabled="@(ViewModel.Status == DownloadStatus.Completed)"
                        OnClick="@OnActionButtonClick" />
         <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                       Disabled="@(ViewModel.Status == DownloadStatus.Completed)"
                        OnClick="@OnDeleteButtonClick" />
     </div>
 </MudPaper>

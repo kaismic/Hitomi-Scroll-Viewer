@@ -1,16 +1,15 @@
 ﻿using HitomiScrollViewerData;
+using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
-using HitomiScrollViewerWebApp.ViewModels;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class DownloadItemView : ComponentBase, IDisposable {
-        [Inject] private DownloadManagerService DownloadManagerService { get; set; } = null!;
-        [Parameter, EditorRequired] public DownloadViewModel ViewModel { get; set; } = null!;
+        [Inject] private DownloadClientManagerService DownloadManagerService { get; set; } = null!;
+        [Parameter, EditorRequired] public DownloadModel ViewModel { get; set; } = null!;
 
         private string ControlButtonIcon => ViewModel.Status switch {
-            DownloadStatus.Pending => Icons.Material.Filled.Pending,
             DownloadStatus.Downloading => Icons.Material.Filled.Pause,
             DownloadStatus.Completed => Icons.Material.Filled.Check,
             DownloadStatus.Paused or DownloadStatus.Failed => Icons.Material.Filled.PlayArrow,
@@ -23,23 +22,21 @@ namespace HitomiScrollViewerWebApp.Components {
             }
         }
 
-        private void OnActionButtonClick() {
+        private async Task OnActionButtonClick() {
             switch (ViewModel.Status) {
-                case DownloadStatus.Pending:
-                    throw new InvalidOperationException("Action button should not be clickable");
                 case DownloadStatus.Downloading:
-                    DownloadManagerService.PauseDownload(ViewModel.GalleryId);
+                    await DownloadManagerService.PauseDownload(ViewModel.GalleryId);
                     break;
                 case DownloadStatus.Completed:
                     throw new InvalidOperationException("Action button should not be clickable");
                 case DownloadStatus.Paused or DownloadStatus.Failed:
-                    DownloadManagerService.StartDownload(ViewModel.GalleryId);
+                    await DownloadManagerService.StartDownload(ViewModel.GalleryId);
                     break;
             }
         }
 
-        private void OnDeleteButtonClick() {
-            DownloadManagerService.RemoveDownload(ViewModel.GalleryId);
+        private async Task OnDeleteButtonClick() {
+            await DownloadManagerService.DeleteDownload(ViewModel.GalleryId);
         }
 
         public void Dispose() {

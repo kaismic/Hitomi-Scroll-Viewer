@@ -38,35 +38,5 @@ namespace HitomiScrollViewerAPI.Controllers {
             context.SaveChanges();
             return Ok();
         }
-
-        [HttpGet("downloads")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<int>> GetDownloads(int configId) {
-            DownloadConfiguration? config = context.DownloadConfigurations.Find(configId);
-            if (config == null) {
-                return NotFound();
-            }
-            return Ok(config.Downloads);
-        }
-
-
-        [HttpPatch("add-downloads")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult AddDownloads(int configId, [FromBody] IEnumerable<int> ids) {
-            DownloadConfiguration? config = context.DownloadConfigurations.Find(configId);
-            if (config == null) {
-                return NotFound();
-            }
-            ICollection<int> downloads = config.Downloads;
-            foreach (int id in ids) {
-                if (!downloads.Contains(id)) {
-                    downloads.Add(id);
-                }
-            }
-            context.SaveChanges();
-            return Ok();
-        }
     }
 }

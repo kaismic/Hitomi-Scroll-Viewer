@@ -73,7 +73,14 @@ public class Program
                 return new GalleryService(httpClient);
             }
         );
-        builder.Services.AddSingleton<DownloadManagerService>();
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["DownloadServicePath"]);
+                return new DownloadService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton<DownloadClientManagerService>();
 
         var app = builder.Build();
         await app.RunAsync();

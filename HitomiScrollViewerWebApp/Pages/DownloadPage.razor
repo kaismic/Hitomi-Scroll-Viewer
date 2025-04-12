@@ -39,7 +39,7 @@
         </div>
         <MudPaper Class="d-flex flex-column gap-4 overflow-y-auto pa-4"
                   Style="flex: 1" Outlined>
-            @foreach (DownloadViewModel downloadVM in DownloadManagerService.Downloads.Values) {
+            @foreach (DownloadModel downloadVM in DownloadManager.Downloads.Values) {
                 <DownloadItemView ViewModel="@downloadVM" />
             }
         </MudPaper>

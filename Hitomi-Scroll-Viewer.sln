@@ -12,6 +12,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleUtilities", "ConsoleUtilities\ConsoleUtilities.csproj", "{D0D458E9-A220-4FD2-A2BF-7BD29A25E2FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HitomiScrollViewerAPI", "HitomiScrollViewerAPI\HitomiScrollViewerAPI.csproj", "{CD3ABFD5-4015-47F3-B070-D6343498AA6C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D0D458E9-A220-4FD2-A2BF-7BD29A25E2FF} = {D0D458E9-A220-4FD2-A2BF-7BD29A25E2FF}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTestApp", "ConsoleTestApp\ConsoleTestApp.csproj", "{71783D1D-C4C7-4149-A72A-DC52B851F112}"
 EndProject

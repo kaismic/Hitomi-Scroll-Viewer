@@ -2,8 +2,9 @@
 
 namespace HitomiScrollViewerAPI.Hubs {
     public interface IDownloadClient {
-        Task ReceiveGalleryCreated();
-        Task ReceiveProgress(int progress);
-        Task ReceiveStatus(DownloadStatus status, string message);
+        Task ReceiveSavedDownloads(IEnumerable<int> galleryIds);
+        Task ReceiveGalleryCreated(int galleryId);
+        Task ReceiveProgress(int galleryId, int progress);
+        Task ReceiveStatus(int galleryId, DownloadStatus status, string message);
     }
 }

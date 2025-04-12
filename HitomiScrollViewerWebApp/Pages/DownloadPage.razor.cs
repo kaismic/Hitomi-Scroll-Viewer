@@ -7,7 +7,7 @@ namespace HitomiScrollViewerWebApp.Pages {
     public partial class DownloadPage {
         [Inject] private ISnackbar Snackbar { get; set; } = default!;
         [Inject] private DownloadConfigurationService DownloadConfigurationService { get; set; } = default!;
-        [Inject] private DownloadManagerService DownloadManagerService { get; set; } = default!;
+        [Inject] private DownloadClientManagerService DownloadManager { get; set; } = default!;
 
         private string _inputText = "";
 
@@ -36,7 +36,10 @@ namespace HitomiScrollViewerWebApp.Pages {
         protected override async Task OnInitializedAsync() {
             if (!DownloadConfigurationService.IsLoaded) {
                 await DownloadConfigurationService.Load();
-                await DownloadManagerService.Load();
+            }
+            DownloadManager.DownloadPageStateHasChanged = () => InvokeAsync(StateHasChanged);
+            if (!DownloadManager.IsHubConnectionOpen) {
+                DownloadManager.OpenHubConnection();
             }
         }
 
@@ -47,7 +50,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 Snackbar.Add("No valid IDs or URLs found in the input text.", Severity.Error);
                 return;
             }
-            DownloadManagerService.CreateDownloads(matches.Select(m => int.Parse(m.Value)));
+            DownloadManager.AddDownloads(matches.Select(m => int.Parse(m.Value)));
             _inputText = "";
         }
     }
