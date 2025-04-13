@@ -20,6 +20,7 @@ namespace HitomiScrollViewerAPI.Utils {
                 .Select(f => f.Split('.')[0])
                 .Where(f => reg.IsMatch(f))
                 .Select(int.Parse)];
+            Console.WriteLine($"{galleryId}: existing indexes: {string.Join(',', existingIndexes)}");
             return galleryImages.Where(gi => !existingIndexes.Contains(gi.Index));
         }
 

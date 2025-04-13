@@ -14,7 +14,6 @@ namespace HitomiScrollViewerAPI.Download {
         public required Action<Downloader> RemoveSelf { get; init; }
         public required Func<Downloader, Task> RequestLiveServerInfoUpdate { get; init; }
         public DownloadStatus Status { get; set; } = DownloadStatus.Paused;
-        public bool LiveServerInfoUpdated { get; set; } = false;
 
         private LiveServerInfo? _liveServerInfo;
         public LiveServerInfo? LiveServerInfo {
@@ -34,6 +33,7 @@ namespace HitomiScrollViewerAPI.Download {
         private CancellationTokenSource? _cts;
         private Gallery? _gallery;
         private int _progress = 0;
+        private bool _liveServerInfoUpdated = false;
 
         public Downloader(IServiceScope serviceScope) {
             _serviceScope = serviceScope;
@@ -44,11 +44,21 @@ namespace HitomiScrollViewerAPI.Download {
             _httpClient.DefaultRequestHeaders.Referrer = new Uri("https://" + _appConfiguration["HitomiClientDomain"]!);
         }
 
-        private void ChangeStatus(DownloadStatus status, string message) {
+        private void ChangeStatus(DownloadStatus status, string? message = null) {
             Status = status;
-            _hubContext.Clients.All.ReceiveStatus(GalleryId, status, message);
+            switch (status) {
+                case DownloadStatus.Completed:
+                    _hubContext.Clients.All.ReceiveComplete(GalleryId);
+                    break;
+                case DownloadStatus.Failed:
+                    _hubContext.Clients.All.ReceiveFailure(GalleryId, message ?? throw new ArgumentNullException(nameof(message)));
+                    break;
+                default:
+                    _hubContext.Clients.All.ReceiveStatus(GalleryId, status);
+                    break;
+            }
         }
-        
+
         public async Task Start() {
             if (Status == DownloadStatus.Downloading) {
                 return;
@@ -57,42 +67,53 @@ namespace HitomiScrollViewerAPI.Download {
                 _ = RequestLiveServerInfoUpdate(this);
                 return;
             }
+            _liveServerInfoUpdated = false;
             _cts?.Dispose();
             _cts = new();
-            ChangeStatus(DownloadStatus.Downloading, "");
+            ChangeStatus(DownloadStatus.Downloading);
             _logger.LogInformation("{GalleryId}: Starting download", GalleryId);
 
-            using HitomiContext dbContext = new();
-            _gallery ??= dbContext.Galleries.Find(GalleryId);
-            if (_gallery == null) {
-                string galleryInfoResponse;
-                try {
-                    galleryInfoResponse = await GetGalleryInfo(_cts.Token);
-                    OriginalGalleryInfoDTO? ogi = JsonSerializer.Deserialize<OriginalGalleryInfoDTO>(galleryInfoResponse, OriginalGalleryInfoDTO.SERIALIZER_OPTIONS);
-                    if (ogi == null) {
-                        ChangeStatus(DownloadStatus.Failed, "Failed to parse gallery info.");
+            int threadNum = 1;
+            using (HitomiContext dbContext = new()) {
+                _gallery ??= dbContext.Galleries.Find(GalleryId);
+                if (_gallery == null) {
+                    string galleryInfoResponse;
+                    try {
+                        galleryInfoResponse = await GetGalleryInfo(_cts.Token);
+                        OriginalGalleryInfoDTO? ogi = JsonSerializer.Deserialize<OriginalGalleryInfoDTO>(galleryInfoResponse, OriginalGalleryInfoDTO.SERIALIZER_OPTIONS);
+                        if (ogi == null) {
+                            ChangeStatus(DownloadStatus.Failed, "Failed to parse gallery info.");
+                            return;
+                        }
+                        _gallery = CreateGallery(ogi, dbContext);
+                        if (_gallery == null) {
+                            return;
+                        }
+                    } catch (HttpRequestException) {
+                        ChangeStatus(DownloadStatus.Failed, "Failed to get gallery info.");
+                        return;
+                    } catch (TaskCanceledException) {
+                        return;
+                    } catch (Exception e) {
+                        _logger.LogError(e, "");
                         return;
                     }
-                    _gallery = CreateGallery(ogi, dbContext);
-                    if (_gallery == null) {
-                        return;
+                } else {
+                    if (_gallery.GalleryImages == null) {
+                        dbContext.Entry(_gallery).Collection(g => g.GalleryImages).Load();
+                        if (_gallery.GalleryImages == null) {
+                            throw new InvalidOperationException("_gallery.GalleryImages is null after loading images");
+                        }
                     }
-                    await _hubContext.Clients.All.ReceiveGalleryCreated(GalleryId);
-                } catch (HttpRequestException) {
-                    ChangeStatus(DownloadStatus.Failed, "Failed to get gallery info.");
-                    return;
-                } catch (TaskCanceledException) {
-                    return;
-                } catch (Exception e) {
-                    _logger.LogError(e, "");
-                    return;
                 }
-            } else {
-                dbContext.Entry(_gallery).Collection(g => g.GalleryImages).Load();
+                await _hubContext.Clients.All.ReceiveGalleryAvailable(GalleryId);
+                threadNum = dbContext.DownloadConfigurations.First().ThreadNum;
             }
-            int threadNum = dbContext.DownloadConfigurations.First().ThreadNum;
+            
+            _logger.LogInformation("{GalleryId}: All Gallery image indexes : {indexes}", _gallery.Id, string.Join(',', _gallery.GalleryImages.Select(gi => gi.Index)));
             GalleryImage[] missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(_gallery.Id, _gallery.GalleryImages)];
             _logger.LogInformation("{GalleryId}: Found {ImageCount} missing images", _gallery.Id, missingGalleryImages.Length);
+            _logger.LogInformation("{GalleryId}: Missing indexes : {missingIndexes}", _gallery.Id, string.Join(',', missingGalleryImages.Select(gi => gi.Index)));
             _progress = _gallery.GalleryImages.Count - missingGalleryImages.Length;
             await _hubContext.Clients.All.ReceiveProgress(GalleryId, _progress);
             try {
@@ -100,19 +121,25 @@ namespace HitomiScrollViewerAPI.Download {
             } catch (TaskCanceledException) {
                 // if download is canceled not due to user requesting pause, then request LiveServerInfo update
                 if (Status != DownloadStatus.Paused) {
-                    _ = RequestLiveServerInfoUpdate(this);
+                    if (_liveServerInfoUpdated) {
+                        ChangeStatus(DownloadStatus.Failed, "Download failed due to an unknown error.");
+                    } else {
+                        _liveServerInfoUpdated = true;
+                        ChangeStatus(DownloadStatus.WaitingLSIUpdate);
+                        _ = RequestLiveServerInfoUpdate(this);
+                    }
                 }
                 return;
             } catch (Exception e) {
                 _logger.LogError(e, "");
-                ChangeStatus(DownloadStatus.Failed, "Failed to download due to an unknown error.");
+                ChangeStatus(DownloadStatus.Failed, "Download failed due to an unknown error.");
                 return;
             }
             missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(_gallery.Id, _gallery.GalleryImages)];
             if (missingGalleryImages.Length > 0) {
                 ChangeStatus(DownloadStatus.Failed, $"Failed to download {missingGalleryImages.Length} images.");
             } else {
-                ChangeStatus(DownloadStatus.Completed, "");
+                ChangeStatus(DownloadStatus.Completed);
                 RemoveSelf(this);
             }
         }
@@ -274,7 +301,10 @@ namespace HitomiScrollViewerAPI.Download {
         }
 
         public void Pause() {
-            ChangeStatus(DownloadStatus.Paused, "");
+            if (Status == DownloadStatus.Paused) {
+                return;
+            }
+            ChangeStatus(DownloadStatus.Paused);
             _cts?.Cancel();
         }
 

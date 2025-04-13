@@ -11,7 +11,7 @@
                            Class="mb-1" />
         <div class="d-flex">
             <MudText Style="flex: 1 1 auto;">@ViewModel.StatusMessage</MudText>
-            <MudText Style="white-space: nowrap;">@(ViewModel.Progress.ToString() + '/' + (ViewModel.Gallery == null ? 0 : ViewModel.Gallery.GalleryImagesCount).ToString())</MudText>
+            <MudText Style="white-space: nowrap;">@(ViewModel.Progress.ToString() + "/" + (ViewModel.Gallery == null ? "-" : ViewModel.Gallery.GalleryImagesCount.ToString()))</MudText>
         </div>
     </div>
     <div class="d-flex gap-4 align-center">

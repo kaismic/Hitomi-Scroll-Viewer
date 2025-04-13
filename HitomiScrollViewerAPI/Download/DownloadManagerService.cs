@@ -1,7 +1,5 @@
-﻿using HitomiScrollViewerAPI.Hubs;
-using HitomiScrollViewerData;
+﻿using HitomiScrollViewerData;
 using HitomiScrollViewerData.DbContexts;
-using Microsoft.AspNetCore.SignalR;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
 
@@ -11,13 +9,11 @@ namespace HitomiScrollViewerAPI.Download {
             IServiceProvider serviceProvider,
             ILogger<DownloadManagerService> logger,
             IEventBus<DownloadEventArgs> eventBus,
-            IHubContext<DownloadHub, IDownloadClient> hubContext,
             IConfiguration appConfiguration,
             HttpClient httpClient
         ) : BackgroundService {
         private const int SERVER_TIME_EXCLUDE_LENGTH = 16; // length of the string "0123456789/'\r\n};"
         private readonly string _hitomiGgjsAddress = $"https://ltn.{appConfiguration["HitomiServerDomain"]}/gg.js";
-        private const int MAX_LIVE_SERVER_INFO_UPDATE_COUNT = 2; // max number to update live server info before giving up
         private LiveServerInfo? _liveServerInfo;
         private LiveServerInfo? LiveServerInfo {
             get => _liveServerInfo;
@@ -27,9 +23,9 @@ namespace HitomiScrollViewerAPI.Download {
             }
         }
         private DateTime _lastLiveServerInfoUpdateTime = DateTime.MinValue;
-        private readonly object _ggjsFetchLock = new();
+        private readonly object _liveServerInfoUpdateLock = new();
 
-        private readonly Dictionary<int, Downloader> _ggjsFetchWaiters = []; // note: _ggjsFetchWaiters is a subset of _liveDownloaders
+        private readonly Dictionary<int, Downloader> _liveServerInfoUpdateWaiters = []; // note: _liveServerInfoUpdateWaiters is a subset of _liveDownloaders
         private readonly Dictionary<int, Downloader> _liveDownloaders = [];
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
@@ -39,15 +35,15 @@ namespace HitomiScrollViewerAPI.Download {
                      switch (args.Action) {
                         case DownloadAction.Start: {
                             logger.LogInformation("{GalleryId}: Start", args.GalleryId);
-                            using (IServiceScope scope = serviceProvider.CreateScope()) {
-                                HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>();
-                                ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
-                                if (!downloads.Contains(args.GalleryId)) {
-                                    downloads.Add(args.GalleryId);
-                                    dbContext.SaveChanges();
-                                }
-                            }
                             if (!_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? downloader)) {
+                                using (IServiceScope scope = serviceProvider.CreateScope()) {
+                                    HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>();
+                                    ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
+                                    if (!downloads.Contains(args.GalleryId)) {
+                                        downloads.Add(args.GalleryId);
+                                        dbContext.SaveChanges();
+                                    }
+                                }
                                 downloader = new(serviceProvider.CreateScope()) {
                                     GalleryId = args.GalleryId,
                                     LiveServerInfo = LiveServerInfo,
@@ -59,8 +55,12 @@ namespace HitomiScrollViewerAPI.Download {
                             break;
                         }
                         case DownloadAction.Pause: {
+                            
                             logger.LogInformation("{GalleryId}: Pause", args.GalleryId);
                             if (_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? value)) {
+                                // the pause request could have been sent at the exact timing when its LSI is being updated although it's very unlikely
+                                // so just try to remove it from _liveServerInfoUpdateWaiters to prevent it from being started
+                                _liveServerInfoUpdateWaiters.Remove(args.GalleryId);
                                 value.Pause();
                             }
                             break;
@@ -75,8 +75,8 @@ namespace HitomiScrollViewerAPI.Download {
                     }
                 }
             } catch (OperationCanceledException) {
-            } catch (Exception ex) {
-                Console.WriteLine(ex);
+            } catch (Exception e) {
+                logger.LogError(e, "");
             }
         }
 
@@ -90,34 +90,31 @@ namespace HitomiScrollViewerAPI.Download {
                 }
             }
             _liveDownloaders.Remove(d.GalleryId);
-            _ggjsFetchWaiters.Remove(d.GalleryId);
+            _liveServerInfoUpdateWaiters.Remove(d.GalleryId);
             d.Dispose();
         }
 
         private async Task UpdateLiveServerInfo(Downloader downloader) {
-            if (downloader.LastLiveServerInfoUpdateTime < _lastLiveServerInfoUpdateTime) {
-                downloader.LiveServerInfo = LiveServerInfo;
-                StartDownloader(downloader);
-                return;
+            if (LiveServerInfo != null) {
+                if (downloader.LastLiveServerInfoUpdateTime < _lastLiveServerInfoUpdateTime) {
+                    downloader.LiveServerInfo = LiveServerInfo;
+                    StartDownloader(downloader);
+                    return;
+                }
             }
-            if (downloader.LiveServerInfoUpdated) {
-                await hubContext.Clients.All.ReceiveStatus(downloader.GalleryId, DownloadStatus.Failed, "Failed to download due to an unknown error.");
-            } else {
-                downloader.LiveServerInfoUpdated = true;
-                _ggjsFetchWaiters.TryAdd(downloader.GalleryId, downloader);
-            }
-            if (Monitor.TryEnter(_ggjsFetchLock)) {
+            _liveServerInfoUpdateWaiters.TryAdd(downloader.GalleryId, downloader);
+            if (Monitor.TryEnter(_liveServerInfoUpdateLock)) {
                 try {
                     LiveServerInfo = await GetLiveServerInfo();
                     foreach (Downloader d in _liveDownloaders.Values) {
                         d.LiveServerInfo = LiveServerInfo;
                     }
-                    foreach (Downloader d in _ggjsFetchWaiters.Values) {
+                    foreach (Downloader d in _liveServerInfoUpdateWaiters.Values) {
                         StartDownloader(d);
                     }
-                    _ggjsFetchWaiters.Clear();
+                    _liveServerInfoUpdateWaiters.Clear();
                 } finally {
-                    Monitor.Exit(_ggjsFetchLock);
+                    Monitor.Exit(_liveServerInfoUpdateLock);
                 }
             }
         }

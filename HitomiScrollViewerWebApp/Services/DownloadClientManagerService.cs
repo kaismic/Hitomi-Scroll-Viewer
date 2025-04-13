@@ -20,9 +20,11 @@ namespace HitomiScrollViewerWebApp.Services {
                 .WithUrl(appConfiguration["ApiUrl"] + appConfiguration["DownloadHubPath"])
                 .Build();
             _hubConnection.On<IEnumerable<int>>("ReceiveSavedDownloads", OnReceiveSavedDownloads);
-            _hubConnection.On<int>("ReceiveGalleryCreated", OnReceiveGalleryCreated);
+            _hubConnection.On<int>("ReceiveGalleryAvailable", OnReceiveGalleryAvailable);
             _hubConnection.On<int, int>("ReceiveProgress", OnReceiveProgress);
-            _hubConnection.On<int, DownloadStatus, string>("ReceiveStatus", OnReceiveStatus);
+            _hubConnection.On<int, DownloadStatus>("ReceiveStatus", OnReceiveStatus);
+            _hubConnection.On<int>("ReceiveComplete", OnReceiveComplete);
+            _hubConnection.On<int, string>("ReceiveFailure", OnReceiveFailure);
             _hubConnection.Closed += OnClosed;
             _hubConnection.StartAsync();
         }
@@ -34,7 +36,7 @@ namespace HitomiScrollViewerWebApp.Services {
             DownloadPageStateHasChanged?.Invoke();
         }
 
-        private async Task OnReceiveGalleryCreated(int galleryId) {
+        private async Task OnReceiveGalleryAvailable(int galleryId) {
             if (Downloads.TryGetValue(galleryId, out DownloadModel? vm)) {
                 vm.Gallery = await galleryService.GetGalleryDownloadDTO(galleryId);
                 vm.StateHasChanged?.Invoke();
@@ -48,21 +50,29 @@ namespace HitomiScrollViewerWebApp.Services {
             }
         }
 
-        private void OnReceiveStatus(int galleryId, DownloadStatus status, string message) {
+        private void OnReceiveStatus(int galleryId, DownloadStatus status) {
+            if (status is DownloadStatus.Completed or DownloadStatus.Failed) {
+                throw new ArgumentException(
+                    $"Status {nameof(DownloadStatus.Completed)} and {nameof(DownloadStatus.Failed)} must be handled by ReceiveComplete and ReceiveFailure",
+                    nameof(status)
+                );
+            }
             if (Downloads.TryGetValue(galleryId, out DownloadModel? vm)) {
                 vm.Status = status;
-                switch (status) {
-                    case DownloadStatus.Failed:
-                        vm.StatusMessage = message;
-                        break;
-                    case DownloadStatus.Completed:
-                        // TODO css animation fade out or something like that
-                        _ = DeleteDownload(galleryId);
-                        StartNext();
-                        break;
-                    default:
-                        break;
-                }
+                vm.StateHasChanged?.Invoke();
+            }
+        }
+
+        private void OnReceiveComplete(int galleryId) {
+            // TODO css animation fade out or something like that
+            _ = DeleteDownload(galleryId);
+            StartNext();
+        }
+
+        private void OnReceiveFailure(int galleryId, string message) {
+            if (Downloads.TryGetValue(galleryId, out DownloadModel? vm)) {
+                vm.Status = DownloadStatus.Failed;
+                vm.StatusMessage = message;
                 vm.StateHasChanged?.Invoke();
             }
         }

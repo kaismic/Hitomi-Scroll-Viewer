@@ -6,6 +6,7 @@
 
     public enum DownloadStatus {
         Downloading,
+        WaitingLSIUpdate,
         Completed,
         Paused,
         Failed
