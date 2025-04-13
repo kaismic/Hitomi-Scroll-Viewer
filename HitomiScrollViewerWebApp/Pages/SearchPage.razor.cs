@@ -50,9 +50,8 @@ namespace HitomiScrollViewerWebApp.Pages {
             switch (e.Action) {
                 case NotifyCollectionChangedAction.Add:
                     List<TagFilterDTO> newTfs = [.. e.NewItems!.Cast<TagFilterDTO>()];
-                    List<ChipModel<TagFilterDTO>> newModels = [.. newTfs.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })];
-                    _includeTagFilterChipModels.InsertRange(e.NewStartingIndex, newModels);
-                    _excludeTagFilterChipModels.InsertRange(e.NewStartingIndex, newModels);
+                    _includeTagFilterChipModels.InsertRange(e.NewStartingIndex, [.. newTfs.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })]);
+                    _excludeTagFilterChipModels.InsertRange(e.NewStartingIndex, [.. newTfs.Select(tf => new ChipModel<TagFilterDTO>() { Value = tf })]);
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     // assumes ChipModels has the same order in regards to TagFilterDTO.Id
@@ -237,8 +236,8 @@ namespace HitomiScrollViewerWebApp.Pages {
                     Tags = _tagSearchPanelChipModels.SelectMany(l => l).Select(m => m.Value)
                 };
                 TagFilterDTO tagFilter = buildDto.ToDTO();
-                TagFilters.Add(tagFilter);
                 tagFilter.Id = await TagFilterService.CreateAsync(buildDto);
+                TagFilters.Add(tagFilter);
                 //if (tagFilter != null) {
                 _tagFilterEditor.CurrentTagFilter = tagFilter;
                 Snackbar.Add($"Created \"{name}\".", Severity.Success, SNACKBAR_OPTIONS);
