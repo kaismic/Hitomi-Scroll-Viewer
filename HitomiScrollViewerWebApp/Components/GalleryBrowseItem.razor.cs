@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using HitomiScrollViewerData;
 using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Components;
@@ -7,34 +8,38 @@ namespace HitomiScrollViewerWebApp.Components {
     public partial class GalleryBrowseItem : ComponentBase {
         [Inject] IConfiguration AppConfiguration { get; set; } = default!;
         [Parameter, EditorRequired] public GalleryFullDTO Gallery { get; set; } = default!;
-        [Parameter] public string? Style { get; set; }
-        [Parameter] public string? Class { get; set; }
-        [Parameter] public string? Width { get; set; }
-        [Parameter] public string? Height { get; set; }
+        //[Parameter] public string? Style { get; set; }
+        //[Parameter] public string? Class { get; set; }
+        //[Parameter] public string? Width { get; set; }
+        [Parameter, EditorRequired] public string? Height { get; set; }
 
 
-        private const int MAX_THUMBNAIL_IMAGES = 3;
-        private readonly List<string> _imageUrls = [];
+        public const int MAX_THUMBNAIL_IMAGES = 3;
+        private readonly string[,] _imageUrls = new string[MAX_THUMBNAIL_IMAGES, Constants.IMAGE_FILE_EXTS.Length];
         private readonly List<KeyValuePair<TagCategory, List<TagDTO>>> _tagCollections = [];
         protected override void OnAfterRender(bool firstRender) {
-            base.OnAfterRender(firstRender);
-            foreach (TagCategory category in Tag.TAG_CATEGORIES) {
-                List<TagDTO> collection = [.. Gallery.Tags.Where(t => t.Category == category).OrderBy(t => t.Value)];
-                if (collection.Count > 0) {
-                    _tagCollections.Add(new(category, collection));
+            if (firstRender) {
+                foreach (TagCategory category in Tag.TAG_CATEGORIES) {
+                    List<TagDTO> collection = [.. Gallery.Tags.Where(t => t.Category == category).OrderBy(t => t.Value)];
+                    if (collection.Count > 0) {
+                        _tagCollections.Add(new(category, collection));
+                    }
                 }
+                // TODO use IBrowserViewportService to dynamically load thumbnail images
+                // https://mudblazor.com/components/breakpointprovider#listening-to-browser-window-breakpoint-changes
+                for (int i = 0; i < MAX_THUMBNAIL_IMAGES; i++) {
+                    for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length; j++) {
+                        _imageUrls[i,j] = new Url(AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"])
+                        .SetQueryParams(new {
+                            galleryId = Gallery.Id,
+                            index = i + 1,
+                            fileExt = Constants.IMAGE_FILE_EXTS[j]
+                        }).ToString();
+                        Console.WriteLine(_imageUrls[i, j]);
+                    }
+                }
+                StateHasChanged();
             }
-            // TODO variable image thumbnail number based on current item width?
-            for (int i = 1; i <= MAX_THUMBNAIL_IMAGES; i++) {
-                _imageUrls.Add(
-                    new Url(AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"])
-                    .SetQueryParams(new {
-                        galleryId = Gallery.Id,
-                        index = i
-                    }).ToString()
-                );
-            }
-            StateHasChanged();
         }
     }
 }

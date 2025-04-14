@@ -1,10 +1,10 @@
-﻿.search-filter {
-    border: 1px solid var(--mud-palette-secondary);
-    border-radius: var(--mud-default-borderradius);
+﻿.gallery-browse-item > ::deep div:hover {
+    background-color: var(--mud-palette-action-default-hover);
 }
 
-.search-filter:hover {
-    background-color: var(--mud-palette-action-default-hover);
+.tag-collection {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: var(--mud-default-borderradius);
 }
 
 tr:not(:last-child) {

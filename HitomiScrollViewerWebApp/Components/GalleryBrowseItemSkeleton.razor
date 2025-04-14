@@ -1,0 +1,13 @@
+﻿<div style="height: @Height;">
+    <MudSkeleton SkeletonType="SkeletonType.Text" />
+    <div class="d-flex" style="width: 100%; height: 100px;">
+        @for (int i = 0; i < GalleryBrowseItem.MAX_THUMBNAIL_IMAGES; i++) {
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Style="height: 100%" />
+        }
+    </div>
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" />
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string? Height { get; set; }
+}

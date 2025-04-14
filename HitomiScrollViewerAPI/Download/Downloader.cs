@@ -257,11 +257,10 @@ namespace HitomiScrollViewerAPI.Download {
             return Task.WhenAll(tasks);
         }
 
-        private readonly string[] _fileExts = ["avif", "webp"];
         private async Task DownloadImage(GalleryImage galleryImage, CancellationToken ct) {
             DateTime localLastUpdateTime = LastLiveServerInfoUpdateTime;
             while (true) {
-                foreach (string fileExt in _fileExts) {
+                foreach (string fileExt in Constants.IMAGE_FILE_EXTS) {
                     try {
                         HttpResponseMessage response = await _httpClient.GetAsync(GetImageAddress(LiveServerInfo!, galleryImage, fileExt), ct);
                         response.EnsureSuccessStatusCode();

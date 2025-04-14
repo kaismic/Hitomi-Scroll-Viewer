@@ -13,7 +13,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] private GalleryService GalleryService {get;set;} = default!;
         [Inject] private IJSRuntime JsRuntime {get;set;} = default!;
 
-        private const string MIN_ITEM_HEIGHT = "200px";
+        private const string MIN_ITEM_HEIGHT = "300px";
         // if the screen height is more then MIN_ITEM_HEIGHT, screen
 
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
@@ -24,6 +24,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private int _page = 1;
         private int _pageCount = 1;
         private GalleryFullDTO[] _galleries = [];
+        private bool _isLoading = false;
 
         public GalleryLanguageDTO SelectedLanguage {
             get => BrowseConfigurationService.Config.SelectedLanguage;
@@ -97,6 +98,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                         _tagSearchPanelChipModels[i].Add(new ChipModel<TagDTO> { Value = tag });
                     }
                 }
+                await LoadGalleries();
                 StateHasChanged();
             }
         }
@@ -121,8 +123,14 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task OnPageNumChanged(int value) {
             _page = value;
-            _pageCount = await GalleryService.GetCount();
+            await LoadGalleries();
+        }
+
+        private async Task LoadGalleries() {
+            _isLoading = true;
+            StateHasChanged();
             _galleries = [.. await GalleryService.GetGalleryFullDTOs(_page - 1, ItemsPerPage)];
+            _isLoading = false;
         }
     }
 }

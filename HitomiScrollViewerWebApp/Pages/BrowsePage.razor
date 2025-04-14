@@ -28,11 +28,17 @@
                          Min="1" Max="24"
                          @bind-Value="@ItemsPerPage" />
     </div>
-    <MudGrid>
-        @foreach (GalleryFullDTO gallery in _galleries) {
-            <MudItem xs="12" sm="6" md="4" lg="3" xl="2" xxl="1">
-                <GalleryBrowseItem Gallery="@gallery" Height="@MIN_ITEM_HEIGHT" />
-            </MudItem>
-        }
-    </MudGrid>
+    @if (_isLoading) {
+        <div class="d-flex justify-center mt-16">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    } else {
+        <MudGrid Spacing="4">
+            @foreach (GalleryFullDTO gallery in _galleries) {
+                <MudItem sm="12" md="6" lg="4" xl="3" xxl="2" Style="overflow-x: clip;">
+                    <GalleryBrowseItem Gallery="@gallery" Height="@MIN_ITEM_HEIGHT" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
 </div>

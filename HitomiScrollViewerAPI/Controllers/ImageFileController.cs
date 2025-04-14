@@ -6,12 +6,6 @@ namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/image")]
     public class ImageFileController(HitomiContext context) : ControllerBase {
-        [HttpGet("debug")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult DebugAPI() {
-            return Ok();
-        }
-        
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -20,6 +14,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             if (gallery == null) {
                 return NotFound($"Gallery with id {galleryId} was not found.");
             }
+            context.Entry(gallery).Collection(g => g.GalleryImages).Load();
             GalleryImage? image = gallery.GalleryImages.FirstOrDefault(gi => gi.Gallery.Id == galleryId && gi.Index == index);
             if (image == null) {
                 return NotFound($"Image information at the index {index} was not found.");

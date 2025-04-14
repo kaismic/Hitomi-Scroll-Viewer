@@ -1,7 +1,7 @@
 ﻿@inject IJSRuntime JSRuntime
 @inject TagService TagService
 
-<div style="grid-column: @GridColumn; display: grid; grid-template-rows: auto 1fr; max-height: 100%;" class="tag-search-panel">
+<div style="display: grid; grid-template-rows: auto 1fr;">
     <MudAutocomplete T="TagDTO"
                      Label="@Category.ToString()"
                      DebounceInterval="500"

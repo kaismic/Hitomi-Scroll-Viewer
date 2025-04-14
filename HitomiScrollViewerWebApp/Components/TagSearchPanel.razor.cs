@@ -12,7 +12,6 @@ namespace HitomiScrollViewerWebApp.Components {
         private const string JAVASCRIPT_FILE = $"./Components/{nameof(TagSearchPanel)}.razor.js";
         private IJSObjectReference? _jsModule;
 
-        [Parameter, EditorRequired] public int GridColumn { get; set; }
         [Parameter, EditorRequired] public TagCategory Category { get; set; }
         [Parameter, EditorRequired] public ICollection<ChipModel<TagDTO>> ChipModels { get; set; } = default!;
         [Parameter] public EventCallback<AdvancedCollectionChangedEventArgs<ChipModel<TagDTO>>> ChipModelsChanged { get; set; } 
