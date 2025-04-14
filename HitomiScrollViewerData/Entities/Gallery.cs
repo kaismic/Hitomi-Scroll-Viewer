@@ -30,8 +30,6 @@ namespace HitomiScrollViewerData.Entities {
             Title = Title,
             JapaneseTitle = JapaneseTitle,
             Date = Date,
-            SceneIndexes = SceneIndexes,
-            Related = Related,
             LastDownloadTime = LastDownloadTime,
             Language = Language.ToDTO(),
             Type = Type.ToDTO(),

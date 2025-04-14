@@ -1,0 +1,10 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+<MudPopoverProvider />
+
+<MudLayout>
+    <MudMainContent Style="height: 100dvh">
+        @Body
+    </MudMainContent>
+</MudLayout>

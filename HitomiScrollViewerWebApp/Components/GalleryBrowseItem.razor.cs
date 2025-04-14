@@ -10,7 +10,6 @@ namespace HitomiScrollViewerWebApp.Components {
         [Parameter, EditorRequired] public GalleryFullDTO Gallery { get; set; } = default!;
         //[Parameter] public string? Style { get; set; }
         //[Parameter] public string? Class { get; set; }
-        //[Parameter] public string? Width { get; set; }
         [Parameter, EditorRequired] public string? Height { get; set; }
 
 
@@ -27,7 +26,7 @@ namespace HitomiScrollViewerWebApp.Components {
                 }
                 // TODO use IBrowserViewportService to dynamically load thumbnail images
                 // https://mudblazor.com/components/breakpointprovider#listening-to-browser-window-breakpoint-changes
-                for (int i = 0; i < MAX_THUMBNAIL_IMAGES; i++) {
+                for (int i = 0; i < _imageUrls.GetLength(0); i++) {
                     for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length; j++) {
                         _imageUrls[i,j] = new Url(AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"])
                         .SetQueryParams(new {
@@ -35,7 +34,6 @@ namespace HitomiScrollViewerWebApp.Components {
                             index = i + 1,
                             fileExt = Constants.IMAGE_FILE_EXTS[j]
                         }).ToString();
-                        Console.WriteLine(_imageUrls[i, j]);
                     }
                 }
                 StateHasChanged();

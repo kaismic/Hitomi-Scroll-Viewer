@@ -1,4 +1,9 @@
-﻿.gallery-browse-item > ::deep div:hover {
+﻿/*.gallery-browse-item > ::deep div:hover {
+    background-color: var(--mud-palette-action-default-hover);
+}
+*/
+
+.gallery-browse-item a:hover {
     background-color: var(--mud-palette-action-default-hover);
 }
 

@@ -1,9 +1,11 @@
 ﻿<div class="gallery-browse-item">
     <MudPaper Class="pa-2 d-flex flex-column gap-2" Height="@Height" Style="overflow-y: auto; overflow-x: hidden;" Outlined>
-        <MudText Typo="Typo.h5">@Gallery.Title</MudText>
+        <a href=@($"/gallery/{Gallery.Id}") target="_blank">
+            <MudText Typo="Typo.h5">@Gallery.Id</MudText>
+            <MudText Typo="Typo.h5">@Gallery.Title</MudText>
+        </a>
         <div class="d-flex" style="width: 100%; height: 150px;">
-            @for (int i = 0; i < MAX_THUMBNAIL_IMAGES; i++)
-            {
+            @for (int i = 0; i < _imageUrls.GetLength(0); i++) {
                 <picture>
                     @for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length - 1; j++) {
                         <source srcset=@(_imageUrls[i,j]) type=@($"image/{Constants.IMAGE_FILE_EXTS[j]}") />

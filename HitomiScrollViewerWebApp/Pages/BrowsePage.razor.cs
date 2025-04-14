@@ -15,6 +15,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private const string MIN_ITEM_HEIGHT = "300px";
         // if the screen height is more then MIN_ITEM_HEIGHT, screen
+        // TODO create filter button? filter query
 
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
 

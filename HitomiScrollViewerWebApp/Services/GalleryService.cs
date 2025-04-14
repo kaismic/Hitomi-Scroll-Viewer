@@ -3,9 +3,13 @@ using System.Net.Http.Json;
 
 namespace HitomiScrollViewerWebApp.Services {
     public class GalleryService(HttpClient httpClient) {
+        public async Task<int> GetCount() {
+            return await httpClient.GetFromJsonAsync<int>("count");
+        }
+
         public async Task<GalleryDownloadDTO?> GetGalleryDownloadDTO(int id) {
             try {
-                HttpResponseMessage response = await httpClient.GetAsync($"get-download-dto?id={id}");
+                HttpResponseMessage response = await httpClient.GetAsync($"download?id={id}");
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<GalleryDownloadDTO>();
             } catch (HttpRequestException e) {
@@ -16,8 +20,17 @@ namespace HitomiScrollViewerWebApp.Services {
             }
         }
 
-        public async Task<int> GetCount() {
-            return await httpClient.GetFromJsonAsync<int>("count");
+        public async Task<GalleryFullDTO?> GetGalleryFullDTO(int id) {
+            try {
+                HttpResponseMessage response = await httpClient.GetAsync($"full?id={id}");
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<GalleryFullDTO>();
+            } catch (HttpRequestException e) {
+                if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
+                    return null;
+                }
+                throw;
+            }
         }
 
         /// <summary>

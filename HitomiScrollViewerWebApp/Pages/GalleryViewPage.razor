@@ -1,0 +1,16 @@
+﻿@layout EmptyLayout
+
+@page "/gallery/{GalleryId:int}"
+
+<PageTitle>@((_gallery == null ? "" : _gallery.Title) + " - " + GalleryId.ToString())</PageTitle>
+
+<div class="d-flex" style="width: 100%; height: 100%;">
+    @for (int i = 0; i < _imageUrls.GetLength(0); i++) {
+        <picture>
+            @for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length - 1; j++) {
+                <source srcset=@(_imageUrls[i,j]) type=@($"image/{Constants.IMAGE_FILE_EXTS[j]}") />
+            }
+            <img src=@(_imageUrls[i,Constants.IMAGE_FILE_EXTS.Length - 1]) style="height: 100%" />
+        </picture>
+    }
+</div>
