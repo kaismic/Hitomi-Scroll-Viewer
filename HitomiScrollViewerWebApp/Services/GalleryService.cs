@@ -7,11 +7,11 @@ namespace HitomiScrollViewerWebApp.Services {
             return await httpClient.GetFromJsonAsync<int>("count");
         }
 
-        public async Task<GalleryDownloadDTO?> GetGalleryDownloadDTO(int id) {
+        public async Task<GalleryMinDTO?> GetGalleryMinDTO(int id) {
             try {
-                HttpResponseMessage response = await httpClient.GetAsync($"download?id={id}");
+                HttpResponseMessage response = await httpClient.GetAsync($"min?id={id}");
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<GalleryDownloadDTO>();
+                return await response.Content.ReadFromJsonAsync<GalleryMinDTO>();
             } catch (HttpRequestException e) {
                 if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
                     return null;

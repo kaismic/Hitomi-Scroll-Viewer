@@ -1,28 +1,38 @@
 ﻿<div class="gallery-browse-item">
     <MudPaper Class="pa-2 d-flex flex-column gap-2" Height="@Height" Style="overflow-y: auto; overflow-x: hidden;" Outlined>
+        <MudText Typo="Typo.h5">@Gallery.Id</MudText>
+        <MudText Typo="Typo.h5">@Gallery.Title</MudText>
         <a href=@($"/gallery/{Gallery.Id}") target="_blank">
-            <MudText Typo="Typo.h5">@Gallery.Id</MudText>
-            <MudText Typo="Typo.h5">@Gallery.Title</MudText>
+            <div class="d-flex" style="width: 100%; height: 150px;">
+                @for (int i = 1; i <= MAX_THUMBNAIL_IMAGES; i++) {
+                    <picture>
+                        @for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length - 1; j++) {
+                            <source srcset=@(Utils.GetImageUrl(_baseImageUrl, i, j)) type=@($"image/{Constants.IMAGE_FILE_EXTS[j]}") />
+                        }
+                        <img src=@(Utils.GetImageUrl(_baseImageUrl, i, Constants.IMAGE_FILE_EXTS.Length - 1)) style="height: 100%" />
+                    </picture>
+                }
+            </div>
         </a>
-        <div class="d-flex" style="width: 100%; height: 150px;">
-            @for (int i = 0; i < _imageUrls.GetLength(0); i++) {
-                <picture>
-                    @for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length - 1; j++) {
-                        <source srcset=@(_imageUrls[i,j]) type=@($"image/{Constants.IMAGE_FILE_EXTS[j]}") />
-                    }
-                    <img src=@(_imageUrls[i,Constants.IMAGE_FILE_EXTS.Length - 1]) style="height: 100%" />
-                </picture>
-            }
-        </div>
         <table style="border-collapse: collapse; width: 100%;" class="tag-collection">
             <tbody>
+                <tr>
+                    <th>Language</th>
+                    <td>@Gallery.Language.LocalName</td>
+                </tr>
+                <tr>
+                    <th>Type</th>
+                    <td>@Gallery.Type.Value</td>
+                </tr>
                 @foreach (var pair in _tagCollections) {
                     <tr>
-                        <td><MudText>@pair.Key</MudText></td>
-                        <td class="d-flex flex-wrap gap-1">
-                            @foreach (TagDTO tag in pair.Value) {
-                                <span class="mud-chip-filled rounded px-1">@tag.Value</span>
-                            }
+                        <th>@pair.Key</th>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach (TagDTO tag in pair.Value) {
+                                    <span class="mud-chip-filled rounded px-1">@tag.Value</span>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }

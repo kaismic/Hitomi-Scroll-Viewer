@@ -1,23 +1,18 @@
 ﻿.search-filter {
     border: 1px solid var(--mud-palette-secondary);
-    border-radius: var(--mud-default-borderradius);
+    border-radius: 4px;
 }
 
 .search-filter:hover {
     background-color: var(--mud-palette-action-default-hover);
 }
 
-tr:not(:last-child) {
-    border-bottom-color: var(--mud-palette-lines-default);
-    border-bottom-width: 1px;
-}
-
-td {
+.search-filter :is(td, th) {
+    border-color: var(--mud-palette-lines-default);
+    border-width: 1px;
     padding: 4px;
 }
 
-td:first-child {
-    border-right-color: var(--mud-palette-lines-default);
-    border-right-width: 1px;
-    vertical-align: top;
+th {
+    font-weight: bold;
 }

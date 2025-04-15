@@ -38,7 +38,7 @@ namespace HitomiScrollViewerWebApp.Services {
 
         private async Task OnReceiveGalleryAvailable(int galleryId) {
             if (Downloads.TryGetValue(galleryId, out DownloadModel? vm)) {
-                vm.Gallery = await galleryService.GetGalleryDownloadDTO(galleryId);
+                vm.Gallery = await galleryService.GetGalleryMinDTO(galleryId);
                 vm.StateHasChanged?.Invoke();
             }
         }

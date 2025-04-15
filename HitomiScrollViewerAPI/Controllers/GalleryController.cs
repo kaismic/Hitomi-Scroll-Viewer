@@ -8,28 +8,27 @@ namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/gallery")]
     public class GalleryController(HitomiContext context) : ControllerBase {
-        [HttpGet("download")]
+        [HttpGet("min")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<GalleryDownloadDTO> GetGalleryDownloadDTO(int id) {
+        public ActionResult<GalleryMinDTO> GetGalleryMinDTO(int id) {
             Gallery? gallery = context.Galleries.Find(id);
             if (gallery == null) {
                 return NotFound();
             }
-            return Ok(gallery.ToDownloadDTO(context.Entry(gallery).Collection(g => g.GalleryImages).Query().Count()));
+            return Ok(gallery.ToMinDTO(context.Entry(gallery).Collection(g => g.GalleryImages).Query().Count()));
         }
 
         [HttpGet("full")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<GalleryDownloadDTO> GetGalleryFullDTO(int id) {
+        public ActionResult<GalleryFullDTO> GetGalleryFullDTO(int id) {
             Gallery? gallery = context.Galleries.Find(id);
             if (gallery == null) {
                 return NotFound();
             }
             context.Entry(gallery).Reference(g => g.Language).Load();
             context.Entry(gallery).Reference(g => g.Type).Load();
-            context.Entry(gallery).Collection(g => g.GalleryImages).Load();
             context.Entry(gallery).Collection(g => g.Tags).Load();
             return Ok(gallery.ToFullDTO());
         }

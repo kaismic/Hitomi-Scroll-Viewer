@@ -1,28 +1,18 @@
-﻿/*.gallery-browse-item > ::deep div:hover {
-    background-color: var(--mud-palette-action-default-hover);
+﻿.gallery-browse-item a {
+    border: 1px solid rgb(0, 0, 0, 0.00)
 }
-*/
 
 .gallery-browse-item a:hover {
+    border: 1px solid var(--mud-palette-primary);
     background-color: var(--mud-palette-action-default-hover);
 }
 
-.tag-collection {
-    border: 1px solid var(--mud-palette-lines-default);
-    border-radius: var(--mud-default-borderradius);
-}
-
-tr:not(:last-child) {
-    border-bottom-color: var(--mud-palette-lines-default);
-    border-bottom-width: 1px;
-}
-
-td {
+.tag-collection :is(td, th) {
+    border-color: var(--mud-palette-lines-default);
+    border-width: 1px;
     padding: 4px;
 }
 
-td:first-child {
-    border-right-color: var(--mud-palette-lines-default);
-    border-right-width: 1px;
-    vertical-align: top;
+th {
+    font-weight: bold;
 }

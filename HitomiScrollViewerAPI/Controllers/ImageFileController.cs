@@ -14,8 +14,12 @@ namespace HitomiScrollViewerAPI.Controllers {
             if (gallery == null) {
                 return NotFound($"Gallery with id {galleryId} was not found.");
             }
+            int imageCount = context.Entry(gallery).Collection(g => g.GalleryImages).Query().Count();
+            if (index < 1 || index > imageCount) {
+                return BadRequest($"Image index {index} is out of range.");
+            }
             context.Entry(gallery).Collection(g => g.GalleryImages).Load();
-            GalleryImage? image = gallery.GalleryImages.FirstOrDefault(gi => gi.Gallery.Id == galleryId && gi.Index == index);
+            GalleryImage? image = gallery.GalleryImages.FirstOrDefault(gi => gi.Index == index);
             if (image == null) {
                 return NotFound($"Image information at the index {index} was not found.");
             }

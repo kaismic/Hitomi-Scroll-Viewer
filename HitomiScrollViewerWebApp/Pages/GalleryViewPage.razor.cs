@@ -1,30 +1,62 @@
-﻿using Flurl;
-using HitomiScrollViewerData;
-using HitomiScrollViewerData.DTOs;
+﻿using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class GalleryViewPage {
         [Inject] IConfiguration AppConfiguration { get; set; } = default!;
         [Inject] private GalleryService GalleryService { get; set; } = default!;
         [Parameter] public int GalleryId { get; set; }
-        private GalleryFullDTO? _gallery;
-        private readonly string[,] _imageUrls = new string[2, Constants.IMAGE_FILE_EXTS.Length];
+        private GalleryMinDTO? _gallery;
+        private string _baseImageUrl = "";
+        /// <summary>
+        /// 0-based page index
+        /// </summary>
+        private int _pageIndex = 0;
+        private int _pageCount = 2;
+        private int _pageOffset = 0;
+
+        protected override void OnInitialized() {
+            _baseImageUrl = AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"] + "?galleryId=" + GalleryId;
+        }
+
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                _gallery ??= await GalleryService.GetGalleryFullDTO(GalleryId);
-                for (int i = 0; i < _imageUrls.GetLength(0); i++) {
-                    for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length; j++) {
-                        _imageUrls[i, j] = new Url(AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"])
-                        .SetQueryParams(new {
-                            galleryId = GalleryId,
-                            index = i + 1,
-                            fileExt = Constants.IMAGE_FILE_EXTS[j]
-                        }).ToString();
-                    }
-                }
+                _gallery ??= await GalleryService.GetGalleryMinDTO(GalleryId);
                 StateHasChanged();
+            }
+        }
+
+        private int GetStartIndex() => Math.Max(1, _pageIndex * _pageCount + 1 - _pageOffset);
+        private int GetEndIndex() {
+            if (_gallery == null) {
+                throw new InvalidOperationException("Gallery is not loaded yet.");
+            }
+            return Math.Min((_pageIndex + 1) * _pageCount - _pageOffset, _gallery.GalleryImagesCount);
+        }
+        private bool CanDecrement() => _pageIndex > 0;
+        private bool CanIncrement() {
+            if (_gallery == null) {
+                throw new InvalidOperationException("Gallery is not loaded yet.");
+            }
+            return (_pageIndex + 1) * _pageCount - _pageOffset < _gallery.GalleryImagesCount;
+        }
+        private void Decrement() {
+            _pageIndex--;
+            StateHasChanged();
+        }
+        private void Increment() {
+            _pageIndex++;
+            StateHasChanged();
+        }
+
+        private void OnKeyDown(KeyboardEventArgs e) {
+            if (e.Key == "ArrowLeft" && CanDecrement()) {
+                Decrement();
+            }
+            if (e.Key == "ArrowRight" && CanIncrement()) {
+                Increment();
             }
         }
     }

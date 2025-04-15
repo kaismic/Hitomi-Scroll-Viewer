@@ -1,5 +1,5 @@
 ﻿namespace HitomiScrollViewerData.DTOs;
-public class GalleryDownloadDTO
+public class GalleryMinDTO
 {
     public required int Id { get; set; }
     public required string Title { get; set; }

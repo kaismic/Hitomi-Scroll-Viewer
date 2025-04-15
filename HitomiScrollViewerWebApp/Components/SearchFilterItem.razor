@@ -1,34 +1,36 @@
 ﻿<a class="search-filter" href="@Model.SearchLink" target="_blank" rel="noreferrer">
-    <table style="border-collapse: collapse;">
+    <table style="border-collapse: collapse; width: 100%;">
         <tbody>
             <tr>
-                <td><MudText Typo="Typo.button">Language</MudText></td>
+                <th>Language</th>
                 <td>@Model.Language.LocalName</td>
             </tr>
             <tr>
-                <td><MudText Typo="Typo.button">Type</MudText></td>
+                <th>Type</th>
                 <td>@Model.Type.Value</td>
             </tr>
             @foreach (LabeledTagCollectionDTO collection in Model.LabeledTagCollections)
             {
                 <tr>
-                    <td><MudText Typo="Typo.button">@collection.Category.ToString()</MudText></td>
-                    <td class="d-flex flex-wrap gap-1">
-                        @foreach (string value in collection.IncludeTagValues)
-                        {
-                            <span style="background-color: var(--mud-palette-success); color: var(--mud-palette-error-text);" class="rounded px-1">@value</span>
-                        }
-                        @foreach (string value in collection.ExcludeTagValues)
-                        {
-                            <span style="background-color: var(--mud-palette-error); color: var(--mud-palette-success-text);" class="rounded px-1">@value</span>
-                        }
+                    <th>@collection.Category.ToString()</th>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            @foreach (string value in collection.IncludeTagValues)
+                            {
+                                <span style="background-color: var(--mud-palette-success); color: var(--mud-palette-error-text);" class="rounded px-1">@value</span>
+                            }
+                            @foreach (string value in collection.ExcludeTagValues)
+                            {
+                                <span style="background-color: var(--mud-palette-error); color: var(--mud-palette-success-text);" class="rounded px-1">@value</span>
+                            }
+                        </div>
                     </td>
                 </tr>
             }
             @if (Model.SearchKeywordText.Length > 0)
             {
                 <tr>
-                    <td><MudText Typo="Typo.button">Keywords</MudText></td>
+                    <th>Keywords</th>
                     <td>@Model.SearchKeywordText</td>
                 </tr>
             }

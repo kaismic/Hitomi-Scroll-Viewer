@@ -19,7 +19,7 @@ namespace HitomiScrollViewerData.Entities {
         public required ICollection<GalleryImage> GalleryImages { get; set; }
         public required ICollection<Tag> Tags { get; set; }
 
-        public GalleryDownloadDTO ToDownloadDTO(int count) => new() {
+        public GalleryMinDTO ToMinDTO(int count) => new() {
             Id = Id,
             Title = Title,
             GalleryImagesCount = count,
@@ -28,12 +28,10 @@ namespace HitomiScrollViewerData.Entities {
         public GalleryFullDTO ToFullDTO() => new() {
             Id = Id,
             Title = Title,
-            JapaneseTitle = JapaneseTitle,
             Date = Date,
             LastDownloadTime = LastDownloadTime,
             Language = Language.ToDTO(),
             Type = Type.ToDTO(),
-            GalleryImages = [.. GalleryImages.Select(g => g.ToDTO())],
             Tags = [.. Tags.Select(t => t.ToDTO())]
         };
     }

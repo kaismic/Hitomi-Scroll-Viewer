@@ -110,10 +110,8 @@ namespace HitomiScrollViewerAPI.Download {
                 threadNum = dbContext.DownloadConfigurations.First().ThreadNum;
             }
             
-            _logger.LogInformation("{GalleryId}: All Gallery image indexes : {indexes}", _gallery.Id, string.Join(',', _gallery.GalleryImages.Select(gi => gi.Index)));
             GalleryImage[] missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(_gallery.Id, _gallery.GalleryImages)];
             _logger.LogInformation("{GalleryId}: Found {ImageCount} missing images", _gallery.Id, missingGalleryImages.Length);
-            _logger.LogInformation("{GalleryId}: Missing indexes : {missingIndexes}", _gallery.Id, string.Join(',', missingGalleryImages.Select(gi => gi.Index)));
             _progress = _gallery.GalleryImages.Count - missingGalleryImages.Length;
             await _hubContext.Clients.All.ReceiveProgress(GalleryId, _progress);
             try {
