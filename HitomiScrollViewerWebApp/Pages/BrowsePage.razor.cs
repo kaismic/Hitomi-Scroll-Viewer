@@ -22,8 +22,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         /// <summary>
         /// 1-based page number
         /// </summary>
-        private int _page = 1;
-        private int _pageCount = 1;
+        private int _pageNum = 1;
+        private int _numOfPages = 1;
         private GalleryFullDTO[] _galleries = [];
         private bool _isLoading = false;
 
@@ -91,7 +91,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task OnInitRenderComplete() {
             if (_isInitialized && _isRendered) {
-                _pageCount = await GalleryService.GetCount();
+                _numOfPages = (await GalleryService.GetCount() / ItemsPerPage) + 1;
                 for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
                     TagCategory category = TAG_CATEGORIES[i];
                     IEnumerable<TagDTO> tags = BrowseConfigurationService.Config.Tags.Where(t => t.Category == category);
@@ -123,14 +123,14 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task OnPageNumChanged(int value) {
-            _page = value;
+            _pageNum = value;
             await LoadGalleries();
         }
 
         private async Task LoadGalleries() {
             _isLoading = true;
             StateHasChanged();
-            _galleries = [.. await GalleryService.GetGalleryFullDTOs(_page - 1, ItemsPerPage)];
+            _galleries = [.. await GalleryService.GetGalleryFullDTOs(_pageNum - 1, ItemsPerPage)];
             _isLoading = false;
         }
     }

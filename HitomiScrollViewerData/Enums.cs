@@ -17,4 +17,24 @@
         Pause,
         Delete
     }
+
+    public enum ViewMode {
+        Default,
+        Scroll
+    }
+
+    public enum ImageLayoutMode {
+        Automatic,
+        Fixed
+    }
+
+    public enum ViewDirection {
+        LTR,
+        RTL
+    }
+
+    public enum AutoScrollMode {
+        Continuous,
+        Discrete,
+    }
 }

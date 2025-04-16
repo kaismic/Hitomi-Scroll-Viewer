@@ -8,28 +8,44 @@
     <div style="height: 100%; outline: none;" tabindex="-1" onkeydown="@OnKeyDown">
         <div class="d-flex justify-center gap-8" style="height: 70px;">
             <div class="d-flex gap-4">
-                <MudFab StartIcon="@Icons.Material.Filled.KeyboardArrowLeft"
-                        Disabled="@(!CanDecrement())"
-                        OnClick="@(() => Decrement())" />
-                <MudFab StartIcon="@Icons.Material.Filled.KeyboardArrowRight"
-                        Disabled="@(!CanIncrement())"
-                        OnClick="@(() => Increment())" />
+                <MudFab StartIcon="@Icons.Material.Filled.NavigateBefore"
+                Disabled="@(!CanDecrement())"
+                OnClick="@(() => Decrement())" />
+                <MudFab StartIcon="@Icons.Material.Filled.NavigateNext"
+                Disabled="@(!CanIncrement())"
+                OnClick="@(() => Increment())" />
             </div>
             <MudNumericField T="int"
-                             @bind-Value="@_pageCount"
-                             Label="Page Count"></MudNumericField>
+            @bind-Value="@ViewConfiguration.ImagesPerPage"
+            Label="Page Count"
+            Min="1" Max="@_gallery.GalleryImagesCount" />
             <MudNumericField T="int"
-                             @bind-Value="@_pageOffset"
-                             Label="Page Offset"></MudNumericField>
+            @bind-Value="@_pageOffset"
+            Label="Page Offset"
+            Min="0" Max="@(ViewConfiguration.ImagesPerPage - 1)" />
+            <MudSelect T="@(ViewMode)"/>
         </div>
         <div class="d-flex justify-center" style="height: calc(100% - 80px);">
-            @for (int i = GetStartIndex(); i <= GetEndIndex(); i++) {
-                <picture>
-                    @for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length - 1; j++) {
-                        <source srcset=@(Utils.GetImageUrl(_baseImageUrl, i, j)) type=@($"image/{Constants.IMAGE_FILE_EXTS[j]}") />
-                    }
-                    <img src=@(Utils.GetImageUrl(_baseImageUrl, i, Constants.IMAGE_FILE_EXTS.Length - 1)) style="max-height: 100%; max-width: 100%;" />
-                </picture>
+            @if (ViewConfiguration.ViewDirection == ViewDirection.LTR)
+            {
+                @for (int i = GetStartIndex(); i <= GetEndIndex(); i++) {
+                    <picture>
+                        @for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length - 1; j++) {
+                            <source srcset=@(Utils.GetImageUrl(_baseImageUrl, i, j)) type=@($"image/{Constants.IMAGE_FILE_EXTS[j]}") />
+                        }
+                        <img src=@(Utils.GetImageUrl(_baseImageUrl, i, Constants.IMAGE_FILE_EXTS.Length - 1)) style="max-height: 100%; max-width: 100%;" />
+                    </picture>
+                }
+            } else
+            {
+                @for (int i = GetEndIndex(); i >= GetStartIndex(); i--) {
+                    <picture>
+                        @for (int j = 0; j < Constants.IMAGE_FILE_EXTS.Length - 1; j++) {
+                            <source srcset=@(Utils.GetImageUrl(_baseImageUrl, i, j)) type=@($"image/{Constants.IMAGE_FILE_EXTS[j]}") />
+                        }
+                        <img src=@(Utils.GetImageUrl(_baseImageUrl, i, Constants.IMAGE_FILE_EXTS.Length - 1)) style="max-height: 100%; max-width: 100%;" />
+                    </picture>
+                }
             }
         </div>
     </div>

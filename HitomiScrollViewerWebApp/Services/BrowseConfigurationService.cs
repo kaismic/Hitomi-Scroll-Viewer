@@ -4,13 +4,7 @@ using System.Net.Http.Json;
 namespace HitomiScrollViewerWebApp.Services {
     public class BrowseConfigurationService(HttpClient httpClient) {
         public bool IsLoaded { get; private set; } = false;
-        public BrowseConfigurationDTO Config { get; private set; } = new() {
-            SelectedLanguage = new() { EnglishName = "", Id = 0, IsAll = true, LocalName = "" },
-            SelectedType = new() { Id = 0, IsAll = true, Value = "" },
-            SearchKeywordText = "",
-            ItemsPerPage = 8,
-            Tags = []
-        };
+        public BrowseConfigurationDTO Config { get; private set; } = new();
 
         public async Task Load() {
             Config = (await httpClient.GetFromJsonAsync<BrowseConfigurationDTO>(""))!;

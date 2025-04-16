@@ -41,6 +41,13 @@ public class Program
         builder.Services.AddSingleton(sp =>
             {
                 HttpClient httpClient = sp.GetRequiredService<HttpClient>();
+                httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["ViewConfigPath"]);
+                return new ViewConfigurationService(httpClient);
+            }
+        );
+        builder.Services.AddSingleton(sp =>
+            {
+                HttpClient httpClient = sp.GetRequiredService<HttpClient>();
                 httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["LanguageTypePath"]);
                 return new LanguageTypeService(httpClient);
             }

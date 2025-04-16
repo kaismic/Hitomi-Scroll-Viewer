@@ -118,7 +118,7 @@ namespace HitomiScrollViewerAPI.Services {
             Console.WriteLine("  Complete");
 
 
-            // add query configurations
+            // add configurations
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding configurations... ");
             hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, 2);
             context.SearchConfigurations.Add(new() {
@@ -132,6 +132,17 @@ namespace HitomiScrollViewerAPI.Services {
                 ItemsPerPage = 8
             });
             context.DownloadConfigurations.Add(new() { ThreadNum = 1 });
+            context.ViewConfigurations.Add(new() {
+                ImagesPerPage = 2,
+                Loop = true,
+                ImageLayoutMode = ImageLayoutMode.Automatic,
+                ViewDirection = ViewDirection.RTL,
+                AutoPageFlipInterval = 8,
+                AutoScrollMode = AutoScrollMode.Continuous,
+                AutoScrollSpeed = 20,
+                AutoScrollDistance = 80,
+                AutoScrollInterval = 4
+            });
             context.SaveChanges();
             Console.WriteLine("  Complete");
 
