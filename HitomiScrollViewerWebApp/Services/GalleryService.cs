@@ -7,11 +7,11 @@ namespace HitomiScrollViewerWebApp.Services {
             return await httpClient.GetFromJsonAsync<int>("count");
         }
 
-        public async Task<GalleryMinDTO?> GetGalleryMinDTO(int id) {
+        public async Task<DownloadGalleryDTO?> GetDownloadGalleryDTO(int id) {
             try {
-                HttpResponseMessage response = await httpClient.GetAsync($"min?id={id}");
+                HttpResponseMessage response = await httpClient.GetAsync($"download?id={id}");
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<GalleryMinDTO>();
+                return await response.Content.ReadFromJsonAsync<DownloadGalleryDTO>();
             } catch (HttpRequestException e) {
                 if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
                     return null;
@@ -20,11 +20,11 @@ namespace HitomiScrollViewerWebApp.Services {
             }
         }
 
-        public async Task<GalleryFullDTO?> GetGalleryFullDTO(int id) {
+        public async Task<ViewGalleryDTO?> GetViewGalleryDTO(int id) {
             try {
-                HttpResponseMessage response = await httpClient.GetAsync($"full?id={id}");
+                HttpResponseMessage response = await httpClient.GetAsync($"view?id={id}");
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<GalleryFullDTO>();
+                return await response.Content.ReadFromJsonAsync<ViewGalleryDTO>();
             } catch (HttpRequestException e) {
                 if (e.StatusCode == System.Net.HttpStatusCode.NotFound) {
                     return null;
@@ -39,8 +39,8 @@ namespace HitomiScrollViewerWebApp.Services {
         /// <param name="pageIndex"></param>
         /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<GalleryFullDTO>> GetGalleryFullDTOs(int pageIndex, int itemsPerPage) {
-            return (await httpClient.GetFromJsonAsync<IEnumerable<GalleryFullDTO>>($"galleries?pageIndex={pageIndex}&itemsPerPage={itemsPerPage}"))!;
+        public async Task<IEnumerable<BrowseGalleryDTO>> GetBrowseGalleryDTOs(int pageIndex, int itemsPerPage) {
+            return (await httpClient.GetFromJsonAsync<IEnumerable<BrowseGalleryDTO>>($"browse-galleries?pageIndex={pageIndex}&itemsPerPage={itemsPerPage}"))!;
         }
     }
 }

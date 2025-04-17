@@ -25,7 +25,7 @@ namespace HitomiScrollViewerWebApp.Services {
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> UpdateTagFilterCollectionAsync(bool isInclude, IEnumerable<int> tagFilterIds) {
+        public async Task<bool> UpdateSelectedTagFilterCollectionAsync(bool isInclude, IEnumerable<int> tagFilterIds) {
             var response = await httpClient.PatchAsync($"tag-filter-collection?configId={Config.Id}&isInclude={isInclude}", JsonContent.Create(tagFilterIds));
             return response.IsSuccessStatusCode;
         }

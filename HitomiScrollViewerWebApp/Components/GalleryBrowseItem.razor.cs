@@ -1,11 +1,12 @@
 ﻿using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class GalleryBrowseItem : ComponentBase {
         [Inject] IConfiguration AppConfiguration { get; set; } = default!;
-        [Parameter, EditorRequired] public GalleryFullDTO Gallery { get; set; } = default!;
+        [Parameter, EditorRequired] public BrowseGalleryDTO Gallery { get; set; } = default!;
         [Parameter, EditorRequired] public string? Height { get; set; }
 
 

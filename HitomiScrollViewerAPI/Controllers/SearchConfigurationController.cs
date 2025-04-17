@@ -41,7 +41,7 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpPatch("tag-filter-collection")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateIncludeTagFilters(int configId, bool isInclude, [FromBody] IEnumerable<int> tagFilterIds) {
+        public ActionResult UpdateSelectedTagFilterCollection(int configId, bool isInclude, [FromBody] IEnumerable<int> tagFilterIds) {
             SearchConfiguration? config = context.SearchConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();

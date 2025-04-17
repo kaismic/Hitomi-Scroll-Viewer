@@ -139,6 +139,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private bool _isInitialized = false;
         private bool _isRendered = false;
+        private bool _isLoaded = false;
 
         protected override async Task OnInitializedAsync() {
             _isInitialized = false;
@@ -173,17 +174,21 @@ namespace HitomiScrollViewerWebApp.Pages {
                         chipModel.Selected = true;
                     }
                 }
+                _isLoaded = true;
             }
         }
 
         private void OnSelectedTagFilterCollectionChanged(IReadOnlyCollection<ChipModel<TagFilterDTO>> collection, bool isInclude) {
+            if (!_isLoaded) {
+                return;
+            }
             IEnumerable<int> ids = collection.Select(m => m.Value.Id);
             if (isInclude) {
                 SearchConfigurationService.Config.SelectedIncludeTagFilterIds = ids;
             } else {
                 SearchConfigurationService.Config.SelectedExcludeTagFilterIds = ids;
             }
-            _ = SearchConfigurationService.UpdateTagFilterCollectionAsync(isInclude, ids);
+            _ = SearchConfigurationService.UpdateSelectedTagFilterCollectionAsync(isInclude, ids);
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {

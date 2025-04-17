@@ -12,33 +12,42 @@ namespace HitomiScrollViewerAPI.Utils {
                 Directory.CreateDirectory(dir);
                 return galleryImages;
             }
-            Regex reg = AllDigitRegex();
             HashSet<int> existingIndexes =
                 [.. Directory.GetFiles(dir, "*.*")
                 .Select(Path.GetFileName)
                 .Cast<string>()
                 .Select(f => f.Split('.')[0])
-                .Where(f => reg.IsMatch(f))
+                .Where(name => AllDigitRegex().IsMatch(name))
                 .Select(int.Parse)];
-            Console.WriteLine($"{galleryId}: existing indexes: {string.Join(',', existingIndexes)}");
             return galleryImages.Where(gi => !existingIndexes.Contains(gi.Index));
         }
 
-        public static string GetImagePath(Gallery gallery, GalleryImage galleryImage, string fileExt) {
-            return Path.Combine(ROOT_PATH, gallery.Id.ToString(), GetFullFileName(gallery, galleryImage, fileExt));
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gallery"></param>
+        /// <param name="galleryImage"></param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException"></exception>
+        public static string GetImagePath(Gallery gallery, GalleryImage galleryImage) {
+            string[] fullFilePaths = Directory.GetFiles(Path.Combine(ROOT_PATH, gallery.Id.ToString()), "*.*");
+            foreach (string fullFilePath in fullFilePaths) {
+                string fileName = Path.GetFileName(fullFilePath);
+                Regex regex = new($@"0*{galleryImage.Index}\.(avif|webp)");
+                if (regex.IsMatch(fileName)) {
+                    return fullFilePath;
+                }
+            }
+            throw new FileNotFoundException();
         }
 
         public static async Task WriteImageAsync(Gallery gallery, GalleryImage galleryImage, byte[] data, string fileExt) {
-            string fullFileName = GetFullFileName(gallery, galleryImage, fileExt);
+            string format = "D" + Math.Floor(Math.Log10(gallery.Images.Count) + 1);
+            string fileName = galleryImage.Index.ToString(format);
+            string fullFileName = fileName + '.' + fileExt;
             string dir = Path.Combine(ROOT_PATH, gallery.Id.ToString());
             Directory.CreateDirectory(dir);
             await File.WriteAllBytesAsync(Path.Combine(dir, fullFileName), data);
-        }
-
-        private static string GetFullFileName(Gallery gallery, GalleryImage galleryImage, string fileExt) {
-            string format = "D" + Math.Floor(Math.Log10(gallery.GalleryImages.Count) + 1);
-            string fileName = galleryImage.Index.ToString(format);
-            return fileName + '.' + fileExt;
         }
     }
 }

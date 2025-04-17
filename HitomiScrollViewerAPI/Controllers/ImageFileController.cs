@@ -9,23 +9,24 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult GetImage(int galleryId, int index, string fileExt) {
+        public ActionResult GetImage(int galleryId, int index) {
             Gallery? gallery = context.Galleries.Find(galleryId);
             if (gallery == null) {
                 return NotFound($"Gallery with id {galleryId} was not found.");
             }
-            int imageCount = context.Entry(gallery).Collection(g => g.GalleryImages).Query().Count();
+            int imageCount = context.Entry(gallery).Collection(g => g.Images).Query().Count();
             if (index < 1 || index > imageCount) {
                 return BadRequest($"Image index {index} is out of range.");
             }
-            context.Entry(gallery).Collection(g => g.GalleryImages).Load();
-            GalleryImage? image = gallery.GalleryImages.FirstOrDefault(gi => gi.Index == index);
+            context.Entry(gallery).Collection(g => g.Images).Load();
+            GalleryImage? image = gallery.Images.FirstOrDefault(gi => gi.Index == index);
             if (image == null) {
                 return NotFound($"Image information at the index {index} was not found.");
             }
             try {
-                FileStream stream = System.IO.File.OpenRead(Utils.GalleryFileUtil.GetImagePath(gallery, image, fileExt));
-                return File(stream, $"image/{fileExt}");
+                string path = Utils.GalleryFileUtil.GetImagePath(gallery, image);
+                FileStream stream = System.IO.File.OpenRead(path);
+                return File(stream, $"image/{path.Split('.').Last()}");
             } catch (FileNotFoundException) {
                 return NotFound($"Image file at the index {index} was not found.");
             }

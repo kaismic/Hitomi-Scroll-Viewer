@@ -8,29 +8,27 @@ namespace HitomiScrollViewerAPI.Controllers {
     [ApiController]
     [Route("api/gallery")]
     public class GalleryController(HitomiContext context) : ControllerBase {
-        [HttpGet("min")]
+        [HttpGet("download")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<GalleryMinDTO> GetGalleryMinDTO(int id) {
+        public ActionResult<DownloadGalleryDTO> GetDownloadGalleryDTO(int id) {
             Gallery? gallery = context.Galleries.Find(id);
             if (gallery == null) {
                 return NotFound();
             }
-            return Ok(gallery.ToMinDTO(context.Entry(gallery).Collection(g => g.GalleryImages).Query().Count()));
+            return Ok(gallery.ToDownloadDTO(context.Entry(gallery).Collection(g => g.Images).Query().Count()));
         }
 
-        [HttpGet("full")]
+        [HttpGet("view")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<GalleryFullDTO> GetGalleryFullDTO(int id) {
+        public ActionResult<ViewGalleryDTO> GetViewGalleryDTO(int id) {
             Gallery? gallery = context.Galleries.Find(id);
             if (gallery == null) {
                 return NotFound();
             }
-            context.Entry(gallery).Reference(g => g.Language).Load();
-            context.Entry(gallery).Reference(g => g.Type).Load();
-            context.Entry(gallery).Collection(g => g.Tags).Load();
-            return Ok(gallery.ToFullDTO());
+            context.Entry(gallery).Collection(g => g.Images).Load();
+            return Ok(gallery.ToViewDTO());
         }
 
         [HttpGet("count")]
@@ -45,10 +43,10 @@ namespace HitomiScrollViewerAPI.Controllers {
         /// <param name="pageIndex"></param>
         /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        [HttpGet("galleries")]
+        [HttpGet("browse-galleries")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<IEnumerable<GalleryFullDTO>> GetGalleries(int pageIndex, int itemsPerPage) {
+        public ActionResult<IEnumerable<BrowseGalleryDTO>> GetBrowseGalleryDTOs(int pageIndex, int itemsPerPage) {
             if (pageIndex < 0) {
                 return BadRequest("Page index must be greater than or equal to 0.");
             }
@@ -62,9 +60,9 @@ namespace HitomiScrollViewerAPI.Controllers {
                 .Take(itemsPerPage)
                 .Include(g => g.Language)
                 .Include(g => g.Type)
-                .Include(g => g.GalleryImages)
                 .Include(g => g.Tags)
-                .Select(g => g.ToFullDTO())
+                .Include(g => g.Images)
+                .Select(g => g.ToBrowseDTO())
             );
         }
     }

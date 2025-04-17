@@ -37,4 +37,10 @@
         Continuous,
         Discrete,
     }
+
+    public enum FitMode {
+        Auto,
+        Horizontal,
+        Vertical
+    }
 }

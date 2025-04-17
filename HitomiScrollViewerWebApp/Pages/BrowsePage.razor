@@ -34,7 +34,7 @@
         </div>
     } else {
         <MudGrid Spacing="4">
-            @foreach (GalleryFullDTO gallery in _galleries) {
+            @foreach (BrowseGalleryDTO gallery in _galleries) {
                 <MudItem sm="12" md="6" lg="4" xl="3" xxl="2" Style="overflow-x: clip;">
                     <GalleryBrowseItem Gallery="@gallery" Height="@MIN_ITEM_HEIGHT" />
                 </MudItem>

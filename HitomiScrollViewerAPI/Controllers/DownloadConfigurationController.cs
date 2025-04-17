@@ -13,7 +13,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok(config.ToDTO());
         }
 
-        [HttpPatch("enable-parallel-download")]
+        [HttpPatch("update-parallel-download")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult UpdateParallelDownload(int configId, [FromBody] bool enable) {

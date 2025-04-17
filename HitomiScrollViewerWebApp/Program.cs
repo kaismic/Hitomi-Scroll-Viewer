@@ -2,6 +2,7 @@ using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
+using BlazorPro.BlazorSize;
 
 namespace HitomiScrollViewerWebApp;
 
@@ -88,6 +89,11 @@ public class Program
             }
         );
         builder.Services.AddSingleton<DownloadClientManagerService>();
+        builder.Services.AddResizeListener(options => {
+            options.EnableLogging = true;
+            options.ReportRate = 500;
+        }
+        );
 
         var app = builder.Build();
         await app.RunAsync();

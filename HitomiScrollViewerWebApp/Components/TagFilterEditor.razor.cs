@@ -23,7 +23,7 @@ namespace HitomiScrollViewerWebApp.Components {
                 TagFilterDTO? oldValue = _currentTagFilter;
                 _currentTagFilter = value;
                 SearchConfigurationService.Config.SelectedTagFilterId = value?.Id ?? 0;
-                if (_isFirstCurrentTagFilterSet) {
+                if (_isFirstCurrentTagFilterSet) { // TODO check if this works
                     _isFirstCurrentTagFilterSet = false;
                 } else {
                     _ = SearchConfigurationService.UpdateSelectedTagFilterAsync(SearchConfigurationService.Config.SelectedTagFilterId);

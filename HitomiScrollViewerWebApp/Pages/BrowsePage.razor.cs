@@ -24,7 +24,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         /// </summary>
         private int _pageNum = 1;
         private int _numOfPages = 1;
-        private GalleryFullDTO[] _galleries = [];
+        private BrowseGalleryDTO[] _galleries = [];
         private bool _isLoading = false;
 
         public GalleryLanguageDTO SelectedLanguage {
@@ -130,7 +130,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private async Task LoadGalleries() {
             _isLoading = true;
             StateHasChanged();
-            _galleries = [.. await GalleryService.GetGalleryFullDTOs(_pageNum - 1, ItemsPerPage)];
+            _galleries = [.. await GalleryService.GetBrowseGalleryDTOs(_pageNum - 1, ItemsPerPage)];
             _isLoading = false;
         }
     }
