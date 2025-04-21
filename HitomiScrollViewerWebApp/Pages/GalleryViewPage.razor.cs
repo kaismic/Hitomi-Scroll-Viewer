@@ -4,6 +4,8 @@ using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using MudBlazor;
+using System.Text;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class GalleryViewPage : IDisposable {
@@ -13,7 +15,12 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] private ViewConfigurationService ViewConfigurationService { get; set; } = default!;
         [Parameter] public int GalleryId { get; set; }
 
-        public Guid Id { get; } = new Guid();
+        private const string TOOLBAR_HEIGHT = "80px";
+
+        private MudThemeProvider _mudThemeProvider = null!;
+        private readonly MudTheme _theme = new();
+        private bool _isDarkMode;
+
 
         private ViewGalleryDTO? _gallery;
         private ViewConfigurationDTO _viewConfiguration = new();
@@ -31,13 +38,14 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _isAutoScrolling = false;
         private CancellationTokenSource? _autoScrollCts;
         private FitMode _fitMode = FitMode.Auto;
-
+        
         protected override void OnInitialized() {
             _baseImageUrl = AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"] + "?galleryId=" + GalleryId;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
+                _isDarkMode = await _mudThemeProvider.GetSystemPreference();
                 ResizeListener.OnResized += OnResize;
                 _viewConfiguration = await ViewConfigurationService.GetConfiguration();
                 _gallery ??= await GalleryService.GetViewGalleryDTO(GalleryId);
@@ -54,6 +62,36 @@ namespace HitomiScrollViewerWebApp.Pages {
         private void Increment() {
             _pageIndex  = (_pageIndex + 1) % _imageIndexRanges.Length;
             StateHasChanged();
+        }
+
+        private string GetImageStyle() {
+            StringBuilder sb = new("object-fit: scale-down; ");
+            sb.Append("max-width: ");
+            if (_fitMode == FitMode.Vertical) {
+                sb.Append("auto");
+            } else {
+                int imageCount;
+                switch (_viewConfiguration.ImageLayoutMode) {
+                    case ImageLayoutMode.Automatic:
+                        Range currRange = _imageIndexRanges[_pageIndex];
+                        imageCount = currRange.End.Value - currRange.Start.Value;
+                        break;
+                    case ImageLayoutMode.Fixed:
+                        imageCount = _viewConfiguration.ImagesPerPage;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+                sb.Append($"{100.0 / imageCount}%");
+            }
+            sb.Append("; max-height: ");
+            if (_fitMode == FitMode.Horizontal) {
+                sb.Append("auto");
+            } else {
+                sb.Append($"calc(100dvh - {TOOLBAR_HEIGHT})");
+            }
+            sb.Append(';');
+            return sb.ToString();
         }
 
         private void OnPageOffsetChanged(int offset) {
@@ -141,33 +179,36 @@ namespace HitomiScrollViewerWebApp.Pages {
                     int remainder = (_gallery.Images.Count - _pageOffset) % _viewConfiguration.ImagesPerPage;
                     IEnumerable<Range> midRanges = Enumerable.Range(0, quotient)
                         .Select(i => new Range(
-                            i * _viewConfiguration.ImagesPerPage + _pageOffset + 1,
+                            i * _viewConfiguration.ImagesPerPage + _pageOffset,
                             (i + 1) * _viewConfiguration.ImagesPerPage + _pageOffset)
                         );
                     indexRanges.AddRange(midRanges);
                     if (remainder > 0) {
-                        indexRanges.Add(new(_gallery.Images.Count - _pageOffset + 1, _gallery.Images.Count));
+                        indexRanges.Add(new(_gallery.Images.Count - remainder, _gallery.Images.Count));
                     }
                     break;
             }
             if (_pageIndex > indexRanges.Count) {
                 _pageIndex = 0;
             }
+            Console.WriteLine("Image index ranges: " + string.Join(", ", indexRanges));
             _imageIndexRanges = [.. indexRanges];
             StateHasChanged();
         }
 
         private void OnKeyDown(KeyboardEventArgs e) {
-            switch (e.Key) {
-                case "ArrowLeft":
-                    if (CanDecrement()) Decrement();
-                    break;
-                case "ArrowRight":
-                    if (CanIncrement()) Increment();
-                    break;
-                case "Space":
-                    ToggleAutoScroll(!_isAutoScrolling);
-                    break;
+            if (_viewConfiguration.ViewMode == ViewMode.Default) {
+                switch (e.Key) {
+                    case "ArrowLeft":
+                        if (CanDecrement()) Decrement();
+                        break;
+                    case "ArrowRight":
+                        if (CanIncrement()) Increment();
+                        break;
+                    case "Space":
+                        ToggleAutoScroll(!_isAutoScrolling);
+                        break;
+                }
             }
         }
 
