@@ -36,8 +36,9 @@
         <MudNumericField T="int"
                          @bind-Value="@_pageIndex"
                          Label="Page"
-                         Min="1" Max=@(_imageIndexRanges.Length + 1)
-                         Variant="Variant.Outlined"
+                         Min="0" Max=@(_imageIndexRanges.Length - 1)
+                         Pattern="[0-9]"
+                         Variant="Variant.Outlined" 
                          Style="max-width: 90px" />
         <MudNumericField T="int"
                          @bind-Value="@_viewConfiguration.ImagesPerPage"
@@ -117,20 +118,18 @@
     @if (_imageIndexRanges.Length > 0) {
         <div style="outline: none; background-color: black;" tabindex="-1" onkeydown="@OnKeyDown">
             @if (_viewConfiguration.ViewMode == ViewMode.Default) {
-                <div class="d-flex justify-center">
+                <div class="d-flex justify-center" onclick="@OnPageClick">
                     @if (_viewConfiguration.ViewDirection == ViewDirection.LTR) {
-                        @for (int i = _imageIndexRanges[_pageIndex - 1].Start.Value + 1; i < _imageIndexRanges[_pageIndex - 1].End.Value + 1; i++) {
+                        @for (int i = _imageIndexRanges[_pageIndex].Start.Value + 1; i < _imageIndexRanges[_pageIndex].End.Value + 1; i++) {
                             <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}")
-                                 onclick="@OnImageClick"
-                                 style="width: @(_fitMode == FitMode.Horizontal ? ((double)_browserWindowSize.Width / _viewConfiguration.ImagesPerPage).ToString() + "px" : "auto");
-                                        height: @(_fitMode == FitMode.Vertical ? (_browserWindowSize.Height - 80).ToString() + "px" : "auto")" />
+                                 style="max-width: @(_fitMode != FitMode.Vertical ? (100.0 / (_imageIndexRanges[_pageIndex].End.Value - _imageIndexRanges[_pageIndex].Start.Value)).ToString() + "%" : "auto");
+                                        max-height: @(_fitMode != FitMode.Horizontal ? $"calc(100dvh - 80px)" : "auto")" />
                         }
                     } else {
-                        @for (int i = _imageIndexRanges[_pageIndex - 1].End.Value; i > _imageIndexRanges[_pageIndex - 1].Start.Value; i--) {
+                        @for (int i = _imageIndexRanges[_pageIndex].End.Value; i > _imageIndexRanges[_pageIndex].Start.Value; i--) {
                             <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}")
-                                 onclick="@OnImageClick"
-                                 style="width: @(_fitMode == FitMode.Horizontal ? ((double)_browserWindowSize.Width / _viewConfiguration.ImagesPerPage).ToString() + "px" : "auto");
-                                        height: @(_fitMode == FitMode.Vertical ? (_browserWindowSize.Height - 80).ToString() + "px" : "auto")" />
+                                 style="max-width: @(_fitMode != FitMode.Vertical ? (100.0 / (_imageIndexRanges[_pageIndex].End.Value - _imageIndexRanges[_pageIndex].Start.Value)).ToString() + "%" : "auto");
+                                        max-height: @(_fitMode != FitMode.Horizontal ? $"calc(100dvh - 80px)" : "auto")" />
                         }
                     }
                 </div>
@@ -140,11 +139,11 @@
                         <div class="d-flex justify-center">
                             @if (_viewConfiguration.ViewDirection == ViewDirection.LTR) {
                                 @for (int i = range.Start.Value + 1; i < range.End.Value + 1; i++) {
-                                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") onclick="@OnImageClick" />
+                                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") />
                                 }
                             } else {
                                 @for (int i = range.End.Value; i > range.Start.Value; i--) {
-                                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") onclick="@OnImageClick" />
+                                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") />
                                 }
                             }
                         </div>

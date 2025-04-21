@@ -23,15 +23,14 @@ namespace HitomiScrollViewerWebApp.Pages {
         /// </summary>
         private Range[] _imageIndexRanges = [];
         /// <summary>
-        /// 1-based page index
+        /// 0-based page index
         /// </summary>
-        private int _pageIndex = 1;
+        private int _pageIndex = 0;
         private int _pageOffset = 0;
         private BrowserWindowSize _browserWindowSize = new();
         private bool _isAutoScrolling = false;
         private CancellationTokenSource? _autoScrollCts;
-        // TODO implment FitMode.Auto calculation
-        private FitMode _fitMode = FitMode.Vertical;
+        private FitMode _fitMode = FitMode.Auto;
 
         protected override void OnInitialized() {
             _baseImageUrl = AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"] + "?galleryId=" + GalleryId;
@@ -46,14 +45,14 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        private bool CanDecrement() => _pageIndex > 1;
-        private bool CanIncrement() => _pageIndex < _imageIndexRanges.Length + 1;
+        private bool CanDecrement() => _viewConfiguration.Loop || _pageIndex > 0;
+        private bool CanIncrement() => _viewConfiguration.Loop || _pageIndex < _imageIndexRanges.Length - 1;
         private void Decrement() {
-            _pageIndex--;
+            _pageIndex  = (_pageIndex - 1 + _imageIndexRanges.Length) % _imageIndexRanges.Length;
             StateHasChanged();
         }
         private void Increment() {
-            _pageIndex++;
+            _pageIndex  = (_pageIndex + 1) % _imageIndexRanges.Length;
             StateHasChanged();
         }
 
@@ -96,11 +95,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                         if (CanIncrement()) {
                             Increment();
                         } else {
-                            if (_viewConfiguration.Loop) {
-                                _pageIndex = 1;
-                            } else {
-                                ToggleAutoScroll(false);
-                            }
+                            ToggleAutoScroll(false);
                         }
                         StateHasChanged();
                     }
@@ -114,7 +109,6 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (_gallery == null) {
                 return;
             }
-            _pageIndex = 1;
             // consider offset, view direction, images per page, image layout mode
             List<Range> indexRanges = [];
             // add offset number of images at first page index range
@@ -156,6 +150,9 @@ namespace HitomiScrollViewerWebApp.Pages {
                     }
                     break;
             }
+            if (_pageIndex > indexRanges.Count) {
+                _pageIndex = 0;
+            }
             _imageIndexRanges = [.. indexRanges];
             StateHasChanged();
         }
@@ -174,11 +171,12 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        private void OnImageClick(MouseEventArgs e) {
+        private void OnPageClick(MouseEventArgs e) {
             if (e.Button == 0) {
-                if (e.ClientX > _browserWindowSize.Width / 2 && CanIncrement()) {
+                int halfWidth = _browserWindowSize.Width / 2;
+                if (e.ClientX > halfWidth && CanIncrement()) {
                     Increment();
-                } else if (CanDecrement()) {
+                } else if (e.ClientX < halfWidth && CanDecrement()) {
                     Decrement();
                 }
             }

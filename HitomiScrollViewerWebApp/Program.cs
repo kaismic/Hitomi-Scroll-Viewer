@@ -89,12 +89,7 @@ public class Program
             }
         );
         builder.Services.AddSingleton<DownloadClientManagerService>();
-        builder.Services.AddResizeListener(options => {
-            options.EnableLogging = true;
-            options.ReportRate = 500;
-        }
-        );
-
+        builder.Services.AddResizeListener(options => options.ReportRate = 500);
         var app = builder.Build();
         await app.RunAsync();
     }
