@@ -144,9 +144,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         protected override async Task OnInitializedAsync() {
             _isInitialized = false;
             _isRendered = false;
-            if (!SearchConfigurationService.IsLoaded) {
-                await SearchConfigurationService.Load();
-            }
+            await SearchConfigurationService.Load();
             TagFilters = [.. SearchConfigurationService.Config.TagFilters];
             SearchFilters = [.. SearchConfigurationService.Config.SearchFilters];
             _isInitialized = true;
