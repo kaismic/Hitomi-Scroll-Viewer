@@ -53,13 +53,14 @@
     <div id="search-filter-control-panel" style="flex: 1;" class="d-flex flex-column gap-2">
         <LTKSearchView @bind-SelectedLanguage="@SelectedLanguage"
                        @bind-SelectedType="@SelectedType"
-                       @bind-SearchKeywordText="@SearchKeywordText" />
+                       @bind-TitleSearchKeyword="@TitleSearchKeyword" />
         <MudStack Row Spacing="2" StretchItems="StretchItems.Start" Class="my-2">
             <MudButton Class="py-2"
                        FullWidth
                        Color="Color.Primary"
                        Variant="Variant.Filled"
-                       OnClick="@CreateSearchFilter">
+                       OnClick="@CreateSearchFilter"
+                       StartIcon="@Icons.Material.Filled.Search">
                 Create and copy search link
             </MudButton>
             <MudButton Class="py-2"

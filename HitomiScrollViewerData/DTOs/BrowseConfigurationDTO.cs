@@ -1,6 +1,4 @@
-﻿using HitomiScrollViewerData.Entities;
-
-namespace HitomiScrollViewerData.DTOs
+﻿namespace HitomiScrollViewerData.DTOs
 {
     public class BrowseConfigurationDTO
     {
@@ -8,16 +6,8 @@ namespace HitomiScrollViewerData.DTOs
         public List<TagDTO> Tags { get; set; } = [];
         public GalleryLanguageDTO SelectedLanguage { get; set; } = new();
         public GalleryTypeDTO SelectedType { get; set; } = new();
-        public string SearchKeywordText { get; set; } = "";
+        public string TitleSearchKeyword { get; set; } = "";
         public int ItemsPerPage { get; set; }
-
-        public BrowseConfiguration ToEntity() => new() {
-            Id = Id,
-            Tags = [.. Tags.Select(t => t.ToEntity())],
-            SelectedLanguage = SelectedLanguage.ToEntity(),
-            SelectedType = SelectedType.ToEntity(),
-            SearchKeywordText = SearchKeywordText,
-            ItemsPerPage = ItemsPerPage
-        };
+        public List<GallerySortDTO> Sorts { get; set; } = [];
     }
 }

@@ -21,8 +21,8 @@ namespace HitomiScrollViewerWebApp.Services {
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> UpdateSearchKeywordTextAsync(string searchKeywordText) {
-            var response = await httpClient.PatchAsync($"search-keyword-text?configId={Config.Id}", JsonContent.Create(searchKeywordText));
+        public async Task<bool> UpdateTitleSearchKeywordAsync(string titleSearchKeyword) {
+            var response = await httpClient.PatchAsync($"title-search-keyword?configId={Config.Id}", JsonContent.Create(titleSearchKeyword));
             return response.IsSuccessStatusCode;
         }
 

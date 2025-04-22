@@ -14,9 +14,9 @@ namespace HitomiScrollViewerWebApp.Components {
         private GalleryTypeDTO _selectedType = default!;
         [Parameter, EditorRequired] public GalleryTypeDTO SelectedType { get; set; } = default!;
         [Parameter] public EventCallback<GalleryTypeDTO> SelectedTypeChanged { get; set; }
-        private string? _searchKeywordText;
-        [Parameter, EditorRequired] public string SearchKeywordText { get; set; } = "";
-        [Parameter] public EventCallback<string> SearchKeywordTextChanged { get; set; }
+        private string? _titleSearchKeyword;
+        [Parameter, EditorRequired] public string TitleSearchKeyword { get; set; } = "";
+        [Parameter] public EventCallback<string> TitleSearchKeywordChanged { get; set; }
 
         protected override async Task OnParametersSetAsync() {
             if (_selectedLanguage != SelectedLanguage) {
@@ -31,11 +31,11 @@ namespace HitomiScrollViewerWebApp.Components {
                 }
                 _selectedType = SelectedType;
             }
-            if (_searchKeywordText != SearchKeywordText) {
-                if (_searchKeywordText != null) {
-                    await SearchKeywordTextChanged.InvokeAsync(SearchKeywordText);
+            if (_titleSearchKeyword != TitleSearchKeyword) {
+                if (_titleSearchKeyword != null) {
+                    await TitleSearchKeywordChanged.InvokeAsync(TitleSearchKeyword);
                 }
-                _searchKeywordText = SearchKeywordText;
+                _titleSearchKeyword = TitleSearchKeyword;
             }
         }
     }

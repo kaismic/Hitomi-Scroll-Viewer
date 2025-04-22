@@ -1,0 +1,10 @@
+﻿<MudPaper Class="d-flex gap-4">
+    <MudIcon Icon="@Icons.Material.Filled.DragIndicator" />
+    <MudText>@(_galleryPropertyNames[GallerySort.Property])</MudText>
+    <MudDivider/>
+    <MudSelect T="@SortDirection" @bind-Value="@GallerySort.SortDirection">
+        <MudSelectItem T="@SortDirection" Value="SortDirection.Ascending">Ascending</MudSelectItem>
+        <MudSelectItem T="@SortDirection" Value="SortDirection.Descending">Descending</MudSelectItem>
+    </MudSelect>
+    <MudIconButton Icon="@Icons.Material.Filled.Delete" />
+</MudPaper>

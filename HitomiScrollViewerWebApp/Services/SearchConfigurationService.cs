@@ -7,7 +7,7 @@ namespace HitomiScrollViewerWebApp.Services {
         public bool IsInitTagFilterNull { get; private set; } = false;
         public SearchConfigurationDTO Config { get; private set; } = new() {
             SearchFilters = [],
-            SearchKeywordText = "",
+            TitleSearchKeyword = "",
             SelectedExcludeTagFilterIds = [],
             SelectedIncludeTagFilterIds = [],
             SelectedTagFilterId = 0,
@@ -42,8 +42,8 @@ namespace HitomiScrollViewerWebApp.Services {
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> UpdateSearchKeywordTextAsync(string searchKeywordText) {
-            var response = await httpClient.PatchAsync($"search-keyword-text?configId={Config.Id}", JsonContent.Create(searchKeywordText));
+        public async Task<bool> UpdateTitleSearchKeywordAsync(string titleSearchKeyword) {
+            var response = await httpClient.PatchAsync($"title-search-keyword?configId={Config.Id}", JsonContent.Create(titleSearchKeyword));
             return response.IsSuccessStatusCode;
         }
 

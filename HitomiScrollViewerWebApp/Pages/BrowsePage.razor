@@ -10,23 +10,34 @@
         <LTKSearchView Style="flex: 1;"
                        @bind-SelectedLanguage="@SelectedLanguage"
                        @bind-SelectedType="@SelectedType"
-                       @bind-SearchKeywordText="@SearchKeywordText" />
+                       @bind-TitleSearchKeyword="@TitleSearchKeyword" />
     </div>
-    <div class="d-flex justify-space-between">
-        <MudButton Variant="Variant.Outlined"
-                   StartIcon="@Icons.Material.Filled.Sort">
-            Sort
-        </MudButton>
+    <div class="d-flex justify-space-between align-center" style="position: relative;">
+        <div class="d-flex align-center gap-4">
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.Sort"
+                       Style="height: 56px">
+                Sort
+            </MudButton>
+            <MudNumericField T="int"
+                             Label="Items per Page"
+                             Variant="Variant.Outlined"
+                             Min="1" Max="24"
+                             Style="max-width: 160px"
+                             @bind-Value="@ItemsPerPage" />
+        </div>
         <MudPagination ShowFirstButton ShowLastButton
                        MiddleCount="8"
                        Count="@_numOfPages"
                        Selected="@_pageNum"
-                       SelectedChanged="@OnPageNumChanged" />
-        <MudNumericField T="int"
-                         Label="Items "
-                         Variant="Variant.Outlined"
-                         Min="1" Max="24"
-                         @bind-Value="@ItemsPerPage" />
+                       SelectedChanged="@OnPageNumChanged"
+                       Style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" />
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Search"
+                   OnClick="@LoadGalleries">
+            Browse
+        </MudButton>
     </div>
     @if (_isLoading) {
         <div class="d-flex justify-center mt-16">

@@ -1,18 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HitomiScrollViewerData.DTOs;
+using MudBlazor;
 
 namespace HitomiScrollViewerData.Entities {
     public enum GalleryProperty {
-        Id, Title, Date, LastDownloadTime, Type, Language
+        Id, Title, UploadTime, LastDownloadTime, Type
     }
-    public enum SortDirection {
-        Ascending, Descending
-    }
-    [Index(nameof(IsActive))]
     public class GallerySort {
         public int Id { get; private set; }
         public required GalleryProperty Property { get; init; }
         public required SortDirection SortDirection { get; set; }
-        public required bool IsActive { get; set; }
-        public int Index { get; set; }
+
+        public GallerySortDTO ToDTO() => new() {
+            Property = Property,
+            SortDirection = SortDirection
+        };
     }
 }

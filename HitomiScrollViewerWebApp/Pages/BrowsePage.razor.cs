@@ -48,14 +48,14 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        public string SearchKeywordText {
-            get => BrowseConfigurationService.Config.SearchKeywordText;
+        public string TitleSearchKeyword {
+            get => BrowseConfigurationService.Config.TitleSearchKeyword;
             set {
-                if (BrowseConfigurationService.Config.SearchKeywordText == value) {
+                if (BrowseConfigurationService.Config.TitleSearchKeyword == value) {
                     return;
                 }
-                BrowseConfigurationService.Config.SearchKeywordText = value;
-                _ = BrowseConfigurationService.UpdateSearchKeywordTextAsync(value);
+                BrowseConfigurationService.Config.TitleSearchKeyword = value;
+                _ = BrowseConfigurationService.UpdateTitleSearchKeywordAsync(value);
             }
         }
 
@@ -130,7 +130,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private async Task LoadGalleries() {
             _isLoading = true;
             StateHasChanged();
-            _galleries = [.. await GalleryService.GetBrowseGalleryDTOs(_pageNum - 1, ItemsPerPage)];
+            _galleries = [.. await GalleryService.GetBrowseGalleryDTOs(_pageNum - 1, BrowseConfigurationService.Config.Id)];
             _isLoading = false;
         }
     }

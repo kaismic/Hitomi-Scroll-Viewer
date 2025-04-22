@@ -6,7 +6,7 @@ public class SearchConfiguration {
     public bool IsAutoSaveEnabled { get; set; }
     public IEnumerable<int> SelectedIncludeTagFilterIds { get; set; } = [];
     public IEnumerable<int> SelectedExcludeTagFilterIds { get; set; } = [];
-    public string SearchKeywordText { get; set; } = "";
+    public string TitleSearchKeyword { get; set; } = "";
     public int SelectedTagFilterId { get; set; }
     public required GalleryLanguage SelectedLanguage { get; set; }
     public required GalleryType SelectedType { get; set; }
@@ -21,7 +21,7 @@ public class SearchConfiguration {
         SelectedExcludeTagFilterIds = SelectedExcludeTagFilterIds,
         SelectedLanguage = SelectedLanguage.ToDTO(),
         SelectedType = SelectedType.ToDTO(),
-        SearchKeywordText = SearchKeywordText,
+        TitleSearchKeyword = TitleSearchKeyword,
         TagFilters = [.. TagFilters.Select(tf => tf.ToDTO())],
         SearchFilters = [.. SearchFilters.Select(sf => sf.ToDTO())]
     };

@@ -2,6 +2,6 @@
 
 namespace HitomiScrollViewerAPI.Hubs {
     public interface IDbStatusClient {
-        Task ReceiveStatus(DbInitStatus status, int progress);
+        Task ReceiveStatus(DbInitStatus status, string message);
     }
 }

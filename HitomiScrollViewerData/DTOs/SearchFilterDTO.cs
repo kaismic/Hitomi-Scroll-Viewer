@@ -5,7 +5,7 @@ namespace HitomiScrollViewerData.DTOs
     public class SearchFilterDTO
     {
         public int Id { get; set; }
-        public required string SearchKeywordText { get; init; }
+        public required string TitleSearchKeyword { get; init; }
         public required string SearchLink { get; set; }
         public required GalleryLanguageDTO Language { get; init; }
         public required GalleryTypeDTO Type { get; init; }
@@ -14,7 +14,7 @@ namespace HitomiScrollViewerData.DTOs
 
         public SearchFilter ToEntity() => new() {
             Id = Id,
-            SearchKeywordText = SearchKeywordText,
+            TitleSearchKeyword = TitleSearchKeyword,
             SearchLink = SearchLink,
             LabeledTagCollections = [.. LabeledTagCollections.Select(ltc => ltc.ToEntity())]
         };

@@ -11,7 +11,7 @@ namespace HitomiScrollViewerData.Builders
 
         public required GalleryLanguageDTO Language { get; init; }
         public required GalleryTypeDTO Type { get; init; }
-        public required string SearchKeywordText { get; init; }
+        public required string TitleSearchKeyword { get; init; }
         public required IEnumerable<TagDTO> IncludeTags { get; init; }
         public required IEnumerable<TagDTO> ExcludeTags { get; init; }
 
@@ -49,8 +49,8 @@ namespace HitomiScrollViewerData.Builders
                     searchParams.Add(string.Join(' ', ltc.ExcludeTagValues.Select(v => '-' + ltc.Category.ToString().ToLower() + ':' + v.Replace(' ', '_'))));
                 }
             }
-            if (SearchKeywordText.Length > 0) {
-                searchParams.Add(SearchKeywordText);
+            if (TitleSearchKeyword.Length > 0) {
+                searchParams.Add(TitleSearchKeyword);
             }
             string searchLink;
             if (searchParams.Count > 0) {
@@ -63,7 +63,7 @@ namespace HitomiScrollViewerData.Builders
                 LabeledTagCollections = labeledTagCollections,
                 Language = Language,
                 Type = Type,
-                SearchKeywordText = SearchKeywordText,
+                TitleSearchKeyword = TitleSearchKeyword,
                 SearchLink = HttpUtility.UrlPathEncode(searchLink)
             };
         }

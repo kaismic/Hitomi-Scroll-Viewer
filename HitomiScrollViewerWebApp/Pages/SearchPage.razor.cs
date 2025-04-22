@@ -102,14 +102,14 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        public string SearchKeywordText {
-            get => SearchConfigurationService.Config.SearchKeywordText;
+        public string TitleSearchKeyword {
+            get => SearchConfigurationService.Config.TitleSearchKeyword;
             set {
-                if (SearchConfigurationService.Config.SearchKeywordText == value) {
+                if (SearchConfigurationService.Config.TitleSearchKeyword == value) {
                     return;
                 }
-                SearchConfigurationService.Config.SearchKeywordText = value;
-                _ = SearchConfigurationService.UpdateSearchKeywordTextAsync(value);
+                SearchConfigurationService.Config.TitleSearchKeyword = value;
+                _ = SearchConfigurationService.UpdateTitleSearchKeywordAsync(value);
             }
         }
 
@@ -368,7 +368,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             SearchFilterDTOBuilder builder = new() {
                 Language = SelectedLanguage,
                 Type = SelectedType,
-                SearchKeywordText = SearchKeywordText,
+                TitleSearchKeyword = TitleSearchKeyword,
                 IncludeTags = includeTagDTOs,
                 ExcludeTags = excludeTagDTOs
             };

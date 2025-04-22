@@ -7,7 +7,7 @@ namespace HitomiScrollViewerAPI.Hubs {
         public override async Task OnConnectedAsync() {
             await base.OnConnectedAsync();
             if (DbInitializeService.IsInitialized) {
-                await Clients.Caller.ReceiveStatus(DbInitStatus.Complete, -1);
+                await Clients.Caller.ReceiveStatus(DbInitStatus.Complete, "");
             }
         }
 

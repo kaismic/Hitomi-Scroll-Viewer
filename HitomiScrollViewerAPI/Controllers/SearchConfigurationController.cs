@@ -71,15 +71,15 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok();
         }
 
-        [HttpPatch("search-keyword-text")]
+        [HttpPatch("title-search-keyword")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateSearchKeywordText(int configId, [FromBody] string searchKeywordText) {
+        public ActionResult UpdateTitleSearchKeyword(int configId, [FromBody] string titleSearchKeyword) {
             SearchConfiguration? config = context.SearchConfigurations.Find(configId);
             if (config == null) {
                 return NotFound();
             }
-            config.SearchKeywordText = searchKeywordText;
+            config.TitleSearchKeyword = titleSearchKeyword;
             context.SaveChanges();
             return Ok();
         }
