@@ -39,8 +39,8 @@ namespace HitomiScrollViewerWebApp.Services {
         /// <param name="pageIndex"></param>
         /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<BrowseGalleryDTO>> GetBrowseGalleryDTOs(int pageIndex, int configId) {
-            return (await httpClient.GetFromJsonAsync<IEnumerable<BrowseGalleryDTO>>($"browse-galleries?pageIndex={pageIndex}&configId={configId}"))!;
+        public async Task<BrowseQueryResult> GetBrowseQueryResult(int pageIndex, int configId) {
+            return (await httpClient.GetFromJsonAsync<BrowseQueryResult>($"browse-galleries?pageIndex={pageIndex}&configId={configId}"))!;
         }
     }
 }

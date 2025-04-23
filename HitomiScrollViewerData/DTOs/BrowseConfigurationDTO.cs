@@ -8,6 +8,6 @@
         public GalleryTypeDTO SelectedType { get; set; } = new();
         public string TitleSearchKeyword { get; set; } = "";
         public int ItemsPerPage { get; set; }
-        public List<GallerySortDTO> Sorts { get; set; } = [];
+        public ICollection<GallerySortDTO> Sorts { get; set; } = [];
     }
 }

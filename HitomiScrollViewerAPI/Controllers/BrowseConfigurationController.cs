@@ -15,6 +15,7 @@ namespace HitomiScrollViewerAPI.Controllers {
             context.Entry(config).Reference(c => c.SelectedLanguage).Load();
             context.Entry(config).Reference(c => c.SelectedType).Load();
             context.Entry(config).Collection(c => c.Tags).Load();
+            context.Entry(config).Collection(c => c.Sorts).Load();
             return Ok(config.ToDTO());
         }
 
@@ -108,6 +109,25 @@ namespace HitomiScrollViewerAPI.Controllers {
                 return NotFound();
             }
             config.ItemsPerPage = value;
+            context.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPatch("gallery-sorts")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult UpdateGallerySorts(int configId, [FromBody] IEnumerable<GallerySortDTO> sorts) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
+            if (config == null) {
+                return NotFound();
+            }
+            context.Entry(config).Collection(c => c.Sorts).Load();
+            foreach (GallerySortDTO dto in sorts) {
+                GallerySort sort = config.Sorts.First(s => s.Property == dto.Property);
+                sort.IsActive = dto.IsActive;
+                sort.RankIndex = dto.RankIndex;
+                sort.SortDirection = dto.SortDirection;
+            }
             context.SaveChanges();
             return Ok();
         }

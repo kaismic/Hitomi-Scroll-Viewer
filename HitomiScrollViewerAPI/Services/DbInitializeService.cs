@@ -127,17 +127,25 @@ namespace HitomiScrollViewerAPI.Services {
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
                 SelectedType = context.GalleryTypes.First(gt => gt.IsAll)
             });
+
+            List<GallerySort> sorts = [..Enum.GetValues<GalleryProperty>().Select(s => new GallerySort() {
+                Property = s,
+                SortDirection = MudBlazor.SortDirection.Ascending,
+                IsActive = false
+            })];
             // default GallerySort as LastDownloadTime Descending
-            GallerySort lastDownloadTimeSort = new() {
-                Property = GalleryProperty.LastDownloadTime,
-                SortDirection = MudBlazor.SortDirection.Descending
-            };
+            GallerySort lastDownloadTimeSort = sorts.First(s => s.Property == GalleryProperty.LastDownloadTime);
+            lastDownloadTimeSort.IsActive = true;
+            lastDownloadTimeSort.SortDirection = MudBlazor.SortDirection.Descending;
+            lastDownloadTimeSort.RankIndex = 0;
+
             context.BrowseConfigurations.Add(new() {
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
                 SelectedType = context.GalleryTypes.First(gt => gt.IsAll),
                 ItemsPerPage = 8,
-                Sorts = [lastDownloadTimeSort]
+                Sorts = sorts
             });
+
             context.DownloadConfigurations.Add(new() { ThreadNum = 1 });
             context.ViewConfigurations.Add(new() {
                 ImagesPerPage = 2,

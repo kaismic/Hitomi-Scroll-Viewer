@@ -8,7 +8,7 @@ public class BrowseConfiguration {
     public required GalleryType SelectedType { get; set; }
     public string TitleSearchKeyword { get; set; } = "";
     public required int ItemsPerPage { get; set; }
-    public List<GallerySort> Sorts { get; set; } = [];
+    public ICollection<GallerySort> Sorts { get; set; } = [];
 
     public BrowseConfigurationDTO ToDTO() => new() {
         Id = Id,

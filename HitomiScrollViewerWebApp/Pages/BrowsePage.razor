@@ -2,7 +2,7 @@
 
 <PageTitle>Browse</PageTitle>
 
-<div style="height: 100%" class="pa-8">
+<div class="d-flex flex-column pa-8 gap-2">
     <div class="d-flex gap-4">
         <TagSearchPanelCollection Style="flex: 3;"
                                   TagSearchPanelChipModels="@_tagSearchPanelChipModels"
@@ -15,9 +15,11 @@
     <div class="d-flex justify-space-between align-center" style="position: relative;">
         <div class="d-flex align-center gap-4">
             <MudButton Variant="Variant.Outlined"
+                       Color="@(_activeSorts.Count == 0 ? Color.Default : Color.Primary)"
                        StartIcon="@Icons.Material.Filled.Sort"
+                       OnClick="@ShowSortEditDialog"
                        Style="height: 56px">
-                Sort
+                @(_activeSorts.Count == 0 ? "Sort" : _activeSorts.Count == 1 ? "1 Sort" : $"{_activeSorts.Count} Sorts")
             </MudButton>
             <MudNumericField T="int"
                              Label="Items per Page"
@@ -28,28 +30,36 @@
         </div>
         <MudPagination ShowFirstButton ShowLastButton
                        MiddleCount="8"
-                       Count="@_numOfPages"
+                       Count="@_totalPages"
                        Selected="@_pageNum"
                        SelectedChanged="@OnPageNumChanged"
                        Style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" />
-        <MudButton Color="Color.Primary"
-                   Variant="Variant.Filled"
-                   StartIcon="@Icons.Material.Filled.Search"
-                   OnClick="@LoadGalleries">
-            Browse
-        </MudButton>
+        <div class="d-flex align-center gap-4">
+            <MudSwitch T="bool"
+                       Label="Auto-browse on filter change" />
+            <MudButton Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Search"
+                       OnClick="@LoadGalleries">
+                Browse
+            </MudButton>
+        </div>
     </div>
     @if (_isLoading) {
         <div class="d-flex justify-center mt-16">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
         </div>
     } else {
-        <MudGrid Spacing="4">
-            @foreach (BrowseGalleryDTO gallery in _galleries) {
-                <MudItem sm="12" md="6" lg="4" xl="3" xxl="2" Style="overflow-x: clip;">
-                    <GalleryBrowseItem Gallery="@gallery" Height="@MIN_ITEM_HEIGHT" />
-                </MudItem>
-            }
-        </MudGrid>
+        @if (_galleries.Length == 0) {
+            <MudText Style="margin: auto; margin-top: 160px; color: var(--mud-palette-gray-default)">No galleries found. Try removing filters.</MudText>
+        } else {
+            <MudGrid Spacing="4">
+                @foreach (BrowseGalleryDTO gallery in _galleries) {
+                    <MudItem sm="12" md="6" lg="4" xl="3" xxl="2" Style="overflow-x: clip;">
+                        <GalleryBrowseItem Gallery="@gallery" Height="@ITEM_HEIGHT" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
     }
 </div>

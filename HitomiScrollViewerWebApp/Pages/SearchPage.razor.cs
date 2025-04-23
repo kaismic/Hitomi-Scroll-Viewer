@@ -3,6 +3,7 @@ using HitomiScrollViewerData.Builders;
 using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Components.Dialogs;
+using HitomiScrollViewerWebApp.Layout;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
@@ -20,15 +21,6 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] ISnackbar Snackbar { get; set; } = default!;
         [Inject] IDialogService DialogService { get; set; } = default!;
         [Inject] IJSRuntime JsRuntime { get; set; } = default!;
-
-        private static readonly Action<SnackbarOptions> SNACKBAR_OPTIONS = options => {
-            options.ShowCloseIcon = true;
-            options.CloseAfterNavigation = true;
-            options.ShowTransitionDuration = 0;
-            options.HideTransitionDuration = 500;
-            options.VisibleStateDuration = 3000;
-            options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
-        };
 
         private ObservableCollection<TagFilterDTO> _tagFilters = [];
         public ObservableCollection<TagFilterDTO> TagFilters {
@@ -243,9 +235,9 @@ namespace HitomiScrollViewerWebApp.Pages {
                 TagFilters.Add(tagFilter);
                 //if (tagFilter != null) {
                 _tagFilterEditor.CurrentTagFilter = tagFilter;
-                Snackbar.Add($"Created \"{name}\".", Severity.Success, SNACKBAR_OPTIONS);
+                Snackbar.Add($"Created \"{name}\".", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 //} else {
-                //    Snackbar.Add($"Failed to create \"{name}\".", Severity.Error, SNACKBAR_OPTIONS);
+                //    Snackbar.Add($"Failed to create \"{name}\".", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 //}
             }
         }
@@ -266,9 +258,9 @@ namespace HitomiScrollViewerWebApp.Pages {
                 bool success = await TagFilterService.UpdateNameAsync(_tagFilterEditor.CurrentTagFilter!.Id, name);
                 if (success) {
                     _tagFilterEditor.CurrentTagFilter.Name = name;
-                    Snackbar.Add($"Renamed \"{oldName} to \"{name}\".", Severity.Success, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Renamed \"{oldName} to \"{name}\".", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 } else {
-                    Snackbar.Add($"Failed to rename \"{oldName}\".", Severity.Error, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Failed to rename \"{oldName}\".", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 }
             }
         }
@@ -287,9 +279,9 @@ namespace HitomiScrollViewerWebApp.Pages {
                     _tagSearchPanelChipModels.SelectMany(l => l).Select(m => m.Value.Id)
                 );
                 if (success) {
-                    Snackbar.Add($"Saved \"{tagFilter.Name}\"", Severity.Success, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Saved \"{tagFilter.Name}\"", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 } else {
-                    Snackbar.Add($"Failed to save \"{tagFilter.Name}\"", Severity.Error, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Failed to save \"{tagFilter.Name}\"", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 }
             }
         }
@@ -307,12 +299,12 @@ namespace HitomiScrollViewerWebApp.Pages {
                 bool success = await TagFilterService.DeleteAsync(ids);
                 if (success) {
                     TagFilters = [.. TagFilters.ExceptBy(ids, tf => tf.Id)];
-                    Snackbar.Add($"Deleted {selected.Count} tag filters.", Severity.Success, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Deleted {selected.Count} tag filters.", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                     if (_tagFilterEditor.CurrentTagFilter != null && selected.Any(m => m.Value.Id == _tagFilterEditor.CurrentTagFilter.Id)) {
                         _tagFilterEditor.CurrentTagFilter = null;
                     }
                 } else {
-                    Snackbar.Add($"Failed to delete tag filters.", Severity.Error, SNACKBAR_OPTIONS);
+                    Snackbar.Add($"Failed to delete tag filters.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 }
             }
         }
@@ -379,7 +371,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             //if (success) {
             dto.Id = id;
             //} else {
-            //    Snackbar.Add("Failed to create search filter.", Severity.Error, SNACKBAR_OPTIONS);
+            //    Snackbar.Add("Failed to create search filter.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
             //}
         }
 
@@ -388,7 +380,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (success) {
                 SearchFilters.Remove(dto);
             } else {
-                Snackbar.Add("Failed to delete search filter.", Severity.Error, SNACKBAR_OPTIONS);
+                Snackbar.Add("Failed to delete search filter.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
             }
         }
     }

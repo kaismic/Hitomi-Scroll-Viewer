@@ -13,7 +13,7 @@ namespace HitomiScrollViewerWebApp.Components {
         private IJSObjectReference? _jsModule;
 
         [Parameter, EditorRequired] public TagCategory Category { get; set; }
-        [Parameter, EditorRequired] public ICollection<ChipModel<TagDTO>> ChipModels { get; set; } = default!;
+        [Parameter, EditorRequired] public List<ChipModel<TagDTO>> ChipModels { get; set; } = default!;
         [Parameter] public EventCallback<AdvancedCollectionChangedEventArgs<ChipModel<TagDTO>>> ChipModelsChanged { get; set; } 
         private IReadOnlyCollection<ChipModel<TagDTO>> _selectedChipModels = [];
 
@@ -37,6 +37,7 @@ namespace HitomiScrollViewerWebApp.Components {
 
         private void HandleClosed(MudChip<ChipModel<TagDTO>> mudChip) {
             ChipModels.Remove(mudChip.Value!);
+            ChipModelsChanged.InvokeAsync(new(AdvancedCollectionChangedAction.RemoveSingle, mudChip.Value!));
         }
 
         private async Task<IEnumerable<TagDTO>> Search(string text, CancellationToken ct) {

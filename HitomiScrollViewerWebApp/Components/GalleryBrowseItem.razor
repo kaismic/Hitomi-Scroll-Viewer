@@ -1,16 +1,19 @@
 ﻿<div class="gallery-browse-item">
     <MudPaper Class="pa-2 d-flex flex-column gap-2" Height="@Height" Style="overflow-y: auto; overflow-x: hidden;" Outlined>
-        <MudText Typo="Typo.h6">@Gallery.Id</MudText>
-        <MudText Typo="Typo.h5">@Gallery.Title</MudText>
+        <MudText Typo="Typo.h6">@Gallery.Title</MudText>
         <a href=@($"/gallery/{Gallery.Id}") target="_blank">
             <div class="d-flex" style="width: 100%; height: 150px;">
                 @for (int i = 1; i <= MAX_THUMBNAIL_IMAGES; i++) {
-                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") />
+                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") loading="lazy" />
                 }
             </div>
         </a>
         <table style="border-collapse: collapse; width: 100%;" class="tag-collection">
             <tbody>
+                <tr>
+                    <th>Id</th>
+                    <td>@Gallery.Id</td>
+                </tr>
                 <tr>
                     <th>Language</th>
                     <td>@Gallery.Language.LocalName</td>

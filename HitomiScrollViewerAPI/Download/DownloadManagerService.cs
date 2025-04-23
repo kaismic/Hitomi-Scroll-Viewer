@@ -25,6 +25,8 @@ namespace HitomiScrollViewerAPI.Download {
         private DateTime _lastLiveServerInfoUpdateTime = DateTime.MinValue;
         private readonly object _liveServerInfoUpdateLock = new();
 
+        // TODO fix multiple downloaders being created for the same id when starting download with multiple ids with parallel download
+        // use logger to debug
         private readonly Dictionary<int, Downloader> _liveServerInfoUpdateWaiters = []; // note: _liveServerInfoUpdateWaiters is a subset of _liveDownloaders
         private readonly Dictionary<int, Downloader> _liveDownloaders = [];
 

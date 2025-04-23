@@ -6,6 +6,15 @@ using MudBlazor;
 
 namespace HitomiScrollViewerWebApp.Layout {
     public partial class MainLayout : LayoutComponentBase, IAsyncDisposable {
+        public static readonly Action<SnackbarOptions> DEFAULT_SNACKBAR_OPTIONS = options => {
+            options.ShowCloseIcon = true;
+            options.CloseAfterNavigation = true;
+            options.ShowTransitionDuration = 0;
+            options.HideTransitionDuration = 500;
+            options.VisibleStateDuration = 3000;
+            options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
+        };
+
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public LanguageTypeService LanguageTypeService { get; set; } = default!;
         [Inject] private IConfiguration AppConfiguration { get; set; } = default!;

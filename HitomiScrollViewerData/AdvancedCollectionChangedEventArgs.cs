@@ -36,13 +36,13 @@
             }
         }
         
-        public AdvancedCollectionChangedEventArgs(AdvancedCollectionChangedAction action, int startIndex) : this(action) {
+        public AdvancedCollectionChangedEventArgs(AdvancedCollectionChangedAction action, int index) : this(action) {
             switch (action) {
                 case AdvancedCollectionChangedAction.RemoveSingle:
-                    StartIndex = startIndex;
+                    StartIndex = index;
                     break;
                 default:
-                    throw new ArgumentException($"The 'action' parameter must be {nameof(AdvancedCollectionChangedAction.RemoveSingle)} when providing only {nameof(startIndex)}.", nameof(action));
+                    throw new ArgumentException($"The 'action' parameter must be {nameof(AdvancedCollectionChangedAction.RemoveSingle)} when providing only {nameof(index)}.", nameof(action));
             }
         }
 

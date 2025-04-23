@@ -1,10 +1,13 @@
 ﻿using HitomiScrollViewerData;
 using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerData.Entities;
+using HitomiScrollViewerWebApp.Components.Dialogs;
+using HitomiScrollViewerWebApp.Layout;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 using static HitomiScrollViewerData.Entities.Tag;
 
 namespace HitomiScrollViewerWebApp.Pages {
@@ -12,10 +15,10 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] private BrowseConfigurationService BrowseConfigurationService { get; set; } = default!;
         [Inject] private GalleryService GalleryService {get;set;} = default!;
         [Inject] private IJSRuntime JsRuntime {get;set;} = default!;
+        [Inject] IDialogService DialogService { get; set; } = default!;
+        [Inject] ISnackbar Snackbar { get; set; } = default!;
 
-        private const string MIN_ITEM_HEIGHT = "300px";
-        // if the screen height is more then MIN_ITEM_HEIGHT, screen
-        // TODO create filter button? filter query
+        private const string ITEM_HEIGHT = "300px";
 
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
 
@@ -23,9 +26,10 @@ namespace HitomiScrollViewerWebApp.Pages {
         /// 1-based page number
         /// </summary>
         private int _pageNum = 1;
-        private int _numOfPages = 1;
+        private int _totalPages = 1;
         private BrowseGalleryDTO[] _galleries = [];
         private bool _isLoading = false;
+        private ICollection<GallerySortDTO> _activeSorts = [];
 
         public GalleryLanguageDTO SelectedLanguage {
             get => BrowseConfigurationService.Config.SelectedLanguage;
@@ -34,7 +38,11 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.SelectedLanguage = value;
-                _ = BrowseConfigurationService.UpdateLanguageAsync(value.Id);
+                _ = Task.Run(async () => {
+                    await BrowseConfigurationService.UpdateLanguageAsync(value.Id);
+                    await LoadGalleries();
+                });
+                
             }
         }
         public GalleryTypeDTO SelectedType {
@@ -44,7 +52,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.SelectedType = value;
-                _ = BrowseConfigurationService.UpdateTypeAsync(value.Id);
+                _ = Task.Run(async () => {
+                    await BrowseConfigurationService.UpdateTypeAsync(value.Id);
+                    await LoadGalleries();
+                });
             }
         }
 
@@ -55,7 +66,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.TitleSearchKeyword = value;
-                _ = BrowseConfigurationService.UpdateTitleSearchKeywordAsync(value);
+                _ = Task.Run(async () => {
+                    await BrowseConfigurationService.UpdateTitleSearchKeywordAsync(value);
+                    await LoadGalleries();
+                });
             }
         }
 
@@ -66,7 +80,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.ItemsPerPage = value;
-                _ = BrowseConfigurationService.UpdateItemsPerPageAsync(value);
+                _ = Task.Run(async () => {
+                    await BrowseConfigurationService.UpdateItemsPerPageAsync(value);
+                    await LoadGalleries();
+                });
             }
         }
 
@@ -76,6 +93,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         protected override async Task OnInitializedAsync() {
             if (!BrowseConfigurationService.IsLoaded) {
                 await BrowseConfigurationService.Load();
+                _activeSorts = [.. BrowseConfigurationService.Config.Sorts.Where(s => s.IsActive)];
             }
             _isInitialized = true;
             _ = OnInitRenderComplete();
@@ -91,7 +109,6 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task OnInitRenderComplete() {
             if (_isInitialized && _isRendered) {
-                _numOfPages = (await GalleryService.GetCount() / ItemsPerPage) + 1;
                 for (int i = 0; i < TAG_CATEGORIES.Length; i++) {
                     TagCategory category = TAG_CATEGORIES[i];
                     IEnumerable<TagDTO> tags = BrowseConfigurationService.Config.Tags.Where(t => t.Category == category);
@@ -117,8 +134,14 @@ namespace HitomiScrollViewerWebApp.Pages {
                     _ = BrowseConfigurationService.RemoveTagsAsync(removingIds);
                     break;
                 }
+                case AdvancedCollectionChangedAction.RemoveSingle: {
+                    int id = e.OldItem!.Value.Id;
+                    BrowseConfigurationService.Config.Tags.RemoveAll(t => t.Id == id);
+                    _ = BrowseConfigurationService.RemoveTagsAsync([id]);
+                    break;
+                }
                 default:
-                    throw new NotImplementedException($"Only {nameof(AdvancedCollectionChangedAction.AddSingle)} and {nameof(AdvancedCollectionChangedAction.RemoveMultiple)} is implemented.");
+                    throw new NotImplementedException();
             }
         }
 
@@ -130,8 +153,33 @@ namespace HitomiScrollViewerWebApp.Pages {
         private async Task LoadGalleries() {
             _isLoading = true;
             StateHasChanged();
-            _galleries = [.. await GalleryService.GetBrowseGalleryDTOs(_pageNum - 1, BrowseConfigurationService.Config.Id)];
+            BrowseQueryResult result = await GalleryService.GetBrowseQueryResult(_pageNum - 1, BrowseConfigurationService.Config.Id);
+            _galleries = [.. result.Galleries];
+            //int newTotalPages = (result.TotalGalleryCount / ItemsPerPage) + 1;
+            //if (_totalPages != newTotalPages) {
+            //    _totalPages = newTotalPages;
+            //}
+            _totalPages = (result.TotalGalleryCount / ItemsPerPage) + 1; ;
             _isLoading = false;
+            StateHasChanged();
+        }
+
+        private async Task ShowSortEditDialog() {
+            IDialogReference dialogRef = await DialogService.ShowAsync<GallerySortEditDialog>("Sort Galleries");
+            DialogResult result = (await dialogRef.Result)!;
+            if (result.Canceled) {
+                return;
+            }
+            ICollection<GallerySortDTO> sorts = (ICollection<GallerySortDTO>)result.Data!;
+            bool success = await BrowseConfigurationService.UpdateGallerySorts(sorts);
+            if (success) {
+                BrowseConfigurationService.Config.Sorts = sorts;
+                _activeSorts = [.. sorts.Where(s => s.IsActive)];
+                Snackbar.Add($"Saved successfully", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+            } else {
+                Snackbar.Add($"Failed to save sorts", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+            }
+            await LoadGalleries();
         }
     }
 }

@@ -33,12 +33,6 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok(gallery.ToViewDTO());
         }
 
-        [HttpGet("count")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<int> GetGalleryCount() {
-            return Ok(context.Galleries.AsNoTracking().Count());
-        }
-
         private static IOrderedEnumerable<Gallery> SortGallery(IEnumerable<Gallery> galleries, GallerySort sort) =>
             sort.SortDirection == SortDirection.Ascending ?
                 galleries.OrderBy(GetSortKey(sort)) :
@@ -69,7 +63,7 @@ namespace HitomiScrollViewerAPI.Controllers {
         [HttpGet("browse-galleries")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<IEnumerable<BrowseGalleryDTO>> GetBrowseGalleries(int pageIndex, int configId) {
+        public ActionResult<BrowseQueryResult> GetBrowseQueryResult(int pageIndex, int configId) {
             if (pageIndex < 0) {
                 return BadRequest("Page index must be greater than or equal to 0.");
             }
@@ -94,24 +88,27 @@ namespace HitomiScrollViewerAPI.Controllers {
                 galleries = galleries.Where(g => g.Type.Id == config.SelectedType.Id);
             }
             if (!string.IsNullOrEmpty(config.TitleSearchKeyword)) {
-                galleries = galleries.Where(g => g.Title.Contains(config.TitleSearchKeyword));
+                galleries = galleries.Where(g => g.Title.Contains(config.TitleSearchKeyword, StringComparison.InvariantCultureIgnoreCase));
             }
             foreach (Tag tag in config.Tags) {
                 galleries = galleries.Where(g => g.Tags.Any(t => t.Id == tag.Id));
             }
-            if (config.Sorts.Count > 0) {
-                IOrderedEnumerable<Gallery> orderedGalleries = SortGallery(galleries, config.Sorts[0]);
-                for (int i = 1; i < config.Sorts.Count; i++) {
-                    orderedGalleries = ThenSortGallery(orderedGalleries, config.Sorts[i]);
+            GallerySort[] activeSorts = [.. config.Sorts.Where(s => s.IsActive).OrderBy(s => s.RankIndex)];
+            if (activeSorts.Length > 0) {
+                IOrderedEnumerable<Gallery> orderedGalleries = SortGallery(galleries, activeSorts[0]);
+                for (int i = 1; i < activeSorts.Length; i++) {
+                    orderedGalleries = ThenSortGallery(orderedGalleries, activeSorts[i]);
                 }
                 galleries = orderedGalleries;
             }
-            return Ok(
-                galleries
-                .Skip(pageIndex * config.ItemsPerPage)
-                .Take(config.ItemsPerPage)
-                .Select(g => g.ToBrowseDTO())
-            );
+            BrowseQueryResult result = new() {
+                TotalGalleryCount = galleries.Count(),
+                Galleries = galleries
+                    .Skip(pageIndex * config.ItemsPerPage)
+                    .Take(config.ItemsPerPage)
+                    .Select(g => g.ToBrowseDTO())
+            };
+            return Ok(result);
         }
     }
 }
