@@ -42,5 +42,10 @@ namespace HitomiScrollViewerWebApp.Services {
         public async Task<BrowseQueryResult> GetBrowseQueryResult(int pageIndex, int configId) {
             return (await httpClient.GetFromJsonAsync<BrowseQueryResult>($"browse-galleries?pageIndex={pageIndex}&configId={configId}"))!;
         }
+
+        public async Task<bool> DeleteGalleries(IEnumerable<int> ids) {
+            var response = await httpClient.PostAsync("delete-galleries", JsonContent.Create(ids));
+            return response.IsSuccessStatusCode;
+        }
     }
 }

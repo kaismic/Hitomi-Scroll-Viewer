@@ -38,15 +38,15 @@ namespace HitomiScrollViewerAPI.Download {
                         case DownloadAction.Start: {
                             logger.LogInformation("{GalleryId}: Start", args.GalleryId);
                             if (!_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? downloader)) {
-                                using (IServiceScope scope = serviceProvider.CreateScope()) {
-                                    HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>();
+                                IServiceScope scope = serviceProvider.CreateScope();
+                                using (HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>()) {
                                     ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
                                     if (!downloads.Contains(args.GalleryId)) {
                                         downloads.Add(args.GalleryId);
                                         dbContext.SaveChanges();
                                     }
                                 }
-                                downloader = new(serviceProvider.CreateScope()) {
+                                downloader = new(scope) {
                                     GalleryId = args.GalleryId,
                                     LiveServerInfo = LiveServerInfo,
                                     RemoveSelf = RemoveDownloader,
@@ -57,7 +57,6 @@ namespace HitomiScrollViewerAPI.Download {
                             break;
                         }
                         case DownloadAction.Pause: {
-                            
                             logger.LogInformation("{GalleryId}: Pause", args.GalleryId);
                             if (_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? value)) {
                                 // the pause request could have been sent at the exact timing when its LSI is being updated although it's very unlikely

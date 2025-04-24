@@ -6,6 +6,7 @@ using HitomiScrollViewerWebApp.Layout;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
 using static HitomiScrollViewerData.Entities.Tag;
@@ -28,7 +29,9 @@ namespace HitomiScrollViewerWebApp.Pages {
         private int _pageNum = 1;
         private int _totalPages = 1;
         private BrowseGalleryDTO[] _galleries = [];
+        private bool[] _selections = [];
         private bool _isLoading = false;
+        private bool _isEditing = false;
         private ICollection<GallerySortDTO> _activeSorts = [];
 
         public GalleryLanguageDTO SelectedLanguage {
@@ -108,8 +111,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         protected override async Task OnInitializedAsync() {
             if (!BrowseConfigurationService.IsLoaded) {
                 await BrowseConfigurationService.Load();
-                _activeSorts = [.. BrowseConfigurationService.Config.Sorts.Where(s => s.IsActive)];
             }
+            _activeSorts = [.. BrowseConfigurationService.Config.Sorts.Where(s => s.IsActive)];
             _isInitialized = true;
             _ = OnInitRenderComplete();
         }
@@ -174,7 +177,9 @@ namespace HitomiScrollViewerWebApp.Pages {
             _isLoading = true;
             StateHasChanged();
             BrowseQueryResult result = await GalleryService.GetBrowseQueryResult(_pageNum - 1, BrowseConfigurationService.Config.Id);
-            _galleries = [.. result.Galleries];
+            BrowseGalleryDTO[] temp = [.. result.Galleries];
+            _selections = new bool[temp.Length];
+            _galleries = temp;
             _totalPages = (result.TotalGalleryCount / ItemsPerPage) + 1; ;
             _isLoading = false;
             StateHasChanged();
@@ -191,11 +196,37 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (success) {
                 BrowseConfigurationService.Config.Sorts = sorts;
                 _activeSorts = [.. sorts.Where(s => s.IsActive)];
-                Snackbar.Add($"Saved successfully", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+                Snackbar.Add("Saved successfully", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+                await LoadGalleries();
             } else {
-                Snackbar.Add($"Save failed", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+                Snackbar.Add("Save failed", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
             }
-            await LoadGalleries();
+        }
+
+        private async Task DeleteGalleries() {
+            List<int> ids = [];
+            for (int i = 0; i < _selections.Length; i++) {
+                if (_selections[i]) {
+                    ids.Add(_galleries[i].Id);
+                }
+            }
+            bool success = await GalleryService.DeleteGalleries(ids);
+            if (success) {
+                Snackbar.Add($"Deleted {ids.Count} galleries.", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+                await LoadGalleries();
+            } else {
+                Snackbar.Add("Deletion failed.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+            }
+        }
+
+        private async Task DeleteGallery(int id) {
+            bool success = await GalleryService.DeleteGalleries([id]);
+            if (success) {
+                Snackbar.Add($"Deletion success.", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+                await LoadGalleries();
+            } else {
+                Snackbar.Add("Deletion failed.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+            }
         }
     }
 }

@@ -110,5 +110,19 @@ namespace HitomiScrollViewerAPI.Controllers {
             };
             return Ok(result);
         }
+
+        [HttpPost("delete-galleries")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult DeleteGalleries([FromBody] IEnumerable<int> ids) {
+            foreach (int id in ids) {
+                Gallery? gallery = context.Galleries.Find(id);
+                if (gallery != null) {
+                    context.Galleries.Remove(gallery);
+                }
+            }
+            context.SaveChanges();
+            return Ok();
+        }
+
     }
 }
