@@ -38,9 +38,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.SelectedLanguage = value;
-                _ = Task.Run(async () => {
-                    await BrowseConfigurationService.UpdateLanguageAsync(value.Id);
-                    await LoadGalleries();
+                BrowseConfigurationService.UpdateLanguageAsync(value.Id).ContinueWith(_ => {
+                    if (AutoRefresh) {
+                        _ = LoadGalleries();
+                    }
                 });
                 
             }
@@ -52,9 +53,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.SelectedType = value;
-                _ = Task.Run(async () => {
-                    await BrowseConfigurationService.UpdateTypeAsync(value.Id);
-                    await LoadGalleries();
+                BrowseConfigurationService.UpdateTypeAsync(value.Id).ContinueWith(_ => {
+                    if (AutoRefresh) {
+                        _ = LoadGalleries();
+                    }
                 });
             }
         }
@@ -66,9 +68,10 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.TitleSearchKeyword = value;
-                _ = Task.Run(async () => {
-                    await BrowseConfigurationService.UpdateTitleSearchKeywordAsync(value);
-                    await LoadGalleries();
+                BrowseConfigurationService.UpdateTitleSearchKeywordAsync(value).ContinueWith(_ => {
+                    if (AutoRefresh) {
+                        _ = LoadGalleries();
+                    }
                 });
             }
         }
@@ -80,10 +83,22 @@ namespace HitomiScrollViewerWebApp.Pages {
                     return;
                 }
                 BrowseConfigurationService.Config.ItemsPerPage = value;
-                _ = Task.Run(async () => {
-                    await BrowseConfigurationService.UpdateItemsPerPageAsync(value);
-                    await LoadGalleries();
+                BrowseConfigurationService.UpdateItemsPerPageAsync(value).ContinueWith(_ => {
+                    if (AutoRefresh) {
+                        _ = LoadGalleries();
+                    }
                 });
+            }
+        }
+
+        private bool AutoRefresh {
+            get => BrowseConfigurationService.Config.AutoRefresh;
+            set {
+                if (BrowseConfigurationService.Config.AutoRefresh == value) {
+                    return;
+                }
+                BrowseConfigurationService.Config.AutoRefresh = value;
+                _ = BrowseConfigurationService.UpdateAutoRefreshAsync(value);
             }
         }
 
@@ -122,27 +137,32 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private void OnChipModelsChanged(AdvancedCollectionChangedEventArgs<ChipModel<TagDTO>> e) {
-            switch (e.Action) {
-                case AdvancedCollectionChangedAction.AddSingle: {
-                    BrowseConfigurationService.Config.Tags.Add(e.NewItem!.Value);
-                    _ = BrowseConfigurationService.AddTagsAsync([e.NewItem!.Value.Id]);
-                    break;
+            _ = Task.Run(async () => {
+                switch (e.Action) {
+                    case AdvancedCollectionChangedAction.AddSingle: {
+                        BrowseConfigurationService.Config.Tags.Add(e.NewItem!.Value);
+                        await BrowseConfigurationService.AddTagsAsync([e.NewItem!.Value.Id]);
+                        break;
+                    }
+                    case AdvancedCollectionChangedAction.RemoveMultiple: {
+                        HashSet<int> removingIds = [.. e.OldItems!.Select(m => m.Value.Id)];
+                        BrowseConfigurationService.Config.Tags.RemoveAll(t => removingIds.Contains(t.Id));
+                        await BrowseConfigurationService.RemoveTagsAsync(removingIds);
+                        break;
+                    }
+                    case AdvancedCollectionChangedAction.RemoveSingle: {
+                        int id = e.OldItem!.Value.Id;
+                        BrowseConfigurationService.Config.Tags.RemoveAll(t => t.Id == id);
+                        await BrowseConfigurationService.RemoveTagsAsync([id]);
+                        break;
+                    }
+                    default:
+                        throw new NotImplementedException();
                 }
-                case AdvancedCollectionChangedAction.RemoveMultiple: {
-                    HashSet<int> removingIds = [.. e.OldItems!.Select(m => m.Value.Id)];
-                    BrowseConfigurationService.Config.Tags.RemoveAll(t => removingIds.Contains(t.Id));
-                    _ = BrowseConfigurationService.RemoveTagsAsync(removingIds);
-                    break;
-                }
-                case AdvancedCollectionChangedAction.RemoveSingle: {
-                    int id = e.OldItem!.Value.Id;
-                    BrowseConfigurationService.Config.Tags.RemoveAll(t => t.Id == id);
-                    _ = BrowseConfigurationService.RemoveTagsAsync([id]);
-                    break;
-                }
-                default:
-                    throw new NotImplementedException();
-            }
+                 if (AutoRefresh) {
+                     _ = LoadGalleries();
+                 }
+            });
         }
 
         private async Task OnPageNumChanged(int value) {
@@ -155,10 +175,6 @@ namespace HitomiScrollViewerWebApp.Pages {
             StateHasChanged();
             BrowseQueryResult result = await GalleryService.GetBrowseQueryResult(_pageNum - 1, BrowseConfigurationService.Config.Id);
             _galleries = [.. result.Galleries];
-            //int newTotalPages = (result.TotalGalleryCount / ItemsPerPage) + 1;
-            //if (_totalPages != newTotalPages) {
-            //    _totalPages = newTotalPages;
-            //}
             _totalPages = (result.TotalGalleryCount / ItemsPerPage) + 1; ;
             _isLoading = false;
             StateHasChanged();
@@ -177,7 +193,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 _activeSorts = [.. sorts.Where(s => s.IsActive)];
                 Snackbar.Add($"Saved successfully", Severity.Success, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
             } else {
-                Snackbar.Add($"Failed to save sorts", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+                Snackbar.Add($"Save failed", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
             }
             await LoadGalleries();
         }

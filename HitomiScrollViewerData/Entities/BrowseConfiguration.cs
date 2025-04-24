@@ -9,6 +9,7 @@ public class BrowseConfiguration {
     public string TitleSearchKeyword { get; set; } = "";
     public required int ItemsPerPage { get; set; }
     public ICollection<GallerySort> Sorts { get; set; } = [];
+    public bool AutoRefresh { get; set; }
 
     public BrowseConfigurationDTO ToDTO() => new() {
         Id = Id,
@@ -17,6 +18,7 @@ public class BrowseConfiguration {
         SelectedType = SelectedType.ToDTO(),
         TitleSearchKeyword = TitleSearchKeyword,
         ItemsPerPage = ItemsPerPage,
-        Sorts = [.. Sorts.Select(s => s.ToDTO())]
+        Sorts = [.. Sorts.Select(s => s.ToDTO())],
+        AutoRefresh = AutoRefresh
     };
 }

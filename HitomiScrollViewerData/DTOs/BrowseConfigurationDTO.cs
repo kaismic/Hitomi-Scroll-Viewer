@@ -9,5 +9,6 @@
         public string TitleSearchKeyword { get; set; } = "";
         public int ItemsPerPage { get; set; }
         public ICollection<GallerySortDTO> Sorts { get; set; } = [];
+        public bool AutoRefresh { get; set; }
     }
 }

@@ -113,6 +113,19 @@ namespace HitomiScrollViewerAPI.Controllers {
             return Ok();
         }
 
+        [HttpPatch("auto-refresh")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult UpdateAutoRefresh(int configId, [FromBody] bool value) {
+            BrowseConfiguration? config = context.BrowseConfigurations.Find(configId);
+            if (config == null) {
+                return NotFound();
+            }
+            config.AutoRefresh = value;
+            context.SaveChanges();
+            return Ok();
+        }
+
         [HttpPatch("gallery-sorts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

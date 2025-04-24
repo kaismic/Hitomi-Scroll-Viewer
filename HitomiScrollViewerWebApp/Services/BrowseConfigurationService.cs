@@ -40,6 +40,11 @@ namespace HitomiScrollViewerWebApp.Services {
             var response = await httpClient.PatchAsync($"items-per-page?configId={Config.Id}", JsonContent.Create(value));
             return response.IsSuccessStatusCode;
         }
+        
+        public async Task<bool> UpdateAutoRefreshAsync(bool value) {
+            var response = await httpClient.PatchAsync($"auto-refresh?configId={Config.Id}", JsonContent.Create(value));
+            return response.IsSuccessStatusCode;
+        }
 
         public async Task<bool> UpdateGallerySorts(IEnumerable<GallerySortDTO> value) {
             var response = await httpClient.PatchAsync($"gallery-sorts?configId={Config.Id}", JsonContent.Create(value));
