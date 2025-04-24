@@ -32,7 +32,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         /// <summary>
         /// 0-based page index
         /// </summary>
-        private int _pageIndex = 0;
+        private int PageIndex => PageNumber - 1;
+        private int PageNumber { get; set; } = 1;
         private int _pageOffset = 0;
         private BrowserWindowSize _browserWindowSize = new();
         private bool _isAutoScrolling = false;
@@ -53,14 +54,24 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        private bool CanDecrement() => _viewConfiguration.Loop || _pageIndex > 0;
-        private bool CanIncrement() => _viewConfiguration.Loop || _pageIndex < _imageIndexRanges.Length - 1;
+        private bool CanDecrement() => _viewConfiguration.Loop || PageIndex > 0;
+        private bool CanIncrement() => _viewConfiguration.Loop || PageIndex < _imageIndexRanges.Length - 1;
         private void Decrement() {
-            _pageIndex  = (_pageIndex - 1 + _imageIndexRanges.Length) % _imageIndexRanges.Length;
+            if (PageNumber == 1) {
+                PageNumber = _imageIndexRanges.Length;
+            } else {
+                PageNumber = (PageNumber - 1 + _imageIndexRanges.Length) % _imageIndexRanges.Length;
+            }
             StateHasChanged();
         }
         private void Increment() {
-            _pageIndex  = (_pageIndex + 1) % _imageIndexRanges.Length;
+            if (PageNumber == _imageIndexRanges.Length) {
+                PageNumber = 1;
+            } else if (PageNumber == _imageIndexRanges.Length - 1) {
+                PageNumber = _imageIndexRanges.Length;
+            } else {
+                PageNumber = (PageNumber + 1) % _imageIndexRanges.Length;
+            }
             StateHasChanged();
         }
 
@@ -73,7 +84,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 int imageCount;
                 switch (_viewConfiguration.ImageLayoutMode) {
                     case ImageLayoutMode.Automatic:
-                        Range currRange = _imageIndexRanges[_pageIndex];
+                        Range currRange = _imageIndexRanges[PageIndex];
                         imageCount = currRange.End.Value - currRange.Start.Value;
                         break;
                     case ImageLayoutMode.Fixed:
@@ -188,8 +199,8 @@ namespace HitomiScrollViewerWebApp.Pages {
                     }
                     break;
             }
-            if (_pageIndex > indexRanges.Count) {
-                _pageIndex = 0;
+            if (PageIndex > indexRanges.Count) {
+                PageNumber = 1;
             }
             Console.WriteLine("Image index ranges: " + string.Join(", ", indexRanges));
             _imageIndexRanges = [.. indexRanges];

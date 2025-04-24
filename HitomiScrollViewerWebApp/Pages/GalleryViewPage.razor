@@ -35,13 +35,16 @@
             <MudSelectItem T="FitMode" Value="FitMode.Horizontal" />
             <MudSelectItem T="FitMode" Value="FitMode.Vertical" />
         </MudSelect>
-        <MudNumericField T="int"
-                            @bind-Value="@_pageIndex"
-                            Label="Page"
-                            Min="0" Max=@(_imageIndexRanges.Length - 1)
-                            Pattern="[0-9]"
-                            Variant="Variant.Outlined"
-                            Style="max-width: 90px" />
+        <div class="d-flex align-center gap-2">
+            <MudNumericField T="int"
+                                @bind-Value="@PageNumber"
+                                Label="Page"
+                                Min="1" Max=@(_imageIndexRanges.Length)
+                                Pattern="[0-9]"
+                                Variant="Variant.Outlined"
+                                Style="max-width: 80px" />
+            <MudText>@("/" + _imageIndexRanges.Length)</MudText>
+        </div>
         <MudNumericField T="int"
                             @bind-Value="@_viewConfiguration.ImagesPerPage"
                             Label=@(_viewConfiguration.ImageLayoutMode == ImageLayoutMode.Automatic ? "Maximum Images per Page" : "Images per Page")
@@ -128,11 +131,11 @@
                 @if (_viewConfiguration.ViewMode == ViewMode.Default) {
                     <div class="d-flex justify-center" onclick="@OnPageClick">
                         @if (_viewConfiguration.ViewDirection == ViewDirection.LTR) {
-                            @for (int i = _imageIndexRanges[_pageIndex].Start.Value + 1; i < _imageIndexRanges[_pageIndex].End.Value + 1; i++) {
+                            @for (int i = _imageIndexRanges[PageIndex].Start.Value + 1; i < _imageIndexRanges[PageIndex].End.Value + 1; i++) {
                                 <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") style=@GetImageStyle()/>
                             }
                         } else {
-                            @for (int i = _imageIndexRanges[_pageIndex].End.Value; i > _imageIndexRanges[_pageIndex].Start.Value; i--) {
+                            @for (int i = _imageIndexRanges[PageIndex].End.Value; i > _imageIndexRanges[PageIndex].Start.Value; i--) {
                                 <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") style=@GetImageStyle()/>
                             }
                         }
