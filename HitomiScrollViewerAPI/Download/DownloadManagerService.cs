@@ -1,5 +1,6 @@
 ﻿using HitomiScrollViewerData;
 using HitomiScrollViewerData.DbContexts;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
 
@@ -25,43 +26,44 @@ namespace HitomiScrollViewerAPI.Download {
         private DateTime _lastLiveServerInfoUpdateTime = DateTime.MinValue;
         private readonly object _liveServerInfoUpdateLock = new();
 
-        // TODO fix multiple downloaders being created for the same id when starting download with multiple ids with parallel download
-        // use logger to debug
-        private readonly Dictionary<int, Downloader> _liveServerInfoUpdateWaiters = []; // note: _liveServerInfoUpdateWaiters is a subset of _liveDownloaders
-        private readonly Dictionary<int, Downloader> _liveDownloaders = [];
+        private readonly ConcurrentDictionary<int, Downloader> _liveServerInfoUpdateWaiters = []; // note: _liveServerInfoUpdateWaiters is a subset of _liveDownloaders
+        private readonly ConcurrentDictionary<int, Downloader> _liveDownloaders = [];
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+            LiveServerInfo = await GetLiveServerInfo();
             ChannelReader<DownloadEventArgs> reader = eventBus.Subscribe();
             try {
                 await foreach (DownloadEventArgs args in reader.ReadAllAsync(stoppingToken)) {
                      switch (args.Action) {
                         case DownloadAction.Start: {
                             logger.LogInformation("{GalleryId}: Start", args.GalleryId);
-                            if (!_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? downloader)) {
+                            Downloader downloader = _liveDownloaders.GetOrAdd(args.GalleryId, (galleryId) => {
+                                logger.LogInformation("{GalleryId}: Creating new Downloader instance.", galleryId);
                                 IServiceScope scope = serviceProvider.CreateScope();
                                 using (HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>()) {
                                     ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
-                                    if (!downloads.Contains(args.GalleryId)) {
-                                        downloads.Add(args.GalleryId);
+                                    if (!downloads.Contains(galleryId)) {
+                                        downloads.Add(galleryId);
                                         dbContext.SaveChanges();
                                     }
                                 }
-                                downloader = new(scope) {
-                                    GalleryId = args.GalleryId,
+                                return new(scope) {
+                                    GalleryId = galleryId,
                                     LiveServerInfo = LiveServerInfo,
                                     RemoveSelf = RemoveDownloader,
                                     RequestLiveServerInfoUpdate = UpdateLiveServerInfo
                                 };
-                            }
-                            StartDownloader(downloader);
+                            });
+                            // Whether the downloader was retrieved or newly created, start it.
+                            _ = downloader.Start();
                             break;
                         }
                         case DownloadAction.Pause: {
                             logger.LogInformation("{GalleryId}: Pause", args.GalleryId);
                             if (_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? value)) {
                                 // the pause request could have been sent at the exact timing when its LSI is being updated although it's very unlikely
-                                // so just try to remove it from _liveServerInfoUpdateWaiters to prevent it from being started
-                                _liveServerInfoUpdateWaiters.Remove(args.GalleryId);
+                                // so try to remove it from _liveServerInfoUpdateWaiters to prevent it from being started
+                                _liveServerInfoUpdateWaiters.TryRemove(args.GalleryId, out _);
                                 value.Pause();
                             }
                             break;
@@ -90,8 +92,8 @@ namespace HitomiScrollViewerAPI.Download {
                     dbContext.SaveChanges();
                 }
             }
-            _liveDownloaders.Remove(d.GalleryId);
-            _liveServerInfoUpdateWaiters.Remove(d.GalleryId);
+            _liveDownloaders.TryRemove(d.GalleryId, out _);
+            _liveServerInfoUpdateWaiters.TryRemove(d.GalleryId, out _);
             d.Dispose();
         }
 
@@ -104,16 +106,27 @@ namespace HitomiScrollViewerAPI.Download {
                 }
             }
             _liveServerInfoUpdateWaiters.TryAdd(downloader.GalleryId, downloader);
-            if (Monitor.TryEnter(_liveServerInfoUpdateLock)) {
+
+            if (Monitor.TryEnter(_liveServerInfoUpdateLock)) { // Consider SemaphoreSlim here too
                 try {
                     LiveServerInfo = await GetLiveServerInfo();
-                    foreach (Downloader d in _liveDownloaders.Values) {
-                        d.LiveServerInfo = LiveServerInfo;
+
+                    // Update *all* downloaders (safe to iterate ConcurrentDictionary)
+                    foreach (var kvp in _liveDownloaders) {
+                        kvp.Value.LiveServerInfo = LiveServerInfo;
                     }
-                    foreach (Downloader d in _liveServerInfoUpdateWaiters.Values) {
-                        StartDownloader(d);
+
+                    // Capture waiters *before* clearing, iterate the capture
+                    var waitersToStart = _liveServerInfoUpdateWaiters.Values.ToList();
+                    _liveServerInfoUpdateWaiters.Clear(); // Clear is safe
+
+                    foreach (Downloader d in waitersToStart) {
+                        // Check if the downloader wasn't paused/removed *after* being added to waiters
+                        // but *before* this loop runs.
+                        if (_liveDownloaders.ContainsKey(d.GalleryId) && d.Status == DownloadStatus.WaitingLSIUpdate) {
+                            _ = d.Start(); // Use fire-and-forget
+                        }
                     }
-                    _liveServerInfoUpdateWaiters.Clear();
                 } finally {
                     Monitor.Exit(_liveServerInfoUpdateLock);
                 }
@@ -143,10 +156,6 @@ namespace HitomiScrollViewerAPI.Download {
                 SubdomainSelectionSet = subdomainSelectionSet,
                 IsContains = match.Groups[1].Value == "0"
             };
-        }
-
-        public bool IsDownloading(int galleryId) {
-            return _liveDownloaders.ContainsKey(galleryId);
         }
     }
 }

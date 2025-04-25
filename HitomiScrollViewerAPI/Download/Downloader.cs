@@ -15,8 +15,8 @@ namespace HitomiScrollViewerAPI.Download {
         public required Func<Downloader, Task> RequestLiveServerInfoUpdate { get; init; }
         public DownloadStatus Status { get; set; } = DownloadStatus.Paused;
 
-        private LiveServerInfo? _liveServerInfo;
-        public LiveServerInfo? LiveServerInfo {
+        private LiveServerInfo _liveServerInfo = default!;
+        public required LiveServerInfo LiveServerInfo {
             get => _liveServerInfo;
             set {
                 _liveServerInfo = value;
@@ -49,6 +49,8 @@ namespace HitomiScrollViewerAPI.Download {
             switch (status) {
                 case DownloadStatus.Completed:
                     _hubContext.Clients.All.ReceiveComplete(GalleryId);
+                    _logger.LogInformation("{GalleryId}: Download Completed", GalleryId);
+                    RemoveSelf(this);
                     break;
                 case DownloadStatus.Failed:
                     _hubContext.Clients.All.ReceiveFailure(GalleryId, message ?? throw new ArgumentNullException(nameof(message)));
@@ -61,10 +63,6 @@ namespace HitomiScrollViewerAPI.Download {
 
         public async Task Start() {
             if (Status == DownloadStatus.Downloading) {
-                return;
-            }
-            if (LiveServerInfo == null) {
-                _ = RequestLiveServerInfoUpdate(this);
                 return;
             }
             _liveServerInfoUpdated = false;
@@ -109,9 +107,13 @@ namespace HitomiScrollViewerAPI.Download {
                 await _hubContext.Clients.All.ReceiveGalleryAvailable(GalleryId);
                 threadNum = dbContext.DownloadConfigurations.First().ThreadNum;
             }
-            
-            GalleryImage[] missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(_gallery.Id, _gallery.Images)];
-            _logger.LogInformation("{GalleryId}: Found {ImageCount} missing images", _gallery.Id, missingGalleryImages.Length);
+
+            GalleryImage[] missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(GalleryId, _gallery.Images)];
+            _logger.LogInformation("{GalleryId}: Found {ImageCount} missing images", GalleryId, missingGalleryImages.Length);
+            if (missingGalleryImages.Length == 0) {
+                ChangeStatus(DownloadStatus.Completed);
+                return;
+            }
             _progress = _gallery.Images.Count - missingGalleryImages.Length;
             await _hubContext.Clients.All.ReceiveProgress(GalleryId, _progress);
             try {
@@ -133,12 +135,11 @@ namespace HitomiScrollViewerAPI.Download {
                 ChangeStatus(DownloadStatus.Failed, "Download failed due to an unknown error.");
                 return;
             }
-            missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(_gallery.Id, _gallery.Images)];
+            missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(GalleryId, _gallery.Images)];
             if (missingGalleryImages.Length > 0) {
                 ChangeStatus(DownloadStatus.Failed, $"Failed to download {missingGalleryImages.Length} images.");
             } else {
                 ChangeStatus(DownloadStatus.Completed);
-                RemoveSelf(this);
             }
         }
 
@@ -261,7 +262,7 @@ namespace HitomiScrollViewerAPI.Download {
             while (true) {
                 foreach (string fileExt in IMAGE_FILE_EXTS) {
                     try {
-                        HttpResponseMessage response = await _httpClient.GetAsync(GetImageAddress(LiveServerInfo!, galleryImage, fileExt), ct);
+                        HttpResponseMessage response = await _httpClient.GetAsync(GetImageAddress(LiveServerInfo, galleryImage, fileExt), ct);
                         response.EnsureSuccessStatusCode();
                         byte[] data = await response.Content.ReadAsByteArrayAsync(CancellationToken.None);
                         await Utils.GalleryFileUtil.WriteImageAsync(_gallery!, galleryImage, data, fileExt);
