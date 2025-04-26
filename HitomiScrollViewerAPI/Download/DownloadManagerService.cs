@@ -30,15 +30,23 @@ namespace HitomiScrollViewerAPI.Download {
         private readonly ConcurrentDictionary<int, Downloader> _liveDownloaders = [];
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-            LiveServerInfo = await GetLiveServerInfo();
             ChannelReader<DownloadEventArgs> reader = eventBus.Subscribe();
             try {
                 await foreach (DownloadEventArgs args in reader.ReadAllAsync(stoppingToken)) {
                      switch (args.Action) {
                         case DownloadAction.Start: {
-                            logger.LogInformation("{GalleryId}: Start", args.GalleryId);
+                            logger.LogInformation("{GalleryId}: Start.", args.GalleryId);
+                            if (LiveServerInfo == null) {
+                                logger.LogInformation("Fetching Live Server Info...");
+                                try {
+                                    LiveServerInfo = await GetLiveServerInfo();
+                                } catch (HttpRequestException e) {
+                                    logger.LogError(e, "Failed to fetch Live Server Info.");
+                                    break;
+                                }
+                            }
                             Downloader downloader = _liveDownloaders.GetOrAdd(args.GalleryId, (galleryId) => {
-                                logger.LogInformation("{GalleryId}: Creating new Downloader instance.", galleryId);
+                                logger.LogInformation("{GalleryId}: Creating Downloader.", galleryId);
                                 IServiceScope scope = serviceProvider.CreateScope();
                                 using (HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>()) {
                                     ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
@@ -59,7 +67,7 @@ namespace HitomiScrollViewerAPI.Download {
                             break;
                         }
                         case DownloadAction.Pause: {
-                            logger.LogInformation("{GalleryId}: Pause", args.GalleryId);
+                            logger.LogInformation("{GalleryId}: Pause.", args.GalleryId);
                             if (_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? value)) {
                                 // the pause request could have been sent at the exact timing when its LSI is being updated although it's very unlikely
                                 // so try to remove it from _liveServerInfoUpdateWaiters to prevent it from being started
@@ -69,7 +77,7 @@ namespace HitomiScrollViewerAPI.Download {
                             break;
                         }
                         case DownloadAction.Delete: {
-                            logger.LogInformation("{GalleryId}: Delete", args.GalleryId);
+                            logger.LogInformation("{GalleryId}: Delete.", args.GalleryId);
                             if (_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? value)) {
                                 RemoveDownloader(value);
                             }
@@ -137,7 +145,12 @@ namespace HitomiScrollViewerAPI.Download {
             _liveDownloaders.TryAdd(downloader.GalleryId, downloader);
             _ = downloader.Start();
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <exception cref="HttpRequestException"></exception>
+        /// <returns></returns>
         private async Task<LiveServerInfo> GetLiveServerInfo() {
             HttpResponseMessage response = await httpClient.GetAsync(_hitomiGgjsAddress);
             response.EnsureSuccessStatusCode();
