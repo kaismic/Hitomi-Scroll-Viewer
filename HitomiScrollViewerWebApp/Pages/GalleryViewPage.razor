@@ -94,8 +94,8 @@
                         Label="Auto Scroll Mode"
                         @bind-Value=_viewConfiguration.AutoScrollMode
                         Variant="Variant.Outlined">
-                <MudSelectItem T="AutoScrollMode" Value="AutoScrollMode.Continuous" />
-                <MudSelectItem T="AutoScrollMode" Value="AutoScrollMode.Discrete" />
+                <MudSelectItem T="AutoScrollMode" Value="AutoScrollMode.Continuous">Continuous</MudSelectItem>
+                <MudSelectItem T="AutoScrollMode" Value="AutoScrollMode.ByPage">By Page</MudSelectItem>
             </MudSelect>
             @if (_viewConfiguration.AutoScrollMode == AutoScrollMode.Continuous) {
                 <MudSlider T="int" ValueLabel
@@ -125,7 +125,7 @@
                                 Icon="@Icons.Material.Filled.LightMode"
                                 ToggledIcon="@Icons.Material.Filled.DarkMode" />
     </MudToolBar>
-    <div style="height: calc(100dvh - @TOOLBAR_HEIGHT); overflow: auto;">
+    <div id="main-container" style="height: calc(100dvh - @TOOLBAR_HEIGHT); overflow: auto;">
         @if (_imageIndexRanges.Length > 0) {
             <div style="outline: none; background-color: black; min-height: calc(100dvh - @TOOLBAR_HEIGHT);" tabindex="-1" onkeydown="@OnKeyDown">
                 @if (_viewConfiguration.ViewMode == ViewMode.Default) {
@@ -141,21 +141,19 @@
                         }
                     </div>
                 } else {
-                    <div>
-                        @foreach (Range range in _imageIndexRanges) {
-                            <div class="d-flex justify-center">
-                                @if (_viewConfiguration.ViewDirection == ViewDirection.LTR) {
-                                    @for (int i = range.Start.Value + 1; i < range.End.Value + 1; i++) {
-                                        <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") loading="lazy" style=@GetImageStyle() />
-                                    }
-                                } else {
-                                    @for (int i = range.End.Value; i > range.Start.Value; i--) {
-                                        <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") loading="lazy" style=@GetImageStyle() />
-                                    }
+                    @foreach (Range range in _imageIndexRanges) {
+                        <div id="scroll-image-container" class="d-flex justify-center">
+                            @if (_viewConfiguration.ViewDirection == ViewDirection.LTR) {
+                                @for (int i = range.Start.Value + 1; i < range.End.Value + 1; i++) {
+                                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") loading="lazy" style=@GetImageStyle() />
                                 }
-                            </div>
-                        }
-                    </div>
+                            } else {
+                                @for (int i = range.End.Value; i > range.Start.Value; i--) {
+                                    <img src=@($"{_baseImageUrl}&index={i}") alt=@($"Image {i}") loading="lazy" style=@GetImageStyle() />
+                                }
+                            }
+                        </div>
+                    }
                 }
             </div>
         }

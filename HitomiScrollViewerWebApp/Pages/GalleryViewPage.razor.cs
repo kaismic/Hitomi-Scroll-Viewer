@@ -4,11 +4,13 @@ using HitomiScrollViewerData.DTOs;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using MudBlazor;
 using System.Text;
 
 namespace HitomiScrollViewerWebApp.Pages {
     public partial class GalleryViewPage : IDisposable {
+        [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] private IResizeListener ResizeListener { get; set; } = default!;
         [Inject] private IConfiguration AppConfiguration { get; set; } = default!;
         [Inject] private GalleryService GalleryService { get; set; } = default!;
@@ -17,10 +19,13 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private const string TOOLBAR_HEIGHT = "80px";
 
+        private const string JAVASCRIPT_FILE = $"./Pages/{nameof(GalleryViewPage)}.razor.js";
+        private IJSObjectReference? _jsModule;
         private MudThemeProvider _mudThemeProvider = null!;
         private readonly MudTheme _theme = new();
         private bool _isDarkMode;
 
+        // TODO call set{Property} javascript function on relevant property value change
 
         private ViewGalleryDTO? _gallery;
         private ViewConfigurationDTO _viewConfiguration = new();
@@ -39,13 +44,17 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _isAutoScrolling = false;
         private CancellationTokenSource? _autoScrollCts;
         private FitMode _fitMode = FitMode.Auto;
-        
+        private DotNetObjectReference<GalleryViewPage>? _dotNetObjectRef;
+
         protected override void OnInitialized() {
             _baseImageUrl = AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"] + "?galleryId=" + GalleryId;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
+                _dotNetObjectRef = DotNetObjectReference.Create(this);
+                _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+                await _jsModule.InvokeVoidAsync("setDotNetObject", _dotNetObjectRef);
                 _isDarkMode = await _mudThemeProvider.GetSystemPreference();
                 ResizeListener.OnResized += OnResize;
                 _viewConfiguration = await ViewConfigurationService.GetConfiguration();
@@ -150,6 +159,8 @@ namespace HitomiScrollViewerWebApp.Pages {
                     }
                     break;
                 case ViewMode.Scroll:
+                    // TODO
+
                     break;
             }
         }
@@ -202,7 +213,6 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (PageIndex > indexRanges.Count) {
                 PageNumber = 1;
             }
-            Console.WriteLine("Image index ranges: " + string.Join(", ", indexRanges));
             _imageIndexRanges = [.. indexRanges];
             StateHasChanged();
         }
@@ -240,12 +250,18 @@ namespace HitomiScrollViewerWebApp.Pages {
             CaculateImageIndexGroups();
         }
 
+        [JSInvokable]
+        public void OnAutoScrollStop() {
+            _isAutoScrolling = false;
+        }
+
         public void Dispose() {
             GC.SuppressFinalize(this);
             if (_autoScrollCts != null) {
                 _autoScrollCts.Cancel();
                 _autoScrollCts.Dispose();
             }
+            _dotNetObjectRef?.Dispose();
             ResizeListener.OnResized -= OnResize;
         }
     }

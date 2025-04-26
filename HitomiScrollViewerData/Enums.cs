@@ -34,8 +34,8 @@
     }
 
     public enum AutoScrollMode {
-        Continuous,
-        Discrete,
+        Continuous = 0,
+        ByPage = 1,
     }
 
     public enum FitMode {
