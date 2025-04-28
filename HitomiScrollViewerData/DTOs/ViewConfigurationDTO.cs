@@ -6,10 +6,7 @@ public class ViewConfigurationDTO {
     public bool Loop { get; set; }
     public ImageLayoutMode ImageLayoutMode { get; set; }
     public ViewDirection ViewDirection { get; set; }
-    public int AutoPageFlipInterval { get; set; }
     public AutoScrollMode AutoScrollMode { get; set; }
-    public int AutoScrollSpeed { get; set; }
-    public int AutoScrollDistance { get; set; }
-    public int AutoScrollInterval { get; set; }
+    public int PageTurnInterval { get; set; }
+    public int ScrollSpeed { get; set; }
 }
-

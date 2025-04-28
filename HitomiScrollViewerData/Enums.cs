@@ -19,8 +19,8 @@
     }
 
     public enum ViewMode {
-        Default,
-        Scroll
+        Default = 0,
+        Scroll = 1
     }
 
     public enum ImageLayoutMode {

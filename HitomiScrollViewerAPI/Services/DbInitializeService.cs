@@ -148,15 +148,14 @@ namespace HitomiScrollViewerAPI.Services {
 
             context.DownloadConfigurations.Add(new() { ThreadNum = 1 });
             context.ViewConfigurations.Add(new() {
+                ViewMode = ViewMode.Default,
                 ImagesPerPage = 2,
                 Loop = true,
                 ImageLayoutMode = ImageLayoutMode.Automatic,
                 ViewDirection = ViewDirection.RTL,
-                AutoPageFlipInterval = 8,
-                AutoScrollMode = AutoScrollMode.Continuous,
-                AutoScrollSpeed = 20,
-                AutoScrollDistance = 80,
-                AutoScrollInterval = 4
+                AutoScrollMode = AutoScrollMode.ByPage,
+                PageTurnInterval = 8,
+                ScrollSpeed = 1
             });
             Console.WriteLine("  Complete");
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Saving changes...");

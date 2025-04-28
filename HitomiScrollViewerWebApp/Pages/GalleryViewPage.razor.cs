@@ -17,15 +17,13 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] private ViewConfigurationService ViewConfigurationService { get; set; } = default!;
         [Parameter] public int GalleryId { get; set; }
 
-        private const string TOOLBAR_HEIGHT = "80px";
+        private const string DEFAULT_TOOLBAR_HEIGHT = "80px";
 
         private const string JAVASCRIPT_FILE = $"./Pages/{nameof(GalleryViewPage)}.razor.js";
         private IJSObjectReference? _jsModule;
         private MudThemeProvider _mudThemeProvider = null!;
         private readonly MudTheme _theme = new();
         private bool _isDarkMode;
-
-        // TODO call set{Property} javascript function on relevant property value change
 
         private ViewGalleryDTO? _gallery;
         private ViewConfigurationDTO _viewConfiguration = new();
@@ -42,9 +40,11 @@ namespace HitomiScrollViewerWebApp.Pages {
         private int _pageOffset = 0;
         private BrowserWindowSize _browserWindowSize = new();
         private bool _isAutoScrolling = false;
-        private CancellationTokenSource? _autoScrollCts;
+        private CancellationTokenSource? _autoPageTurnCts;
         private FitMode _fitMode = FitMode.Auto;
         private DotNetObjectReference<GalleryViewPage>? _dotNetObjectRef;
+        private bool _preventDefaultKeyDown = false;
+        private bool _toolbarOpen = false;
 
         protected override void OnInitialized() {
             _baseImageUrl = AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"] + "?galleryId=" + GalleryId;
@@ -52,34 +52,56 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                _dotNetObjectRef = DotNetObjectReference.Create(this);
-                _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
-                await _jsModule.InvokeVoidAsync("setDotNetObject", _dotNetObjectRef);
                 _isDarkMode = await _mudThemeProvider.GetSystemPreference();
-                ResizeListener.OnResized += OnResize;
                 _viewConfiguration = await ViewConfigurationService.GetConfiguration();
                 _gallery ??= await GalleryService.GetViewGalleryDTO(GalleryId);
+                _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+                _dotNetObjectRef = DotNetObjectReference.Create(this);
+                await _jsModule.InvokeVoidAsync("setDotNetObject", _dotNetObjectRef);
+                await _jsModule.InvokeVoidAsync("init", _viewConfiguration);
                 CaculateImageIndexGroups();
+                ResizeListener.OnResized += OnResize;
             }
+        }
+
+        private bool _pageNumberChangedByJs = false;
+        private async Task OnPageNumberChanged(int value) {
+            PageNumber = value;
+            if (_viewConfiguration.ViewMode == ViewMode.Scroll && !_pageNumberChangedByJs) {
+                _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+                await _jsModule.InvokeVoidAsync("scrollToIndex", PageIndex);
+            }
+            StateHasChanged();
+        }
+
+        /// <summary>
+        /// <paramref name="pageNumber"/> must be 1-based.
+        /// </summary>
+        /// <param name="pageNumber"></param>
+        [JSInvokable]
+        public async Task SetPageNumberFromJs(int pageNumber) {
+            _pageNumberChangedByJs = true;
+            await OnPageNumberChanged(pageNumber);
+            _pageNumberChangedByJs = false;
         }
 
         private bool CanDecrement() => _viewConfiguration.Loop || PageIndex > 0;
         private bool CanIncrement() => _viewConfiguration.Loop || PageIndex < _imageIndexRanges.Length - 1;
-        private void Decrement() {
+        private async Task Decrement() {
             if (PageNumber == 1) {
-                PageNumber = _imageIndexRanges.Length;
+                await OnPageNumberChanged(_imageIndexRanges.Length);
             } else {
-                PageNumber = (PageNumber - 1 + _imageIndexRanges.Length) % _imageIndexRanges.Length;
+                await OnPageNumberChanged((PageNumber - 1 + _imageIndexRanges.Length) % _imageIndexRanges.Length);
             }
             StateHasChanged();
         }
-        private void Increment() {
+        private async Task Increment() {
             if (PageNumber == _imageIndexRanges.Length) {
-                PageNumber = 1;
+                await OnPageNumberChanged(1);
             } else if (PageNumber == _imageIndexRanges.Length - 1) {
-                PageNumber = _imageIndexRanges.Length;
+                await OnPageNumberChanged(_imageIndexRanges.Length);
             } else {
-                PageNumber = (PageNumber + 1) % _imageIndexRanges.Length;
+                await OnPageNumberChanged((PageNumber + 1) % _imageIndexRanges.Length);
             }
             StateHasChanged();
         }
@@ -108,7 +130,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             if (_fitMode == FitMode.Horizontal) {
                 sb.Append("auto");
             } else {
-                sb.Append($"calc(100dvh - {TOOLBAR_HEIGHT})");
+                sb.Append($"calc(100dvh - {DEFAULT_TOOLBAR_HEIGHT})");
             }
             sb.Append(';');
             return sb.ToString();
@@ -119,49 +141,84 @@ namespace HitomiScrollViewerWebApp.Pages {
             CaculateImageIndexGroups();
         }
 
-        private void OnViewModeChanged(ViewMode mode) {
-            _viewConfiguration.ViewMode = mode;
-            switch (mode) {
-                case ViewMode.Default:
-                    break;
-                case ViewMode.Scroll:
-                    break;
+        private async Task OnViewModeChanged(ViewMode value) {
+            _viewConfiguration.ViewMode = value;
+            _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+            await _jsModule.InvokeVoidAsync("setViewMode", value);
+            if (value == ViewMode.Scroll) {
+                await Task.Delay(50);
+                await _jsModule.InvokeVoidAsync("scrollToIndex", PageIndex);
             }
         }
 
-        private void OnImageLayoutModeChange(ImageLayoutMode mode) {
+        private async Task OnAutoScrollModeChanged(AutoScrollMode value) {
+            _viewConfiguration.AutoScrollMode = value;
+            _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+            await _jsModule.InvokeVoidAsync("setAutoScrollMode", value);
+        }
+        
+        private async Task OnLoopChanged(bool value) {
+            _viewConfiguration.Loop = value;
+            _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+            await _jsModule.InvokeVoidAsync("setLoop", value);
+        }
+
+        private async Task OnScrollSpeedChanged(int value) {
+            _viewConfiguration.ScrollSpeed = value;
+            _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+            await _jsModule.InvokeVoidAsync("setScrollSpeed", value);
+        }
+        
+        private async Task OnPageTurnIntervalChanged(int value) {
+            _viewConfiguration.PageTurnInterval = value;
+            _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+            await _jsModule.InvokeVoidAsync("setPageTurnInterval", value);
+        }
+
+        private void OnImageLayoutModeChanged(ImageLayoutMode mode) {
             _viewConfiguration.ImageLayoutMode = mode;
             CaculateImageIndexGroups();
         }
 
+
         private void ToggleAutoScroll(bool value) {
             _isAutoScrolling = value;
-            if (value) {
-                _autoScrollCts = new();
-                _ = StartAutoScroll();
-            } else {
-                _autoScrollCts?.Cancel();
-                _autoScrollCts?.Dispose();
-            }
-        }
-
-        private async Task StartAutoScroll() {
             switch (_viewConfiguration.ViewMode) {
                 case ViewMode.Default:
-                    while (_isAutoScrolling) {
-                        await Task.Delay(_viewConfiguration.AutoPageFlipInterval * 1000, _autoScrollCts!.Token);
-                        if (CanIncrement()) {
-                            Increment();
-                        } else {
-                            ToggleAutoScroll(false);
-                        }
-                        StateHasChanged();
+                    if (value) {
+                        _autoPageTurnCts = new();
+                        _ = StartAutoPageTurn();
+                    } else {
+                        _autoPageTurnCts?.Cancel();
+                        _autoPageTurnCts?.Dispose();
                     }
                     break;
                 case ViewMode.Scroll:
-                    // TODO
-
+                    _ = Task.Run(async () => {
+                        _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
+                        if (value) {
+                            await _jsModule.InvokeVoidAsync("startAutoScroll");
+                        } else {
+                            await _jsModule.InvokeVoidAsync("stopAutoScroll");
+                        }
+                    });
                     break;
+            }
+        }
+
+        /// <summary>
+        /// This method must be called only when ViewMode is Default.
+        /// </summary>
+        /// <returns></returns>
+        private async Task StartAutoPageTurn() {
+            while (_isAutoScrolling) {
+                await Task.Delay(_viewConfiguration.PageTurnInterval * 1000, _autoPageTurnCts!.Token);
+                if (CanIncrement()) {
+                    await Increment();
+                } else {
+                    ToggleAutoScroll(false);
+                }
+                StateHasChanged();
             }
         }
 
@@ -217,29 +274,45 @@ namespace HitomiScrollViewerWebApp.Pages {
             StateHasChanged();
         }
 
-        private void OnKeyDown(KeyboardEventArgs e) {
-            if (_viewConfiguration.ViewMode == ViewMode.Default) {
-                switch (e.Key) {
-                    case "ArrowLeft":
-                        if (CanDecrement()) Decrement();
-                        break;
-                    case "ArrowRight":
-                        if (CanIncrement()) Increment();
-                        break;
-                    case "Space":
-                        ToggleAutoScroll(!_isAutoScrolling);
-                        break;
-                }
+        private async Task OnKeyDown(KeyboardEventArgs e) {
+            _preventDefaultKeyDown = false;
+            switch (e.Code) {
+                case "ArrowLeft":
+                    if (CanDecrement()) await Decrement();
+                    break;
+                case "ArrowRight":
+                    if (CanIncrement()) await Increment();
+                    break;
+                case "ArrowUp":
+                    _preventDefaultKeyDown = true;
+                    if (CanDecrement()) await Decrement();
+                    break;
+                case "ArrowDown":
+                    _preventDefaultKeyDown = true;
+                    if (CanIncrement()) await Increment();
+                    break;
+                case "Space":
+                    _preventDefaultKeyDown = true;
+                    ToggleAutoScroll(!_isAutoScrolling);
+                    break;
             }
         }
 
-        private void OnPageClick(MouseEventArgs e) {
+        private async Task OnWheel(WheelEventArgs e) {
+            if (e.DeltaY < 0 && CanDecrement()) {
+                await Decrement();
+            } else if (e.DeltaY > 0 && CanIncrement()) {
+                await Increment();
+            }
+        }
+
+        private async Task OnPageClick(MouseEventArgs e) {
             if (e.Button == 0) {
                 int halfWidth = _browserWindowSize.Width / 2;
                 if (e.ClientX > halfWidth && CanIncrement()) {
-                    Increment();
+                    await Increment();
                 } else if (e.ClientX < halfWidth && CanDecrement()) {
-                    Decrement();
+                    await Decrement();
                 }
             }
         }
@@ -257,9 +330,9 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         public void Dispose() {
             GC.SuppressFinalize(this);
-            if (_autoScrollCts != null) {
-                _autoScrollCts.Cancel();
-                _autoScrollCts.Dispose();
+            if (_autoPageTurnCts != null) {
+                _autoPageTurnCts.Cancel();
+                _autoPageTurnCts.Dispose();
             }
             _dotNetObjectRef?.Dispose();
             ResizeListener.OnResized -= OnResize;
