@@ -14,7 +14,7 @@ public class ViewConfiguration {
     public ViewDirection ViewDirection { get; set; }
     public AutoScrollMode AutoScrollMode { get; set; }
     public int PageTurnInterval { get; set; } // in seconds
-    public int ScrollSpeed { get; set; } // in pixels per x milliseconds (see startAutoScroll function in for exact value GalleryViewPage.razor.cs)
+    public int ScrollSpeed { get; set; } // in pixels per x milliseconds (see startAutoScroll function in GalleryViewPage.razor.js for exact value)
 
     public ViewConfigurationDTO ToDTO() => new() {
         Id = Id,

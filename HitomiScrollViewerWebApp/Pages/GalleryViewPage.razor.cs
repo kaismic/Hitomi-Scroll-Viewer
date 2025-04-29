@@ -317,7 +317,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        public void OnResize(object? sender, BrowserWindowSize size) {
+        private void OnResize(object? sender, BrowserWindowSize size) {
             ToggleAutoScroll(false);
             _browserWindowSize = size;
             CaculateImageIndexGroups();

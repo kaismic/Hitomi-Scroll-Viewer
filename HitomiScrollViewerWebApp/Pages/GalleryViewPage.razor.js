@@ -10,9 +10,21 @@ let _loop = false;
 let _intervalId = null;
 let _dotNetObject = null;
 let _cumulativeHeights = [];
-let _lastResizeTimeObj = { last: Date.now() };
+let _timeRecord = { last: Date.now() };
 let _pageIndex = null;
 
+
+/**
+ * @typedef {Object} TimeRecord
+ * @property {number} last
+ */
+
+/**
+ * 
+ * @param {Function} func - function to be called
+ * @param {number} debounce - debounce time in milliseconds
+ * @param {TimeRecord} timeRecordObj
+ */
 function debounce(func, debounce, timeRecordObj) {
     timeRecordObj.last = Date.now();
     setTimeout(() => {
@@ -28,8 +40,7 @@ let initIntervalId = setInterval(() => {
         // if imageContainer is loaded, then mainContainer is also loaded since mainContainer is parent of imageContainer
         const mainContainer = document.getElementById(MAIN_CONTAINER_ID);
         mainContainer.addEventListener("scroll", () => { onScroll() });
-        mainContainer.addEventListener("wheel", () => { onScroll() });
-        new ResizeObserver(() => { debounce(setCumulativeHeights, RESIZE_DEBOUNCE, _lastResizeTimeObj) }).observe(imageContainer);
+        new ResizeObserver(() => { debounce(setCumulativeHeights, RESIZE_DEBOUNCE, _timeRecord) }).observe(imageContainer);
         clearInterval(initIntervalId);
         setCumulativeHeights();
     }
@@ -68,7 +79,7 @@ export function init(viewConfiguration) {
     _loop = viewConfiguration.loop;
 }
 
-export function setDotNetObject(obj) { _dotNetObject = obj; }
+export function setDotNetObject(value) { _dotNetObject = value; }
 export function setViewMode(value) {
     _viewMode = value;
     if (value === 0) {

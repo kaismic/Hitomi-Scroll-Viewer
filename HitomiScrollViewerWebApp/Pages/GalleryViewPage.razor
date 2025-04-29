@@ -8,7 +8,7 @@
 
 @if (_gallery != null) {
     <MudToolBar Class="gap-4 justify-center" Style=@($"height: {DEFAULT_TOOLBAR_HEIGHT}")>
-        <div class="d-flex gap-4">
+        <div class="d-flex gap-4 align-center">
             <MudFab StartIcon="@Icons.Material.Filled.NavigateBefore"
                     Disabled="@(!CanDecrement())"
                     OnClick="@(() => Decrement())" />
@@ -104,7 +104,7 @@
     </MudToolBar>
 
     <div style=@($"display: {(_toolbarOpen ? "block" : "none")};")>
-        <div style="position: absolute; background: var(--mud-palette-background); border-radius: 0 0 8px 8px;"
+        <div style="position: absolute; background: var(--mud-palette-background);"
              class="mud-width-full">
             <MudDivider DividerType="DividerType.Middle"/>
             <MudToolBar Class="flex-wrap gap-4 justify-center" Style="@($"height: {DEFAULT_TOOLBAR_HEIGHT}")">
