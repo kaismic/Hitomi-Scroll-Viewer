@@ -7,9 +7,13 @@ namespace HitomiScrollViewerWebApp.Services {
         public BrowseConfigurationDTO Config { get; private set; } = new();
 
         public async Task Load() {
+            if (IsLoaded) {
+                return;
+            }
             Config = (await httpClient.GetFromJsonAsync<BrowseConfigurationDTO>(""))!;
             IsLoaded = true;
         }
+
 
         public async Task<bool> AddTagsAsync(IEnumerable<int> tagIds) {
             var response = await httpClient.PatchAsync($"add-tags?configId={Config.Id}", JsonContent.Create(tagIds));

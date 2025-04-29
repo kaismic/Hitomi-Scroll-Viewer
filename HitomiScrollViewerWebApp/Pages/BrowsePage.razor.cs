@@ -31,6 +31,8 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _isEditing = false;
         private ICollection<GallerySortDTO> _activeSorts = [];
 
+        // TODO fix to use On{Property}Changed methods to update the config instead of bind-Value
+
         public GalleryLanguageDTO SelectedLanguage {
             get => BrowseConfigurationService.Config.SelectedLanguage;
             set {

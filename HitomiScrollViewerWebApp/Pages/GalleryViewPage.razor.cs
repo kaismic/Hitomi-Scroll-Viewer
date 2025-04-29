@@ -42,6 +42,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _isAutoScrolling = false;
         private CancellationTokenSource? _autoPageTurnCts;
         private FitMode _fitMode = FitMode.Auto;
+        private int _imagesPerPage = 2;
         private DotNetObjectReference<GalleryViewPage>? _dotNetObjectRef;
         private bool _preventDefaultKeyDown = false;
         private bool _toolbarOpen = false;
@@ -53,7 +54,10 @@ namespace HitomiScrollViewerWebApp.Pages {
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
                 _isDarkMode = await _mudThemeProvider.GetSystemPreference();
-                _viewConfiguration = await ViewConfigurationService.GetConfiguration();
+                if (!ViewConfigurationService.IsLoaded) {
+                    await ViewConfigurationService.Load();
+                }
+                _viewConfiguration = ViewConfigurationService.Config;
                 _gallery ??= await GalleryService.GetViewGalleryDTO(GalleryId);
                 _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", JAVASCRIPT_FILE);
                 _dotNetObjectRef = DotNetObjectReference.Create(this);
@@ -119,7 +123,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                         imageCount = currRange.End.Value - currRange.Start.Value;
                         break;
                     case ImageLayoutMode.Fixed:
-                        imageCount = _viewConfiguration.ImagesPerPage;
+                        imageCount = _imagesPerPage;
                         break;
                     default:
                         throw new NotImplementedException();
@@ -240,7 +244,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                     int count = 1;
                     for (int i = _pageOffset + 1; i < _gallery.Images.Count; i++) {
                         double currImgAspectRatio = (double)_gallery.Images.ElementAt(i).Width / _gallery.Images.ElementAt(i).Height;
-                        if (currImgAspectRatio > remainingAspectRatio || count == _viewConfiguration.ImagesPerPage) {
+                        if (currImgAspectRatio > remainingAspectRatio || count == _imagesPerPage) {
                             remainingAspectRatio = viewportAspectRatio - currImgAspectRatio;
                             indexRanges.Add(new(currStart, i));
                             currStart = i;
@@ -254,12 +258,12 @@ namespace HitomiScrollViewerWebApp.Pages {
                     indexRanges.Add(new(currStart, _gallery.Images.Count));
                     break;
                 case ImageLayoutMode.Fixed:
-                    int quotient = (_gallery.Images.Count - _pageOffset) / _viewConfiguration.ImagesPerPage;
-                    int remainder = (_gallery.Images.Count - _pageOffset) % _viewConfiguration.ImagesPerPage;
+                    int quotient = (_gallery.Images.Count - _pageOffset) / _imagesPerPage;
+                    int remainder = (_gallery.Images.Count - _pageOffset) % _imagesPerPage;
                     IEnumerable<Range> midRanges = Enumerable.Range(0, quotient)
                         .Select(i => new Range(
-                            i * _viewConfiguration.ImagesPerPage + _pageOffset,
-                            (i + 1) * _viewConfiguration.ImagesPerPage + _pageOffset)
+                            i * _imagesPerPage + _pageOffset,
+                            (i + 1) * _imagesPerPage + _pageOffset)
                         );
                     indexRanges.AddRange(midRanges);
                     if (remainder > 0) {
@@ -277,19 +281,31 @@ namespace HitomiScrollViewerWebApp.Pages {
         private async Task OnKeyDown(KeyboardEventArgs e) {
             _preventDefaultKeyDown = false;
             switch (e.Code) {
-                case "ArrowLeft":
-                    if (CanDecrement()) await Decrement();
+                case "ArrowLeft" or "ArrowUp":
+                    if (e.Code == "ArrowUp") {
+                        _preventDefaultKeyDown = true;
+                        if (_viewConfiguration.ViewMode == ViewMode.Default) {
+                            return;
+                        }
+                    }
+                    if (ViewConfigurationService.Config.InvertKeyboardNavigation) {
+                        if (CanIncrement()) await Increment();
+                    } else {
+                        if (CanDecrement()) await Decrement();
+                    }
                     break;
-                case "ArrowRight":
-                    if (CanIncrement()) await Increment();
-                    break;
-                case "ArrowUp":
-                    _preventDefaultKeyDown = true;
-                    if (CanDecrement()) await Decrement();
-                    break;
-                case "ArrowDown":
-                    _preventDefaultKeyDown = true;
-                    if (CanIncrement()) await Increment();
+                case "ArrowRight" or "ArrowDown":
+                    if (e.Code == "ArrowUp") {
+                        _preventDefaultKeyDown = true;
+                        if (_viewConfiguration.ViewMode == ViewMode.Default) {
+                            return;
+                        }
+                    }
+                    if (ViewConfigurationService.Config.InvertKeyboardNavigation) {
+                        if (CanDecrement()) await Decrement();
+                    } else {
+                        if (CanIncrement()) await Increment();
+                    }
                     break;
                 case "Space":
                     _preventDefaultKeyDown = true;
@@ -308,10 +324,10 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private async Task OnPageClick(MouseEventArgs e) {
             if (e.Button == 0) {
-                int halfWidth = _browserWindowSize.Width / 2;
-                if (e.ClientX > halfWidth && CanIncrement()) {
+                bool isXOverHalf = e.ClientX > (_browserWindowSize.Width / 2);
+                if (CanIncrement() && isXOverHalf ^ ViewConfigurationService.Config.InvertClickNavigation) {
                     await Increment();
-                } else if (e.ClientX < halfWidth && CanDecrement()) {
+                } else if (CanDecrement() && !(isXOverHalf ^ ViewConfigurationService.Config.InvertClickNavigation)) {
                     await Decrement();
                 }
             }
