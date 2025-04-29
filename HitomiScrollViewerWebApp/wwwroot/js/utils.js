@@ -55,3 +55,11 @@ function setHeightToSourceHeight(targetValue, targetValueType, sourceValue, sour
     }
     target.style.height = source.clientHeight + "px";
 }
+
+function getClientWidthById(id) {
+    const element = document.getElementById(id);
+    if (!element) {
+        return 0;
+    }
+    return element.clientWidth;
+}
