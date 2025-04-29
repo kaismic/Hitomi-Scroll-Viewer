@@ -6,7 +6,6 @@ using HitomiScrollViewerWebApp.Layout;
 using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
 using static HitomiScrollViewerData.Entities.Tag;
@@ -18,8 +17,6 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] private IJSRuntime JsRuntime {get;set;} = default!;
         [Inject] IDialogService DialogService { get; set; } = default!;
         [Inject] ISnackbar Snackbar { get; set; } = default!;
-
-        private const string ITEM_HEIGHT = "300px";
 
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
 

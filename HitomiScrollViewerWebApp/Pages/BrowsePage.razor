@@ -83,7 +83,6 @@
                     int localIndex = i;
                     <MudItem sm="12" md="6" lg="4" xl="3" xxl="2" Style="overflow-x: clip;">
                         <GalleryBrowseItem Gallery="@_galleries[localIndex]"
-                                           Height="@ITEM_HEIGHT"
                                            @bind-IsSelected="@_selections[localIndex]"
                                            IsEditing="@_isEditing"
                                            DeleteRequested="@DeleteGallery"/>
