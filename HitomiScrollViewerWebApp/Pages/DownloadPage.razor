@@ -25,13 +25,15 @@
         <div class="d-flex gap-4 align-center">
             <MudSwitch T="bool"
                        Label="Parallel Download"
-                       @bind-Value="@UseParallelDownload"
+                       Value="@DownloadConfigurationService.Config.UseParallelDownload"
+                       ValueChanged="@OnParallelDownloadChanged"
                        Color="Color.Primary"/>
             <MudNumericField T="int"
                              Label="Download Threads"
                              Variant="Variant.Outlined"
                              Min="1" Max="8"
-                             @bind-Value="@ThreadNum" />
+                             Value="@DownloadConfigurationService.Config.ThreadNum"
+                             ValueChanged="@OnThreadNumChanged" />
             <MudSpacer />
             <MudButton Color="Color.Primary"
                        EndIcon="@Icons.Material.Filled.Pause">
@@ -40,8 +42,8 @@
         </div>
         <MudPaper Class="d-flex flex-column gap-4 overflow-y-auto pa-4"
                   Style="flex: 1" Outlined>
-            @foreach (DownloadModel downloadVM in DownloadManager.Downloads.Values) {
-                <DownloadItemView ViewModel="@downloadVM" />
+            @foreach (DownloadModel model in DownloadManager.Downloads.Values) {
+                <DownloadItemView Model="@model" />
             }
         </MudPaper>
     </div>

@@ -11,26 +11,14 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private string _inputText = "";
 
-        private bool UseParallelDownload {
-            get => DownloadConfigurationService.Config.UseParallelDownload;
-            set {
-                if (DownloadConfigurationService.Config.UseParallelDownload == value) {
-                    return;
-                }
-                DownloadConfigurationService.Config.UseParallelDownload = value;
-                _ = DownloadConfigurationService.UpdateParallelDownload(value);
-            }
+        private async Task OnParallelDownloadChanged(bool value) {
+            DownloadConfigurationService.Config.UseParallelDownload = value;
+            await DownloadConfigurationService.UpdateParallelDownload(value);
         }
-
-        private int ThreadNum {
-            get => DownloadConfigurationService.Config.ThreadNum;
-            set {
-                if (DownloadConfigurationService.Config.ThreadNum == value) {
-                    return;
-                }
-                DownloadConfigurationService.Config.ThreadNum = value;
-                _ = DownloadConfigurationService.UpdateThreadNum(value);
-            }
+        
+        private async Task OnThreadNumChanged(int value) {
+            DownloadConfigurationService.Config.ThreadNum = value;
+            await DownloadConfigurationService.UpdateThreadNum(value);
         }
 
         protected override async Task OnInitializedAsync() {

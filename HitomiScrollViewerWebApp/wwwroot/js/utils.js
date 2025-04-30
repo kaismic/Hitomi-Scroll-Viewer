@@ -63,3 +63,17 @@ function getClientWidthById(id) {
     }
     return element.clientWidth;
 }
+
+function startDeleteAnimation(elementId, galleryId, duration, dotNetObject) {
+    const element = document.getElementById(elementId);
+    const keyframes = {
+        display: "none",
+        opacity: 0,
+    }
+    if (element) {
+        const animation = element.animate(keyframes, duration)
+        animation.finished.then(() => {
+            dotNetObject.invokeMethodAsync("OnDeleteAnimationFinished", galleryId);
+        })
+    }
+}

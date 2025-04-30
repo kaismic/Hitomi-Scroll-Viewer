@@ -1,23 +1,43 @@
 ﻿using HitomiScrollViewerData;
 using HitomiScrollViewerWebApp.Models;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.JSInterop;
 
 namespace HitomiScrollViewerWebApp.Services {
-    public class DownloadClientManagerService(
-        GalleryService galleryService,
-        IConfiguration appConfiguration,
-        DownloadConfigurationService downloadConfigurationService,
-        DownloadService downloadService
-        ) {
+    public class DownloadClientManagerService : IAsyncDisposable {
+        private readonly GalleryService _galleryService;
+        private readonly IConfiguration _appConfiguration;
+        private readonly DownloadConfigurationService _downloadConfigurationService;
+        private readonly DownloadService _downloadService;
+        private readonly IJSRuntime _jsRuntime;
+
+        public const string DOWNLOAD_ITEM_ID_PREFIX = "download-item-";
+        private const int DELETE_ANIMATION_DURATION = 1000; // ms
         private HubConnection? _hubConnection;
         public Dictionary<int, DownloadModel> Downloads { get; } = [];
 
         public bool IsHubConnectionOpen => _hubConnection?.State == HubConnectionState.Connected;
         public Func<Task>? DownloadPageStateHasChanged { get; set; }
+        private readonly DotNetObjectReference<DownloadClientManagerService> _dotNetObjectRef;
+
+        public DownloadClientManagerService(
+            GalleryService galleryService,
+            IConfiguration appConfiguration,
+            DownloadConfigurationService downloadConfigurationService,
+            DownloadService downloadService,
+            IJSRuntime jsRuntime
+        ) {
+            _galleryService = galleryService;
+            _appConfiguration = appConfiguration;
+            _downloadConfigurationService = downloadConfigurationService;
+            _downloadService = downloadService;
+            _jsRuntime = jsRuntime;
+            _dotNetObjectRef = DotNetObjectReference.Create(this);
+        }
 
         public void OpenHubConnection() {
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(appConfiguration["ApiUrl"] + appConfiguration["DownloadHubPath"])
+                .WithUrl(_appConfiguration["ApiUrl"] + _appConfiguration["DownloadHubPath"])
                 .Build();
             _hubConnection.On<IEnumerable<int>>("ReceiveSavedDownloads", OnReceiveSavedDownloads);
             _hubConnection.On<int>("ReceiveGalleryAvailable", OnReceiveGalleryAvailable);
@@ -38,7 +58,7 @@ namespace HitomiScrollViewerWebApp.Services {
 
         private async Task OnReceiveGalleryAvailable(int galleryId) {
             if (Downloads.TryGetValue(galleryId, out DownloadModel? vm)) {
-                vm.Gallery = await galleryService.GetDownloadGalleryDTO(galleryId);
+                vm.Gallery = await _galleryService.GetDownloadGalleryDTO(galleryId);
                 vm.StateHasChanged?.Invoke();
             }
         }
@@ -64,7 +84,11 @@ namespace HitomiScrollViewerWebApp.Services {
         }
 
         private void OnReceiveComplete(int galleryId) {
-            // TODO css animation fade out or something like that
+            if (Downloads.TryGetValue(galleryId, out DownloadModel? vm)) {
+                vm.Status = DownloadStatus.Completed;
+                vm.StatusMessage = "Download complete";
+                vm.StateHasChanged?.Invoke();
+            }
             _ = DeleteDownload(galleryId);
             StartNext();
         }
@@ -85,18 +109,18 @@ namespace HitomiScrollViewerWebApp.Services {
         }
 
         private void StartNext() {
-            if (!downloadConfigurationService.Config.UseParallelDownload) {
+            if (!_downloadConfigurationService.Config.UseParallelDownload) {
+                DownloadModel? firstPaused = null;
                 foreach (DownloadModel d in Downloads.Values) {
                     if (d.Status == DownloadStatus.Downloading) {
                         return;
+                    } else if (firstPaused == null && d.Status == DownloadStatus.Paused) {
+                        firstPaused = d;
                     }
                 }
-                // no currently downloading downloads so find a paused download and start it
-                foreach (DownloadModel d in Downloads.Values) {
-                    if (d.Status == DownloadStatus.Paused) {
-                        _ = StartDownload(d.GalleryId);
-                        return;
-                    }
+                // no currently downloading downloads so start the first paused download
+                if (firstPaused != null) {
+                    _ = StartDownload(firstPaused.GalleryId);
                 }
             }
         }
@@ -107,7 +131,7 @@ namespace HitomiScrollViewerWebApp.Services {
                     continue;
                 }
                 Downloads.Add(id, new() { GalleryId = id });
-                if (downloadConfigurationService.Config.UseParallelDownload) {
+                if (_downloadConfigurationService.Config.UseParallelDownload) {
                     _ = StartDownload(id);
                 }
             }
@@ -116,17 +140,31 @@ namespace HitomiScrollViewerWebApp.Services {
         }
 
         public async Task StartDownload(int id) {
-            await downloadService.StartDownload(id);
+            await _downloadService.StartDownload(id);
         }
 
         public async Task PauseDownload(int id) {
-            await downloadService.PauseDownload(id);
+            await _downloadService.PauseDownload(id);
         }
 
         public async Task DeleteDownload(int id) {
-            await downloadService.DeleteDownload(id);
-            Downloads.Remove(id);
+            await _jsRuntime.InvokeVoidAsync("startDeleteAnimation", DOWNLOAD_ITEM_ID_PREFIX + id, id, DELETE_ANIMATION_DURATION, _dotNetObjectRef);
+            await _downloadService.DeleteDownload(id);
+        }
+
+        [JSInvokable]
+        public void OnDeleteAnimationFinished(int galleryId) {
+            Downloads.Remove(galleryId);
             DownloadPageStateHasChanged?.Invoke();
+        }
+
+        public async ValueTask DisposeAsync() {
+            GC.SuppressFinalize(this);
+            if (_hubConnection != null) {
+                await _hubConnection.DisposeAsync();
+                _hubConnection = null;
+            }
+            _dotNetObjectRef.Dispose();
         }
     }
 }

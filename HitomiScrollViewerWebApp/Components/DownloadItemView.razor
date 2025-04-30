@@ -1,25 +1,25 @@
-﻿<MudPaper style="display: grid; grid-template-columns: 240px auto 120px" class="pa-4 gap-4" Outlined >
-    <div>
-        <MudText>@ViewModel.GalleryId</MudText>
-        <MudText>@ViewModel.Gallery?.Title</MudText>
+﻿<MudPaper @attributes=@UserAttributes id="@(DownloadClientManagerService.DOWNLOAD_ITEM_ID_PREFIX + Model.GalleryId)" Style="animation-fill-mode: forwards" Class="d-flex pa-4 gap-4" Outlined>
+    <div style="width: 240px;">
+        <MudText>@Model.GalleryId</MudText>
+        <MudText>@Model.Gallery?.Title</MudText>
     </div>
     <div class="align-self-end">
         <MudProgressLinear Color="Color.Primary"
-                           Value="@ViewModel.Progress"
+                           Value="@Model.Progress"
                            Min="0"
-                           Max="@(ViewModel.Gallery == null ? 0 : ViewModel.Gallery.ImageCount)"
+                           Max="@(Model.Gallery == null ? 0 : Model.Gallery.ImageCount)"
                            Class="mb-1" />
         <div class="d-flex">
-            <MudText Style="flex: 1 1 auto;">@ViewModel.StatusMessage</MudText>
-            <MudText Style="white-space: nowrap;">@(ViewModel.Progress.ToString() + "/" + (ViewModel.Gallery == null ? "-" : ViewModel.Gallery.ImageCount.ToString()))</MudText>
+            <MudText Style="flex: 1 1 auto;">@Model.StatusMessage</MudText>
+            <MudText Style="white-space: nowrap;">@(Model.Progress.ToString() + "/" + (Model.Gallery == null ? "-" : Model.Gallery.ImageCount.ToString()))</MudText>
         </div>
     </div>
-    <div class="d-flex gap-4 align-center">
+    <div style="width: 120px;" class="d-flex gap-4 align-center">
         <MudIconButton Icon="@ControlButtonIcon"
-                       Disabled="@(ViewModel.Status == DownloadStatus.Completed)"
+                       Disabled="@(Model.Status == DownloadStatus.Completed)"
                        OnClick="@OnActionButtonClick" />
         <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                       Disabled="@(ViewModel.Status == DownloadStatus.Completed)"
+                       Disabled="@(Model.Status == DownloadStatus.Completed)"
                        OnClick="@OnDeleteButtonClick" />
     </div>
 </MudPaper>
