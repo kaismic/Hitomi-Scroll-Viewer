@@ -5,8 +5,8 @@
                       Counter="TagFilter.TAG_FILTER_NAME_MAX_LEN"
                       MaxLength="TagFilter.TAG_FILTER_NAME_MAX_LEN"
                       T="string"
-                      @bind-Value="@Text"
-                      @bind-Value:after="@AfterTextChanged"
+                      Value="@Text"
+                      ValueChanged="@OnTextChanged"
                       Error="@_showErrorMessage"
                       ErrorText="@_errorMessage"
                       OnKeyDown="@OnKeyDown" />

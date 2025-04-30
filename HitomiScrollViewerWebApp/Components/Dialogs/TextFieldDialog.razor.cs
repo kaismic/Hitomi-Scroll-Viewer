@@ -25,7 +25,8 @@ namespace HitomiScrollViewerWebApp.Components.Dialogs {
             return null;
         }
 
-        private void AfterTextChanged() {
+        private void OnTextChanged(string value) {
+            Text = value;
             _showErrorMessage = false;
         }
 
