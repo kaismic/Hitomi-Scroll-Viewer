@@ -8,9 +8,12 @@
                                   TagSearchPanelChipModels="@_tagSearchPanelChipModels"
                                   ChipModelsChanged="@OnChipModelsChanged" />
         <LTKSearchView Style="flex: 1;"
-                       @bind-SelectedLanguage="@SelectedLanguage"
-                       @bind-SelectedType="@SelectedType"
-                       @bind-TitleSearchKeyword="@TitleSearchKeyword" />
+                       SelectedLanguage="@BrowseConfigurationService.Config.SelectedLanguage"
+                       SelectedLanguageChanged="@OnSelectedLanguageChanged"
+                       SelectedType="@BrowseConfigurationService.Config.SelectedType"
+                       SelectedTypeChanged="@OnSelectedTypeChanged"
+                       TitleSearchKeyword="@BrowseConfigurationService.Config.TitleSearchKeyword"
+                       TitleSearchKeywordChanged="@OnTitleSearchKeywordChanged" />
     </div>
     @if (_isEditing) {
         <div class="d-flex justify-end align-center gap-4">
@@ -48,7 +51,8 @@
                                  Variant="Variant.Outlined"
                                  Min="1" Max="24"
                                  Style="max-width: 160px"
-                                 @bind-Value="@ItemsPerPage" />
+                                 Value="@BrowseConfigurationService.Config.ItemsPerPage"
+                                 ValueChanged="@OnItemsPerPageChanged" />
             </div>
             <MudPagination ShowFirstButton ShowLastButton
                            MiddleCount="8"
@@ -60,7 +64,8 @@
                 <MudSwitch T="bool"
                            Label="Refresh on filter change"
                            Color="Color.Primary"
-                           @bind-Value="@AutoRefresh" />
+                           Value="@BrowseConfigurationService.Config.AutoRefresh"
+                           ValueChanged="@OnAutoRefreshChanged" />
                 <MudButton Color="Color.Primary"
                            Variant="Variant.Filled"
                            StartIcon="@Icons.Material.Filled.Search"

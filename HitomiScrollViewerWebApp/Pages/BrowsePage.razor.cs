@@ -31,76 +31,43 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _isEditing = false;
         private ICollection<GallerySortDTO> _activeSorts = [];
 
-        // TODO fix to use On{Property}Changed methods to update the config instead of bind-Value
-
-        public GalleryLanguageDTO SelectedLanguage {
-            get => BrowseConfigurationService.Config.SelectedLanguage;
-            set {
-                if (BrowseConfigurationService.Config.SelectedLanguage == value) {
-                    return;
-                }
-                BrowseConfigurationService.Config.SelectedLanguage = value;
-                BrowseConfigurationService.UpdateLanguageAsync(value.Id).ContinueWith(_ => {
-                    if (AutoRefresh) {
-                        _ = LoadGalleries();
-                    }
-                });
-                
+        private async Task OnSelectedLanguageChanged(GalleryLanguageDTO value) {
+            BrowseConfigurationService.Config.SelectedLanguage = value;
+            await BrowseConfigurationService.UpdateLanguageAsync(value.Id);
+            if (BrowseConfigurationService.Config.AutoRefresh) {
+                await LoadGalleries();
             }
         }
-        public GalleryTypeDTO SelectedType {
-            get => BrowseConfigurationService.Config.SelectedType;
-            set {
-                if (BrowseConfigurationService.Config.SelectedType == value) {
-                    return;
-                }
-                BrowseConfigurationService.Config.SelectedType = value;
-                BrowseConfigurationService.UpdateTypeAsync(value.Id).ContinueWith(_ => {
-                    if (AutoRefresh) {
-                        _ = LoadGalleries();
-                    }
-                });
+        
+        private async Task OnSelectedTypeChanged(GalleryTypeDTO value) {
+            BrowseConfigurationService.Config.SelectedType = value;
+            await BrowseConfigurationService.UpdateTypeAsync(value.Id);
+            if (BrowseConfigurationService.Config.AutoRefresh) {
+                await LoadGalleries();
+            }
+        }
+        
+        private async Task OnTitleSearchKeywordChanged(string value) {
+            BrowseConfigurationService.Config.TitleSearchKeyword = value;
+            await BrowseConfigurationService.UpdateTitleSearchKeywordAsync(value);
+            if (BrowseConfigurationService.Config.AutoRefresh) {
+                await LoadGalleries();
             }
         }
 
-        public string TitleSearchKeyword {
-            get => BrowseConfigurationService.Config.TitleSearchKeyword;
-            set {
-                if (BrowseConfigurationService.Config.TitleSearchKeyword == value) {
-                    return;
-                }
-                BrowseConfigurationService.Config.TitleSearchKeyword = value;
-                BrowseConfigurationService.UpdateTitleSearchKeywordAsync(value).ContinueWith(_ => {
-                    if (AutoRefresh) {
-                        _ = LoadGalleries();
-                    }
-                });
+        private async Task OnItemsPerPageChanged(int value) {
+            BrowseConfigurationService.Config.ItemsPerPage = value;
+            await BrowseConfigurationService.UpdateItemsPerPageAsync(value);
+            if (BrowseConfigurationService.Config.AutoRefresh) {
+                await LoadGalleries();
             }
         }
 
-        private int ItemsPerPage {
-            get => BrowseConfigurationService.Config.ItemsPerPage;
-            set {
-                if (BrowseConfigurationService.Config.ItemsPerPage == value) {
-                    return;
-                }
-                BrowseConfigurationService.Config.ItemsPerPage = value;
-                BrowseConfigurationService.UpdateItemsPerPageAsync(value).ContinueWith(_ => {
-                    if (AutoRefresh) {
-                        _ = LoadGalleries();
-                    }
-                });
-            }
-        }
-
-        private bool AutoRefresh {
-            get => BrowseConfigurationService.Config.AutoRefresh;
-            set {
-                if (BrowseConfigurationService.Config.AutoRefresh == value) {
-                    return;
-                }
-                BrowseConfigurationService.Config.AutoRefresh = value;
-                _ = BrowseConfigurationService.UpdateAutoRefreshAsync(value);
+        private async Task OnAutoRefreshChanged(bool value) {
+            BrowseConfigurationService.Config.AutoRefresh = value;
+            await BrowseConfigurationService.UpdateAutoRefreshAsync(value);
+            if (BrowseConfigurationService.Config.AutoRefresh) {
+                await LoadGalleries();
             }
         }
 
@@ -161,7 +128,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                     default:
                         throw new NotImplementedException();
                 }
-                 if (AutoRefresh) {
+                 if (BrowseConfigurationService.Config.AutoRefresh) {
                      _ = LoadGalleries();
                  }
             });
@@ -179,7 +146,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             BrowseGalleryDTO[] temp = [.. result.Galleries];
             _selections = new bool[temp.Length];
             _galleries = temp;
-            _totalPages = (result.TotalGalleryCount / ItemsPerPage) + 1; ;
+            _totalPages = (result.TotalGalleryCount / BrowseConfigurationService.Config.ItemsPerPage) + 1; ;
             _isLoading = false;
             StateHasChanged();
         }
