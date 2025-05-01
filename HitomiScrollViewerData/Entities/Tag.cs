@@ -20,17 +20,8 @@ namespace HitomiScrollViewerData.Entities {
 
         public int Id { get; set; }
         public required TagCategory Category { get; set; }
-
-        private string _value = null!;
-        public required string Value {
-            get => _value;
-            set {
-                _value = value;
-                SearchParamValue = value.Replace(' ', '_');
-            }
-        }
-        public string SearchParamValue { get; set; } = null!;
-        public required int GalleryCount { get; set; }
+        public required string Value { get; set; }
+        public int GalleryCount { get; set; }
         public ICollection<Gallery> Galleries { get; } = [];
         public ICollection<TagFilter> TagFilters { get; } = [];
 
@@ -39,7 +30,6 @@ namespace HitomiScrollViewerData.Entities {
             Category = Category,
             Value = Value,
             GalleryCount = GalleryCount,
-            SearchParamValue = SearchParamValue
         };
     }
 }

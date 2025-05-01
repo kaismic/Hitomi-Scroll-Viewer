@@ -1,4 +1,5 @@
 ﻿using HitomiScrollViewerAPI.Hubs;
+using HitomiScrollViewerAPI.Utils;
 using HitomiScrollViewerData;
 using HitomiScrollViewerData.DbContexts;
 using HitomiScrollViewerData.DTOs;
@@ -71,7 +72,6 @@ namespace HitomiScrollViewerAPI.Download {
             ChangeStatus(DownloadStatus.Downloading);
             _logger.LogInformation("{GalleryId}: Starting download", GalleryId);
 
-            int threadNum = 1;
             using (HitomiContext dbContext = new()) {
                 _gallery ??= dbContext.Galleries.Find(GalleryId);
                 if (_gallery == null) {
@@ -83,7 +83,7 @@ namespace HitomiScrollViewerAPI.Download {
                             ChangeStatus(DownloadStatus.Failed, "Failed to parse gallery info.");
                             return;
                         }
-                        _gallery = CreateGallery(ogi, dbContext);
+                        _gallery = await CreateGallery(ogi);
                         if (_gallery == null) {
                             return;
                         }
@@ -105,10 +105,9 @@ namespace HitomiScrollViewerAPI.Download {
                     }
                 }
                 await _hubContext.Clients.All.ReceiveGalleryAvailable(GalleryId);
-                threadNum = dbContext.DownloadConfigurations.First().ThreadNum;
             }
 
-            GalleryImage[] missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(GalleryId, _gallery.Images)];
+            GalleryImage[] missingGalleryImages = [.. GalleryFileUtil.GetMissingImages(GalleryId, _gallery.Images)];
             _logger.LogInformation("{GalleryId}: Found {ImageCount} missing images", GalleryId, missingGalleryImages.Length);
             if (missingGalleryImages.Length == 0) {
                 ChangeStatus(DownloadStatus.Completed);
@@ -117,7 +116,7 @@ namespace HitomiScrollViewerAPI.Download {
             _progress = _gallery.Images.Count - missingGalleryImages.Length;
             await _hubContext.Clients.All.ReceiveProgress(GalleryId, _progress);
             try {
-                await DownloadImages(threadNum, missingGalleryImages, _cts.Token);
+                await DownloadImages(missingGalleryImages, _cts.Token);
             } catch (TaskCanceledException) {
                 // if download is canceled not due to user requesting pause, then request LiveServerInfo update
                 if (Status != DownloadStatus.Paused) {
@@ -135,7 +134,7 @@ namespace HitomiScrollViewerAPI.Download {
                 ChangeStatus(DownloadStatus.Failed, "Download failed due to an unknown error.");
                 return;
             }
-            missingGalleryImages = [.. Utils.GalleryFileUtil.GetMissingImages(GalleryId, _gallery.Images)];
+            missingGalleryImages = [.. GalleryFileUtil.GetMissingImages(GalleryId, _gallery.Images)];
             if (missingGalleryImages.Length > 0) {
                 ChangeStatus(DownloadStatus.Failed, $"Failed to download {missingGalleryImages.Length} images.");
             } else {
@@ -156,7 +155,88 @@ namespace HitomiScrollViewerAPI.Download {
             return responseString[GALLERY_JS_EXCLUDE_LENGTH..];
         }
 
-        public Gallery? CreateGallery(OriginalGalleryInfoDTO original, HitomiContext dbContext) {
+        /// <summary>
+        /// Gets artist, group, character, parody (series) tags
+        /// </summary>
+        /// <param name="originalDictArr"></param>
+        /// <param name="category"></param>
+        /// <returns></returns>
+        private static async Task<IEnumerable<Tag>> GetNonMTFTags(Dictionary<string, string>[]? originalDictArr, TagCategory category) {
+            if (originalDictArr == null) {
+                return [];
+            }
+            using HitomiContext dbContext = new();
+            IEnumerable<TagDTO> tagDtos = originalDictArr.Select(dict => {
+                string value = dict[OriginalGalleryInfoDTO.CATEGORY_PROP_KEY_DICT[category]];
+                return new TagDTO() { Category = category, Value = value };
+            });
+            List<Tag> existingTags = [];
+            List<TagDTO> newTags = [];
+            foreach (TagDTO dto in tagDtos) {
+                Tag? tag = dbContext.Tags.FirstOrDefault(tag => tag.Category == dto.Category && tag.Value == dto.Value);
+                if (tag == null) {
+                    newTags.Add(dto);
+                } else {
+                    existingTags.Add(tag);
+                }
+            }
+            if (newTags.Count > 0) {
+                await TagUtils.FetchUpdateNonMFTTags(dbContext, category, newTags);
+                foreach (TagDTO dto in newTags) {
+                    Tag? tag = dbContext.Tags.FirstOrDefault(tag => tag.Category == dto.Category && tag.Value == dto.Value);
+                    if (tag != null) {
+                        existingTags.Add(tag);
+                    }
+                }
+            }
+            return existingTags;
+        }
+        
+        /// <summary>
+        /// Gets male, female and tag tags
+        /// </summary>
+        /// <param name="originalDictArr"></param>
+        /// <param name="category"></param>
+        /// <returns></returns>
+        private static async Task<IEnumerable<Tag>> GetMTFTags(OriginalGalleryInfoDTO.CompositeTag[] compositeTags) {
+            using HitomiContext dbContext = new();
+            List<Tag> existingTags = [];
+            List<TagDTO> newTags = [];
+            foreach (OriginalGalleryInfoDTO.CompositeTag compositeTag in compositeTags) {
+                TagCategory category = compositeTag.Male == 1 ? TagCategory.Male : compositeTag.Female == 1 ? TagCategory.Female : TagCategory.Tag;
+                Tag? tag = dbContext.Tags.FirstOrDefault(tag => tag.Category == category && tag.Value == compositeTag.Tag);
+                if (tag == null) {
+                    newTags.Add(new() { Category = category, Value = compositeTag.Tag});
+                } else {
+                    existingTags.Add(tag);
+                }
+            }
+            if (newTags.Count > 0) {
+                await TagUtils.FetchUpdateMFTTags(dbContext, newTags);
+                foreach (TagDTO dto in newTags) {
+                    Tag? tag = dbContext.Tags.FirstOrDefault(tag => tag.Category == dto.Category && tag.Value == dto.Value);
+                    if (tag != null) {
+                        existingTags.Add(tag);
+                    }
+                }
+            }
+            return existingTags;
+        }
+
+        public async Task<Gallery?> CreateGallery(OriginalGalleryInfoDTO original) {
+            // add artist, group, character, parody (series) tags
+            List<Task<IEnumerable<Tag>>> tagTasks = [];
+            tagTasks.Add(GetNonMTFTags(original.Artists, TagCategory.Artist));
+            tagTasks.Add(GetNonMTFTags(original.Groups, TagCategory.Group));
+            tagTasks.Add(GetNonMTFTags(original.Characters, TagCategory.Character));
+            tagTasks.Add(GetNonMTFTags(original.Parodys, TagCategory.Series));
+            // add male, female, and tag tags
+            tagTasks.Add(GetMTFTags(original.Tags));
+            await Task.WhenAll(tagTasks);
+            IEnumerable<Tag> tags = tagTasks.SelectMany(t => t.Result);
+
+            using HitomiContext dbContext = new();
+            dbContext.Tags.AttachRange(tags);
             GalleryLanguage? language = dbContext.GalleryLanguages.FirstOrDefault(l => l.EnglishName == original.Language);
             if (language == null) {
                 ChangeStatus(DownloadStatus.Failed, $"Language {original.Language} not found");
@@ -167,29 +247,6 @@ namespace HitomiScrollViewerAPI.Download {
                 ChangeStatus(DownloadStatus.Failed, $"Type {original.Type} not found");
                 return null;
             }
-
-            // add artist, group, character, parody (series) tags
-            IEnumerable<Tag> GetTagsFromDictionary(Dictionary<string, string>[]? originalDictArr, TagCategory category) {
-                if (originalDictArr == null) {
-                    return [];
-                }
-                return originalDictArr.Select(dict => {
-                    string tagValue = dict[OriginalGalleryInfoDTO.CATEGORY_PROP_KEY_DICT[category]];
-                    return dbContext.Tags.FirstOrDefault(t => t.Category == category && t.Value == tagValue);
-                }).Where(t => t != null).Cast<Tag>();
-                // TODO maybe log and request database update if tag is null?
-            }
-            IEnumerable<Tag> tags =
-                GetTagsFromDictionary(original.Artists, TagCategory.Artist)
-                .Concat(GetTagsFromDictionary(original.Groups, TagCategory.Group))
-                .Concat(GetTagsFromDictionary(original.Characters, TagCategory.Character))
-                .Concat(GetTagsFromDictionary(original.Parodys, TagCategory.Series));
-            // add male, female, and tag tags
-            tags = tags.Concat(original.Tags.Select(compositeTag => {
-                TagCategory category = compositeTag.Male == 1 ? TagCategory.Male : compositeTag.Female == 1 ? TagCategory.Female : TagCategory.Tag;
-                return dbContext.Tags.FirstOrDefault(t => t.Category == category && t.Value == compositeTag.Tag);
-            }).Where(t => t != null).Cast<Tag>());
-
             Gallery gallery = new() {
                 Id = original.Id,
                 Title = original.Title,
@@ -217,11 +274,10 @@ namespace HitomiScrollViewerAPI.Download {
             return gallery;
         }
 
-
         /**
          * <exception cref="TaskCanceledException"></exception>
         */
-        private Task DownloadImages(int threadNum, GalleryImage[] galleryImages, CancellationToken ct) {
+        private Task DownloadImages(GalleryImage[] galleryImages, CancellationToken ct) {
             /*
                 example:
                 totalCount = 8, indexes = [0,1,4,5,7,9,10,11,14,15,17], threadNum = 3
@@ -233,6 +289,9 @@ namespace HitomiScrollViewerAPI.Download {
                  4     10    17
                  5     11
             */
+            HitomiContext dbContext = new();
+            int threadNum = dbContext.DownloadConfigurations.First().ThreadNum;
+            dbContext.Dispose();
             int quotient = galleryImages.Length / threadNum;
             int remainder = galleryImages.Length % threadNum;
             Task[] tasks = new Task[threadNum];
