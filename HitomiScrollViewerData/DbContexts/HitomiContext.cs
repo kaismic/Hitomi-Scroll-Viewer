@@ -19,6 +19,7 @@ namespace HitomiScrollViewerData.DbContexts {
         public DbSet<SearchFilter> SearchFilters { get; set; }
         public DbSet<LabeledTagCollection> LabeledTagCollections { get; set; }
 
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder
                 .UseSqlite($"Data Source={MAIN_DATABASE_PATH}")

@@ -21,10 +21,10 @@ namespace HitomiScrollViewerAPI.Download {
             get => _liveServerInfo;
             set {
                 _liveServerInfo = value;
-                LastLiveServerInfoUpdateTime = DateTime.UtcNow;
+                LastLiveServerInfoUpdateTime = DateTimeOffset.UtcNow;
             }
         }
-        public DateTime LastLiveServerInfoUpdateTime = DateTime.MinValue;
+        public DateTimeOffset LastLiveServerInfoUpdateTime = DateTimeOffset.MinValue;
 
         private readonly IServiceScope _serviceScope;
         private readonly IConfiguration _appConfiguration;
@@ -254,7 +254,7 @@ namespace HitomiScrollViewerAPI.Download {
                 Date = original.Date,
                 SceneIndexes = original.SceneIndexes,
                 Related = original.Related,
-                LastDownloadTime = DateTime.UtcNow,
+                LastDownloadTime = DateTimeOffset.UtcNow,
                 Language = language,
                 Type = type,
                 Images = [.. original.Files.Select((f, i) => new GalleryImage() {
@@ -317,7 +317,7 @@ namespace HitomiScrollViewerAPI.Download {
 
         private static readonly string[] IMAGE_FILE_EXTS = ["avif", "webp"];
         private async Task DownloadImage(GalleryImage galleryImage, CancellationToken ct) {
-            DateTime localLastUpdateTime = LastLiveServerInfoUpdateTime;
+            DateTimeOffset localLastUpdateTime = LastLiveServerInfoUpdateTime;
             while (true) {
                 foreach (string fileExt in IMAGE_FILE_EXTS) {
                     try {

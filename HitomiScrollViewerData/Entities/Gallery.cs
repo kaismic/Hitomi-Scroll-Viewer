@@ -13,7 +13,7 @@ namespace HitomiScrollViewerData.Entities {
         public DateTimeOffset Date { get; set; }
         public required int[] SceneIndexes { get; set; }
         [MaxLength(45)] public required int[] Related { get; set; } // 7 digits * 5 items + "[]" + ", " * (5 - 1)
-        public DateTime LastDownloadTime { get; set; }
+        public DateTimeOffset LastDownloadTime { get; set; }
         [Required] public required GalleryLanguage Language { get; set; }
         [Required] public required GalleryType Type { get; set; }
         public required ICollection<GalleryImage> Images { get; set; }

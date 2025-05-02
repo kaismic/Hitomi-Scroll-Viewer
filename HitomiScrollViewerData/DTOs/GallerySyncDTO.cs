@@ -1,7 +1,4 @@
-﻿using HitomiScrollViewerData.DbContexts;
-using HitomiScrollViewerData.Entities;
-
-namespace HitomiScrollViewerData.DTOs {
+﻿namespace HitomiScrollViewerData.DTOs {
     public class GallerySyncDTO {
         public required int Id { get; set; }
         public required string Title { get; set; }
@@ -13,19 +10,5 @@ namespace HitomiScrollViewerData.DTOs {
         public required int GalleryTypeId { get; set; }
         public required IEnumerable<ImageInfoSyncDTO> Files { get; set; }
         public required IEnumerable<int> TagIds { get; set; }
-
-        //public Gallery ToGallery(HitomiContext context) => new() {
-        //    Id = Id,
-        //    Title = Title,
-        //    JapaneseTitle = JapaneseTitle,
-        //    Date = Date,
-        //    SceneIndexes = SceneIndexes,
-        //    Related = Related,
-        //    GalleryLanguage = context.GalleryLanguages.Find(GalleryLanguageId)!,
-        //    GalleryType = context.GalleryTypes.Find(GalleryTypeId)!,
-        //    LastDownloadTime = DateTime.UtcNow,
-        //    Files = [.. Files.Select(f => f.ToImageInfo())],
-        //    Tags = [.. TagIds.Select(id => context.Tags.Find(id)!)]
-        //};
     }
 }

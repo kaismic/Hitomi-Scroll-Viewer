@@ -20,10 +20,10 @@ namespace HitomiScrollViewerAPI.Download {
             get => _liveServerInfo;
             set {
                 _liveServerInfo = value;
-                _lastLiveServerInfoUpdateTime = DateTime.UtcNow;
+                _lastLiveServerInfoUpdateTime = DateTimeOffset.UtcNow;
             }
         }
-        private DateTime _lastLiveServerInfoUpdateTime = DateTime.MinValue;
+        private DateTimeOffset _lastLiveServerInfoUpdateTime = DateTimeOffset.MinValue;
         private readonly object _liveServerInfoUpdateLock = new();
 
         private readonly ConcurrentDictionary<int, Downloader> _liveServerInfoUpdateWaiters = []; // note: _liveServerInfoUpdateWaiters is a subset of _liveDownloaders
