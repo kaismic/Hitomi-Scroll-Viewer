@@ -18,7 +18,7 @@ namespace HitomiScrollViewerData.DbContexts {
         public DbSet<TagFilter> TagFilters { get; set; }
         public DbSet<SearchFilter> SearchFilters { get; set; }
         public DbSet<LabeledTagCollection> LabeledTagCollections { get; set; }
-
+        public DbSet<AppConfiguration> AppConfigurations { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             optionsBuilder

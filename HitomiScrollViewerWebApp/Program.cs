@@ -15,6 +15,7 @@ public class Program
         builder.RootComponents.Add<HeadOutlet>("head::after");
 
         builder.Services.AddMudServices();
+        //builder.Services.AddLocalization();
 
         string apiUrl = builder.Configuration["ApiUrl"]!;
         builder.Services.AddHttpClient();

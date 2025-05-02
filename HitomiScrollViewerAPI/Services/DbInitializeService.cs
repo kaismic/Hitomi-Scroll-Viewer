@@ -121,8 +121,8 @@ namespace HitomiScrollViewerAPI.Services {
             Console.WriteLine("  Complete");
 
             // add configurations
-            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding page configurations... ");
-            hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, "Adding page configurations... ");
+            Console.Write("{0,-" + _totalLeftAlignment + "}", "Adding configurations... ");
+            hubContext.Clients.All.ReceiveStatus(DbInitStatus.InProgress, "Adding configurations... ");
             context.SearchConfigurations.Add(new() {
                 IsAutoSaveEnabled = true,
                 SelectedLanguage = context.GalleryLanguages.First(gl => gl.IsAll),
@@ -159,6 +159,9 @@ namespace HitomiScrollViewerAPI.Services {
                 InvertClickNavigation = false,
                 InvertKeyboardNavigation = false
             });
+
+            context.AppConfigurations.Add(new());
+
             Console.WriteLine("  Complete");
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Saving changes...");
             context.SaveChanges();

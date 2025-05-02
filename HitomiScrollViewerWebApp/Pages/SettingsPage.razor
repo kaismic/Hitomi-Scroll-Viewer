@@ -3,12 +3,12 @@
 <PageTitle>Settings</PageTitle>
 
 <div class="d-flex flex-column gap-4 pa-8">
-    <MudText Typo="Typo.h4">Settings</MudText>
+    <MudText Typo="Typo.h4">General</MudText>
     <SettingsCard Icon="@Icons.Material.Filled.Language"
-                    Header="Language">
+                  Header="Language">
         <MudSelect T="string" Variant="Variant.Outlined" Style="max-width: 200px;">
-            <MudSelectItem T="string">English</MudSelectItem>
-            <MudSelectItem T="string">Korean</MudSelectItem>
+            <MudSelectItem T="string" Value=@("en-US")>English</MudSelectItem>
+            <MudSelectItem T="string" Value=@("ko-KR")>Korean</MudSelectItem>
         </MudSelect>
     </SettingsCard>
         @*
