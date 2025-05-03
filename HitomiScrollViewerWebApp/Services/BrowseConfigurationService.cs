@@ -3,15 +3,15 @@ using System.Net.Http.Json;
 
 namespace HitomiScrollViewerWebApp.Services {
     public class BrowseConfigurationService(HttpClient httpClient) {
-        public bool IsLoaded { get; private set; } = false;
+        private bool _isLoaded = false;
         public BrowseConfigurationDTO Config { get; private set; } = new();
 
         public async Task Load() {
-            if (IsLoaded) {
+            if (_isLoaded) {
                 return;
             }
             Config = (await httpClient.GetFromJsonAsync<BrowseConfigurationDTO>(""))!;
-            IsLoaded = true;
+            _isLoaded = true;
         }
 
 

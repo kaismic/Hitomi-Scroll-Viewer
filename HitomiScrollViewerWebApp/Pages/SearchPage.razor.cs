@@ -18,6 +18,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] TagFilterService TagFilterService { get; set; } = default!;
         [Inject] SearchFilterService SearchFilterService { get; set; } = default!;
         [Inject] SearchConfigurationService SearchConfigurationService { get; set; } = default!;
+        [Inject] AppConfigurationService AppConfigurationService { get; set; } = default!;
         [Inject] ISnackbar Snackbar { get; set; } = default!;
         [Inject] IDialogService DialogService { get; set; } = default!;
         [Inject] IJSRuntime JsRuntime { get; set; } = default!;
@@ -62,47 +63,25 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         private TagFilterEditor _tagFilterEditor = null!;
         private readonly List<ChipModel<TagDTO>>[] _tagSearchPanelChipModels = [.. TAG_CATEGORIES.Select(t => new List<ChipModel<TagDTO>>())];
-        public bool IsAutoSaveEnabled {
-            get => SearchConfigurationService.Config.IsAutoSaveEnabled;
-            set {
-                if (SearchConfigurationService.Config.IsAutoSaveEnabled = value) {
-                    return;
-                }
-                SearchConfigurationService.Config.IsAutoSaveEnabled = value;
-                _ = SearchConfigurationService.UpdateAutoSaveAsync(value);
-            }
+
+        private async Task OnSelectedLanguageChanged(GalleryLanguageDTO value) {
+            SearchConfigurationService.Config.SelectedLanguage = value;
+            await SearchConfigurationService.UpdateLanguageAsync(value.Id);
         }
 
-        public GalleryLanguageDTO SelectedLanguage {
-            get => SearchConfigurationService.Config.SelectedLanguage;
-            set {
-                if (SearchConfigurationService.Config.SelectedLanguage == value) {
-                    return;
-                }
-                SearchConfigurationService.Config.SelectedLanguage = value;
-                _ = SearchConfigurationService.UpdateLanguageAsync(value.Id);
-            }
-        }
-        public GalleryTypeDTO SelectedType {
-            get => SearchConfigurationService.Config.SelectedType;
-            set {
-                if (SearchConfigurationService.Config.SelectedType == value) {
-                    return;
-                }
-                SearchConfigurationService.Config.SelectedType = value;
-                _ = SearchConfigurationService.UpdateTypeAsync(value.Id);
-            }
+        private async Task OnSelectedTypeChanged(GalleryTypeDTO value) {
+            SearchConfigurationService.Config.SelectedType = value;
+            await SearchConfigurationService.UpdateTypeAsync(value.Id);
         }
 
-        public string TitleSearchKeyword {
-            get => SearchConfigurationService.Config.TitleSearchKeyword;
-            set {
-                if (SearchConfigurationService.Config.TitleSearchKeyword == value) {
-                    return;
-                }
-                SearchConfigurationService.Config.TitleSearchKeyword = value;
-                _ = SearchConfigurationService.UpdateTitleSearchKeywordAsync(value);
-            }
+        private async Task OnTitleSearchKeywordChanged(string value) {
+            SearchConfigurationService.Config.TitleSearchKeyword = value;
+            await SearchConfigurationService.UpdateTitleSearchKeywordAsync(value);
+        }
+
+        private async Task OnIsAutoSaveEnabledChanged(bool value) {
+            SearchConfigurationService.Config.IsAutoSaveEnabled = value;
+            await SearchConfigurationService.UpdateAutoSaveAsync(value);
         }
 
         private ObservableCollection<SearchFilterDTO> _searchFilters = [];
@@ -137,6 +116,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             _isInitialized = false;
             _isRendered = false;
             await SearchConfigurationService.Load();
+            await AppConfigurationService.Load();
             TagFilters = [.. SearchConfigurationService.Config.TagFilters];
             SearchFilters = [.. SearchConfigurationService.Config.SearchFilters];
             _isInitialized = true;
@@ -165,6 +145,9 @@ namespace HitomiScrollViewerWebApp.Pages {
                     }
                 }
                 _isLoaded = true;
+                if (AppConfigurationService.Config.IsFirstLaunch) {
+                    StartGuide();
+                }
             }
         }
 
@@ -182,7 +165,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         private async Task SelectedTagFilterChanged(ValueChangedEventArgs<TagFilterDTO> args) {
-            if (IsAutoSaveEnabled) {
+            if (SearchConfigurationService.Config.IsAutoSaveEnabled) {
                 await SaveTagFilter(args.OldValue);
             }
             if (args.NewValue == null) {
@@ -358,9 +341,9 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
 
             SearchFilterDTOBuilder builder = new() {
-                Language = SelectedLanguage,
-                Type = SelectedType,
-                TitleSearchKeyword = TitleSearchKeyword,
+                Language = SearchConfigurationService.Config.SelectedLanguage,
+                Type = SearchConfigurationService.Config.SelectedType,
+                TitleSearchKeyword = SearchConfigurationService.Config.TitleSearchKeyword,
                 IncludeTags = includeTagDTOs,
                 ExcludeTags = excludeTagDTOs
             };
@@ -368,11 +351,7 @@ namespace HitomiScrollViewerWebApp.Pages {
             SearchFilters.Add(dto);
             await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", dto.SearchLink);
             int id = await SearchFilterService.CreateAsync(dto);
-            //if (success) {
             dto.Id = id;
-            //} else {
-            //    Snackbar.Add("Failed to create search filter.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
-            //}
         }
 
         private async Task DeleteSearchFilter(SearchFilterDTO dto) {
@@ -381,6 +360,28 @@ namespace HitomiScrollViewerWebApp.Pages {
                 SearchFilters.Remove(dto);
             } else {
                 Snackbar.Add("Failed to delete search filter.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
+            }
+        }
+
+        private const int GUIDE_STEPS_COUNT = 4;
+        private bool _overlayVisible = false;
+        private int _guideStep = 0;
+        private readonly bool[] _guidePopoversOpen = new bool[GUIDE_STEPS_COUNT];
+
+        private void StartGuide() {
+            _overlayVisible = true;
+            _guidePopoversOpen[0] = true;
+            StateHasChanged();
+        }
+
+        private async Task ShowNextGuide() {
+            _guidePopoversOpen[_guideStep++] = false;
+            if (_guideStep < GUIDE_STEPS_COUNT) {
+                _guidePopoversOpen[_guideStep] = true;
+            } else {
+                _overlayVisible = false;
+                AppConfigurationService.Config.IsFirstLaunch = false;
+                await AppConfigurationService.UpdateIsFirstLaunch(false);
             }
         }
     }

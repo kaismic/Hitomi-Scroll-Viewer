@@ -14,7 +14,7 @@
                Class="tag-filter-selector"
                FullWidth>
         @foreach (TagFilterDTO tagFilter in TagFilters) {
-            <MudSelectItem Value="tagFilter" />
+            <MudSelectItem Value="@tagFilter" />
         }
     </MudSelect>
     <MudFab Color="Color.Primary"
@@ -23,5 +23,6 @@
             Disabled="@(CurrentTagFilter == null)" />
     <MudFab Color="Color.Primary"
             StartIcon="@Icons.Material.Filled.Delete"
-            OnClick="@OnDeleteButtonClicked" />
+            OnClick="@OnDeleteButtonClicked"
+            Disabled="@(CurrentTagFilter == null)" />
 </div>

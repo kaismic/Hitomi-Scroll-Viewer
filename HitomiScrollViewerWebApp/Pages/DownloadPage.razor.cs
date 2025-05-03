@@ -22,9 +22,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         }
 
         protected override async Task OnInitializedAsync() {
-            if (!DownloadConfigurationService.IsLoaded) {
-                await DownloadConfigurationService.Load();
-            }
+            await DownloadConfigurationService.Load();
             DownloadManager.DownloadPageStateHasChanged = () => InvokeAsync(StateHasChanged);
             if (!DownloadManager.IsHubConnectionOpen) {
                 DownloadManager.OpenHubConnection();

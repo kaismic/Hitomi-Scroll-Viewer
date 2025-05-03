@@ -3,12 +3,15 @@ using System.Net.Http.Json;
 
 namespace HitomiScrollViewerWebApp.Services {
     public class DownloadConfigurationService(HttpClient httpClient) {
-        public bool IsLoaded { get; private set; } = false;
+        private bool _isLoaded = false;
         public DownloadConfigurationDTO Config { get; private set; } = new();
 
         public async Task Load() {
+            if (_isLoaded) {
+                return;
+            }
             Config = (await httpClient.GetFromJsonAsync<DownloadConfigurationDTO>(""))!;
-            IsLoaded = true;
+            _isLoaded = true;
         }
 
         public async Task<bool> UpdateParallelDownload(bool enable) {

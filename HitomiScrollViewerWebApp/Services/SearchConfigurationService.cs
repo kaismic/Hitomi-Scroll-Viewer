@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace HitomiScrollViewerWebApp.Services {
     public class SearchConfigurationService(HttpClient httpClient) {
-        public bool IsLoaded { get; private set; } = false;
+        private bool _isLoaded = false;
         public bool IsInitTagFilterNull { get; private set; } = false;
         public SearchConfigurationDTO Config { get; private set; } = new() {
             SearchFilters = [],
@@ -17,14 +17,14 @@ namespace HitomiScrollViewerWebApp.Services {
         };
 
         public async Task Load() {
-            if (IsLoaded) {
+            if (_isLoaded) {
                 return;
             }
             Config = (await httpClient.GetFromJsonAsync<SearchConfigurationDTO>(""))!;
             if (Config.SelectedTagFilterId == default) {
                 IsInitTagFilterNull = true;
             }
-            IsLoaded = true;
+            _isLoaded = true;
         }
 
         public async Task<bool> UpdateAutoSaveAsync(bool enable) {

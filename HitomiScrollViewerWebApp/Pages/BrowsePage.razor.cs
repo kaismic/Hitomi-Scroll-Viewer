@@ -75,9 +75,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _isRendered = false;
 
         protected override async Task OnInitializedAsync() {
-            if (!BrowseConfigurationService.IsLoaded) {
-                await BrowseConfigurationService.Load();
-            }
+            await BrowseConfigurationService.Load();
             _activeSorts = [.. BrowseConfigurationService.Config.Sorts.Where(s => s.IsActive)];
             _isInitialized = true;
             _ = OnInitRenderComplete();
