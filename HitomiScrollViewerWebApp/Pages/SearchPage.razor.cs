@@ -119,6 +119,9 @@ namespace HitomiScrollViewerWebApp.Pages {
             await AppConfigurationService.Load();
             TagFilters = [.. SearchConfigurationService.Config.TagFilters];
             SearchFilters = [.. SearchConfigurationService.Config.SearchFilters];
+            if (AppConfigurationService.Config.IsFirstLaunch) {
+                _showWalkthrough = true;
+            }
             _isInitialized = true;
             OnInitRenderComplete();
         }
@@ -145,9 +148,6 @@ namespace HitomiScrollViewerWebApp.Pages {
                     }
                 }
                 _isLoaded = true;
-                if (AppConfigurationService.Config.IsFirstLaunch) {
-                    StartGuide();
-                }
             }
         }
 
@@ -363,26 +363,21 @@ namespace HitomiScrollViewerWebApp.Pages {
             }
         }
 
-        private const int GUIDE_STEPS_COUNT = 4;
-        private bool _overlayVisible = false;
-        private int _guideStep = 0;
-        private readonly bool[] _guidePopoversOpen = new bool[GUIDE_STEPS_COUNT];
-
-        private void StartGuide() {
-            _overlayVisible = true;
-            _guidePopoversOpen[0] = true;
-            StateHasChanged();
-        }
+        private bool _showWalkthrough = false;
+        private const int WALKTHROUGH_STEPS = 4;
+        private int _walkthroughStep = 0;
 
         private async Task ShowNextGuide() {
-            _guidePopoversOpen[_guideStep++] = false;
-            if (_guideStep < GUIDE_STEPS_COUNT) {
-                _guidePopoversOpen[_guideStep] = true;
-            } else {
-                _overlayVisible = false;
+            _walkthroughStep++;
+            if (_walkthroughStep >= WALKTHROUGH_STEPS) {
+                _showWalkthrough = false;
                 AppConfigurationService.Config.IsFirstLaunch = false;
                 await AppConfigurationService.UpdateIsFirstLaunch(false);
             }
+        }
+
+        private string GetHighlightZIndexStyle(int step) {
+            return _showWalkthrough && _walkthroughStep == step ? "z-index: calc(var(--mud-zindex-popover) + 1);" : "";
         }
     }
 }

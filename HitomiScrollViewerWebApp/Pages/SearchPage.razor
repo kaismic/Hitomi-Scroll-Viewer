@@ -2,10 +2,12 @@
 
 <PageTitle>Search</PageTitle>
 
-<MudOverlay DarkBackground Visible="@_overlayVisible" />
+@if (_showWalkthrough) {
+    <MudOverlay DarkBackground Visible="@_showWalkthrough" />
+}
 <div style="height: 100%;" class="d-flex pa-8 gap-4">
     <div id="search-page-left-container" style="flex: 3;" class="d-flex flex-column gap-2">
-        <div style=@($"height: 60%;{(_guideStep == 0 ? " z-index: calc(var(--mud-zindex-popover) + 1);" : "")}")>
+        <div style=@($"height: 60%; {GetHighlightZIndexStyle(0)}")>
             <MudPaper id="tag-filter-editor-control-panel"
                       Class="pa-8 gap-2"
                       Style="height: 100%; display: grid; grid-template-rows: repeat(3, min-content)">
@@ -40,15 +42,17 @@
                 </div>
                 <TagSearchPanelCollection TagSearchPanelChipModels="@_tagSearchPanelChipModels" />
             </MudPaper>
-            <GuidePopover ContentText="1. Create and edit tag filters."
-                          ButtonText="Next"
-                          Open=@_guidePopoversOpen[0]
-                          OnClose="@ShowNextGuide"
-                          AnchorOrigin="Origin.BottomRight"
-                          TransformOrigin="Origin.TopRight"
-                          Class="mt-4" />
+            @if (_showWalkthrough) {
+                <GuidePopover ContentText="1. Create and edit tag filters."
+                              ButtonText="Next"
+                              Open=@(_walkthroughStep == 0)
+                              OnClose="@ShowNextGuide"
+                              AnchorOrigin="Origin.BottomRight"
+                              TransformOrigin="Origin.TopRight"
+                              Class="mt-4" />
+            }
         </div>
-        <MudPaper Class="d-flex gap-4 pa-4 overflow-y-auto" Style=@($"height: 40%;{(_guideStep == 1 ? " z-index: calc(var(--mud-zindex-popover) + 1);" : "")}")>
+        <MudPaper Class="d-flex gap-4 pa-4 overflow-y-auto" Style=@($"height: 40%; {GetHighlightZIndexStyle(1)}")>
             <PairedTagFilterSelector @ref="_includePairedTagFilterSelector"
                                      ChipModels="@_includeTagFilterChipModels"
                                      SelectedChipModelsChanged="@(collection => OnSelectedTagFilterCollectionChanged(collection, true))"
@@ -64,32 +68,36 @@
                                      HeaderColor="Color.Error"
                                      Other="_includePairedTagFilterSelector"
                                      Style="flex: 1;" />
-            <GuidePopover ContentText="2. Select tag filters to include or exclude."
-                          ButtonText="Next"
-                          Open=@_guidePopoversOpen[1]
-                          OnClose="@ShowNextGuide"
-                          AnchorOrigin="Origin.TopRight"
-                          TransformOrigin="Origin.BottomRight"
-                          Class="mt-n4" />
+            @if (_showWalkthrough) {
+                <GuidePopover ContentText="2. Select tag filters to include or exclude."
+                              ButtonText="Next"
+                              Open=@(_walkthroughStep == 1)
+                              OnClose="@ShowNextGuide"
+                              AnchorOrigin="Origin.TopRight"
+                              TransformOrigin="Origin.BottomRight"
+                              Class="mt-n4" />
+            }
         </MudPaper>
     </div>
     <div id="search-filter-control-panel" style="flex: 1;" class="d-flex flex-column gap-2">
-        <div style=@(_guideStep == 2 ? " z-index: calc(var(--mud-zindex-popover) + 1);" : "")>
+        <div style=@GetHighlightZIndexStyle(2)>
             <LTKSearchView SelectedLanguage="@SearchConfigurationService.Config.SelectedLanguage"
                            SelectedLanguageChanged=@OnSelectedLanguageChanged
                            SelectedType="@SearchConfigurationService.Config.SelectedType"
                            SelectedTypeChanged=@OnSelectedTypeChanged
                            TitleSearchKeyword="@SearchConfigurationService.Config.TitleSearchKeyword"
                            TitleSearchKeywordChanged=@OnTitleSearchKeywordChanged />
-            <GuidePopover ContentText="3. Select language, type and optionally enter a title search keyword. "
-                          ButtonText="Next"
-                          Open=@_guidePopoversOpen[2]
-                          OnClose="@ShowNextGuide"
-                          AnchorOrigin="Origin.TopLeft"
-                          TransformOrigin="Origin.TopRight"
-                          Class="ml-n4" />
+            @if (_showWalkthrough) {
+                <GuidePopover ContentText="3. Select language, type and optionally enter a title search keyword. "
+                              ButtonText="Next"
+                              Open=@(_walkthroughStep == 2)
+                              OnClose="@ShowNextGuide"
+                              AnchorOrigin="Origin.TopLeft"
+                              TransformOrigin="Origin.TopRight"
+                              Class="ml-n4" />
+            }
         </div>
-        <MudPaper class="d-flex flex-column pa-4 gap-2" style=@($"flex: 1;{(_guideStep == 3 ? " z-index: calc(var(--mud-zindex-popover) + 1);" : "")}")>
+        <MudPaper class="d-flex flex-column pa-4 gap-2" style=@($"flex: 1; {GetHighlightZIndexStyle(3)}")>
             <MudStack Row Spacing="2" StretchItems="StretchItems.Start" Class="my-2">
                 <MudButton Class="py-2"
                            FullWidth
@@ -118,13 +126,15 @@
                     </div>
                 }
             </MudStack>
-            <GuidePopover ContentText="4. Create search links and use them to search for galleries."
-                          ButtonText="Finish"
-                          Open=@_guidePopoversOpen[3]
-                          OnClose="@ShowNextGuide"
-                          AnchorOrigin="Origin.TopLeft"
-                          TransformOrigin="Origin.TopRight"
-                          Class="ml-n4" />
+            @if (_showWalkthrough) {
+                <GuidePopover ContentText="4. Create search links and use them to search for galleries."
+                              ButtonText="Finish"
+                              Open=@(_walkthroughStep == 3)
+                              OnClose="@ShowNextGuide"
+                              AnchorOrigin="Origin.TopLeft"
+                              TransformOrigin="Origin.TopRight"
+                              Class="ml-n4" />
+            }
         </MudPaper>
     </div>
 </div>
