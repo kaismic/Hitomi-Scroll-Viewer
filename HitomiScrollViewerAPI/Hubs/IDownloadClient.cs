@@ -7,6 +7,5 @@ namespace HitomiScrollViewerAPI.Hubs {
         Task ReceiveProgress(int galleryId, int progress);
         Task ReceiveStatus(int galleryId, DownloadStatus status);
         Task ReceiveFailure(int galleryId, string message);
-        Task ReceiveComplete(int galleryId);
     }
 }

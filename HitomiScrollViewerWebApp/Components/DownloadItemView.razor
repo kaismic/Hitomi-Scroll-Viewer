@@ -1,5 +1,16 @@
-﻿<MudPaper @attributes=@UserAttributes id="@(DownloadClientManagerService.DOWNLOAD_ITEM_ID_PREFIX + Model.GalleryId)"
-          Style="animation-fill-mode: forwards" Class="d-flex pa-4 gap-4" Outlined>
+﻿@*
+<MudAnimate Selector="@("#" + DOWNLOAD_ITEM_ID_PREFIX + Model.GalleryId)"
+            AnimationType="AnimationType.Fade"
+            AnimationTiming="AnimationTiming.EaseIn"
+            AnimationDirection="AnimationDirection.Reverse"
+            AnimationFillMode="AnimationFillMode.Forwards"
+            Duration="@DELETE_ANIMATION_DURATION"
+            Paused=@Model.DeleteAnimationPaused
+            />
+
+*@
+<MudPaper id="@(DOWNLOAD_ITEM_ID_PREFIX + Model.GalleryId)"
+          Class="d-flex pa-4 gap-4" Outlined>
     <div style="width: 240px;">
         <MudText>@Model.GalleryId</MudText>
         <MudText>@Model.Gallery?.Title</MudText>
@@ -17,10 +28,10 @@
     </div>
     <div style="width: 120px;" class="d-flex gap-4 align-center">
         <MudIconButton Icon="@ControlButtonIcon"
-                       Disabled="@(Model.Status == DownloadStatus.Completed)"
+                       Disabled="@(_isWaitingResponse || Model.Status is DownloadStatus.Completed or DownloadStatus.Deleted)"
                        OnClick="@OnActionButtonClick" />
         <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                       Disabled="@(Model.Status == DownloadStatus.Completed)"
+                       Disabled="@(_isWaitingResponse || Model.Status is DownloadStatus.Completed or DownloadStatus.Deleted)"
                        OnClick="@OnDeleteButtonClick" />
     </div>
 </MudPaper>

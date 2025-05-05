@@ -6,13 +6,14 @@
 
     public enum DownloadStatus {
         Downloading,
-        WaitingLSIUpdate,
         Completed,
         Paused,
-        Failed
+        Failed,
+        Deleted
     }
 
     public enum DownloadAction {
+        Create,
         Start,
         Pause,
         Delete

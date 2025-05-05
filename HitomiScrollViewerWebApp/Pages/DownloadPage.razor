@@ -36,7 +36,8 @@
                              ValueChanged="@OnThreadNumChanged" />
             <MudSpacer />
             <MudButton Color="Color.Primary"
-                       EndIcon="@Icons.Material.Filled.Pause">
+                       EndIcon="@Icons.Material.Filled.Pause"
+                       Disabled=@(DownloadManager.Downloads.Count == 0)>
                 Pause all downloads
             </MudButton>
         </div>
