@@ -6,7 +6,7 @@ using Microsoft.JSInterop;
 namespace HitomiScrollViewerWebApp.Services {
     public class DownloadClientManagerService : IAsyncDisposable {
         private readonly GalleryService _galleryService;
-        private readonly IConfiguration _appConfiguration;
+        private readonly IConfiguration _hostConfiguration;
         private readonly DownloadConfigurationService _downloadConfigurationService;
         private readonly DownloadService _downloadService;
         private readonly IJSRuntime _jsRuntime;
@@ -22,13 +22,13 @@ namespace HitomiScrollViewerWebApp.Services {
 
         public DownloadClientManagerService(
             GalleryService galleryService,
-            IConfiguration appConfiguration,
+            IConfiguration hostConfiguration,
             DownloadConfigurationService downloadConfigurationService,
             DownloadService downloadService,
             IJSRuntime jsRuntime
         ) {
             _galleryService = galleryService;
-            _appConfiguration = appConfiguration;
+            _hostConfiguration = hostConfiguration;
             _downloadConfigurationService = downloadConfigurationService;
             _downloadService = downloadService;
             _jsRuntime = jsRuntime;
@@ -37,7 +37,7 @@ namespace HitomiScrollViewerWebApp.Services {
 
         public void OpenHubConnection() {
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(_appConfiguration["ApiUrl"] + _appConfiguration["DownloadHubPath"])
+                .WithUrl(_hostConfiguration["ApiUrl"] + _hostConfiguration["DownloadHubPath"])
                 .Build();
             _hubConnection.On<IEnumerable<int>>("ReceiveSavedDownloads", OnReceiveSavedDownloads);
             _hubConnection.On<int>("ReceiveGalleryAvailable", OnReceiveGalleryAvailable);

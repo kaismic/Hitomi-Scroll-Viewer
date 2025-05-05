@@ -12,7 +12,7 @@ namespace HitomiScrollViewerWebApp.Pages {
     public partial class GalleryViewPage : IDisposable {
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] private IResizeListener ResizeListener { get; set; } = default!;
-        [Inject] private IConfiguration AppConfiguration { get; set; } = default!;
+        [Inject] private IConfiguration HostConfiguration { get; set; } = default!;
         [Inject] private GalleryService GalleryService { get; set; } = default!;
         [Inject] private ViewConfigurationService ViewConfigurationService { get; set; } = default!;
         [Parameter] public int GalleryId { get; set; }
@@ -48,7 +48,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         private bool _toolbarOpen = false;
 
         protected override void OnInitialized() {
-            _baseImageUrl = AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"] + "?galleryId=" + GalleryId;
+            _baseImageUrl = HostConfiguration["ApiUrl"] + HostConfiguration["ImageFilePath"] + "?galleryId=" + GalleryId;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender) {

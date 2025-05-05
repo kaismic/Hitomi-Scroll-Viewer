@@ -22,6 +22,7 @@ namespace HitomiScrollViewerWebApp.Pages {
         [Inject] ISnackbar Snackbar { get; set; } = default!;
         [Inject] IDialogService DialogService { get; set; } = default!;
         [Inject] IJSRuntime JsRuntime { get; set; } = default!;
+        [Inject] IConfiguration HostConfiguration { get; set; } = default!;
 
         private ObservableCollection<TagFilterDTO> _tagFilters = [];
         public ObservableCollection<TagFilterDTO> TagFilters {
@@ -121,6 +122,22 @@ namespace HitomiScrollViewerWebApp.Pages {
             SearchFilters = [.. SearchConfigurationService.Config.SearchFilters];
             if (AppConfigurationService.Config.IsFirstLaunch) {
                 _showWalkthrough = true;
+            } else if (AppConfigurationService.Config.LastUpdateCheckTime.AddDays(HostConfiguration.GetValue<int>("UpdateCheckInterval")) < DateTimeOffset.UtcNow) {
+                Version? recentVersion = await AppConfigurationService.GetRecentVersion();
+                if (recentVersion != null && recentVersion > AppConfigurationService.CURRENT_APP_VERSION) {
+                    Snackbar.Add(
+                        $"A new app version is available: {recentVersion.Major}.{recentVersion.Minor}.{recentVersion.Build}",
+                        Severity.Success,
+                        options => {
+                            options.ShowCloseIcon = true;
+                            options.CloseAfterNavigation = false;
+                            options.ShowTransitionDuration = 0;
+                            options.HideTransitionDuration = 500;
+                            options.VisibleStateDuration = 10000;
+                        }
+                    );
+                }
+                await AppConfigurationService.UpdateAutoUpdateCheckTime(DateTimeOffset.UtcNow);
             }
             _isInitialized = true;
             OnInitRenderComplete();
@@ -373,6 +390,7 @@ namespace HitomiScrollViewerWebApp.Pages {
                 _showWalkthrough = false;
                 AppConfigurationService.Config.IsFirstLaunch = false;
                 await AppConfigurationService.UpdateIsFirstLaunch(false);
+                await AppConfigurationService.UpdateAutoUpdateCheckTime(DateTimeOffset.UtcNow);
             }
         }
 

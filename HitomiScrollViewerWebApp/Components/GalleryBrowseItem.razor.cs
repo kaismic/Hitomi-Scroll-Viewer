@@ -10,7 +10,7 @@ namespace HitomiScrollViewerWebApp.Components {
     public partial class GalleryBrowseItem : ComponentBase, IDisposable {
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] private IResizeListener ResizeListener { get; set; } = default!;
-        [Inject] IConfiguration AppConfiguration { get; set; } = default!;
+        [Inject] IConfiguration HostConfiguration { get; set; } = default!;
         [Parameter, EditorRequired] public BrowseGalleryDTO Gallery { get; set; } = default!;
         [Parameter, EditorRequired] public bool IsEditing { get; set; }
         [Parameter, EditorRequired] public bool IsSelected { get; set; }
@@ -28,7 +28,7 @@ namespace HitomiScrollViewerWebApp.Components {
 
         protected override void OnInitialized() {
             _imageContainerId = "thumbnail-image-container-" + Gallery.Id;
-            _baseImageUrl = AppConfiguration["ApiUrl"] + AppConfiguration["ImageFilePath"] + "?galleryId=" + Gallery.Id;
+            _baseImageUrl = HostConfiguration["ApiUrl"] + HostConfiguration["ImageFilePath"] + "?galleryId=" + Gallery.Id;
             List<GalleryImageDTO> images = [.. Gallery.Images];
             _cumulativeImageAspectRatios = new double[images.Count];
             _cumulativeImageAspectRatios[0] = (double)images[0].Width / images[0].Height;

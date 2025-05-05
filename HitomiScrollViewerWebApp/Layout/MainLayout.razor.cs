@@ -17,7 +17,7 @@ namespace HitomiScrollViewerWebApp.Layout {
 
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public LanguageTypeService LanguageTypeService { get; set; } = default!;
-        [Inject] private IConfiguration AppConfiguration { get; set; } = default!;
+        [Inject] private IConfiguration HostConfiguration { get; set; } = default!;
 
         private MudThemeProvider _mudThemeProvider = null!;
         private readonly MudTheme _theme = new();
@@ -35,7 +35,7 @@ namespace HitomiScrollViewerWebApp.Layout {
             try {
                 _statusMessage = "Connecting to local server...";
                 _hubConnection = new HubConnectionBuilder()
-                    .WithUrl(AppConfiguration["ApiUrl"] + AppConfiguration["DbInitializeHubPath"])
+                    .WithUrl(HostConfiguration["ApiUrl"] + HostConfiguration["DbInitializeHubPath"])
                     .Build();
                 _hubConnection.On<DbInitStatus, string>("ReceiveStatus", UpdateStatus);
                 await _hubConnection.StartAsync();

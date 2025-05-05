@@ -160,7 +160,11 @@ namespace HitomiScrollViewerAPI.Services {
                 InvertKeyboardNavigation = false
             });
 
-            context.AppConfigurations.Add(new());
+            context.AppConfigurations.Add(new() {
+                IsFirstLaunch = true,
+                AppLanguage = "en-US",
+                LastUpdateCheckTime = DateTimeOffset.UtcNow,
+            });
 
             Console.WriteLine("  Complete");
             Console.Write("{0,-" + _totalLeftAlignment + "}", "Saving changes...");
