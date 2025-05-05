@@ -51,7 +51,7 @@ public class Program
             {
                 HttpClient httpClient = sp.GetRequiredService<HttpClient>();
                 httpClient.BaseAddress = new Uri(apiUrl + builder.Configuration["AppConfigPath"]);
-                return new AppConfigurationService(httpClient);
+                return new AppConfigurationService(httpClient, builder.Configuration);
             }
         );
         builder.Services.AddSingleton(sp =>
