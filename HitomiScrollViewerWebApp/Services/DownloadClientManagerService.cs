@@ -1,5 +1,4 @@
 ﻿using HitomiScrollViewerData;
-using HitomiScrollViewerWebApp.Components;
 using HitomiScrollViewerWebApp.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
@@ -10,24 +9,27 @@ namespace HitomiScrollViewerWebApp.Services {
         private readonly IConfiguration _hostConfiguration;
         private readonly DownloadConfigurationService _downloadConfigurationService;
         private readonly DownloadService _downloadService;
+        private readonly IJSRuntime _jsRuntime;
 
         private HubConnection? _hubConnection;
         public Dictionary<int, DownloadModel> Downloads { get; } = [];
 
         public bool IsHubConnectionOpen => _hubConnection?.State == HubConnectionState.Connected;
-        public Func<Task>? DownloadPageStateHasChanged { get; set; }
+        public Action DownloadPageStateHasChanged { get; set; } = () => { };
         private readonly DotNetObjectReference<DownloadClientManagerService> _dotNetObjectRef;
 
         public DownloadClientManagerService(
             GalleryService galleryService,
             IConfiguration hostConfiguration,
             DownloadConfigurationService downloadConfigurationService,
-            DownloadService downloadService
+            DownloadService downloadService,
+            IJSRuntime jsRuntime
         ) {
             _galleryService = galleryService;
             _hostConfiguration = hostConfiguration;
             _downloadConfigurationService = downloadConfigurationService;
             _downloadService = downloadService;
+            _jsRuntime = jsRuntime;
             _dotNetObjectRef = DotNetObjectReference.Create(this);
         }
 
@@ -48,59 +50,56 @@ namespace HitomiScrollViewerWebApp.Services {
             foreach (int id in galleryIds) {
                 Downloads.Add(id, new() { GalleryId = id });
             }
-            DownloadPageStateHasChanged?.Invoke();
+            DownloadPageStateHasChanged();
         }
 
         private async Task OnReceiveGalleryAvailable(int galleryId) {
             if (Downloads.TryGetValue(galleryId, out DownloadModel? model)) {
                 model.Gallery = await _galleryService.GetDownloadGalleryDTO(galleryId);
-                model.StateHasChanged?.Invoke();
+                model.StateHasChanged();
             }
         }
 
         private void OnReceiveProgress(int galleryId, int progress) {
             if (Downloads.TryGetValue(galleryId, out DownloadModel? model)) {
                 model.Progress = progress;
-                model.StateHasChanged?.Invoke();
+                model.StateHasChanged();
             }
         }
 
-        private void OnReceiveStatus(int galleryId, DownloadStatus status) {
+        private async Task OnReceiveStatus(int galleryId, DownloadStatus status) {
             if (Downloads.TryGetValue(galleryId, out DownloadModel? model)) {
                 model.Status = status;
                 switch (status) {
                     case DownloadStatus.Downloading:
                         model.StatusMessage = "Downloading...";
+                        model.WaitingResponse = false;
                         break;
                     case DownloadStatus.Completed:
                         model.StatusMessage = "Download completed.";
-                        // TODO
-                        //model.DeleteAnimationPaused = false;
-                        //_ = Task.Delay(DownloadItemView.DELETE_ANIMATION_DURATION * 1000).ContinueWith(_ => OnDeleteAnimationFinished(model.GalleryId));
-                        //_ = _jsRuntime.InvokeVoidAsync("startDeleteAnimation", DOWNLOAD_ITEM_ID_PREFIX + galleryId, galleryId, DELETE_ANIMATION_DURATION, _dotNetObjectRef);
+                        await _jsRuntime.InvokeVoidAsync("startDeleteAnimation", model.ElementId, galleryId, _dotNetObjectRef);
                         break;
                     case DownloadStatus.Paused:
                         model.StatusMessage = "Download paused.";
+                        model.WaitingResponse = false;
                         break;
                     case DownloadStatus.Deleted:
                         model.StatusMessage = "";
-                        // TODO
-                        //model.DeleteAnimationPaused = false;
-                        //_ = Task.Delay(DownloadItemView.DELETE_ANIMATION_DURATION * 1000).ContinueWith(_ => OnDeleteAnimationFinished(model.GalleryId));
-                        //_ = _jsRuntime.InvokeVoidAsync("startDeleteAnimation", DOWNLOAD_ITEM_ID_PREFIX + galleryId, galleryId, DELETE_ANIMATION_DURATION, _dotNetObjectRef);
+                        await _jsRuntime.InvokeVoidAsync("startDeleteAnimation", model.ElementId, galleryId, _dotNetObjectRef);
                         break;
                     case DownloadStatus.Failed:
                         throw new InvalidOperationException($"{DownloadStatus.Failed} must be handled by {nameof(OnReceiveFailure)}");
                 }
-                model.StateHasChanged?.Invoke();
             }
+            DownloadPageStateHasChanged();
         }
 
         private void OnReceiveFailure(int galleryId, string message) {
             if (Downloads.TryGetValue(galleryId, out DownloadModel? model)) {
+                model.WaitingResponse = false;
                 model.Status = DownloadStatus.Failed;
                 model.StatusMessage = message;
-                model.StateHasChanged?.Invoke();
+                model.StateHasChanged();
             }
         }
 
@@ -111,38 +110,36 @@ namespace HitomiScrollViewerWebApp.Services {
             }
         }
 
-        public void AddDownloads(IEnumerable<int> galleryIds) {
-            foreach (int id in galleryIds) {
-                if (Downloads.ContainsKey(id)) {
-                    continue;
-                }
-                Downloads.Add(id, new() { GalleryId = id });
-                if (_downloadConfigurationService.Config.UseParallelDownload) {
-                    _ = _downloadService.Start(id);
-                } else {
-                    _ = _downloadService.Create(id);
-                }
+        public async Task AddDownloads(IEnumerable<int> galleryIds) {
+            HashSet<int> ids = [.. galleryIds];
+            foreach (int id in ids) {
+                Downloads.TryAdd(id, new() { GalleryId = id });
+            }
+            if (_downloadConfigurationService.Config.UseParallelDownload) {
+                await _downloadService.StartDownloaders(ids);
+            } else {
+                await _downloadService.CreateDownloaders(ids);
             }
             if (!_downloadConfigurationService.Config.UseParallelDownload) {
                 DownloadModel? firstPaused = null;
                 foreach (DownloadModel d in Downloads.Values) {
                     if (d.Status == DownloadStatus.Downloading) {
                         return;
-                    } else if (firstPaused == null && d.Status == DownloadStatus.Paused) {
+                    } else if (firstPaused == null && d.Status == DownloadStatus.Paused && ids.Contains(d.GalleryId)) {
                         firstPaused = d;
                     }
                 }
                 // no currently downloading downloads so start the first paused download
                 if (firstPaused != null) {
-                    _ = _downloadService.Start(firstPaused.GalleryId);
+                    await _downloadService.StartDownloaders([firstPaused.GalleryId]);
                 }
             }
-            DownloadPageStateHasChanged?.Invoke();
         }
 
+        [JSInvokable]
         public void OnDeleteAnimationFinished(int galleryId) {
             Downloads.Remove(galleryId);
-            DownloadPageStateHasChanged?.Invoke();
+            DownloadPageStateHasChanged();
         }
 
         public async ValueTask DisposeAsync() {

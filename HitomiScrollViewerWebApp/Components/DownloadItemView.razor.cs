@@ -3,17 +3,12 @@ using HitomiScrollViewerWebApp.Models;
 using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using MudExtensions;
 
 namespace HitomiScrollViewerWebApp.Components {
     public partial class DownloadItemView : ComponentBase, IDisposable {
         [Inject] private DownloadService DownloadService { get; set; } = null!;
+        [Inject] private DownloadClientManagerService DownloadManager { get; set; } = default!;
         [Parameter, EditorRequired] public DownloadModel Model { get; set; } = null!;
-
-        private bool _isWaitingResponse = false;
-
-        public const int DELETE_ANIMATION_DURATION = 1; // seconds
-        public const string DOWNLOAD_ITEM_ID_PREFIX = "download-item-";
 
         private string ControlButtonIcon => Model.Status switch {
             DownloadStatus.Downloading => Icons.Material.Filled.Pause,
@@ -23,38 +18,31 @@ namespace HitomiScrollViewerWebApp.Components {
             _ => throw new NotImplementedException()
         };
 
-        protected override void OnAfterRender(bool firstRender) {
-            if (firstRender) {
-                Model.StateHasChanged = StateHasChanged;
-            }
+        protected override void OnInitialized() {
+            Model.StateHasChanged = StateHasChanged;
         }
 
         private async Task OnActionButtonClick() {
-            _isWaitingResponse = true;
-            StateHasChanged();
+            Model.WaitingResponse = true;
             switch (Model.Status) {
                 case DownloadStatus.Downloading:
-                    await DownloadService.Pause(Model.GalleryId);
+                    await DownloadService.PauseDownloaders([Model.GalleryId]);
                     break;
                 case DownloadStatus.Paused or DownloadStatus.Failed:
-                    await DownloadService.Start(Model.GalleryId);
+                    await DownloadService.StartDownloaders([Model.GalleryId]);
                     break;
                 case DownloadStatus.Completed or DownloadStatus.Deleted:
                     throw new InvalidOperationException("Action button should not be clickable");
             }
-            _isWaitingResponse = false;
         }
 
         private async Task OnDeleteButtonClick() {
-            _isWaitingResponse = true;
-            StateHasChanged();
-            await DownloadService.Delete(Model.GalleryId);
-            _isWaitingResponse = false;
+            Model.WaitingResponse = true;
+            await DownloadService.DeleteDownloaders([Model.GalleryId]);
         }
 
         public void Dispose() {
             GC.SuppressFinalize(this);
-            Model.StateHasChanged = null;
         }
     }
 }

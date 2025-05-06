@@ -2,23 +2,23 @@
 
 namespace HitomiScrollViewerWebApp.Services {
     public class DownloadService(HttpClient httpClient) {
-        public async Task<bool> Create(int galleryId) {
-            HttpResponseMessage response = await httpClient.PostAsync($"create", JsonContent.Create(galleryId));
+        public async Task<bool> CreateDownloaders(IEnumerable<int> galleryIds) {
+            HttpResponseMessage response = await httpClient.PostAsync($"create", JsonContent.Create(galleryIds));
             return response.IsSuccessStatusCode;
         }
         
-        public async Task<bool> Start(int galleryId) {
-            HttpResponseMessage response = await httpClient.PostAsync($"start", JsonContent.Create(galleryId));
+        public async Task<bool> StartDownloaders(IEnumerable<int> galleryIds) {
+            HttpResponseMessage response = await httpClient.PostAsync($"start", JsonContent.Create(galleryIds));
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> Pause(int galleryId) {
-            HttpResponseMessage response = await httpClient.PostAsync($"pause", JsonContent.Create(galleryId));
+        public async Task<bool> PauseDownloaders(IEnumerable<int> galleryIds) {
+            HttpResponseMessage response = await httpClient.PostAsync($"pause", JsonContent.Create(galleryIds));
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> Delete(int galleryId) {
-            HttpResponseMessage response = await httpClient.PostAsync($"delete", JsonContent.Create(galleryId));
+        public async Task<bool> DeleteDownloaders(IEnumerable<int> galleryIds) {
+            HttpResponseMessage response = await httpClient.PostAsync($"delete", JsonContent.Create(galleryIds));
             return response.IsSuccessStatusCode;
         }
     }

@@ -21,16 +21,16 @@ namespace HitomiScrollViewerWebApp.Components.Dialogs {
             })];
         }
 
-        private async Task AddSort(GallerySortDTO sort) {
+        private void AddSort(GallerySortDTO sort) {
             sort.IsActive = true;
             _dropContainer.Refresh();
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
 
-        private async Task RemoveSort(GallerySortDTO sort) {
+        private void RemoveSort(GallerySortDTO sort) {
             sort.IsActive = false;
             _dropContainer.Refresh();
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
 
         public void ExecuteAction() {

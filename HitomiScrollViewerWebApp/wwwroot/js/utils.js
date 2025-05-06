@@ -64,14 +64,16 @@ function getClientWidthById(id) {
     return element.clientWidth;
 }
 
-function startDeleteAnimation(elementId, galleryId, duration, dotNetObject) {
+function startDeleteAnimation(elementId, galleryId, dotNetObject) {
     const element = document.getElementById(elementId);
-    const keyframes = {
-        display: "none",
-        opacity: 0,
-    }
     if (element) {
-        const animation = element.animate(keyframes, duration)
+        const keyframes = [
+            { transform: "translateX(0%) scale(1)", opacity: "1", offset: 0 },
+            { transform: "translateX(0%) scale(0.8)", opacity: "0.6", offset: 0.1 },
+            { transform: "translateX(0%) scale(0.8)", opacity: "0.6", offset: 0.3 },
+            { transform: "translateX(400%) scale(0)", opacity: "0", offset: 1 },
+        ];
+        const animation = element.animate(keyframes, { duration: 2000, fill: "forwards", easing: "ease-out" })
         animation.finished.then(() => {
             dotNetObject.invokeMethodAsync("OnDeleteAnimationFinished", galleryId);
         })

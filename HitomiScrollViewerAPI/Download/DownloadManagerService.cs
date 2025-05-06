@@ -22,12 +22,23 @@ namespace HitomiScrollViewerAPI.Download {
         private readonly ConcurrentDictionary<int, Downloader> _liveDownloaders = [];
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-            ChannelReader<DownloadEventArgs> reader = eventBus.Subscribe();
+            await Task.Run(() => {
+                HitomiContext dbContext = new();
+                DownloadConfiguration config = dbContext.DownloadConfigurations.First();
+                foreach (int id in config.Downloads) {
+                    GetOrCreateDownloader(id, false);
+                }
+                dbContext.Dispose();
+            }, CancellationToken.None);
             try {
+                ChannelReader<DownloadEventArgs> reader = eventBus.Subscribe();
                 await foreach (DownloadEventArgs args in reader.ReadAllAsync(stoppingToken)) {
-                     switch (args.Action) {
+                    logger.LogInformation("Download Event Received: Ids = [{Ids}], Action = {Action}", string.Join(", ", args.GalleryIds), args.Action);
+                    switch (args.Action) {
                         case DownloadAction.Create: {
-                            GetOrCreateDownloader(args.GalleryId);
+                            foreach (int id in args.GalleryIds) {
+                                GetOrCreateDownloader(id, true);
+                            }
                             break;
                         }
                         case DownloadAction.Start: {
@@ -41,19 +52,24 @@ namespace HitomiScrollViewerAPI.Download {
                                     break;
                                 }
                             }
-                            Downloader downloader = GetOrCreateDownloader(args.GalleryId);
-                            _ = downloader.Start();
+                            foreach (int id in args.GalleryIds) {
+                                _ = GetOrCreateDownloader(id, true).Start();
+                            }
                             break;
                         }
                         case DownloadAction.Pause: {
-                            if (_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? value)) {
-                                await value.Pause();
+                            foreach (int id in args.GalleryIds) {
+                                if (_liveDownloaders.TryGetValue(id, out Downloader? value)) {
+                                    value.Pause();
+                                }
                             }
                             break;
                         }
                         case DownloadAction.Delete: {
-                            if (_liveDownloaders.TryGetValue(args.GalleryId, out Downloader? value)) {
-                                await value.Delete();
+                            foreach (int id in args.GalleryIds) {
+                                if (_liveDownloaders.TryGetValue(id, out Downloader? value)) {
+                                    value.Delete();
+                                }
                             }
                             break;
                         }
@@ -65,38 +81,45 @@ namespace HitomiScrollViewerAPI.Download {
             }
         }
 
-        private Downloader GetOrCreateDownloader(int galleryId) {
-            return _liveDownloaders.GetOrAdd(galleryId, (galleryId) => {
-                logger.LogInformation("{GalleryId}: Creating Downloader.", galleryId);
-                IServiceScope scope = serviceProvider.CreateScope();
-                using (HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>()) {
-                    ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
-                    if (!downloads.Contains(galleryId)) {
-                        downloads.Add(galleryId);
-                        dbContext.SaveChanges();
+        private Downloader GetOrCreateDownloader(int galleryId, bool addToDb) =>
+            _liveDownloaders.GetOrAdd(
+                galleryId,
+                (galleryId) => {
+                    logger.LogInformation("{GalleryId}: Creating Downloader.", galleryId);
+                    IServiceScope scope = serviceProvider.CreateScope();
+                    if (addToDb) {
+                        using HitomiContext dbContext = scope.ServiceProvider.GetRequiredService<HitomiContext>();
+                        ICollection<int> downloads = dbContext.DownloadConfigurations.First().Downloads;
+                        if (!downloads.Contains(galleryId)) {
+                            downloads.Add(galleryId);
+                            dbContext.SaveChanges();
+                        }
                     }
+                    return new(scope) {
+                        GalleryId = galleryId,
+                        DownloadManagerService = this
+                    };
                 }
-                return new(scope) {
-                    GalleryId = galleryId,
-                    DownloadManagerService = this,
-                    RemoveSelf = RemoveDownloader
-                };
-            });
-        }
+            );
 
-        private void RemoveDownloader(Downloader downloader) {
-            HitomiContext dbContext = new();
+        public void DeleteDownloader(int id, bool startNext) {
+            if (_liveDownloaders.TryRemove(id, out Downloader? downloader)) {
+                downloader.Dispose();
+            }
+            using HitomiContext dbContext = new();
             DownloadConfiguration config = dbContext.DownloadConfigurations.First();
-            ICollection<int> downloads = config.Downloads;
-            bool useParallelDownload = config.UseParallelDownload;
-            if (downloads.Contains(downloader.GalleryId)) {
-                downloads.Remove(downloader.GalleryId);
+            if (config.Downloads.Remove(id)) {
                 dbContext.SaveChanges();
             }
-            dbContext.Dispose();
-            _liveDownloaders.TryRemove(downloader.GalleryId, out _);
-            downloader.Dispose();
-            if (!useParallelDownload) {
+            if (startNext) {
+                StartNext();
+            }
+        }
+
+        private void StartNext() {
+            using HitomiContext dbContext = new();
+            DownloadConfiguration config = dbContext.DownloadConfigurations.First();
+            if (!config.UseParallelDownload) {
                 Downloader? firstPaused = null;
                 foreach (Downloader d in _liveDownloaders.Values) {
                     if (d.Status == DownloadStatus.Downloading) {
@@ -111,7 +134,7 @@ namespace HitomiScrollViewerAPI.Download {
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>

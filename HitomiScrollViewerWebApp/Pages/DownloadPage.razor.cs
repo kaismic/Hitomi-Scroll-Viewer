@@ -1,4 +1,5 @@
-﻿using HitomiScrollViewerWebApp.Services;
+﻿using HitomiScrollViewerWebApp.Layout;
+using HitomiScrollViewerWebApp.Services;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Text.RegularExpressions;
@@ -23,7 +24,7 @@ namespace HitomiScrollViewerWebApp.Pages {
 
         protected override async Task OnInitializedAsync() {
             await DownloadConfigurationService.Load();
-            DownloadManager.DownloadPageStateHasChanged = () => InvokeAsync(StateHasChanged);
+            DownloadManager.DownloadPageStateHasChanged = StateHasChanged;
             if (!DownloadManager.IsHubConnectionOpen) {
                 DownloadManager.OpenHubConnection();
             }
@@ -33,10 +34,10 @@ namespace HitomiScrollViewerWebApp.Pages {
         private void OnDownloadButtonClick() {
             MatchCollection matches = IdPatternRegex().Matches(_inputText);
             if (matches.Count == 0) {
-                Snackbar.Add("No valid IDs or URLs found in the input text.", Severity.Error);
+                Snackbar.Add("No valid IDs or URLs found in the input text.", Severity.Error, MainLayout.DEFAULT_SNACKBAR_OPTIONS);
                 return;
             }
-            DownloadManager.AddDownloads(matches.Select(m => int.Parse(m.Value)));
+            _ = DownloadManager.AddDownloads(matches.Select(m => int.Parse(m.Value)));
             _inputText = "";
         }
     }

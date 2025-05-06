@@ -3,48 +3,46 @@
 <PageTitle>Download</PageTitle>
 
 <div style="height: 100%;" class="d-flex gap-8 pa-8">
-    <div Style="width: 360px;">
+    <div Style="min-width: 360px;">
         <MudTextField FullWidth AutoGrow Immediate
                       Variant="Variant.Outlined"
                       T="string"
                       Lines="8"
                       @bind-Value="@_inputText"
                       Placeholder="Enter Gallery ID(s) or URL(s) here. e.g. 2058075, https://hitomi.la/..." />
-        <MudButton FullWidth
-                   Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   EndIcon="@Icons.Material.Filled.Download"
-                   Disabled="@(_inputText.Length == 0)"
-                   OnClick="@OnDownloadButtonClick"
-                   Class="mt-4">
-            Download
-        </MudButton>
+        <MudTooltip Text=@(DownloadManager.IsHubConnectionOpen ? null : "Try refreshing the browser")
+                    RootClass="mud-width-full">
+            <MudButton FullWidth
+                       Variant="Variant.Filled"
+                       Color="@Color.Primary"
+                       EndIcon="@Icons.Material.Filled.Download"
+                       Disabled="@(_inputText.Length == 0 || !DownloadManager.IsHubConnectionOpen)"
+                       OnClick="@OnDownloadButtonClick"
+                       Class="mt-4">
+                @(DownloadManager.IsHubConnectionOpen ? "Download" : "Unable to connect to server")
+            </MudButton>
+        </MudTooltip>
     </div>
     <MudDivider Vertical />
     <div style="flex: 1;" class="d-flex flex-column gap-4">
         <div class="d-flex gap-4 align-center">
             <MudSwitch T="bool"
-                       Label="Parallel Download"
+                       Label="Concurrent Download"
                        Value="@DownloadConfigurationService.Config.UseParallelDownload"
                        ValueChanged="@OnParallelDownloadChanged"
-                       Color="Color.Primary"/>
+                       Color="Color.Primary" />
+            <MudDivider Vertical FlexItem />
             <MudNumericField T="int"
-                             Label="Download Threads"
+                             Label="Threads per Download"
                              Variant="Variant.Outlined"
                              Min="1" Max="8"
                              Value="@DownloadConfigurationService.Config.ThreadNum"
                              ValueChanged="@OnThreadNumChanged" />
-            <MudSpacer />
-            <MudButton Color="Color.Primary"
-                       EndIcon="@Icons.Material.Filled.Pause"
-                       Disabled=@(DownloadManager.Downloads.Count == 0)>
-                Pause all downloads
-            </MudButton>
         </div>
-        <MudPaper Class="d-flex flex-column gap-4 overflow-y-auto pa-4"
+        <MudPaper Class="d-flex flex-column gap-4 overflow-y-auto overflow-x-hidden pa-4"
                   Style="flex: 1" Outlined>
             @foreach (DownloadModel model in DownloadManager.Downloads.Values) {
-                <DownloadItemView Model="@model" />
+                <DownloadItemView Model="@model" @key=@model />
             }
         </MudPaper>
     </div>
