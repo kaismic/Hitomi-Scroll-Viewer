@@ -1,10 +1,9 @@
 # Hitomi Scroll Viewer
 
-### Note (14/03/2025): Currently, the app is under the process of a complete re-design and refactoring for a new web browser-based app and I do NOT recommend downloading the currently released version (v2.1.1)
+### ~~(14 Mar 2025): Currently, the app is under the process of a complete re-design and refactoring for a new web browser-based app and I do NOT recommend downloading the currently released version (v2.1.1)~~
+### (07 May 2025): This repository is no longer maintained and has migrated to [here](https://github.com/kaismic/Hitorus)
 
 [![GitHub latest release](https://img.shields.io/github/release/kaismic/Hitomi-Scroll-Viewer.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
-[![GitHub downloads count latest release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Fkaismic%2FHitomi-Scroll-Viewer%2Freleases%2Flatest&query=%24.assets%5B%3F(%2Fmsixbundle%2F.test(%40.name))%5D.download_count&label=downloads%40latest&color=9BC913
-)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases/latest)
 [![GitHub downloads count total](https://img.shields.io/github/downloads/kaismic/Hitomi-Scroll-Viewer/total.svg?logo=github)](https://github.com/kaismic/Hitomi-Scroll-Viewer/releases)
 
 *Read this in other languages:* [한국어](README-ko-KR.md)
